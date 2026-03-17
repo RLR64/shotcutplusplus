@@ -16,12 +16,11 @@
  */
 
 #include "kokorodokijob.h"
-
 #include "Logger.h"
 #include "jobqueue.hpp"
 #include "jobs/dockerpulljob.h"
 #include "mainwindow.hpp"
-#include "qmltypes/qmlapplication.h"
+#include "qmltypes/qmlapplication.hpp"
 #include "settings.hpp"
 #include "util.hpp"
 

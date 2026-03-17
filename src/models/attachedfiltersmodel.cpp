@@ -16,14 +16,13 @@
  */
 
 #include "attachedfiltersmodel.h"
-
 #include "Logger.h"
 #include "commands/filtercommands.h"
 #include "controllers/filtercontroller.h"
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"
-#include "qmltypes/qmlapplication.h"
-#include "qmltypes/qmlmetadata.h"
+#include "qmltypes/qmlapplication.hpp"
+#include "qmltypes/qmlmetadata.hpp"
 #include "settings.hpp"
 #include "shotcut_mlt_properties.hpp"
 #include "util.hpp"

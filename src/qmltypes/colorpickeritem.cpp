@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "colorpickeritem.h"
+#include "colorpickeritem.hpp"
 #include "Logger.h"
 
 #include <QApplication>

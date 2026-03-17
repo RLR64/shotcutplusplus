@@ -17,7 +17,7 @@
 
 #include "settings.hpp"
 #include "Logger.h"
-#include "qmltypes/qmlapplication.h"
+#include "qmltypes/qmlapplication.hpp"
 
 #include <QApplication>
 #include <QAudioDevice>

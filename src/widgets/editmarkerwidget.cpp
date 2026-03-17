@@ -16,10 +16,9 @@
  */
 
 #include "editmarkerwidget.h"
-
 #include "mltcontroller.hpp"
-#include "qmltypes/colordialog.h"
-#include "qmltypes/qmlapplication.h"
+#include "qmltypes/colordialog.hpp"
+#include "qmltypes/qmlapplication.hpp"
 #include "settings.hpp"
 #include "util.hpp"
 #include "widgets/timespinbox.h"

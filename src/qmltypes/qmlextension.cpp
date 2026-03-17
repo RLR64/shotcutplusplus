@@ -15,10 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "qmlextension.h"
-
+#include "qmlextension.hpp"
 #include "Logger.h"
-#include "qmltypes/qmlutilities.h"
+#include "qmltypes/qmlutilities.hpp"
 #include "settings.hpp"
 
 #include <QDir>

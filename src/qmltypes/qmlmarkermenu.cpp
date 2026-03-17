@@ -15,11 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "qmlmarkermenu.h"
+#include "qmlmarkermenu.hpp"
 #include "actions.hpp"
 #include "docks/timelinedock.h"
-#include "qmltypes/colordialog.h"
-#include "qmltypes/qmlapplication.h"
+#include "qmltypes/colordialog.hpp"
+#include "qmltypes/qmlapplication.hpp"
 
 #include <QLabel>
 #include <QMenu>

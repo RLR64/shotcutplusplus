@@ -20,8 +20,8 @@
 #include "Logger.h"
 #include "dialogs/durationdialog.h"
 #include "mainwindow.hpp"
-#include "qmltypes/qmlfilter.h"
-#include "qmltypes/qmlutilities.h"
+#include "qmltypes/qmlfilter.hpp"
+#include "qmltypes/qmlutilities.hpp"
 #include "settings.hpp"
 #include "shotcut_mlt_properties.hpp"
 

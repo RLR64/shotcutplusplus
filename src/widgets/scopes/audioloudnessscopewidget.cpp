@@ -18,7 +18,7 @@
 #include "audioloudnessscopewidget.h"
 #include "Logger.h"
 #include "mltcontroller.hpp"
-#include "qmltypes/qmlutilities.h"
+#include "qmltypes/qmlutilities.hpp"
 #include "settings.hpp"
 
 #include <MltProfile.h>

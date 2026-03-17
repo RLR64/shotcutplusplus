@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "colorwheelitem.h"
+#include "colorwheelitem.hpp"
 #include "mainwindow.hpp"
 
 #include <QCursor>

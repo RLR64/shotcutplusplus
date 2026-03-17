@@ -15,8 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "qmlview.h"
-
+#include "qmlview.hpp"
 #include "Logger.h"
 
 #include <QWidget>

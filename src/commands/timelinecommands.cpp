@@ -16,14 +16,13 @@
  */
 
 #include "timelinecommands.h"
-
 #include "Logger.h"
 #include "controllers/filtercontroller.h"
 #include "dialogs/longuitask.h"
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"
 #include "proxymanager.hpp"
-#include "qmltypes/qmlmetadata.h"
+#include "qmltypes/qmlmetadata.hpp"
 #include "settings.hpp"
 #include "shotcut_mlt_properties.hpp"
 #include "util.hpp"

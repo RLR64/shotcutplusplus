@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2025 Meltytech, LLC
+ * Copyright (c) 2023 Meltytech, LLC
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,36 +15,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef COLORPICKERITEM_H
-#define COLORPICKERITEM_H
+#ifndef FONTDIALOG_HPP
+#define FONTDIALOG_HPP
 
-#include "widgets/screenselector.h"
-
-#include <QColor>
+#include <QFont>
 #include <QObject>
 
-class ColorPickerItem : public QObject
+class FontDialog : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(QFont selectedFont READ selectedFont WRITE setSelectedFont NOTIFY selectedFontChanged)
+
 public:
-    explicit ColorPickerItem(QObject *parent = 0);
+    FontDialog(QObject *parent = nullptr);
+
+    Q_INVOKABLE void open();
 
 signals:
-    void pickColor(QPoint initialPos = QPoint(-1, -1));
-    void colorPicked(const QColor &color);
-    void cancelled();
-
-private slots:
-    void screenSelected(const QRect &rect);
-    void grabColor();
-#if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
-    void grabColorDBus();
-    void gotColorResponse(uint response, const QVariantMap &results);
-#endif
+    void accepted();
+    void rejected();
+    void selectedFontChanged(const QFont &font);
 
 private:
-    ScreenSelector m_selector;
-    QRect m_selectedRect;
+    QFont m_font;
+
+    QFont selectedFont() const { return m_font; }
+    void setSelectedFont(const QFont &font);
 };
 
-#endif // COLORPICKERITEM_H
+#endif // FONTDIALOG_HPP

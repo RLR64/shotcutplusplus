@@ -19,9 +19,9 @@
 #include "Logger.h"
 #include "actions.hpp"
 #include "mainwindow.hpp"
-#include "qmltypes/qmlproducer.h"
-#include "qmltypes/qmlutilities.h"
-#include "qmltypes/qmlview.h"
+#include "qmltypes/qmlproducer.hpp"
+#include "qmltypes/qmlutilities.hpp"
+#include "qmltypes/qmlview.hpp"
 #include "settings.hpp"
 #include "widgets/docktoolbar.h"
 

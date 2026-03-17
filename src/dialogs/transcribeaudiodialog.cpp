@@ -21,7 +21,7 @@
 #include "docks/timelinedock.h"
 #include "mainwindow.hpp"
 #include "models/extensionmodel.h"
-#include "qmltypes/qmlapplication.h"
+#include "qmltypes/qmlapplication.hpp"
 #include "shotcut_mlt_properties.hpp"
 #include "util.hpp"
 

@@ -17,7 +17,7 @@
 
 #include "extensionmodel.h"
 #include "Logger.h"
-#include "qmltypes/qmlextension.h"
+#include "qmltypes/qmlextension.hpp"
 #include "settings.hpp"
 
 #include <QIcon>

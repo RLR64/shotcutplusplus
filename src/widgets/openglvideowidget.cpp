@@ -20,7 +20,6 @@
 
 #include "openglvideowidget.h"
 #include "mainwindow.hpp"
-
 #include "Logger.h"
 
 #include <utility>

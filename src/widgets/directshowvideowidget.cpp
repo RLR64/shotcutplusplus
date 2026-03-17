@@ -17,7 +17,6 @@
 
 #include "directshowvideowidget.h"
 #include "ui_directshowvideowidget.h"
-
 #include "Logger.hpp"
 #include "mltcontroller.hpp"
 #include "settings.hpp"

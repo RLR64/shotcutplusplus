@@ -15,32 +15,37 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QMLRICHTEXTMENU_H
-#define QMLRICHTEXTMENU_H
+#ifndef QMLMARKERMENU_HPP
+#define QMLMARKERMENU_HPP
 
 #include <QObject>
 
-class QmlRichTextMenu : public QObject
+class TimelineDock;
+
+class QmlMarkerMenu : public QObject
 {
     Q_OBJECT
 
+    Q_PROPERTY(QObject *target READ target WRITE setTarget NOTIFY targetChanged)
+    Q_PROPERTY(int index READ index WRITE setIndex NOTIFY indexChanged)
+
 public:
-    explicit QmlRichTextMenu(QObject *parent = 0);
+    explicit QmlMarkerMenu(QObject *parent = 0);
+    QObject *target();
+    void setTarget(QObject *timeline);
+    int index();
+    void setIndex(int index);
 
 signals:
-    void openTriggered();
-    void saveAsTriggered();
-    void undoTriggered();
-    void redoTriggered();
-    void cutTriggered();
-    void copyTriggered();
-    void pasteTriggered();
-    void pastePlainTriggered();
-    void selectAllTriggered();
-    void insertTableTriggered();
+    void targetChanged();
+    void indexChanged();
 
 public slots:
     void popup();
+
+private:
+    TimelineDock *m_timeline;
+    int m_index;
 };
 
-#endif // QMLRICHTEXTMENU_H
+#endif // QMLMARKERMENU_HPP

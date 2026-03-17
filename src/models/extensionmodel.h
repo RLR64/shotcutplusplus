@@ -18,7 +18,7 @@
 #ifndef EXTENSIONMODEL_H
 #define EXTENSIONMODEL_H
 
-#include "qmltypes/qmlextension.h"
+#include "qmltypes/qmlextension.hpp"
 
 #include <QAbstractItemModel>
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 Meltytech, LLC
+ * Copyright (c) 2014-2025 Meltytech, LLC
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,36 +15,36 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PROFILE_H
-#define PROFILE_H
+#ifndef COLORPICKERITEM_HPP
+#define COLORPICKERITEM_HPP
 
+#include "widgets/screenselector.h"
+
+#include <QColor>
 #include <QObject>
 
-class QmlProfile : public QObject
+class ColorPickerItem : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(int width READ width CONSTANT)
-    Q_PROPERTY(int height READ height CONSTANT)
-    Q_PROPERTY(double aspectRatio READ aspectRatio CONSTANT)
-    Q_PROPERTY(double fps READ fps CONSTANT)
-    Q_PROPERTY(double sar READ sar CONSTANT)
-
 public:
-    static QmlProfile &singleton();
-
-    int width() const;
-    int height() const;
-    double aspectRatio() const;
-    double fps() const;
-    double sar() const;
+    explicit ColorPickerItem(QObject *parent = 0);
 
 signals:
-    void profileChanged();
+    void pickColor(QPoint initialPos = QPoint(-1, -1));
+    void colorPicked(const QColor &color);
+    void cancelled();
+
+private slots:
+    void screenSelected(const QRect &rect);
+    void grabColor();
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
+    void grabColorDBus();
+    void gotColorResponse(uint response, const QVariantMap &results);
+#endif
 
 private:
-    explicit QmlProfile();
-    QmlProfile(QmlProfile const &);
-    void operator=(QmlProfile const &);
+    ScreenSelector m_selector;
+    QRect m_selectedRect;
 };
 
-#endif // PROFILE_H
+#endif // COLORPICKERITEM_HPP

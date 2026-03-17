@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef THUMBNAILPROVIDER_H
-#define THUMBNAILPROVIDER_H
+#ifndef THUMBNAILPROVIDER_HPP
+#define THUMBNAILPROVIDER_HPP
 
 #include <MltProducer.h>
 #include <MltProfile.h>
@@ -39,4 +39,4 @@ private:
     Mlt::Profile m_profile;
 };
 
-#endif // THUMBNAILPROVIDER_H
+#endif // THUMBNAILPROVIDER_HPP

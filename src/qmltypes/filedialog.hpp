@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef FILEDIALOG_H
-#define FILEDIALOG_H
+#ifndef FILEDIALOG_HPP
+#define FILEDIALOG_HPP
 
 #include <QFileDialog>
 
@@ -57,4 +57,4 @@ private:
     std::unique_ptr<QFileDialog> m_fileDialog;
 };
 
-#endif // FILEDIALOG_H
+#endif // FILEDIALOG_HPP

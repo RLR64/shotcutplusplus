@@ -15,12 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "qmlproducer.h"
+#include "qmlproducer.hpp"
 #include "Logger.h"
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"
 #include "models/audiolevelstask.h"
-#include "qmltypes/qmlapplication.h"
+#include "qmltypes/qmlapplication.hpp"
 #include "util.hpp"
 #include "widgets/glaxnimateproducerwidget.h"
 

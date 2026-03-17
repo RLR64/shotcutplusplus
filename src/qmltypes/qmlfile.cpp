@@ -15,8 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "qmlfile.h"
-
+#include "qmlfile.hpp"
 #include "Logger.hpp"
 
 #include <QDir>

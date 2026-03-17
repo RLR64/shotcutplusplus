@@ -22,7 +22,7 @@
 #include "dialogs/customprofiledialog.h"
 #include "dialogs/listselectiondialog.h"
 #include "mainwindow.hpp"
-#include "qmltypes/qmlapplication.h"
+#include "qmltypes/qmlapplication.hpp"
 #include "settings.hpp"
 #include "util.hpp"
 

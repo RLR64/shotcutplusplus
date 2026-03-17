@@ -16,7 +16,6 @@
  */
 
 #include "docktoolbar.h"
-
 #include "settings.hpp"
 
 #include <QPainter>

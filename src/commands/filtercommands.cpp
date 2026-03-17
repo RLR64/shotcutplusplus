@@ -21,7 +21,7 @@
 #include "controllers/filtercontroller.h"
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"
-#include "qmltypes/qmlapplication.h"
+#include "qmltypes/qmlapplication.hpp"
 
 class FindProducerParser : public Mlt::Parser
 {

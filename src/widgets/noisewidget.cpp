@@ -18,7 +18,6 @@
 
 #include "noisewidget.h"
 #include "ui_noisewidget.h"
-
 #include "shotcut_mlt_properties.hpp"
 #include "util.hpp"
 

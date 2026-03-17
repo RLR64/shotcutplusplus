@@ -19,7 +19,7 @@
 #define KEYFRAMESDOCK_H
 
 #include "models/keyframesmodel.h"
-#include "qmltypes/qmlfilter.h"
+#include "qmltypes/qmlfilter.hpp"
 
 #include <QDockWidget>
 #include <QQuickWidget>

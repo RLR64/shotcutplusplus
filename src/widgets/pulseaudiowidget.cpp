@@ -18,7 +18,6 @@
 
 #include "pulseaudiowidget.h"
 #include "ui_pulseaudiowidget.h"
-
 #include "shotcut_mlt_properties.hpp"
 #include "util.hpp"
 

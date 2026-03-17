@@ -16,7 +16,6 @@
  */
 
 #include "audiolevelstask.h"
-
 #include "Logger.h"
 #include "database.hpp"
 #include "mainwindow.hpp"

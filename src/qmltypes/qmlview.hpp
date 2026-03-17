@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2013-2014 Meltytech, LLC
- * Author: Dan Dennedy <dan@dennedy.org>
+ * Copyright (c) 2014-2021 Meltytech, LLC
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,29 +15,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QMLUTILITIES_H
-#define QMLUTILITIES_H
+#ifndef QMLVIEW_HPP
+#define QMLVIEW_HPP
 
-#include <QDir>
 #include <QObject>
 #include <QPoint>
-#include <QUrl>
 
-class QQmlContext;
-class QQmlEngine;
+class QWidget;
 
-class QmlUtilities : public QObject
+class QmlView : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit QmlUtilities(QObject *parent = 0);
+    explicit QmlView(QWidget *qview);
+    Q_INVOKABLE QPoint pos();
 
-    static void registerCommonTypes();
-    static void setCommonProperties(QQmlContext *context);
-    static QDir qmlDir();
-    static QUrl blankVui();
-    static QQmlEngine *sharedEngine();
+private:
+    QWidget *m_qview;
 };
 
-#endif // QMLUTILITIES_H
+#endif // QMLVIEW_HPP

@@ -103,27 +103,27 @@ add_executable(shotcut WIN32 MACOSX_BUNDLE
   openotherdialog.ui
   player.cpp player.hpp
   proxymanager.cpp proxymanager.hpp
-  qmltypes/colordialog.h qmltypes/colordialog.cpp
-  qmltypes/colorpickeritem.cpp qmltypes/colorpickeritem.h
-  qmltypes/colorwheelitem.cpp qmltypes/colorwheelitem.h
-  qmltypes/filedialog.h qmltypes/filedialog.cpp
-  qmltypes/fontdialog.h qmltypes/fontdialog.cpp
-  qmltypes/messagedialog.h qmltypes/messagedialog.cpp
-  qmltypes/qmlapplication.cpp qmltypes/qmlapplication.h
-  qmltypes/qmleditmenu.cpp qmltypes/qmleditmenu.h
-  qmltypes/qmlextension.cpp qmltypes/qmlextension.h
-  qmltypes/qmlfile.cpp qmltypes/qmlfile.h
-  qmltypes/qmlfilter.cpp qmltypes/qmlfilter.h
-  qmltypes/qmlmarkermenu.cpp qmltypes/qmlmarkermenu.h
-  qmltypes/qmlmetadata.cpp qmltypes/qmlmetadata.h
-  qmltypes/qmlproducer.cpp qmltypes/qmlproducer.h
-  qmltypes/qmlprofile.cpp qmltypes/qmlprofile.h
-  qmltypes/qmlrichtext.cpp qmltypes/qmlrichtext.h
-  qmltypes/qmlrichtextmenu.cpp qmltypes/qmlrichtextmenu.h
-  qmltypes/qmlutilities.cpp qmltypes/qmlutilities.h
-  qmltypes/qmlview.cpp qmltypes/qmlview.h
-  qmltypes/thumbnailprovider.cpp qmltypes/thumbnailprovider.h
-  qmltypes/timelineitems.cpp qmltypes/timelineitems.h
+  qmltypes/colordialog.cpp qmltypes/colordialog.hpp
+  qmltypes/colorpickeritem.cpp qmltypes/colorpickeritem.hpp
+  qmltypes/colorwheelitem.cpp qmltypes/colorwheelitem.hpp
+  qmltypes/filedialog.cpp qmltypes/filedialog.hpp
+  qmltypes/fontdialog.cpp qmltypes/fontdialog.hpp
+  qmltypes/messagedialog.cpp qmltypes/messagedialog.hpp
+  qmltypes/qmlapplication.cpp qmltypes/qmlapplication.hpp
+  qmltypes/qmleditmenu.cpp qmltypes/qmleditmenu.hpp
+  qmltypes/qmlextension.cpp qmltypes/qmlextension.hpp
+  qmltypes/qmlfile.cpp qmltypes/qmlfile.hpp
+  qmltypes/qmlfilter.cpp qmltypes/qmlfilter.hpp
+  qmltypes/qmlmarkermenu.cpp qmltypes/qmlmarkermenu.hpp
+  qmltypes/qmlmetadata.cpp qmltypes/qmlmetadata.hpp
+  qmltypes/qmlproducer.cpp qmltypes/qmlproducer.hpp
+  qmltypes/qmlprofile.cpp qmltypes/qmlprofile.hpp
+  qmltypes/qmlrichtext.cpp qmltypes/qmlrichtext.hpp
+  qmltypes/qmlrichtextmenu.cpp qmltypes/qmlrichtextmenu.hpp
+  qmltypes/qmlutilities.cpp qmltypes/qmlutilities.hpp
+  qmltypes/qmlview.cpp qmltypes/qmlview.hpp
+  qmltypes/thumbnailprovider.cpp qmltypes/thumbnailprovider.hpp
+  qmltypes/timelineitems.cpp qmltypes/timelineitems.hpp
   resources.qrc
   scrubbar.cpp scrubbar.hpp
   settings.cpp settings.hpp

@@ -16,11 +16,10 @@
  */
 
 #include "metadatamodel.h"
-
 #include "Logger.h"
 #include "controllers/filtercontroller.h"
 #include "mainwindow.hpp"
-#include "qmltypes/qmlmetadata.h"
+#include "qmltypes/qmlmetadata.hpp"
 #include "settings.hpp"
 
 #include <QClipboard>

@@ -15,10 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "messagedialog.h"
-
+#include "messagedialog.hpp"
 #include "Logger.h"
-#include "qmlapplication.h"
+#include "qmlapplication.hpp"
 
 #include <QApplication>
 

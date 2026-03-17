@@ -18,7 +18,7 @@
 #ifndef FIND_ANALYSIS_FILTER_PARSER_H
 #define FIND_ANALYSIS_FILTER_PARSER_H
 
-#include "qmltypes/qmlapplication.h"
+#include "qmltypes/qmlapplication.hpp"
 
 #include <Mlt.h>
 #include <QFile>

@@ -18,7 +18,7 @@
 #include "multifileexportdialog.h"
 #include "mainwindow.hpp"
 #include "proxymanager.hpp"
-#include "qmltypes/qmlapplication.h"
+#include "qmltypes/qmlapplication.hpp"
 #include "shotcut_mlt_properties.hpp"
 #include "util.hpp"
 

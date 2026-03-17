@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2022 Meltytech, LLC
+ * Copyright (c) 2013-2014 Meltytech, LLC
+ * Author: Dan Dennedy <dan@dennedy.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,37 +16,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QMLMARKERMENU_H
-#define QMLMARKERMENU_H
+#ifndef QMLUTILITIES_HPP
+#define QMLUTILITIES_HPP
 
+#include <QDir>
 #include <QObject>
+#include <QPoint>
+#include <QUrl>
 
-class TimelineDock;
+class QQmlContext;
+class QQmlEngine;
 
-class QmlMarkerMenu : public QObject
+class QmlUtilities : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(QObject *target READ target WRITE setTarget NOTIFY targetChanged)
-    Q_PROPERTY(int index READ index WRITE setIndex NOTIFY indexChanged)
-
 public:
-    explicit QmlMarkerMenu(QObject *parent = 0);
-    QObject *target();
-    void setTarget(QObject *timeline);
-    int index();
-    void setIndex(int index);
+    explicit QmlUtilities(QObject *parent = 0);
 
-signals:
-    void targetChanged();
-    void indexChanged();
-
-public slots:
-    void popup();
-
-private:
-    TimelineDock *m_timeline;
-    int m_index;
+    static void registerCommonTypes();
+    static void setCommonProperties(QQmlContext *context);
+    static QDir qmlDir();
+    static QUrl blankVui();
+    static QQmlEngine *sharedEngine();
 };
 
-#endif // QMLMARKERMENU_H
+#endif // QMLUTILITIES_HPP

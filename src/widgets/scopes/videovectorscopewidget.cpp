@@ -19,7 +19,7 @@
 
 #include "Logger.h"
 #include "mltcontroller.hpp"
-#include "qmltypes/qmlprofile.h"
+#include "qmltypes/qmlprofile.hpp"
 
 #include <QMouseEvent>
 #include <QPainter>

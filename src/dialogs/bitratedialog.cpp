@@ -16,7 +16,6 @@
  */
 
 #include "bitratedialog.h"
-
 #include "dialogs/saveimagedialog.h"
 #include "settings.hpp"
 

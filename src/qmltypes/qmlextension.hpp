@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QMLEXTENSION_H
-#define QMLEXTENSION_H
+#ifndef QMLEXTENSION_HPP
+#define QMLEXTENSION_HPP
 
 #include <QDir>
 #include <QObject>
@@ -97,4 +97,4 @@ private:
     QList<QmlExtensionFile *> m_files;
 };
 
-#endif // QMLEXTENSION_H
+#endif // QMLEXTENSION_HPP

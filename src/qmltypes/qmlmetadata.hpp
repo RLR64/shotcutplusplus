@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QMLMETADATA_H
-#define QMLMETADATA_H
+#ifndef QMLMETADATA_HPP
+#define QMLMETADATA_HPP
 
 #include <QDir>
 #include <QObject>
@@ -243,4 +243,4 @@ private:
     QString m_helpText;
 };
 
-#endif // QMLMETADATA_H
+#endif // QMLMETADATA_HPP

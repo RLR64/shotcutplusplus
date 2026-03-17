@@ -31,7 +31,7 @@
 **
 ****************************************************************************/
 
-#include "qmlrichtext.h"
+#include "qmlrichtext.hpp"
 
 #include "Logger.h"
 

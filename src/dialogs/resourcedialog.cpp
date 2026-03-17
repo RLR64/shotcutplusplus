@@ -18,7 +18,7 @@
 #include "resourcedialog.h"
 #include "Logger.h"
 #include "mltcontroller.hpp"
-#include "qmltypes/qmlapplication.h"
+#include "qmltypes/qmlapplication.hpp"
 #include "transcodedialog.h"
 #include "transcoder.hpp"
 #include "widgets/resourcewidget.h"

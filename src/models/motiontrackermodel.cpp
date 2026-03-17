@@ -18,7 +18,7 @@
 #include "motiontrackermodel.h"
 #include "Logger.h"
 #include "mltcontroller.hpp"
-#include "qmltypes/qmlfilter.h"
+#include "qmltypes/qmlfilter.hpp"
 #include "shotcut_mlt_properties.hpp"
 
 #include <Mlt.h>

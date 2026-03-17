@@ -19,7 +19,7 @@
 
 #include "Logger.h"
 #include "mainwindow.hpp"
-#include "qmltypes/qmlapplication.h"
+#include "qmltypes/qmlapplication.hpp"
 
 #include <QMessageBox>
 #include <QNetworkAccessManager>

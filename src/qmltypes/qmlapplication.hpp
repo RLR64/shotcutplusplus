@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QMLAPPLICATION_H
-#define QMLAPPLICATION_H
+#ifndef QMLAPPLICATION_HPP
+#define QMLAPPLICATION_HPP
 
 #include <QColor>
 #include <QDir>
@@ -80,4 +80,4 @@ private:
     void operator=(QmlApplication const &);
 };
 
-#endif // QMLAPPLICATION_H
+#endif // QMLAPPLICATION_HPP

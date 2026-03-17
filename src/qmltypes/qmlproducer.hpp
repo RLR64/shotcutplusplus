@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QMLPRODUCER_H
-#define QMLPRODUCER_H
+#ifndef QMLPRODUCER_HPP
+#define QMLPRODUCER_HPP
 
 #include "shotcut_mlt_properties.hpp"
 
@@ -99,4 +99,4 @@ private:
     int m_position;
 };
 
-#endif // QMLPRODUCER_H
+#endif // QMLPRODUCER_HPP

@@ -28,7 +28,7 @@
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"
 #include "models/markersmodel.h"
-#include "qmltypes/qmlfilter.h"
+#include "qmltypes/qmlfilter.hpp"
 #include "settings.hpp"
 #include "shotcut_mlt_properties.hpp"
 #include "util.hpp"

@@ -15,11 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "timelineitems.h"
+#include "timelineitems.hpp"
 #include "Logger.h"
 #include "mltcontroller.hpp"
 #include "models/multitrackmodel.h"
-#include "qmltypes/qmlproducer.h"
+#include "qmltypes/qmlproducer.hpp"
 #include "settings.hpp"
 
 #include <QLinearGradient>

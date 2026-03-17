@@ -18,7 +18,6 @@
 
 #include "plasmawidget.h"
 #include "ui_plasmawidget.h"
-
 #include "shotcut_mlt_properties.hpp"
 #include "util.hpp"
 

@@ -18,9 +18,9 @@
 #include "keyframesmodel.h"
 #include "Logger.h"
 #include "mltcontroller.hpp"
-#include "qmltypes/qmlapplication.h"
-#include "qmltypes/qmlfilter.h"
-#include "qmltypes/qmlmetadata.h"
+#include "qmltypes/qmlapplication.hpp"
+#include "qmltypes/qmlfilter.hpp"
+#include "qmltypes/qmlmetadata.hpp"
 
 #include <QRegularExpression>
 #include <QTimer>

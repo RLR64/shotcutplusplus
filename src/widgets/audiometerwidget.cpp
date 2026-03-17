@@ -16,7 +16,6 @@
  */
 
 #include "audiometerwidget.h"
-
 #include "iecscale.h"
 
 #include <QColor>

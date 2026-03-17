@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef COLORWHEELITEM_H
-#define COLORWHEELITEM_H
+#ifndef COLORWHEELITEM_HPP
+#define COLORWHEELITEM_HPP
 
 #include <QImage>
 #include <QQuickPaintedItem>
@@ -85,4 +85,4 @@ private:
     void updateCursor(const QPoint &pos);
 };
 
-#endif // COLORWHEELITEM_H
+#endif // COLORWHEELITEM_HPP

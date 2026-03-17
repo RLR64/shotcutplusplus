@@ -23,7 +23,7 @@
 #include "dialogs/listselectiondialog.h"
 #include "mainwindow.hpp"
 #include "models/playlistmodel.h"
-#include "qmltypes/qmlapplication.h"
+#include "qmltypes/qmlapplication.hpp"
 #include "settings.hpp"
 #include "util.hpp"
 #include "widgets/docktoolbar.h"

@@ -15,10 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef FILTER_H
-#define FILTER_H
+#ifndef FILTER_HPP
+#define FILTER_HPP
 
-#include "qmlmetadata.h"
+#include "qmlmetadata.hpp"
 
 #include <MltAnimation.h>
 #include <MltProducer.h>
@@ -193,4 +193,4 @@ private:
     QUuid m_uuid;
 };
 
-#endif // FILTER_H
+#endif // FILTER_HPP

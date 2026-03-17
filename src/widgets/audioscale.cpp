@@ -16,7 +16,6 @@
  */
 
 #include "audioscale.h"
-
 #include "Logger.h"
 #include "iecscale.h"
 

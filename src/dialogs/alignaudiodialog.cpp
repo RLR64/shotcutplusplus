@@ -24,7 +24,7 @@
 #include "mltcontroller.hpp"
 #include "models/multitrackmodel.h"
 #include "proxymanager.hpp"
-#include "qmltypes/qmlapplication.h"
+#include "qmltypes/qmlapplication.hpp"
 #include "settings.hpp"
 #include "shotcut_mlt_properties.hpp"
 #include "util.hpp"

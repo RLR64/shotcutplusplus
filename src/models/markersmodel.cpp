@@ -16,7 +16,6 @@
  */
 
 #include "markersmodel.h"
-
 #include "Logger.h"
 #include "commands/markercommands.h"
 #include "mainwindow.hpp"

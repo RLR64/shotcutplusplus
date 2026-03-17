@@ -17,7 +17,6 @@
 
 #include "htmlgeneratorwidget.h"
 #include "ui_htmlgeneratorwidget.h"
-
 #include "Logger.h"
 #include "dialogs/durationdialog.h"
 #include "htmlgenerator.hpp"
@@ -25,8 +24,8 @@
 #include "jobs/htmlgeneratorjob.h"
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"
-#include "qmltypes/colordialog.h"
-#include "qmltypes/qmlapplication.h"
+#include "qmltypes/colordialog.hpp"
+#include "qmltypes/qmlapplication.hpp"
 #include "settings.hpp"
 #include "shotcut_mlt_properties.hpp"
 #include "util.hpp"

@@ -15,40 +15,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QMLEDITMENU_H
-#define QMLEDITMENU_H
+#ifndef QMLRICHTEXTMENU_HPP
+#define QMLRICHTEXTMENU_HPP
 
 #include <QObject>
 
-class QmlEditMenu : public QObject
+class QmlRichTextMenu : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(bool showPastePlain MEMBER m_showPastePlain NOTIFY showPastePlainChanged)
-    Q_PROPERTY(bool readOnly MEMBER m_readOnly NOTIFY readOnlyChanged)
-
 public:
-    explicit QmlEditMenu(QObject *parent = 0);
+    explicit QmlRichTextMenu(QObject *parent = 0);
 
 signals:
-    void showPastePlainChanged();
-    void readOnlyChanged();
+    void openTriggered();
+    void saveAsTriggered();
     void undoTriggered();
     void redoTriggered();
     void cutTriggered();
     void copyTriggered();
     void pasteTriggered();
     void pastePlainTriggered();
-    void deleteTriggered();
-    void clearTriggered();
     void selectAllTriggered();
+    void insertTableTriggered();
 
 public slots:
     void popup();
-
-private:
-    bool m_showPastePlain;
-    bool m_readOnly;
 };
 
-#endif // QMLEDITMENU_H
+#endif // QMLRICHTEXTMENU_HPP

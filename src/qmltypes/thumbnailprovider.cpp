@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "thumbnailprovider.h"
+#include "thumbnailprovider.hpp"
 #include "Logger.h"
 #include "database.hpp"
 #include "mltcontroller.hpp"

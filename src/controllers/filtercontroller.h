@@ -21,8 +21,8 @@
 #include "models/attachedfiltersmodel.h"
 #include "models/metadatamodel.h"
 #include "models/motiontrackermodel.h"
-#include "qmltypes/qmlfilter.h"
-#include "qmltypes/qmlmetadata.h"
+#include "qmltypes/qmlfilter.hpp"
+#include "qmltypes/qmlmetadata.hpp"
 
 #include <QFuture>
 #include <QObject>

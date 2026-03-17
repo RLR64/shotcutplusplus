@@ -16,7 +16,6 @@
  */
 
 #include "resourcewidget.h"
-
 #include "Logger.h"
 #include "models/resourcemodel.h"
 

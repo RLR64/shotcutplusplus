@@ -17,7 +17,6 @@
 
 #include "isingwidget.h"
 #include "ui_isingwidget.h"
-
 #include "shotcut_mlt_properties.hpp"
 #include "util.hpp"
 

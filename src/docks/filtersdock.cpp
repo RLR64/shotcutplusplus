@@ -25,10 +25,10 @@
 #include "models/metadatamodel.h"
 #include "models/motiontrackermodel.h"
 #include "models/subtitlesmodel.h"
-#include "qmltypes/qmlapplication.h"
-#include "qmltypes/qmlfilter.h"
-#include "qmltypes/qmlutilities.h"
-#include "qmltypes/qmlview.h"
+#include "qmltypes/qmlapplication.hpp"
+#include "qmltypes/qmlfilter.hpp"
+#include "qmltypes/qmlutilities.hpp"
+#include "qmltypes/qmlview.hpp"
 
 #include <QAction>
 #include <QDir>

@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QMLFILE_H
-#define QMLFILE_H
+#ifndef QMLFILE_HPP
+#define QMLFILE_HPP
 
 #include <QFileSystemWatcher>
 #include <QObject>
@@ -55,4 +55,4 @@ private:
     std::unique_ptr<QFileSystemWatcher> m_watcher;
 };
 
-#endif // QMLFILE_H
+#endif // QMLFILE_HPP

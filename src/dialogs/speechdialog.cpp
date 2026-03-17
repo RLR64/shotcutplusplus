@@ -18,7 +18,7 @@
 #include "speechdialog.h"
 #include "Logger.h"
 #include "mltcontroller.hpp"
-#include "qmltypes/qmlapplication.h"
+#include "qmltypes/qmlapplication.hpp"
 #include "settings.hpp"
 
 #include <QComboBox>

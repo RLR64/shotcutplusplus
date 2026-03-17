@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "colordialog.h"
+#include "colordialog.hpp"
 #include "settings.hpp"
 #include "util.hpp"
 

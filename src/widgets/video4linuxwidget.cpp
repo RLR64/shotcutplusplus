@@ -17,7 +17,6 @@
 
 #include "video4linuxwidget.h"
 #include "ui_video4linuxwidget.h"
-
 #include "alsawidget.h"
 #include "mltcontroller.hpp"
 #include "pulseaudiowidget.h"

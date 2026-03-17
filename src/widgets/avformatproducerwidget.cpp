@@ -31,7 +31,7 @@
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"
 #include "proxymanager.hpp"
-#include "qmltypes/qmlapplication.h"
+#include "qmltypes/qmlapplication.hpp"
 #include "settings.hpp"
 #include "shotcut_mlt_properties.hpp"
 #include "spatialmedia/spatialmedia.hpp"

@@ -31,8 +31,8 @@
 **
 ****************************************************************************/
 
-#ifndef QMLRICHTEXT_H
-#define QMLRICHTEXT_H
+#ifndef QMLRICHTEXT_HPP
+#define QMLRICHTEXT_HPP
 
 #include <QQuickTextDocument>
 #include <QtGui/QTextCharFormat>
@@ -140,4 +140,4 @@ private:
     QString m_documentTitle;
 };
 
-#endif // QMLRICHTEXT_H
+#endif // QMLRICHTEXT_HPP

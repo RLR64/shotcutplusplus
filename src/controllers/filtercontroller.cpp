@@ -19,10 +19,10 @@
 
 #include "Logger.h"
 #include "mltcontroller.hpp"
-#include "qmltypes/qmlapplication.h"
-#include "qmltypes/qmlfilter.h"
-#include "qmltypes/qmlmetadata.h"
-#include "qmltypes/qmlutilities.h"
+#include "qmltypes/qmlapplication.hpp"
+#include "qmltypes/qmlfilter.hpp"
+#include "qmltypes/qmlmetadata.hpp"
+#include "qmltypes/qmlutilities.hpp"
 #include "settings.hpp"
 #include "shotcut_mlt_properties.hpp"
 

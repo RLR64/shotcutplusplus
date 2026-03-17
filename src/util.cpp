@@ -21,7 +21,7 @@
 #include "dialogs/transcodedialog.h"
 #include "mainwindow.hpp"
 #include "proxymanager.hpp"
-#include "qmltypes/qmlapplication.h"
+#include "qmltypes/qmlapplication.hpp"
 #include "settings.hpp"
 #include "shotcut_mlt_properties.hpp"
 #include "transcoder.hpp"
