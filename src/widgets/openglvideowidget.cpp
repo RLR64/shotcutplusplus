@@ -19,7 +19,7 @@
  */
 
 #include "openglvideowidget.h"
-#include "mainwindow.h"
+#include "mainwindow.hpp"
 
 #include "Logger.h"
 

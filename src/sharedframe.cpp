@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "sharedframe.h"
+#include "sharedframe.hpp"
 
 #include <mutex>
 
@@ -73,7 +73,7 @@ Mlt::Frame SharedFrame::clone(bool audio, bool image, bool alpha) const
     void *data = 0;
     void *copy = 0;
     int size = 0;
-    Mlt::Frame cloneFrame(mlt_frame_init(NULL));
+    Mlt::Frame cloneFrame(mlt_frame_init(nullptr));
     cloneFrame.inherit(d->f);
     cloneFrame.set("_producer", d->f.get_data("_producer", size), size);
     cloneFrame.set("movit.convert", d->f.get_data("movit.convert", size), size);

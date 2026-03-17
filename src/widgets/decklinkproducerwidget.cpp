@@ -18,9 +18,9 @@
 #include "decklinkproducerwidget.h"
 #include "ui_decklinkproducerwidget.h"
 
-#include "mltcontroller.h"
-#include "shotcut_mlt_properties.h"
-#include "util.h"
+#include "mltcontroller.hpp"
+#include "shotcut_mlt_properties.hpp"
+#include "util.hpp"
 
 DecklinkProducerWidget::DecklinkProducerWidget(QWidget *parent)
     : QWidget(parent)

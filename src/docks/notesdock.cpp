@@ -16,15 +16,14 @@
  */
 
 #include "notesdock.h"
-
 #include "Logger.h"
-#include "actions.h"
+#include "actions.hpp"
 #include "dialogs/speechdialog.h"
-#include "jobqueue.h"
+#include "jobqueue.hpp"
 #include "jobs/kokorodokijob.h"
-#include "mltcontroller.h"
-#include "settings.h"
-#include "util.h"
+#include "mltcontroller.hpp"
+#include "settings.hpp"
+#include "util.hpp"
 #include "widgets/docktoolbar.h"
 
 #include <QAction>

@@ -18,7 +18,7 @@
 #ifndef TEXTPRODUCERWIDGET_H
 #define TEXTPRODUCERWIDGET_H
 
-#include "abstractproducerwidget.h"
+#include "abstractproducerwidget.hpp"
 
 #include <QWidget>
 

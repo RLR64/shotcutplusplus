@@ -15,16 +15,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "mltcontroller.h"
-
+#include "mltcontroller.hpp"
 #include "Logger.h"
 #include "controllers/filtercontroller.h"
-#include "mainwindow.h"
-#include "proxymanager.h"
+#include "mainwindow.hpp"
+#include "proxymanager.hpp"
 #include "qmltypes/qmlmetadata.h"
-#include "settings.h"
-#include "shotcut_mlt_properties.h"
-#include "util.h"
+#include "settings.hpp"
+#include "shotcut_mlt_properties.hpp"
+#include "util.hpp"
 #if defined(Q_OS_WIN)
 #include "widgets/d3dvideowidget.h"
 #include "widgets/openglvideowidget.h"
@@ -53,7 +52,7 @@
 
 namespace Mlt {
 
-static constexpr int kThumbnailOutSeekFactor = 5;
+static constexpr int kThumbnailOutSeekFactor = {5};
 static Controller *instance = nullptr;
 const QString XmlMimeType("application/vnd.mlt+xml");
 static constexpr char kMltXmlPropertyName[] = "string";
@@ -504,7 +503,7 @@ bool Controller::saveXML(const QString &filename,
         c.set("root", root.toUtf8().constData());
         c.set("no_root", 1);
         c.set("title",
-              QStringLiteral("Shotcut version ").append(SHOTCUT_VERSION).toUtf8().constData());
+              QStringLiteral("Shotcut version 26.2").toUtf8().constData());
 
         // Save the consumer of this service so it can be restored.
         auto saveConsumer = mlt_service_consumer(s.consumer()->get_service());

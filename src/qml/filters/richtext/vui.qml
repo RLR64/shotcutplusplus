@@ -331,7 +331,6 @@ Shotcut.VuiBase {
                             icon.source: 'qrc:///icons/oxygen/32x32/actions/font.png'
                             onTriggered: {
                                 fontDialog.selectedFont.family = document.fontFamily;
-                                fontDialog.selectedFont.styleName = document.fontStyleName;
                                 fontDialog.selectedFont.pointSize = document.fontSize;
                                 fontDialog.selectedFont.underline = document.underline;
                                 fontDialog.selectedFont.strikeout = document.strikeout;
@@ -673,8 +672,7 @@ Shotcut.VuiBase {
         icon.source: 'qrc:///icons/oxygen/32x32/actions/font.png'
         onTriggered: {
             fontDialog.selectedFont.family = document.fontFamily;
-            fontDialog.selectedFont.styleName = document.fontStyleName;
-            fontDialog.selectedFont.pointSize = document.fontSize;
+            fontDialog.seelctedFont.pointSize = document.fontSize;
             fontDialog.selectedFont.underline = document.underline;
             fontDialog.selectedFont.strikeout = document.strikeout;
             fontDialog.open();
@@ -716,7 +714,6 @@ Shotcut.VuiBase {
 
         onAccepted: {
             document.fontFamily = selectedFont.family;
-            document.fontStyleName = selectedFont.styleName;
             document.fontSize = selectedFont.pointSize;
             document.underline = selectedFont.underline;
             document.strikeout = selectedFont.strikeout;

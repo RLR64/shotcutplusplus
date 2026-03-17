@@ -17,7 +17,7 @@
 
 #include "docktoolbar.h"
 
-#include "settings.h"
+#include "settings.hpp"
 
 #include <QPainter>
 #include <QStyle>

@@ -15,8 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "jobqueue.h"
-
+#include "jobqueue.hpp"
 #include "Logger.h"
 
 #include <QtWidgets>

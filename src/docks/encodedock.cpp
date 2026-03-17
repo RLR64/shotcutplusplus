@@ -23,15 +23,15 @@
 #include "dialogs/listselectiondialog.h"
 #include "dialogs/multifileexportdialog.h"
 #include "findanalysisfilterparser.h"
-#include "jobqueue.h"
+#include "jobqueue.hpp"
 #include "jobs/encodejob.h"
-#include "mainwindow.h"
-#include "mltcontroller.h"
+#include "mainwindow.hpp"
+#include "mltcontroller.hpp"
 #include "models/markersmodel.h"
 #include "qmltypes/qmlfilter.h"
-#include "settings.h"
-#include "shotcut_mlt_properties.h"
-#include "util.h"
+#include "settings.hpp"
+#include "shotcut_mlt_properties.hpp"
+#include "util.hpp"
 
 #include <QFileInfo>
 #include <QProcess>

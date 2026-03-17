@@ -17,7 +17,7 @@
 
 #include "longuitask.h"
 
-#include "mainwindow.h"
+#include "mainwindow.hpp"
 
 static QMutex g_mutex;
 static LongUiTask *g_instance = nullptr;

@@ -16,11 +16,10 @@
  */
 
 #include "ffmpegjob.h"
-
 #include "Logger.h"
 #include "dialogs/textviewerdialog.h"
-#include "mainwindow.h"
-#include "util.h"
+#include "mainwindow.hpp"
+#include "util.hpp"
 
 #include <MltProperties.h>
 #include <QAction>

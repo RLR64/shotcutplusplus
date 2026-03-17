@@ -15,15 +15,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "player.h"
-
+#include "player.hpp"
 #include "Logger.h"
-#include "actions.h"
+#include "actions.hpp"
 #include "dialogs/durationdialog.h"
-#include "mainwindow.h"
-#include "proxymanager.h"
-#include "scrubbar.h"
-#include "settings.h"
+#include "mainwindow.hpp"
+#include "proxymanager.hpp"
+#include "scrubbar.hpp"
+#include "settings.hpp"
 #include "widgets/audioscale.h"
 #include "widgets/docktoolbar.h"
 #include "widgets/newprojectfolder.h"
@@ -350,22 +349,6 @@ Player::Player(QWidget *parent)
     action = gridMenu->addAction(tr("EBU R95 Safe Areas"), this, SLOT(onGridToggled()));
     action->setCheckable(true);
     action->setData(95);
-    m_gridActionGroup->addAction(action);
-    action = gridMenu->addAction(tr("1:1 Frame"), this, SLOT(onGridToggled()));
-    action->setCheckable(true);
-    action->setData(20001);
-    m_gridActionGroup->addAction(action);
-    action = gridMenu->addAction(tr("16:9 Frame"), this, SLOT(onGridToggled()));
-    action->setCheckable(true);
-    action->setData(20169);
-    m_gridActionGroup->addAction(action);
-    action = gridMenu->addAction(tr("4:3 Frame"), this, SLOT(onGridToggled()));
-    action->setCheckable(true);
-    action->setData(20043);
-    m_gridActionGroup->addAction(action);
-    action = gridMenu->addAction(tr("9:16 Frame"), this, SLOT(onGridToggled()));
-    action->setCheckable(true);
-    action->setData(20916);
     m_gridActionGroup->addAction(action);
     gridMenu->addSeparator();
     action = gridMenu->addAction(tr("Snapping"));
@@ -969,10 +952,13 @@ void Player::onProducerOpened(bool play)
     if (play || (MLT.isClip() && !MLT.isClosedClip())) {
         if (m_pauseAfterOpen) {
             m_pauseAfterOpen = false;
+            QTimer::singleShot(500, this, [=]() {
+                if (MLT.producer())
+                    pause(MLT.producer()->position());
+            });
             if (MLT.isClip()) {
                 pause();
             } else {
-                pause(0);
                 MLT.producer()->seek(0);
             }
         } else {
@@ -1022,7 +1008,6 @@ void Player::onFrameDisplayed(const SharedFrame &frame)
     }
     if (position <= m_duration) {
         m_position = position;
-        m_requestedPosition = position;
         m_positionSpinner->blockSignals(true);
         m_positionSpinner->setValue(position);
         m_positionSpinner->blockSignals(false);

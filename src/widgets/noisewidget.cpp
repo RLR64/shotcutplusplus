@@ -19,8 +19,8 @@
 #include "noisewidget.h"
 #include "ui_noisewidget.h"
 
-#include "shotcut_mlt_properties.h"
-#include "util.h"
+#include "shotcut_mlt_properties.hpp"
+#include "util.hpp"
 
 NoiseWidget::NoiseWidget(QWidget *parent)
     : QWidget(parent)

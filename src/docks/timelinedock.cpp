@@ -18,8 +18,8 @@
 #include "timelinedock.h"
 
 #include "Logger.h"
-#include "abstractproducerwidget.h"
-#include "actions.h"
+#include "abstractproducerwidget.hpp"
+#include "actions.hpp"
 #include "commands/timelinecommands.h"
 #include "dialogs/alignaudiodialog.h"
 #include "dialogs/durationdialog.h"
@@ -27,17 +27,17 @@
 #include "dialogs/longuitask.h"
 #include "dialogs/resourcedialog.h"
 #include "jobs/meltjob.h"
-#include "mainwindow.h"
+#include "mainwindow.hpp"
 #include "models/audiolevelstask.h"
 #include "models/multitrackmodel.h"
-#include "proxymanager.h"
+#include "proxymanager.hpp"
 #include "qmltypes/qmlapplication.h"
 #include "qmltypes/qmlutilities.h"
 #include "qmltypes/qmlview.h"
 #include "qmltypes/thumbnailprovider.h"
-#include "settings.h"
-#include "shotcut_mlt_properties.h"
-#include "util.h"
+#include "settings.hpp"
+#include "shotcut_mlt_properties.hpp"
+#include "util.hpp"
 #include "widgets/blipproducerwidget.h"
 #include "widgets/colorbarswidget.h"
 #include "widgets/colorproducerwidget.h"
@@ -2432,8 +2432,6 @@ void TimelineDock::append(int trackIndex)
             Mlt::ClipInfo info;
             MAIN.undoStack()->beginMacro(tr("Append multiple to timeline"));
             Mlt::Controller::RefreshBlocker blocker;
-            QMap<int, Timeline::GroupCommand *> groupCommands;
-            QMap<int, int> groupClipCounts;
 
             // Loop over each source track
             for (int mltTrackIndex = 0; mltTrackIndex < tractor.count(); mltTrackIndex++) {
@@ -2456,27 +2454,8 @@ void TimelineDock::append(int trackIndex)
                                                                                MLT.XML(&clip),
                                                                                false,
                                                                                lastClip));
-                            // AppendCommand executed immediately; record group membership
-                            if (info.cut && info.cut->property_exists(kShotcutGroupProperty)) {
-                                int group = info.cut->get_int(kShotcutGroupProperty);
-                                int clipIndex = clipCount(trackIndex) - 1;
-                                if (clipIndex >= 0 && !isBlank(trackIndex, clipIndex)) {
-                                    if (!groupCommands.contains(group))
-                                        groupCommands[group] = new Timeline::GroupCommand(m_model);
-                                    groupCommands[group]->addToGroup(trackIndex, clipIndex);
-                                    groupClipCounts[group]++;
-                                }
-                            }
                         }
                     }
-                }
-            }
-            // Push a GroupCommand for each copied group that has at least two clips.
-            for (auto it = groupCommands.constBegin(); it != groupCommands.constEnd(); ++it) {
-                if (groupClipCounts.value(it.key()) >= 2) {
-                    MAIN.undoStack()->push(it.value());
-                } else {
-                    delete it.value();
                 }
             }
             MAIN.undoStack()->endMacro();
@@ -2732,15 +2711,6 @@ void TimelineDock::copy(int trackIndex, int clipIndex)
             if (info)
                 minStart = std::min(minStart, info->start);
         }
-        // Count how many selected clips belong to each group (only copy group
-        // membership when at least two members of the same group are selected).
-        QMap<int, int> groupCounts;
-        for (auto &a : selected) {
-            auto clipInfo = m_model.getClipInfo(a.y(), a.x());
-            if (clipInfo && clipInfo->cut && clipInfo->cut->property_exists(kShotcutGroupProperty)) {
-                groupCounts[clipInfo->cut->get_int(kShotcutGroupProperty)]++;
-            }
-        }
         // Create the tracks
         Mlt::Tractor tractor(MLT.profile());
         tractor.set(kShotcutXmlProperty, 1);
@@ -2777,17 +2747,6 @@ void TimelineDock::copy(int trackIndex, int clipIndex)
                         sourcePlaylist.clip_info(clipIndex, &info);
                         playlist.blank(info.start - prevEnd - 1);
                         playlist.append(*info.producer, info.frame_in, info.frame_out);
-                        // Carry the group property onto the new playlist entry's cut
-                        // so it is serialised into the clipboard XML.
-                        if (info.cut && info.cut->property_exists(kShotcutGroupProperty)) {
-                            int group = info.cut->get_int(kShotcutGroupProperty);
-                            if (groupCounts.value(group) >= 2) {
-                                QScopedPointer<Mlt::Producer> newCut(
-                                    playlist.get_clip(playlist.count() - 1));
-                                if (newCut)
-                                    newCut->set(kShotcutGroupProperty, group);
-                            }
-                        }
                         prevEnd = info.start + info.frame_count;
                     }
                 }
@@ -3591,14 +3550,10 @@ bool TimelineDock::trimClipIn(
     } else if (m_model.trimClipInValid(trackIndex, clipIndex, delta, ripple || roll)) {
         if (!m_undoHelper) {
             m_undoHelper.reset(new UndoHelper(m_model));
-            if (ripple) {
-                m_undoHelper->setHints(UndoHelper::RestoreTracks);
-            } else {
+            if (!ripple) {
                 m_undoHelper->setHints(UndoHelper::SkipXML);
-                // Store XML for only this clip so keyframes deleted during trim can be restored.
-                auto info = m_model.getClipInfo(trackIndex, clipIndex);
-                if (info && info->producer)
-                    m_undoHelper->storeXmlForClip(MLT.ensureHasUuid(*info->producer));
+            } else {
+                m_undoHelper->setHints(UndoHelper::RestoreTracks);
             }
             m_undoHelper->recordBeforeState();
         }
@@ -3724,23 +3679,6 @@ bool TimelineDock::trimClipOut(int trackIndex, int clipIndex, int delta, bool ri
     return true;
 }
 
-bool TimelineDock::resizeTransition(int trackIndex, int clipIndex, int delta)
-{
-    emit trimStarted();
-    if (m_model.resizeTransitionValid(trackIndex, clipIndex, delta)) {
-        m_model.trimTransitionIn(trackIndex, clipIndex - 1, -delta);
-        m_model.trimTransitionOut(trackIndex, clipIndex + 1, -delta);
-        m_trimDelta += delta;
-        m_trimCommand.reset(new Timeline::ResizeTransitionCommand(m_model,
-                                                                  trackIndex,
-                                                                  clipIndex,
-                                                                  m_trimDelta,
-                                                                  false));
-        return true;
-    }
-    return false;
-}
-
 void TimelineDock::insert(int trackIndex, int position, const QString &xml, bool seek)
 {
     // Validations
@@ -3826,41 +3764,6 @@ void TimelineDock::insert(int trackIndex, int position, const QString &xml, bool
                                                                                lastClip));
                         }
                     }
-                }
-            }
-            // Restore groups: find each inserted clip by position and create GroupCommands.
-            QMap<int, Timeline::GroupCommand *> groupCommands;
-            QMap<int, int> groupClipCounts;
-            for (int mltTrackIndex = 0; mltTrackIndex < tractor.count(); mltTrackIndex++) {
-                QScopedPointer<Mlt::Producer> srcTrack(tractor.track(mltTrackIndex));
-                if (srcTrack) {
-                    const auto destTrackIndex = currentTrack() + mltTrackIndex;
-                    Mlt::Playlist srcPlaylist(*srcTrack);
-                    Mlt::ClipInfo clipInfo;
-                    for (int mltClipIndex = 0; mltClipIndex < srcPlaylist.count(); mltClipIndex++) {
-                        if (!srcPlaylist.is_blank(mltClipIndex)) {
-                            srcPlaylist.clip_info(mltClipIndex, &clipInfo);
-                            if (clipInfo.cut
-                                && clipInfo.cut->property_exists(kShotcutGroupProperty)) {
-                                int group = clipInfo.cut->get_int(kShotcutGroupProperty);
-                                int destClipIndex = clipIndexAtPosition(destTrackIndex,
-                                                                        position + clipInfo.start);
-                                if (destClipIndex >= 0 && !isBlank(destTrackIndex, destClipIndex)) {
-                                    if (!groupCommands.contains(group))
-                                        groupCommands[group] = new Timeline::GroupCommand(m_model);
-                                    groupCommands[group]->addToGroup(destTrackIndex, destClipIndex);
-                                    groupClipCounts[group]++;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            for (auto it = groupCommands.constBegin(); it != groupCommands.constEnd(); ++it) {
-                if (groupClipCounts.value(it.key()) >= 2) {
-                    MAIN.undoStack()->push(it.value());
-                } else {
-                    delete it.value();
                 }
             }
             MAIN.undoStack()->endMacro();
@@ -4002,41 +3905,6 @@ void TimelineDock::overwrite(int trackIndex, int position, const QString &xml, b
                                                                false));
                         }
                     }
-                }
-            }
-            // Restore groups: find each overwritten clip by position and create GroupCommands.
-            QMap<int, Timeline::GroupCommand *> groupCommands;
-            QMap<int, int> groupClipCounts;
-            for (int mltTrackIndex = 0; mltTrackIndex < tractor.count(); mltTrackIndex++) {
-                QScopedPointer<Mlt::Producer> srcTrack(tractor.track(mltTrackIndex));
-                if (srcTrack) {
-                    const auto destTrackIndex = currentTrack() + mltTrackIndex;
-                    Mlt::Playlist srcPlaylist(*srcTrack);
-                    Mlt::ClipInfo clipInfo;
-                    for (int mltClipIndex = 0; mltClipIndex < srcPlaylist.count(); mltClipIndex++) {
-                        if (!srcPlaylist.is_blank(mltClipIndex)) {
-                            srcPlaylist.clip_info(mltClipIndex, &clipInfo);
-                            if (clipInfo.cut
-                                && clipInfo.cut->property_exists(kShotcutGroupProperty)) {
-                                int group = clipInfo.cut->get_int(kShotcutGroupProperty);
-                                int destClipIndex = clipIndexAtPosition(destTrackIndex,
-                                                                        position + clipInfo.start);
-                                if (destClipIndex >= 0 && !isBlank(destTrackIndex, destClipIndex)) {
-                                    if (!groupCommands.contains(group))
-                                        groupCommands[group] = new Timeline::GroupCommand(m_model);
-                                    groupCommands[group]->addToGroup(destTrackIndex, destClipIndex);
-                                    groupClipCounts[group]++;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            for (auto it = groupCommands.constBegin(); it != groupCommands.constEnd(); ++it) {
-                if (groupClipCounts.value(it.key()) >= 2) {
-                    MAIN.undoStack()->push(it.value());
-                } else {
-                    delete it.value();
                 }
             }
             MAIN.undoStack()->endMacro();

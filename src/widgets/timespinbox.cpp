@@ -16,9 +16,8 @@
  */
 
 #include "timespinbox.h"
-
-#include "mltcontroller.h"
-#include "settings.h"
+#include "mltcontroller.hpp"
+#include "settings.hpp"
 
 #include <QFontDatabase>
 #include <QGuiApplication>

@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SCREENCAPTURE_H
-#define SCREENCAPTURE_H
+#ifndef SCREENCAPTURE_HPP
+#define SCREENCAPTURE_HPP
 
 #include <memory>
 #include <QObject>
@@ -89,4 +89,4 @@ private:
     std::unique_ptr<WindowPicker> m_windowPicker;
 };
 
-#endif // SCREENCAPTURE_H
+#endif // SCREENCAPTURE_HPP

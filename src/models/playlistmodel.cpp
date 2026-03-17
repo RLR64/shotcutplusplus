@@ -16,14 +16,13 @@
  */
 
 #include "playlistmodel.h"
-
 #include "Logger.h"
-#include "database.h"
-#include "mainwindow.h"
-#include "proxymanager.h"
-#include "settings.h"
-#include "shotcut_mlt_properties.h"
-#include "util.h"
+#include "database.hpp"
+#include "mainwindow.hpp"
+#include "proxymanager.hpp"
+#include "settings.hpp"
+#include "shotcut_mlt_properties.hpp"
+#include "util.hpp"
 
 #include <QApplication>
 #include <QColor>

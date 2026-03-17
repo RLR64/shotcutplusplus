@@ -16,7 +16,6 @@
  */
 
 #include "audiowaveformscopewidget.h"
-
 #include "Logger.h"
 
 #include <QMouseEvent>

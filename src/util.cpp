@@ -15,20 +15,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "util.h"
-
-#include "FlatpakWrapperGenerator.h"
+#include "util.hpp"
+#include "FlatpakWrapperGenerator.hpp"
 #include "Logger.h"
 #include "dialogs/transcodedialog.h"
-#include "mainwindow.h"
-#include "proxymanager.h"
+#include "mainwindow.hpp"
+#include "proxymanager.hpp"
 #include "qmltypes/qmlapplication.h"
-#include "settings.h"
-#include "shotcut_mlt_properties.h"
-#include "transcoder.h"
+#include "settings.hpp"
+#include "shotcut_mlt_properties.hpp"
+#include "transcoder.hpp"
+
 #include <MltChain.h>
 #include <MltProducer.h>
-
 #include <QApplication>
 #include <QCamera>
 #include <QCameraDevice>
@@ -52,7 +51,7 @@
 #include <QWidget>
 #include <QtGlobal>
 
-#include <math.h>
+#include <cmath>
 #include <memory>
 
 #ifdef Q_OS_WIN
@@ -60,9 +59,9 @@
 #endif
 
 #ifdef Q_OS_MAC
-static constexpr unsigned int kLowMemoryThresholdPercent = 10U;
+static constexpr unsigned int kLowMemoryThresholdPercent = {10U};
 #else
-static constexpr unsigned int kLowMemoryThresholdKB = 256U * 1024U;
+static const unsigned int kLowMemoryThresholdKB = 256U * 1024U;
 #endif
 static const qint64 kFreeSpaceThesholdGB = 25LL * 1024 * 1024 * 1024;
 

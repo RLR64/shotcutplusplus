@@ -16,8 +16,7 @@
  */
 
 #include "qimagejob.h"
-
-#include "util.h"
+#include "util.hpp"
 
 #include <QImage>
 #include <QImageReader>

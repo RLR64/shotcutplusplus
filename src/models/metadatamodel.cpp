@@ -19,9 +19,9 @@
 
 #include "Logger.h"
 #include "controllers/filtercontroller.h"
-#include "mainwindow.h"
+#include "mainwindow.hpp"
 #include "qmltypes/qmlmetadata.h"
-#include "settings.h"
+#include "settings.hpp"
 
 #include <QClipboard>
 #include <QGuiApplication>

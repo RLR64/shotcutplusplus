@@ -17,11 +17,11 @@
 
 #include "editmarkerwidget.h"
 
-#include "mltcontroller.h"
+#include "mltcontroller.hpp"
 #include "qmltypes/colordialog.h"
 #include "qmltypes/qmlapplication.h"
-#include "settings.h"
-#include "util.h"
+#include "settings.hpp"
+#include "util.hpp"
 #include "widgets/timespinbox.h"
 
 #include <QDebug>

@@ -15,14 +15,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "videowidget.h"
+#include "videowidget.hpp"
 
 #include "Logger.h"
 #include "dialogs/durationdialog.h"
-#include "mainwindow.h"
+#include "mainwindow.hpp"
 #include "qmltypes/qmlfilter.h"
 #include "qmltypes/qmlutilities.h"
-#include "settings.h"
+#include "settings.hpp"
+#include "shotcut_mlt_properties.hpp"
 
 #include <Mlt.h>
 #include <QOffscreenSurface>

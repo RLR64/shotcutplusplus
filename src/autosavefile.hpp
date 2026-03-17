@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef AUTOSAVEFILE_H
-#define AUTOSAVEFILE_H
+#ifndef AUTOSAVEFILE_HPP
+#define AUTOSAVEFILE_HPP
 
 #include <QtCore/QFile>
 #include <QtCore/QString>
@@ -44,4 +44,4 @@ private:
     bool m_managedFileNameChanged;
 };
 
-#endif // AUTOSAVEFILE_H
+#endif // AUTOSAVEFILE_HPP

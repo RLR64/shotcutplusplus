@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SCRUBBAR_H
-#define SCRUBBAR_H
+#ifndef SCRUBBAR_HPP
+#define SCRUBBAR_HPP
 
 #include <QWidget>
 
@@ -77,4 +77,4 @@ private:
     void updatePixmap();
 };
 
-#endif // SCRUBBAR_H
+#endif // SCRUBBAR_HPP

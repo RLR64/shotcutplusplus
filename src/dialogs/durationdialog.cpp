@@ -16,7 +16,7 @@
  */
 
 #include "durationdialog.h"
-#include "mltcontroller.h"
+#include "mltcontroller.hpp"
 #include "ui_durationdialog.h"
 
 DurationDialog::DurationDialog(QWidget *parent)

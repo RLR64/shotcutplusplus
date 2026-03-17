@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2026 Meltytech, LLC
+ * Copyright (c) 2013-2025 Meltytech, LLC
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 #include "models/multitrackmodel.h"
 #include "models/subtitlesmodel.h"
 #include "models/subtitlesselectionmodel.h"
-#include "sharedframe.h"
+#include "sharedframe.hpp"
 
 #include <QApplication>
 #include <QDateTime>
@@ -160,7 +160,6 @@ public slots:
     bool trimClipIn(
         int trackIndex, int clipIndex, int oldClipIndex, int delta, bool ripple, bool roll);
     bool trimClipOut(int trackIndex, int clipIndex, int delta, bool ripple, bool roll);
-    bool resizeTransition(int trackIndex, int clipIndex, int delta);
     void insert(int trackIndex, int position = -1, const QString &xml = QString(), bool seek = true);
     void overwrite(int trackIndex,
                    int position = -1,

@@ -18,8 +18,7 @@
  */
 
 #include "screenselector.h"
-
-#include "mainwindow.h"
+#include "mainwindow.hpp"
 
 #include <QApplication>
 #include <QMouseEvent>

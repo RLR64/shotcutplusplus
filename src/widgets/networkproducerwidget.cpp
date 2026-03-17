@@ -18,8 +18,8 @@
 #include "networkproducerwidget.h"
 #include "ui_networkproducerwidget.h"
 
-#include "mltcontroller.h"
-#include "util.h"
+#include "mltcontroller.hpp"
+#include "util.hpp"
 
 NetworkProducerWidget::NetworkProducerWidget(QWidget *parent)
     : QWidget(parent)

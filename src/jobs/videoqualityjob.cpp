@@ -16,9 +16,8 @@
  */
 
 #include "videoqualityjob.h"
-
 #include "dialogs/textviewerdialog.h"
-#include "mainwindow.h"
+#include "mainwindow.hpp"
 
 #include <QAction>
 #include <QDesktopServices>

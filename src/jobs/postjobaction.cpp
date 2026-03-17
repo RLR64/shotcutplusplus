@@ -16,12 +16,11 @@
  */
 
 #include "postjobaction.h"
-
 #include "Logger.h"
 #include "docks/playlistdock.h"
 #include "docks/subtitlesdock.h"
-#include "mainwindow.h"
-#include "shotcut_mlt_properties.h"
+#include "mainwindow.hpp"
+#include "shotcut_mlt_properties.hpp"
 
 #include <QFile>
 

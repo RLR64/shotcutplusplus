@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2026 Meltytech, LLC
+ * Copyright (c) 2024 Meltytech, LLC
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,10 +16,9 @@
  */
 
 #include "whisperjob.h"
-
 #include "Logger.h"
 #include "dialogs/textviewerdialog.h"
-#include "mainwindow.h"
+#include "mainwindow.hpp"
 
 #include <QApplication>
 #include <QDir>
@@ -33,7 +32,6 @@ WhisperJob::WhisperJob(const QString &name,
                        const QString &lang,
                        bool translate,
                        int maxLength,
-                       bool useGpu,
                        QThread::Priority priority)
     : AbstractJob(name, priority)
     , m_iWavFile(iWavFile)
@@ -41,8 +39,6 @@ WhisperJob::WhisperJob(const QString &name,
     , m_lang(lang)
     , m_translate(translate)
     , m_maxLength(maxLength)
-    , m_useGpu(useGpu)
-    , m_retryingWithoutGpu(false)
     , m_previousPercent(0)
 {
     setTarget(oSrtFile);
@@ -63,17 +59,17 @@ void WhisperJob::start()
     QString of = m_oSrtFile;
     of.remove(".srt");
     QStringList args;
-    args << "--file" << m_iWavFile;
-    args << "--model" << modelPath;
-    args << "--language" << m_lang;
+    args << "-f" << m_iWavFile;
+    args << "-m" << modelPath;
+    args << "-l" << m_lang;
     if (m_translate) {
-        args << "--translate";
+        args << "-tr";
     }
-    args << "--output-file" << of;
-    args << "--output-srt";
-    args << "--print-progress";
-    args << "--max-len" << QString::number(m_maxLength);
-    args << "--split-on-word";
+    args << "-of" << of;
+    args << "-osrt";
+    args << "-pp";
+    args << "-ml" << QString::number(m_maxLength);
+    args << "-sow";
 
 #if QT_POINTER_SIZE == 4
     // Limit to 1 rendering thread on 32-bit process to reduce memory usage.
@@ -81,11 +77,7 @@ void WhisperJob::start()
 #else
     auto threadCount = qMax(1, QThread::idealThreadCount() - 1);
 #endif
-    args << "--threads" << QString::number(threadCount);
-
-    if (!m_useGpu || m_retryingWithoutGpu) {
-        args << "--no-gpu";
-    }
+    args << "-t" << QString::number(threadCount);
 
     LOG_DEBUG() << whisperPath + " " + args.join(' ');
     AbstractJob::start(whisperPath, args);
@@ -122,22 +114,4 @@ void WhisperJob::onReadyRead()
             appendToLog(msg);
         }
     } while (!msg.isEmpty());
-}
-
-void WhisperJob::onFinished(int exitCode, QProcess::ExitStatus exitStatus)
-{
-    if ((exitStatus != QProcess::NormalExit || exitCode != 0) && !stopped() && m_useGpu
-        && !m_retryingWithoutGpu) {
-        m_retryingWithoutGpu = true;
-        m_previousPercent = 0;
-        QString message(tr("Speech to Text job failed; trying again without GPU."));
-        MAIN.showStatusMessage(message);
-        appendToLog(message.append("\n"));
-        QTimer::singleShot(0, this, &WhisperJob::start);
-        return;
-    }
-    if (m_retryingWithoutGpu && exitStatus == QProcess::NormalExit && exitCode == 0) {
-        Settings.setWhisperUseGpu(false);
-    }
-    AbstractJob::onFinished(exitCode, exitStatus);
 }

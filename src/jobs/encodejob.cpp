@@ -15,18 +15,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Logger.h"
 #include "encodejob.h"
-
 #include "dialogs/listselectiondialog.h"
 #include "docks/timelinedock.h"
-#include "jobqueue.h"
+#include "jobqueue.hpp"
 #include "jobs/videoqualityjob.h"
-#include "mainwindow.h"
+#include "mainwindow.hpp"
 #include "qmltypes/qmlapplication.h"
 #include "qmltypes/qmlutilities.h"
-#include "settings.h"
-#include "spatialmedia/spatialmedia.h"
-#include "util.h"
+#include "settings.hpp"
+#include "spatialmedia/spatialmedia.hpp"
+#include "util.hpp"
 
 #include <QAction>
 #include <QDesktopServices>
@@ -38,8 +38,6 @@
 #include <QTemporaryFile>
 #include <QTextStream>
 #include <QUrl>
-
-#include "Logger.h"
 
 EncodeJob::EncodeJob(const QString &name,
                      const QString &xml,

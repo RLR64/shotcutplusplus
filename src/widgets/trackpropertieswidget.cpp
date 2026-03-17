@@ -17,11 +17,10 @@
 
 #include "trackpropertieswidget.h"
 #include "ui_trackpropertieswidget.h"
-
 #include "commands/timelinecommands.h"
-#include "mainwindow.h"
-#include "shotcut_mlt_properties.h"
-#include "util.h"
+#include "mainwindow.hpp"
+#include "shotcut_mlt_properties.hpp"
+#include "util.hpp"
 
 #include <Mlt.h>
 #include <QScopedPointer>

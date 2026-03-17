@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "rectangleselector.h"
+#include "rectangleselector.hpp"
 #include <QDebug>
 #include <QGuiApplication>
 #include <QKeyEvent>

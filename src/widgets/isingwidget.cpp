@@ -18,8 +18,8 @@
 #include "isingwidget.h"
 #include "ui_isingwidget.h"
 
-#include "shotcut_mlt_properties.h"
-#include "util.h"
+#include "shotcut_mlt_properties.hpp"
+#include "util.hpp"
 
 static const char *kParamTemperature = "0";
 static const char *kParamBorderGrowth = "1";

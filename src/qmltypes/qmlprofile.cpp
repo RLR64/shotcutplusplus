@@ -17,7 +17,7 @@
 
 #include "qmlprofile.h"
 
-#include "mltcontroller.h"
+#include "mltcontroller.hpp"
 
 QmlProfile &QmlProfile::singleton()
 {

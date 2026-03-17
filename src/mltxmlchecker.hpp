@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MLTXMLCHECKER_H
-#define MLTXMLCHECKER_H
+#ifndef MLTXMLCHECKER_HPP
+#define MLTXMLCHECKER_HPP
 
 #include <QFileInfo>
 #include <QPair>
@@ -121,4 +121,4 @@ private:
     bool m_isTractorTransition;
 };
 
-#endif // MLTXMLCHECKER_H
+#endif // MLTXMLCHECKER_HPP

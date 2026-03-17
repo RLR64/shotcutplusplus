@@ -18,7 +18,7 @@
 #ifndef IMAGEPRODUCERWIDGET_H
 #define IMAGEPRODUCERWIDGET_H
 
-#include "abstractproducerwidget.h"
+#include "abstractproducerwidget.hpp"
 
 #include <QWidget>
 

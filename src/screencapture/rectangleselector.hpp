@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef RECTANGLESELECTOR_H
-#define RECTANGLESELECTOR_H
+#ifndef RECTANGLESELECTOR_HPP
+#define RECTANGLESELECTOR_HPP
 
 #include <QPoint>
 #include <QRect>
@@ -49,4 +49,4 @@ private:
     bool m_selecting;
 };
 
-#endif // RECTANGLESELECTOR_H
+#endif // RECTANGLESELECTOR_HPP

@@ -16,7 +16,6 @@
  */
 
 #include "actionsdialog.h"
-
 #include "widgets/statuslabelwidget.h"
 
 #include <QAction>

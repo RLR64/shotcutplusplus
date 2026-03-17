@@ -15,15 +15,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "scrubbar.h"
+#include "scrubbar.hpp"
 
-#include "mltcontroller.h"
-#include "settings.h"
+#include "mltcontroller.hpp"
+#include "settings.hpp"
 
 #include <QToolTip>
 #include <QtWidgets>
 
-static constexpr int selectionSize = 14; /// the height of the top bar
+static constexpr int selectionSize = {14}; /// the height of the top bar
 #ifndef CLAMP
 #define CLAMP(x, min, max) (((x) < (min)) ? (min) : ((x) > (max)) ? (max) : (x))
 #endif

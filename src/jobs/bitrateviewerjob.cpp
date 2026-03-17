@@ -19,8 +19,8 @@
 
 #include "Logger.h"
 #include "dialogs/bitratedialog.h"
-#include "mainwindow.h"
-#include "util.h"
+#include "mainwindow.hpp"
+#include "util.hpp"
 
 #include <QJsonDocument>
 #include <QJsonObject>

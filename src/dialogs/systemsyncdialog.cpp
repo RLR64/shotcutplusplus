@@ -17,9 +17,8 @@
 
 #include "systemsyncdialog.h"
 #include "ui_systemsyncdialog.h"
-
-#include "mltcontroller.h"
-#include "settings.h"
+#include "mltcontroller.hpp"
+#include "settings.hpp"
 
 SystemSyncDialog::SystemSyncDialog(QWidget *parent)
     : QDialog(parent)

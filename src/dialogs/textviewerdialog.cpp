@@ -17,9 +17,8 @@
 
 #include "textviewerdialog.h"
 #include "ui_textviewerdialog.h"
-
-#include "settings.h"
-#include "util.h"
+#include "settings.hpp"
+#include "util.hpp"
 
 #include <QClipboard>
 #include <QFileDialog>

@@ -18,8 +18,8 @@
 #include "ConsoleAppender.h"
 #include "FileAppender.h"
 #include "Logger.h"
-#include "mainwindow.h"
-#include "settings.h"
+#include "mainwindow.hpp"
+#include "settings.hpp"
 
 #include <framework/mlt_log.h>
 #include <QCommandLineParser>
@@ -47,7 +47,7 @@ __declspec(dllexport) DWORD AmdPowerXpressRequestHighPerformance = 0x00000001;
 }
 #endif
 
-static constexpr int kMaxCacheCount = 5000;
+static constexpr int kMaxCacheCount = {5000};
 
 static void mlt_log_handler(void *service, int mlt_level, const char *format, va_list args)
 {
@@ -142,7 +142,7 @@ public:
         setOrganizationDomain("meltytech.com");
 #endif
         setApplicationName("Shotcut");
-        setApplicationVersion(SHOTCUT_VERSION);
+        setApplicationVersion("26.2");
 
         // Process command line options.
         QCommandLineParser parser;

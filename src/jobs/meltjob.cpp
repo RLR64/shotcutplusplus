@@ -19,9 +19,9 @@
 
 #include "Logger.h"
 #include "dialogs/textviewerdialog.h"
-#include "mainwindow.h"
-#include "settings.h"
-#include "util.h"
+#include "mainwindow.hpp"
+#include "settings.hpp"
+#include "util.hpp"
 
 #include <QAction>
 #include <QApplication>

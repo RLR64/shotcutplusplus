@@ -37,7 +37,7 @@
 #include "qmltypes/qmlrichtext.h"
 #include "qmltypes/qmlrichtextmenu.h"
 #include "qmltypes/timelineitems.h"
-#include "settings.h"
+#include "settings.hpp"
 
 #include <QCoreApplication>
 #include <QCursor>

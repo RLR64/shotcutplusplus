@@ -16,11 +16,10 @@
  */
 
 #include "audioloudnessscopewidget.h"
-
 #include "Logger.h"
-#include "mltcontroller.h"
+#include "mltcontroller.hpp"
 #include "qmltypes/qmlutilities.h"
-#include "settings.h"
+#include "settings.hpp"
 
 #include <MltProfile.h>
 #include <QDir>
@@ -34,7 +33,7 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
-#include <math.h>
+#include <cmath>
 
 static double onedec(double in)
 {

@@ -18,7 +18,7 @@
 #ifndef COLORPRODUCERWIDGET_H
 #define COLORPRODUCERWIDGET_H
 
-#include "abstractproducerwidget.h"
+#include "abstractproducerwidget.hpp"
 
 #include <QWidget>
 

@@ -18,10 +18,10 @@
 #include "htmlgeneratorjob.h"
 
 #include "Logger.h"
-#include "mainwindow.h"
-#include "mltcontroller.h"
-#include "settings.h"
-#include "shotcut_mlt_properties.h"
+#include "mainwindow.hpp"
+#include "mltcontroller.hpp"
+#include "settings.hpp"
+#include "shotcut_mlt_properties.hpp"
 #include "widgets/htmlgeneratorwidget.h"
 
 #include <QAction>

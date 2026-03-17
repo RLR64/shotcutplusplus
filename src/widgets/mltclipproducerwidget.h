@@ -18,7 +18,7 @@
 #ifndef MLTCLIPPRODUCERWIDGET_H
 #define MLTCLIPPRODUCERWIDGET_H
 
-#include "abstractproducerwidget.h"
+#include "abstractproducerwidget.hpp"
 
 #include <MltService.h>
 #include <QWidget>

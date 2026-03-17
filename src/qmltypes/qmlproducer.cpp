@@ -16,13 +16,12 @@
  */
 
 #include "qmlproducer.h"
-
 #include "Logger.h"
-#include "mainwindow.h"
-#include "mltcontroller.h"
+#include "mainwindow.hpp"
+#include "mltcontroller.hpp"
 #include "models/audiolevelstask.h"
 #include "qmltypes/qmlapplication.h"
-#include "util.h"
+#include "util.hpp"
 #include "widgets/glaxnimateproducerwidget.h"
 
 static const char *kWidthProperty = "meta.media.width";

@@ -23,7 +23,7 @@
 #include <QVector>
 #include <QWidget>
 
-#include <stdint.h>
+//#include <cstdint>
 
 class QLabel;
 

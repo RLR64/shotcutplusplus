@@ -18,7 +18,7 @@
 #include "actionsmodel.h"
 
 #include "Logger.h"
-#include "actions.h"
+#include "actions.hpp"
 
 #include <QAction>
 #include <QFont>

@@ -16,9 +16,8 @@
  */
 
 #include "qmlmetadata.h"
-
 #include "Logger.h"
-#include "settings.h"
+#include "settings.hpp"
 
 #include <QVersionNumber>
 

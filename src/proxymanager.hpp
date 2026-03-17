@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PROXYMANAGER_H
-#define PROXYMANAGER_H
+#ifndef PROXYMANAGER_HPP
+#define PROXYMANAGER_HPP
 
 #include <QDir>
 #include <QPoint>
@@ -60,4 +60,4 @@ public:
     static QString DJIProxyFilePath(const QString &resource);
 };
 
-#endif // PROXYMANAGER_H
+#endif // PROXYMANAGER_HPP

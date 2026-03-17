@@ -18,10 +18,10 @@
 #include "textproducerwidget.h"
 #include "ui_textproducerwidget.h"
 
-#include "mltcontroller.h"
+#include "mltcontroller.hpp"
 #include "qmltypes/colordialog.h"
-#include "shotcut_mlt_properties.h"
-#include "util.h"
+#include "shotcut_mlt_properties.hpp"
+#include "util.hpp"
 
 #include <QFileInfo>
 #include <QFont>

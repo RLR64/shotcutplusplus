@@ -16,11 +16,11 @@
  */
 
 #include "filtercommands.h"
-
+#include "shotcut_mlt_properties.hpp"
 #include "Logger.h"
 #include "controllers/filtercontroller.h"
-#include "mainwindow.h"
-#include "mltcontroller.h"
+#include "mainwindow.hpp"
+#include "mltcontroller.hpp"
 #include "qmltypes/qmlapplication.h"
 
 class FindProducerParser : public Mlt::Parser

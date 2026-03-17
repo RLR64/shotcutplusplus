@@ -19,7 +19,7 @@
 #ifndef VIDEO4LINUXWIDGET_H
 #define VIDEO4LINUXWIDGET_H
 
-#include "abstractproducerwidget.h"
+#include "abstractproducerwidget.hpp"
 
 #include <QWidget>
 

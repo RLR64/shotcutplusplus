@@ -16,8 +16,8 @@
  */
 
 #include "colordialog.h"
-#include "settings.h"
-#include "util.h"
+#include "settings.hpp"
+#include "util.hpp"
 
 #include <QColorDialog>
 

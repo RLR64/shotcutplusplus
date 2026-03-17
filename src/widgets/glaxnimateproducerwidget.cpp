@@ -20,14 +20,14 @@
 
 #include "Logger.h"
 #include "dialogs/longuitask.h"
-#include "mainwindow.h"
-#include "mltcontroller.h"
+#include "mainwindow.hpp"
+#include "mltcontroller.hpp"
 #include "qmltypes/colordialog.h"
 #include "qmltypes/qmlapplication.h"
-#include "settings.h"
-#include "shotcut_mlt_properties.h"
-#include "util.h"
-#include "videowidget.h"
+#include "settings.hpp"
+#include "shotcut_mlt_properties.hpp"
+#include "util.hpp"
+#include "videowidget.hpp"
 
 #include <QFile>
 #include <QFileInfo>

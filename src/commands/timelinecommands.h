@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2026 Meltytech, LLC
+ * Copyright (c) 2013-2025 Meltytech, LLC
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,7 +41,6 @@ enum {
     UndoIdFadeOut,
     UndoIdTrimTransitionIn,
     UndoIdTrimTransitionOut,
-    UndoIdResizeTransition,
     UndoIdAddTransitionByTrimIn,
     UndoIdAddTransitionByTrimOut,
     UndoIdUpdate,
@@ -348,7 +347,6 @@ private:
     bool m_redo;
     int m_earliestStart;
     QList<Markers::Marker> m_markers;
-    int m_markersModified;
 };
 
 class TrimCommand : public QUndoCommand
@@ -571,30 +569,6 @@ private:
     int m_clipIndex;
     int m_delta;
     bool m_notify;
-    bool m_redo;
-};
-
-class ResizeTransitionCommand : public TrimCommand
-{
-public:
-    ResizeTransitionCommand(MultitrackModel &model,
-                            int trackIndex,
-                            int transitionIndex,
-                            int delta,
-                            bool redo = true,
-                            QUndoCommand *parent = 0);
-    void redo();
-    void undo();
-
-protected:
-    int id() const { return UndoIdResizeTransition; }
-    bool mergeWith(const QUndoCommand *other);
-
-private:
-    MultitrackModel &m_model;
-    int m_trackIndex;
-    int m_transitionIndex;
-    int m_delta;
     bool m_redo;
 };
 

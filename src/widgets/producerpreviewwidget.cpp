@@ -18,9 +18,9 @@
 #include "widgets/producerpreviewwidget.h"
 
 #include "Logger.h"
-#include "mltcontroller.h"
-#include "scrubbar.h"
-#include "settings.h"
+#include "mltcontroller.hpp"
+#include "scrubbar.hpp"
+#include "settings.hpp"
 
 #include <QHBoxLayout>
 #include <QImage>

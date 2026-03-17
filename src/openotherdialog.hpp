@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef OPENOTHERDIALOG_H
-#define OPENOTHERDIALOG_H
+#ifndef OPENOTHERDIALOG_HPP
+#define OPENOTHERDIALOG_HPP
 
 #include <QDialog>
 #include <QTreeWidgetItem>
@@ -55,4 +55,4 @@ private:
     void selectTreeWidget(const QString &s);
 };
 
-#endif // OPENOTHERDIALOG_H
+#endif // OPENOTHERDIALOG_HPP

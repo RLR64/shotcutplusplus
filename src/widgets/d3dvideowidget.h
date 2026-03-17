@@ -18,7 +18,7 @@
 #ifndef D3DVIDEOWIDGET_H
 #define D3DVIDEOWIDGET_H
 
-#include "videowidget.h"
+#include "videowidget.hpp"
 
 #include <d3d11.h>
 #include <directxmath.h>

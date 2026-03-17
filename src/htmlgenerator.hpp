@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef HTMLGENERATOR_H
-#define HTMLGENERATOR_H
+#ifndef HTMLGENERATOR_HPP
+#define HTMLGENERATOR_HPP
 
 #include <QElapsedTimer>
 #include <QJsonObject>
@@ -84,4 +84,4 @@ private:
     QElapsedTimer m_animationElapsed;
 };
 
-#endif // HTMLGENERATOR_H
+#endif // HTMLGENERATOR_HPP

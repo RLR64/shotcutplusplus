@@ -18,9 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "autosavefile.h"
-
-#include "settings.h"
+#include "autosavefile.hpp"
+#include "settings.hpp"
 
 #include <QtCore/QCryptographicHash>
 #include <QtCore/QDir>

@@ -19,8 +19,8 @@
 #include "pulseaudiowidget.h"
 #include "ui_pulseaudiowidget.h"
 
-#include "shotcut_mlt_properties.h"
-#include "util.h"
+#include "shotcut_mlt_properties.hpp"
+#include "util.hpp"
 
 PulseAudioWidget::PulseAudioWidget(QWidget *parent)
     : QWidget(parent)

@@ -18,7 +18,7 @@
 #ifndef HTMLGENERATORWIDGET_H
 #define HTMLGENERATORWIDGET_H
 
-#include "abstractproducerwidget.h"
+#include "abstractproducerwidget.hpp"
 
 #include <QWidget>
 

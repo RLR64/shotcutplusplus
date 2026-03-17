@@ -19,8 +19,8 @@
 #include "plasmawidget.h"
 #include "ui_plasmawidget.h"
 
-#include "shotcut_mlt_properties.h"
-#include "util.h"
+#include "shotcut_mlt_properties.hpp"
+#include "util.hpp"
 
 static const char *kParamSpeed1 = "0";
 static const char *kParamSpeed2 = "1";

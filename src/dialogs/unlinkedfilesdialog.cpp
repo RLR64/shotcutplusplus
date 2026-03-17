@@ -17,10 +17,10 @@
 
 #include "unlinkedfilesdialog.h"
 #include "Logger.h"
-#include "mltxmlchecker.h"
-#include "settings.h"
+#include "mltxmlchecker.hpp"
+#include "settings.hpp"
 #include "ui_unlinkedfilesdialog.h"
-#include "util.h"
+#include "util.hpp"
 
 #include <QFileDialog>
 #include <QStringList>

@@ -16,12 +16,11 @@
  */
 
 #include "multifileexportdialog.h"
-
-#include "mainwindow.h"
-#include "proxymanager.h"
+#include "mainwindow.hpp"
+#include "proxymanager.hpp"
 #include "qmltypes/qmlapplication.h"
-#include "shotcut_mlt_properties.h"
-#include "util.h"
+#include "shotcut_mlt_properties.hpp"
+#include "util.hpp"
 
 #include <MltPlaylist.h>
 #include <QComboBox>

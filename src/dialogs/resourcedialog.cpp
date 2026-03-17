@@ -16,12 +16,11 @@
  */
 
 #include "resourcedialog.h"
-
 #include "Logger.h"
-#include "mltcontroller.h"
+#include "mltcontroller.hpp"
 #include "qmltypes/qmlapplication.h"
 #include "transcodedialog.h"
-#include "transcoder.h"
+#include "transcoder.hpp"
 #include "widgets/resourcewidget.h"
 
 #include <QDialogButtonBox>

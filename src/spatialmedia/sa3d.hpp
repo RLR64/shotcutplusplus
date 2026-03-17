@@ -1,4 +1,6 @@
-#pragma once
+#ifndef SA3D_H
+#define SA3D_H
+
 /*****************************************************************************
  * 
  * Copyright 2016 Varol Okan. All rights reserved.
@@ -24,13 +26,13 @@
  * https://github.com/google/spatial-media/docs/spatial-audio-rfc.md
  */
 
-#include <stdint.h>
+#include "box.hpp"
+
+#include <cstdint>
 
 #include <fstream>
 #include <vector>
 #include <map>
-
-#include "box.h"
 
 class SA3DBox : public Box
 {
@@ -71,3 +73,4 @@ class SA3DBox : public Box
     std::vector<uint32_t> m_ChannelMap;
 };
 
+#endif // SA3D_H

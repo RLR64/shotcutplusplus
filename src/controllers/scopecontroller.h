@@ -18,7 +18,7 @@
 #ifndef SCOPECONTROLLER_H
 #define SCOPECONTROLLER_H
 
-#include "sharedframe.h"
+#include "sharedframe.hpp"
 
 #include <QObject>
 #include <QString>

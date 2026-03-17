@@ -19,7 +19,7 @@
 #ifndef NETWORKPRODUCERWIDGET_H
 #define NETWORKPRODUCERWIDGET_H
 
-#include "abstractproducerwidget.h"
+#include "abstractproducerwidget.hpp"
 
 #include <QWidget>
 

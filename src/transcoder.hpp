@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TRANSCODER_H
-#define TRANSCODER_H
+#ifndef TRANSCODER_HPP
+#define TRANSCODER_HPP
 
 #include "dialogs/transcodedialog.h"
 
@@ -42,4 +42,4 @@ private:
     QList<Mlt::Producer> m_producers;
 };
 
-#endif // TRANSCODER_H
+#endif // TRANSCODER_HPP

@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SCREENCAPTURETOOLBAR_H
-#define SCREENCAPTURETOOLBAR_H
+#ifndef TOOLBARWIDGET_HPP
+#define TOOLBARWIDGET_HPP
 
 #include <QCheckBox>
 #include <QPushButton>
@@ -52,4 +52,4 @@ private:
     QCheckBox *m_audioCheckbox;
 };
 
-#endif // TOOLBARWIDGET_H
+#endif // TOOLBARWIDGET_HPP

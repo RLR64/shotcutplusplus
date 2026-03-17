@@ -15,11 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "screencapture.h"
+#include "screencapture.hpp"
 #include "Logger.h"
-#include "rectangleselector.h"
-#include "toolbarwidget.h"
-#include "windowpicker.h"
+#include "rectangleselector.hpp"
+#include "toolbarwidget.hpp"
+#include "windowpicker.hpp"
 #include <QApplication>
 #include <QFileInfo>
 #include <QProcess>

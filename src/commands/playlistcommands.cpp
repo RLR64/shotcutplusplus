@@ -18,9 +18,9 @@
 #include "playlistcommands.h"
 #include "Logger.h"
 #include "docks/playlistdock.h"
-#include "mainwindow.h"
-#include "mltcontroller.h"
-#include "shotcut_mlt_properties.h"
+#include "mainwindow.hpp"
+#include "mltcontroller.hpp"
+#include "shotcut_mlt_properties.hpp"
 
 #include <QTreeWidget>
 

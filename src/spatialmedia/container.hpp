@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CONTAINER_HPP
+#define CONTAINER_HPP
+
 /*****************************************************************************
  * 
  * Copyright 2016 Varol Okan. All rights reserved.
@@ -20,9 +22,9 @@
 // MPEG processing classes.
 //
 // Functions for loading MPEG files and manipulating boxes.
-#include <vector>
+#include "box.hpp"
 
-#include "box.h"
+#include <vector>
 
 class Container : public Box
 {
@@ -45,3 +47,4 @@ public:
     std::vector<Box *> m_listContents;
 };
 
+#endif // CONTAINER_HPP

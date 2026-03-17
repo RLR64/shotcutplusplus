@@ -20,13 +20,13 @@
 #include "Logger.h"
 #include "controllers/filtercontroller.h"
 #include "dialogs/longuitask.h"
-#include "mainwindow.h"
-#include "mltcontroller.h"
-#include "proxymanager.h"
+#include "mainwindow.hpp"
+#include "mltcontroller.hpp"
+#include "proxymanager.hpp"
 #include "qmltypes/qmlmetadata.h"
-#include "settings.h"
-#include "shotcut_mlt_properties.h"
-#include "util.h"
+#include "settings.hpp"
+#include "shotcut_mlt_properties.hpp"
+#include "util.hpp"
 
 #include <QMetaObject>
 
@@ -641,7 +641,6 @@ MoveClipCommand::MoveClipCommand(
     , m_undoHelper(m_model)
     , m_redo(false)
     , m_earliestStart(-1)
-    , m_markersModified(-1)
 {
     m_undoHelper.setHints(UndoHelper::RestoreTracks);
     m_undoHelper.recordBeforeState();
@@ -811,7 +810,7 @@ void MoveClipCommand::undo()
 {
     LOG_DEBUG() << "track delta" << m_trackDelta;
     m_undoHelper.undoChanges();
-    if (m_rippleMarkers && m_markersModified == 1) {
+    if (m_rippleMarkers && m_markers.size() >= 0) {
         m_markersModel.doReplace(m_markers);
     }
     // Select the original clips after undo.
@@ -853,12 +852,12 @@ bool MoveClipCommand::mergeWith(const QUndoCommand *other)
 
 void MoveClipCommand::redoMarkers()
 {
-    if (m_rippleMarkers && m_markersModified == -1) {
-        m_markersModified = 0;
+    if (m_rippleMarkers) {
         if (m_markers.size() == 0) {
             m_markers = m_markersModel.getMarkers();
         }
         QList<Markers::Marker> newMarkers = m_markers;
+        bool markersModified = false;
         for (int i = 0; i < newMarkers.size(); i++) {
             Markers::Marker &marker = newMarkers[i];
             if (marker.start < m_earliestStart
@@ -866,15 +865,15 @@ void MoveClipCommand::redoMarkers()
                 // This marker is in the overwritten segment. Remove it
                 newMarkers.removeAt(i);
                 i--;
-                m_markersModified = 1;
+                markersModified = true;
             } else if (marker.start >= m_earliestStart) {
                 // This marker is after the start of the moved segment. Shift it with the move
                 marker.start += m_positionDelta;
                 marker.end += m_positionDelta;
-                m_markersModified = 1;
+                markersModified = true;
             }
         }
-        if (m_markersModified == 1) {
+        if (markersModified) {
             m_markersModel.doReplace(newMarkers);
         } else {
             m_markers.clear();
@@ -951,17 +950,9 @@ void TrimClipInCommand::redo()
                     << m_delta;
         m_undoHelper.reset(new UndoHelper(m_model));
         if (m_ripple) {
-            m_undoHelper->setHints(UndoHelper::RestoreTracks);
-        } else {
             m_undoHelper->setHints(UndoHelper::SkipXML);
-            auto mlt_index = m_model.trackList().at(m_trackIndex).mlt_index;
-            QScopedPointer<Mlt::Producer> track(m_model.tractor()->track(mlt_index));
-            if (track && track->is_valid()) {
-                Mlt::Playlist playlist(*track);
-                QScopedPointer<Mlt::Producer> clip(playlist.get_clip(m_clipIndex));
-                if (clip && clip->is_valid())
-                    m_undoHelper->storeXmlForClip(MLT.ensureHasUuid(clip->parent()));
-            }
+        } else {
+            m_undoHelper->setHints(UndoHelper::RestoreTracks);
         }
         m_undoHelper->recordBeforeState();
         m_model.trimClipIn(m_trackIndex, m_clipIndex, m_delta, m_ripple, m_rippleAllTracks);
@@ -1416,54 +1407,6 @@ bool TrimTransitionOutCommand::mergeWith(const QUndoCommand *other)
     if (that->id() != id() || that->m_trackIndex != m_trackIndex || that->m_clipIndex != m_clipIndex)
         return false;
     m_delta += static_cast<const TrimTransitionOutCommand *>(other)->m_delta;
-    return true;
-}
-
-ResizeTransitionCommand::ResizeTransitionCommand(MultitrackModel &model,
-                                                 int trackIndex,
-                                                 int transitionIndex,
-                                                 int delta,
-                                                 bool redo,
-                                                 QUndoCommand *parent)
-    : TrimCommand(parent)
-    , m_model(model)
-    , m_trackIndex(qBound(0, trackIndex, qMax(model.rowCount() - 1, 0)))
-    , m_transitionIndex(transitionIndex)
-    , m_delta(delta)
-    , m_redo(redo)
-{
-    setText(QObject::tr("Resize transition"));
-}
-
-void ResizeTransitionCommand::redo()
-{
-    if (m_redo) {
-        MAIN.filterController()->pauseUndoTracking();
-        m_model.trimTransitionIn(m_trackIndex, m_transitionIndex - 1, -m_delta);
-        m_model.trimTransitionOut(m_trackIndex, m_transitionIndex + 1, -m_delta);
-        MAIN.filterController()->resumeUndoTracking();
-    } else {
-        m_redo = true;
-    }
-}
-
-void ResizeTransitionCommand::undo()
-{
-    LOG_DEBUG() << "trackIndex" << m_trackIndex << "transitionIndex" << m_transitionIndex << "delta"
-                << m_delta;
-    MAIN.filterController()->pauseUndoTracking();
-    m_model.trimTransitionIn(m_trackIndex, m_transitionIndex - 1, m_delta);
-    m_model.trimTransitionOut(m_trackIndex, m_transitionIndex + 1, m_delta);
-    MAIN.filterController()->resumeUndoTracking();
-}
-
-bool ResizeTransitionCommand::mergeWith(const QUndoCommand *other)
-{
-    const ResizeTransitionCommand *that = static_cast<const ResizeTransitionCommand *>(other);
-    if (that->id() != id() || that->m_trackIndex != m_trackIndex
-        || that->m_transitionIndex != m_transitionIndex)
-        return false;
-    m_delta += that->m_delta;
     return true;
 }
 

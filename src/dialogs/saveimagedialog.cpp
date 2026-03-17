@@ -16,11 +16,10 @@
  */
 
 #include "saveimagedialog.h"
-
 #include "Logger.h"
-#include "mltcontroller.h"
-#include "settings.h"
-#include "util.h"
+#include "mltcontroller.hpp"
+#include "settings.hpp"
+#include "util.hpp"
 
 #include <QDebug>
 #include <QtMath>

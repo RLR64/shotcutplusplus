@@ -16,10 +16,9 @@
  */
 
 #include "audiopeakmeterscopewidget.h"
-
 #include "Logger.h"
-#include "mltcontroller.h"
-#include "settings.h"
+#include "mltcontroller.hpp"
+#include "settings.hpp"
 #include "widgets/audiometerwidget.h"
 
 #include <QVBoxLayout>

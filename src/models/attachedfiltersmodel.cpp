@@ -20,13 +20,13 @@
 #include "Logger.h"
 #include "commands/filtercommands.h"
 #include "controllers/filtercontroller.h"
-#include "mainwindow.h"
-#include "mltcontroller.h"
+#include "mainwindow.hpp"
+#include "mltcontroller.hpp"
 #include "qmltypes/qmlapplication.h"
 #include "qmltypes/qmlmetadata.h"
-#include "settings.h"
-#include "shotcut_mlt_properties.h"
-#include "util.h"
+#include "settings.hpp"
+#include "shotcut_mlt_properties.hpp"
+#include "util.hpp"
 
 #include <MltChain.h>
 #include <MltLink.h>

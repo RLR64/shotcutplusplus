@@ -18,8 +18,8 @@
 #ifndef GLAXNIMATEPRODUCERWIDGET_H
 #define GLAXNIMATEPRODUCERWIDGET_H
 
-#include "abstractproducerwidget.h"
-#include "sharedframe.h"
+#include "abstractproducerwidget.hpp"
+#include "sharedframe.hpp"
 
 #include <QDataStream>
 #include <QLocalServer>

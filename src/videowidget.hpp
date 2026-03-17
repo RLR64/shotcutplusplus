@@ -15,12 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef VIDEOWIDGET_H
-#define VIDEOWIDGET_H
+#ifndef VIDEOWIDGET_HPP
+#define VIDEOWIDGET_HPP
 
-#include "mltcontroller.h"
-#include "settings.h"
-#include "sharedframe.h"
+#include "mltcontroller.hpp"
+#include "settings.hpp"
+#include "sharedframe.hpp"
 
 #include <QMutex>
 #include <QQuickWidget>
@@ -210,4 +210,4 @@ private:
 
 } // namespace Mlt
 
-#endif
+#endif // VIDEOWIDGET_HPP

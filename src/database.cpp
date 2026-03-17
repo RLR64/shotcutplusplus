@@ -15,11 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "database.h"
-
-#include "Logger.h"
+#include "database.hpp"
+#include "Logger.hpp"
 #include "dialogs/longuitask.h"
-#include "settings.h"
+#include "settings.hpp"
 
 #include <utime.h>
 #include <QDir>
@@ -28,8 +27,8 @@
 
 static QMutex g_mutex;
 static Database *instance = nullptr;
-static constexpr int kMaxThumbnailCount = 5000;
-static constexpr int kDeleteThumbnailsTimeoutMs = 60000;
+static constexpr int kMaxThumbnailCount = {5000};
+static constexpr int kDeleteThumbnailsTimeoutMs = {60000};
 
 Database::Database(QObject *parent)
     : QObject(parent)

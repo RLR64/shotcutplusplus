@@ -18,13 +18,13 @@
 #include "filtercontroller.h"
 
 #include "Logger.h"
-#include "mltcontroller.h"
+#include "mltcontroller.hpp"
 #include "qmltypes/qmlapplication.h"
 #include "qmltypes/qmlfilter.h"
 #include "qmltypes/qmlmetadata.h"
 #include "qmltypes/qmlutilities.h"
-#include "settings.h"
-#include "shotcut_mlt_properties.h"
+#include "settings.hpp"
+#include "shotcut_mlt_properties.hpp"
 
 #include <MltLink.h>
 #include <QDir>

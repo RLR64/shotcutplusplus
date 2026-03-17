@@ -19,7 +19,7 @@
 
 #include "Logger.h"
 #include "qmltypes/qmlutilities.h"
-#include "settings.h"
+#include "settings.hpp"
 
 #include <QDir>
 #include <QQmlComponent>

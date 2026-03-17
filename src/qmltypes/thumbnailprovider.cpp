@@ -16,13 +16,12 @@
  */
 
 #include "thumbnailprovider.h"
-
 #include "Logger.h"
-#include "database.h"
-#include "mltcontroller.h"
+#include "database.hpp"
+#include "mltcontroller.hpp"
 #include "models/playlistmodel.h"
-#include "settings.h"
-#include "util.h"
+#include "settings.hpp"
+#include "util.hpp"
 
 #include <QCryptographicHash>
 #include <QQuickImageProvider>

@@ -15,10 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "openotherdialog.h"
+#include "openotherdialog.hpp"
 #include "ui_openotherdialog.h"
-
-#include "mltcontroller.h"
+#include "mltcontroller.hpp"
 
 #include <Mlt.h>
 #include <QtWidgets>

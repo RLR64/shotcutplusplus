@@ -19,7 +19,7 @@
 #define ABSTRACTJOB_H
 
 #include "postjobaction.h"
-#include "settings.h"
+#include "settings.hpp"
 
 #include <QElapsedTimer>
 #include <QList>

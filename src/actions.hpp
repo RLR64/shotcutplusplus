@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ACTIONS_H
-#define ACTIONS_H
+#ifndef ACTIONS_HPP
+#define ACTIONS_HPP
 
 #include <QHash>
 #include <QObject>
@@ -54,4 +54,4 @@ private:
 
 #define Actions ShotcutActions::singleton()
 
-#endif // ACTIONS_H
+#endif // ACTIONS_HPP

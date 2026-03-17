@@ -18,21 +18,21 @@
 #include "subtitlesdock.h"
 
 #include "Logger.h"
-#include "actions.h"
+#include "actions.hpp"
 #include "dialogs/speechdialog.h"
 #include "dialogs/subtitletrackdialog.h"
 #include "dialogs/transcribeaudiodialog.h"
-#include "jobqueue.h"
+#include "jobqueue.hpp"
 #include "jobs/kokorodokijob.h"
 #include "jobs/meltjob.h"
 #include "jobs/whisperjob.h"
-#include "mainwindow.h"
+#include "mainwindow.hpp"
 #include "models/subtitlesmodel.h"
 #include "models/subtitlesselectionmodel.h"
 #include "qmltypes/qmlapplication.h"
-#include "settings.h"
-#include "shotcut_mlt_properties.h"
-#include "util.h"
+#include "settings.hpp"
+#include "shotcut_mlt_properties.hpp"
+#include "util.hpp"
 #include "widgets/docktoolbar.h"
 
 #include <MltPlaylist.h>
@@ -1341,8 +1341,7 @@ void SubtitlesDock::speechToText()
                                             tmpSrt->fileName(),
                                             dialog.language(),
                                             dialog.translate(),
-                                            dialog.maxLineLength(),
-                                            dialog.useGpu());
+                                            dialog.maxLineLength());
     // Ensure the language code is 3 character (part 2)
     QString langCode = dialog.language();
     QLocale::Language lang = QLocale::codeToLanguage(langCode);

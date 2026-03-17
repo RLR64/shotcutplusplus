@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Meltytech, LLC
+ * Copyright (c) 2012-2024 Meltytech, LLC
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,32 +15,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DATABASE_H
-#define DATABASE_H
+#ifndef TRANSPORTCONTROL_HPP
+#define TRANSPORTCONTROL_HPP
 
-#include <QDir>
-#include <QImage>
-#include <QTimer>
+#include <QObject>
 
-class Database : public QObject
+class TransportControllable : public QObject
 {
     Q_OBJECT
-    explicit Database(QObject *parent = 0);
-
-public:
-    static Database &singleton(QObject *parent = 0);
-
-    bool putThumbnail(const QString &hash, const QImage &image);
-    QImage getThumbnail(const QString &hash);
-
-private:
-    QDir thumbnailsDir();
-    QTimer m_deleteTimer;
-
-private slots:
-    void deleteOldThumbnails();
+public slots:
+    virtual void play(double speed = 1.0) = 0;
+    virtual void pause(int position = -1) = 0;
+    virtual void stop() = 0;
+    virtual void seek(int position) = 0;
+    virtual void rewind(bool forceChangeDirection) = 0;
+    virtual void fastForward(bool forceChangeDirection) = 0;
+    virtual void previous(int currentPosition) = 0;
+    virtual void next(int currentPosition) = 0;
+    virtual void setIn(int) = 0;
+    virtual void setOut(int) = 0;
 };
 
-#define DB Database::singleton()
-
-#endif // DATABASE_H
+#endif // TRANSPORTCONTROL_HPP

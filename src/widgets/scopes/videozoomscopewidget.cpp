@@ -17,7 +17,7 @@
 
 #include "videozoomscopewidget.h"
 
-#include "videowidget.h"
+#include "videowidget.hpp"
 #include "videozoomwidget.h"
 
 #include <QGridLayout>
@@ -26,7 +26,7 @@
 #include <QToolButton>
 #include <QToolTip>
 
-#include <math.h>
+#include <cmath>
 
 QWidget *getSeparator()
 {

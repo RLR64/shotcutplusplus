@@ -19,7 +19,7 @@
 
 #include "Logger.h"
 #include "models/playlistmodel.h"
-#include "settings.h"
+#include "settings.hpp"
 
 #include <QDebug>
 #include <QMouseEvent>

@@ -19,7 +19,8 @@
 #ifndef DIRECTSHOWVIDEOWIDGET_H
 #define DIRECTSHOWVIDEOWIDGET_H
 
-#include "abstractproducerwidget.h"
+#include "abstractproducerwidget.hpp"
+
 #include <QWidget>
 
 namespace Ui {

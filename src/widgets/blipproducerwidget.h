@@ -18,7 +18,7 @@
 #ifndef BLIPPRODUCERWIDGET_H
 #define BLIPPRODUCERWIDGET_H
 
-#include "abstractproducerwidget.h"
+#include "abstractproducerwidget.hpp"
 
 #include <QWidget>
 

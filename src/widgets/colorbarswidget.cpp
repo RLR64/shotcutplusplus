@@ -18,9 +18,9 @@
 #include "colorbarswidget.h"
 #include "ui_colorbarswidget.h"
 
-#include "mltcontroller.h"
-#include "shotcut_mlt_properties.h"
-#include "util.h"
+#include "mltcontroller.hpp"
+#include "shotcut_mlt_properties.hpp"
+#include "util.hpp"
 
 #include <MltProfile.h>
 

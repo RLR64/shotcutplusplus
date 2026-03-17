@@ -18,8 +18,8 @@
 #include "alignclipsmodel.h"
 
 #include "Logger.h"
-#include "mltcontroller.h"
-#include "settings.h"
+#include "mltcontroller.hpp"
+#include "settings.hpp"
 
 AlignClipsModel::AlignClipsModel(QObject *parent)
     : QAbstractItemModel(parent)

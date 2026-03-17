@@ -16,15 +16,14 @@
  */
 
 #include "audiosurroundscopewidget.h"
-
 #include "Logger.h"
-#include "settings.h"
+#include "settings.hpp"
 #include "widgets/iecscale.h"
 
 #include <QPainter>
 #include <QPen>
 
-#include <math.h>
+#include <cmath>
 
 static const int TEXT_MARGIN = 3;
 

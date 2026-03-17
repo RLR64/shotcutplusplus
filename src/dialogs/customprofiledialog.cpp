@@ -18,9 +18,9 @@
 #include "customprofiledialog.h"
 #include "ui_customprofiledialog.h"
 
-#include "mltcontroller.h"
-#include "settings.h"
-#include "util.h"
+#include "mltcontroller.hpp"
+#include "settings.hpp"
+#include "util.hpp"
 
 #include <QDesktopServices>
 #include <QDir>

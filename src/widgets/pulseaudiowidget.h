@@ -19,7 +19,7 @@
 #ifndef PULSEAUDIOWIDGET_H
 #define PULSEAUDIOWIDGET_H
 
-#include "abstractproducerwidget.h"
+#include "abstractproducerwidget.hpp"
 
 #include <QWidget>
 

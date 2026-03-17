@@ -18,12 +18,12 @@
 #include "kokorodokijob.h"
 
 #include "Logger.h"
-#include "jobqueue.h"
+#include "jobqueue.hpp"
 #include "jobs/dockerpulljob.h"
-#include "mainwindow.h"
+#include "mainwindow.hpp"
 #include "qmltypes/qmlapplication.h"
-#include "settings.h"
-#include "util.h"
+#include "settings.hpp"
+#include "util.hpp"
 
 #include <QAction>
 #include <QApplication>

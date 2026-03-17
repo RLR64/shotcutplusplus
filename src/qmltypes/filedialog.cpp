@@ -17,9 +17,9 @@
 
 #include "filedialog.h"
 
-#include "mainwindow.h"
-#include "settings.h"
-#include "util.h"
+#include "mainwindow.hpp"
+#include "settings.hpp"
+#include "util.hpp"
 
 FileDialog::FileDialog(QObject *parent)
     : QObject{parent}

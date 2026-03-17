@@ -15,7 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#ifndef FLATPAKWRAPPERGENERATOR_HPP
+#define FLATPAKWRAPPERGENERATOR_HPP
 
 #include <QList>
 #include <QString>
@@ -50,3 +51,5 @@ private:
     bool m_dryRun = false;
     QString m_prefix;
 };
+
+#endif // FLATPAKWRAPPERGENERATOR_HPP

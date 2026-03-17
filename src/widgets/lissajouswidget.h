@@ -18,7 +18,7 @@
 #ifndef LISSAJOUSWIDGET_H
 #define LISSAJOUSWIDGET_H
 
-#include "abstractproducerwidget.h"
+#include "abstractproducerwidget.hpp"
 
 #include <QWidget>
 

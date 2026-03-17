@@ -17,16 +17,15 @@
 
 #include "imageproducerwidget.h"
 #include "ui_imageproducerwidget.h"
-
 #include "Logger.h"
 #include "dialogs/filedatedialog.h"
 #include "dialogs/listselectiondialog.h"
-#include "mainwindow.h"
-#include "proxymanager.h"
+#include "mainwindow.hpp"
+#include "proxymanager.hpp"
 #include "qmltypes/qmlapplication.h"
-#include "settings.h"
-#include "shotcut_mlt_properties.h"
-#include "util.h"
+#include "settings.hpp"
+#include "shotcut_mlt_properties.hpp"
+#include "util.hpp"
 
 #include <QClipboard>
 #include <QDesktopServices>

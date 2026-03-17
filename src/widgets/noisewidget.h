@@ -19,7 +19,7 @@
 #ifndef NOISEWIDGET_H
 #define NOISEWIDGET_H
 
-#include "abstractproducerwidget.h"
+#include "abstractproducerwidget.hpp"
 
 #include <QWidget>
 

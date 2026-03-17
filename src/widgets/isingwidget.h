@@ -18,7 +18,7 @@
 #ifndef ISINGWIDGET_H
 #define ISINGWIDGET_H
 
-#include "abstractproducerwidget.h"
+#include "abstractproducerwidget.hpp"
 
 #include <QWidget>
 

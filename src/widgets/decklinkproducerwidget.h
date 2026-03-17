@@ -18,7 +18,7 @@
 #ifndef DECKLINKPRODUCERWIDGET_H
 #define DECKLINKPRODUCERWIDGET_H
 
-#include "abstractproducerwidget.h"
+#include "abstractproducerwidget.hpp"
 
 #include <QWidget>
 

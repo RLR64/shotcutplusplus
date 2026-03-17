@@ -15,12 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MLTCONTROLLER_H
-#define MLTCONTROLLER_H
+#ifndef MLTCONTROLLER_HPP
+#define MLTCONTROLLER_HPP
 
-#include "transportcontrol.h"
-
-#include "settings.h"
+#include "transportcontrol.hpp"
+#include "settings.hpp"
 
 #include <Mlt.h>
 #include <QImage>
@@ -222,4 +221,4 @@ private:
 
 #define MLT Mlt::Controller::singleton()
 
-#endif // MLTCONTROLLER_H
+#endif // MLTCONTROLLER_HPP

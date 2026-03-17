@@ -1,4 +1,6 @@
-#pragma once
+#ifndef BOX_HPP
+#define BOX_HPP
+
 /*****************************************************************************
  * 
  * Copyright 2016 Varol Okan. All rights reserved.
@@ -18,9 +20,8 @@
  ****************************************************************************/
 
 // Tool for loading mpeg4 files and manipulating atoms.
-#include <stdint.h>
+#include <cstdint>
 #include <vector>
-
 #include <fstream>
 
 class Box 
@@ -74,3 +75,4 @@ class Box
     uint8_t  *m_pContents;
 };
 
+#endif // BOX_HPP

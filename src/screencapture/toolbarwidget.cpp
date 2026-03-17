@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "toolbarwidget.h"
-#include "screencapture.h"
+#include "toolbarwidget.hpp"
+#include "screencapture.hpp"
 #include <QCheckBox>
 #include <QDebug>
 #include <QGuiApplication>

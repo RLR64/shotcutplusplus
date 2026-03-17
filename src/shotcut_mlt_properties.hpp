@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SHOTCUT_MLT_PROPERTIES_H
-#define SHOTCUT_MLT_PROPERTIES_H
+#ifndef SHOTCUT_MLT_PROPERTIES_HPP
+#define SHOTCUT_MLT_PROPERTIES_HPP
 
 /* This file contains all of the Shotcut-specific MLT properties.
  * See also https://www.shotcut.org/notes/mltxml-annotations/
@@ -106,4 +106,4 @@
 
 #define kDefaultMltProfile "atsc_1080p_25"
 
-#endif // SHOTCUT_MLT_PROPERTIES_H
+#endif // SHOTCUT_MLT_PROPERTIES_HPP

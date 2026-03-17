@@ -19,7 +19,7 @@
 #define HTMLGENERATORJOB_H
 
 #include "abstractjob.h"
-#include "htmlgenerator.h"
+#include "htmlgenerator.hpp"
 
 #include <QDir>
 #include <QTemporaryDir>

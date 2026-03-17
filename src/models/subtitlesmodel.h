@@ -25,7 +25,7 @@
 #include <QString>
 #include <QTimer>
 
-#include <vector>
+//#include <vector>
 
 class SubtitlesModel : public QAbstractItemModel
 {

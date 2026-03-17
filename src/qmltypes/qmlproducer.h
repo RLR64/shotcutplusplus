@@ -18,7 +18,7 @@
 #ifndef QMLPRODUCER_H
 #define QMLPRODUCER_H
 
-#include "shotcut_mlt_properties.h"
+#include "shotcut_mlt_properties.hpp"
 
 #include <MltProducer.h>
 #include <QObject>

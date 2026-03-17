@@ -19,11 +19,11 @@
 #include "ui_colorproducerwidget.h"
 
 #include "Logger.h"
-#include "mltcontroller.h"
+#include "mltcontroller.hpp"
 #include "qmltypes/colordialog.h"
 #include "qmltypes/qmlapplication.h"
-#include "shotcut_mlt_properties.h"
-#include "util.h"
+#include "shotcut_mlt_properties.hpp"
+#include "util.hpp"
 
 #include <QFileInfo>
 

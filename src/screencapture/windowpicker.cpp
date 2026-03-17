@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "windowpicker.h"
+#include "windowpicker.hpp"
 #include "Logger.h"
 #include <QDebug>
 #include <QGuiApplication>

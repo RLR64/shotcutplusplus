@@ -16,14 +16,13 @@
  */
 
 #include "keyframesdock.h"
-
 #include "Logger.h"
-#include "actions.h"
-#include "mainwindow.h"
+#include "actions.hpp"
+#include "mainwindow.hpp"
 #include "qmltypes/qmlproducer.h"
 #include "qmltypes/qmlutilities.h"
 #include "qmltypes/qmlview.h"
-#include "settings.h"
+#include "settings.hpp"
 #include "widgets/docktoolbar.h"
 
 #include <QAction>

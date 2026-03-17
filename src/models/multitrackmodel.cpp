@@ -16,19 +16,18 @@
  */
 
 #include "multitrackmodel.h"
-
 #include "Logger.h"
 #include "audiolevelstask.h"
 #include "controllers/filtercontroller.h"
 #include "dialogs/longuitask.h"
 #include "docks/playlistdock.h"
-#include "mainwindow.h"
-#include "mltcontroller.h"
-#include "proxymanager.h"
+#include "mainwindow.hpp"
+#include "mltcontroller.hpp"
+#include "proxymanager.hpp"
 #include "qmltypes/qmlmetadata.h"
-#include "settings.h"
-#include "shotcut_mlt_properties.h"
-#include "util.h"
+#include "settings.hpp"
+#include "shotcut_mlt_properties.hpp"
+#include "util.hpp"
 
 #include <QApplication>
 #include <QMessageBox>
@@ -2136,29 +2135,6 @@ void MultitrackModel::trimTransitionOut(int trackIndex, int clipIndex, int delta
                          roles);
         emit modified();
     }
-}
-
-bool MultitrackModel::resizeTransitionValid(int trackIndex, int transitionIndex, int delta)
-{
-    // delta is the QML handle delta; model operations use -delta for both sides.
-    // After both trimTransitionIn and trimTransitionOut with -delta, the transition
-    // length changes by -2*delta total. Require each side to be independently valid
-    // and ensure the combined result keeps positive length.
-    if (!trimTransitionInValid(trackIndex, transitionIndex - 1, -delta))
-        return false;
-    if (!trimTransitionOutValid(trackIndex, transitionIndex + 1, -delta))
-        return false;
-    // When shrinking, both ops reduce the transition by delta each, so check combined.
-    if (delta > 0) {
-        int i = m_trackList.at(trackIndex).mlt_index;
-        QScopedPointer<Mlt::Producer> track(m_tractor->track(i));
-        if (!track)
-            return false;
-        Mlt::Playlist playlist(*track);
-        if (playlist.clip_length(transitionIndex) - 2 * delta <= 0)
-            return false;
-    }
-    return true;
 }
 
 bool MultitrackModel::addTransitionByTrimInValid(int trackIndex, int clipIndex, int delta)

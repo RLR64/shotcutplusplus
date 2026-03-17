@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Shotcut.Controls as Shotcut
-
 Item {
     property bool blockUpdate: true
     property double hfov0Start: 0
@@ -26,17 +25,17 @@ Item {
     function updateSimpleKeyframes() {
         if (filter.animateIn > 0 || filter.animateOut > 0) {
             if (filter.keyframeCount("hfov0") <= 0)
-                hfov0Start = hfov0Middle = hfov0End = filter.getDouble("hfov0");
+            hfov0Start = hfov0Middle = hfov0End = filter.getDouble("hfov0");
             if (filter.keyframeCount("hfov1") <= 0)
-                hfov1Start = hfov1Middle = hfov1End = filter.getDouble("hfov1");
+            hfov1Start = hfov1Middle = hfov1End = filter.getDouble("hfov1");
             if (filter.keyframeCount("vfov0") <= 0)
-                vfov0Start = vfov0Middle = vfov0End = filter.getDouble("vfov0");
+            vfov0Start = vfov0Middle = vfov0End = filter.getDouble("vfov0");
             if (filter.keyframeCount("vfov1") <= 0)
-                vfov1Start = vfov1Middle = vfov1End = filter.getDouble("vfov1");
+            vfov1Start = vfov1Middle = vfov1End = filter.getDouble("vfov1");
             if (filter.keyframeCount("blurStart") <= 0)
-                blurStartStart = blurStartMiddle = blurStartEnd = filter.getDouble("blurStart");
+            blurStartStart = blurStartMiddle = blurStartEnd = filter.getDouble("blurStart");
             if (filter.keyframeCount("blurEnd") <= 0)
-                blurEndStart = blurEndMiddle = blurEndEnd = filter.getDouble("blurEnd");
+            blurEndStart = blurEndMiddle = blurEndEnd = filter.getDouble("blurEnd");
         }
         setControls();
         updateProperty_hfov0(null);
@@ -65,15 +64,15 @@ Item {
     }
     function updateProperty_hfov0(position) {
         if (blockUpdate)
-            return;
+        return;
         var value = hfov0Slider.value;
         if (position !== null) {
             if (position <= 0 && filter.animateIn > 0)
-                hfov0Start = value;
+            hfov0Start = value;
             else if (position >= filter.duration - 1 && filter.animateOut > 0)
-                hfov0End = value;
+            hfov0End = value;
             else
-                hfov0Middle = value;
+            hfov0Middle = value;
         }
         if (filter.animateIn > 0 || filter.animateOut > 0) {
             filter.resetProperty("hfov0");
@@ -95,15 +94,15 @@ Item {
     }
     function updateProperty_hfov1(position) {
         if (blockUpdate)
-            return;
+        return;
         var value = hfov1Slider.value;
         if (position !== null) {
             if (position <= 0 && filter.animateIn > 0)
-                hfov1Start = value;
+            hfov1Start = value;
             else if (position >= filter.duration - 1 && filter.animateOut > 0)
-                hfov1End = value;
+            hfov1End = value;
             else
-                hfov1Middle = value;
+            hfov1Middle = value;
         }
         if (filter.animateIn > 0 || filter.animateOut > 0) {
             filter.resetProperty("hfov1");
@@ -125,15 +124,15 @@ Item {
     }
     function updateProperty_vfov0(position) {
         if (blockUpdate)
-            return;
+        return;
         var value = vfov0Slider.value;
         if (position !== null) {
             if (position <= 0 && filter.animateIn > 0)
-                vfov0Start = value;
+            vfov0Start = value;
             else if (position >= filter.duration - 1 && filter.animateOut > 0)
-                vfov0End = value;
+            vfov0End = value;
             else
-                vfov0Middle = value;
+            vfov0Middle = value;
         }
         if (filter.animateIn > 0 || filter.animateOut > 0) {
             filter.resetProperty("vfov0");
@@ -155,15 +154,15 @@ Item {
     }
     function updateProperty_vfov1(position) {
         if (blockUpdate)
-            return;
+        return;
         var value = vfov1Slider.value;
         if (position !== null) {
             if (position <= 0 && filter.animateIn > 0)
-                vfov1Start = value;
+            vfov1Start = value;
             else if (position >= filter.duration - 1 && filter.animateOut > 0)
-                vfov1End = value;
+            vfov1End = value;
             else
-                vfov1Middle = value;
+            vfov1Middle = value;
         }
         if (filter.animateIn > 0 || filter.animateOut > 0) {
             filter.resetProperty("vfov1");
@@ -185,15 +184,15 @@ Item {
     }
     function updateProperty_blurStart(position) {
         if (blockUpdate)
-            return;
+        return;
         var value = blurStartSlider.value;
         if (position !== null) {
             if (position <= 0 && filter.animateIn > 0)
-                blurStartStart = value;
+            blurStartStart = value;
             else if (position >= filter.duration - 1 && filter.animateOut > 0)
-                blurStartEnd = value;
+            blurStartEnd = value;
             else
-                blurStartMiddle = value;
+            blurStartMiddle = value;
         }
         if (filter.animateIn > 0 || filter.animateOut > 0) {
             filter.resetProperty("blurStart");
@@ -215,15 +214,15 @@ Item {
     }
     function updateProperty_blurEnd(position) {
         if (blockUpdate)
-            return;
+        return;
         var value = blurEndSlider.value;
         if (position !== null) {
             if (position <= 0 && filter.animateIn > 0)
-                blurEndStart = value;
+            blurEndStart = value;
             else if (position >= filter.duration - 1 && filter.animateOut > 0)
-                blurEndEnd = value;
+            blurEndEnd = value;
             else
-                blurEndMiddle = value;
+            blurEndMiddle = value;
         }
         if (filter.animateIn > 0 || filter.animateOut > 0) {
             filter.resetProperty("blurEnd");
@@ -254,57 +253,57 @@ Item {
         } else {
             hfov0Middle = filter.getDouble("hfov0", filter.animateIn);
             if (filter.animateIn > 0)
-                hfov0Start = filter.getDouble("hfov0", 0);
+            hfov0Start = filter.getDouble("hfov0", 0);
             if (filter.animateOut > 0)
-                hfov0End = filter.getDouble("hfov0", filter.duration - 1);
+            hfov0End = filter.getDouble("hfov0", filter.duration - 1);
         }
         if (filter.isNew) {
             filter.set("hfov1", 90);
         } else {
             hfov1Middle = filter.getDouble("hfov1", filter.animateIn);
             if (filter.animateIn > 0)
-                hfov1Start = filter.getDouble("hfov1", 0);
+            hfov1Start = filter.getDouble("hfov1", 0);
             if (filter.animateOut > 0)
-                hfov1End = filter.getDouble("hfov1", filter.duration - 1);
+            hfov1End = filter.getDouble("hfov1", filter.duration - 1);
         }
         if (filter.isNew) {
             filter.set("vfov0", -45);
         } else {
             vfov0Middle = filter.getDouble("vfov0", filter.animateIn);
             if (filter.animateIn > 0)
-                vfov0Start = filter.getDouble("vfov0", 0);
+            vfov0Start = filter.getDouble("vfov0", 0);
             if (filter.animateOut > 0)
-                vfov0End = filter.getDouble("vfov0", filter.duration - 1);
+            vfov0End = filter.getDouble("vfov0", filter.duration - 1);
         }
         if (filter.isNew) {
             filter.set("vfov1", 45);
         } else {
             vfov1Middle = filter.getDouble("vfov1", filter.animateIn);
             if (filter.animateIn > 0)
-                vfov1Start = filter.getDouble("vfov1", 0);
+            vfov1Start = filter.getDouble("vfov1", 0);
             if (filter.animateOut > 0)
-                vfov1End = filter.getDouble("vfov1", filter.duration - 1);
+            vfov1End = filter.getDouble("vfov1", filter.duration - 1);
         }
         if (filter.isNew) {
             filter.set("blurStart", 0.1);
         } else {
             blurStartMiddle = filter.getDouble("blurStart", filter.animateIn);
             if (filter.animateIn > 0)
-                blurStartStart = filter.getDouble("blurStart", 0);
+            blurStartStart = filter.getDouble("blurStart", 0);
             if (filter.animateOut > 0)
-                blurStartEnd = filter.getDouble("blurStart", filter.duration - 1);
+            blurStartEnd = filter.getDouble("blurStart", filter.duration - 1);
         }
         if (filter.isNew) {
             filter.set("blurEnd", 1.0);
         } else {
             blurEndMiddle = filter.getDouble("blurEnd", filter.animateIn);
             if (filter.animateIn > 0)
-                blurEndStart = filter.getDouble("blurEnd", 0);
+            blurEndStart = filter.getDouble("blurEnd", 0);
             if (filter.animateOut > 0)
-                blurEndEnd = filter.getDouble("blurEnd", filter.duration - 1);
+            blurEndEnd = filter.getDouble("blurEnd", filter.duration - 1);
         }
         if (filter.isNew)
-            filter.savePreset(preset.parameters);
+        filter.savePreset(preset.parameters);
         setControls();
     }
     GridLayout {
@@ -330,32 +329,32 @@ Item {
             onPresetSelected: {
                 hfov0Middle = filter.getDouble("hfov0", filter.animateIn);
                 if (filter.animateIn > 0)
-                    hfov0Start = filter.getDouble("hfov0", 0);
+                hfov0Start = filter.getDouble("hfov0", 0);
                 if (filter.animateOut > 0)
-                    hfov0End = filter.getDouble("hfov0", filter.duration - 1);
+                hfov0End = filter.getDouble("hfov0", filter.duration - 1);
                 hfov1Middle = filter.getDouble("hfov1", filter.animateIn);
                 if (filter.animateIn > 0)
-                    hfov1Start = filter.getDouble("hfov1", 0);
+                hfov1Start = filter.getDouble("hfov1", 0);
                 if (filter.animateOut > 0)
-                    hfov1End = filter.getDouble("hfov1", filter.duration - 1);
+                hfov1End = filter.getDouble("hfov1", filter.duration - 1);
                 vfov0Middle = filter.getDouble("vfov0", filter.animateIn);
                 if (filter.animateIn > 0)
-                    vfov0Start = filter.getDouble("vfov0", 0);
+                vfov0Start = filter.getDouble("vfov0", 0);
                 if (filter.animateOut > 0)
-                    vfov0End = filter.getDouble("vfov0", filter.duration - 1);
+                vfov0End = filter.getDouble("vfov0", filter.duration - 1);
                 vfov1Middle = filter.getDouble("vfov1", filter.animateIn);
                 if (filter.animateIn > 0)
-                    vfov1Start = filter.getDouble("vfov1", 0);
+                vfov1Start = filter.getDouble("vfov1", 0);
                 if (filter.animateOut > 0)
-                    vfov1End = filter.getDouble("vfov1", filter.duration - 1);
+                vfov1End = filter.getDouble("vfov1", filter.duration - 1);
                 if (filter.animateIn > 0)
-                    blurStartStart = filter.getDouble("blurStart", 0);
+                blurStartStart = filter.getDouble("blurStart", 0);
                 if (filter.animateOut > 0)
-                    blurStartEnd = filter.getDouble("blurStart", filter.duration - 1);
+                blurStartEnd = filter.getDouble("blurStart", filter.duration - 1);
                 if (filter.animateIn > 0)
-                    blurEndStart = filter.getDouble("blurEnd", 0);
+                blurEndStart = filter.getDouble("blurEnd", 0);
                 if (filter.animateOut > 0)
-                    blurEndEnd = filter.getDouble("blurEnd", filter.duration - 1);
+                blurEndEnd = filter.getDouble("blurEnd", filter.duration - 1);
                 setControls(null);
             }
         }

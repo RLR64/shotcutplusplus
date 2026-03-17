@@ -15,16 +15,13 @@
  * limitations under the License.
  * 
  ****************************************************************************/
+#include "constants.hpp"
+#include "container.hpp"
+#include "sa3d.hpp"
 
 #include <iostream>
-#include <assert.h>
-#include <string.h>
-
-#include "constants.h"
-#include "container.h"
-
-#include "sa3d.h"
-
+#include <cassert>
+#include <cstring>
 
 Container::Container ( uint32_t iPadding )
    : Box ( )

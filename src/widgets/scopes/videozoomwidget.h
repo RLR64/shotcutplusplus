@@ -18,7 +18,7 @@
 #ifndef VIDEOZOOMWIDGET_H
 #define VIDEOZOOMWIDGET_H
 
-#include "sharedframe.h"
+#include "sharedframe.hpp"
 
 #include <QMutex>
 #include <QWidget>

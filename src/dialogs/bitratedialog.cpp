@@ -18,7 +18,7 @@
 #include "bitratedialog.h"
 
 #include "dialogs/saveimagedialog.h"
-#include "settings.h"
+#include "settings.hpp"
 
 #include <QDialogButtonBox>
 #include <QJsonObject>

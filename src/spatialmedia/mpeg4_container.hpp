@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MPEG4_CONTAINER_HPP
+#define MPEG4_CONTAINER_HPP
+
 /*****************************************************************************
  * 
  * Copyright 2016 Varol Okan. All rights reserved.
@@ -21,9 +23,9 @@
 // 
 // Functions for loading MP4/MOV files and manipulating boxes.
 
-#include "constants.h"
-#include "container.h"
-#include "box.h"
+#include "box.hpp"
+#include "constants.hpp"
+#include "container.hpp"
 
 class Mpeg4Container : public Container
 {
@@ -45,3 +47,4 @@ public:
   uint32_t m_iFirstMDatPos;
 };
 
+#endif // MPEG4_CONTAINER_HPP

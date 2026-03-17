@@ -18,10 +18,10 @@
 #include "slideshowgeneratorwidget.h"
 
 #include "Logger.h"
-#include "mltcontroller.h"
+#include "mltcontroller.hpp"
 #include "qmltypes/qmlapplication.h"
-#include "settings.h"
-#include "shotcut_mlt_properties.h"
+#include "settings.hpp"
+#include "shotcut_mlt_properties.hpp"
 #include "widgets/producerpreviewwidget.h"
 
 #include <QComboBox>
@@ -32,7 +32,7 @@
 #include <QSpinBox>
 #include <QtConcurrent/QtConcurrent>
 
-#include <math.h>
+#include <cmath>
 
 enum {
     ASPECT_CONVERSION_PAD_BLACK,

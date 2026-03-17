@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CONSTANTS_HPP
+#define CONSTANTS_HPP
+
 /*****************************************************************************
  * 
  * Copyright 2016 Varol Okan. All rights reserved.
@@ -17,9 +19,8 @@
  * 
  ****************************************************************************/
 
-#include <stdint.h>
+#include <cstdint>
 #include <string>
-#include <limits>
 
 #include <QtEndian>
 #if defined(Q_OS_WIN) || defined(Q_OS_MAC)
@@ -149,3 +150,4 @@ static const char * CONTAINERS_LIST[20] = {
 
 };  // End of namespace constants
 
+#endif // CONSTANTS_HPP

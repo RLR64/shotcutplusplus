@@ -16,7 +16,6 @@
  */
 
 #include "subtitles.h"
-
 #include <cmath>
 #include <fstream>
 #include <iostream>

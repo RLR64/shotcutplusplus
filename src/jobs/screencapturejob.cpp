@@ -16,14 +16,13 @@
  */
 
 #include "screencapturejob.h"
-
 #include "Logger.h"
 #include "ffmpegjob.h"
-#include "jobqueue.h"
-#include "mainwindow.h"
+#include "jobqueue.hpp"
+#include "mainwindow.hpp"
 #include "postjobaction.h"
-#include "screencapture/screencapture.h"
-#include "settings.h"
+#include "screencapture/screencapture.hpp"
+#include "settings.hpp"
 
 #include <QApplication>
 #include <QDir>

@@ -19,7 +19,7 @@
 
 #include "Logger.h"
 #include "controllers/scopecontroller.h"
-#include "mltcontroller.h"
+#include "mltcontroller.hpp"
 
 #include <QAction>
 #include <QtWidgets/QScrollArea>

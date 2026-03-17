@@ -74,25 +74,17 @@ GridLayout {
 
     function refreshFontButton() {
         var s = filter.get('family');
-        const style = filter.get('style');
-        if (style && style !== 'italic' && style !== 'normal') {
-            s += ' ' + style;
-        } else {
-            if (filter.getDouble('weight') > Font.Medium)
-                s += ' ' + qsTr('Bold');
-            if (style === 'italic')
-                s += ' ' + qsTr('Italic');
-        }
+        if (filter.getDouble('weight') > Font.Medium)
+            s += ' ' + qsTr('Bold');
+        if (filter.get('style') === 'italic')
+            s += ' ' + qsTr('Italic');
         if (parseInt(filter.get(useFontSizeProperty)))
             s += ' ' + getPointSize();
         fontButton.text = s;
     }
 
     function setControls() {
-        const mltFamily = filter.get('family') || "";
-        const mltStyle = filter.get('style') || "";
-        const fontStyleName = (mltStyle && mltStyle !== 'italic' && mltStyle !== 'normal') ? mltStyle : "";
-        fontButton.text = mltFamily;
+        fontButton.text = filter.get('family');
         outlineSpinner.value = filter.getDouble('outline');
         padSpinner.value = filter.getDouble('pad');
         var align = filter.get(halignProperty);
@@ -110,13 +102,12 @@ GridLayout {
         else if (align === 'bottom')
             bottomRadioButton.checked = true;
         fontDialog.selectedFont = Qt.font({
-            "family": mltFamily,
-            "styleName": fontStyleName,
+            "family": filter.get('family'),
             "pointSize": getPointSize(),
-            "italic": mltStyle === 'italic',
+            "italic": filter.get('style') === 'italic',
             "weight": filter.getDouble('weight'),
-            "underline": filter.getDouble('underline'),
-            "strikeout": filter.getDouble('strikethrough')
+            "underline" : filter.getDouble('underline'),
+            "strikeout" : filter.getDouble('strikethrough')
         });
         fontSizeCheckBox.checked = parseInt(filter.get(useFontSizeProperty));
         refreshFontButton();
@@ -253,18 +244,11 @@ GridLayout {
                 id: fontDialog
 
                 property string fontFamily: ''
-                property string fontStyle: ''
-                readonly property var stdStyles: ['', 'regular', 'bold', 'italic', 'bold italic', 'oblique', 'bold oblique']
 
                 onSelectedFontChanged: {
-                    const styleName = selectedFont.styleName;
-                    if (styleName && !stdStyles.includes(styleName.toLowerCase())) {
-                        filter.set('style', styleName);
-                    } else {
-                        filter.set('style', selectedFont.italic ? 'italic' : 'normal');
-                    }
                     filter.set('family', selectedFont.family);
                     filter.set('weight', selectedFont.weight);
+                    filter.set('style', selectedFont.italic ? 'italic' : 'normal');
                     filter.set('underline', selectedFont.underline);
                     filter.set('strikethrough', selectedFont.strikeout);
                     if (parseInt(filter.get(useFontSizeProperty))) {
@@ -273,13 +257,9 @@ GridLayout {
                     }
                     refreshFontButton();
                 }
-                onAccepted: {
-                    fontFamily = selectedFont.family;
-                    fontStyle = filter.get('style');
-                }
+                onAccepted: fontFamily = selectedFont.family
                 onRejected: {
                     filter.set('family', fontFamily);
-                    filter.set('style', fontStyle);
                     refreshFontButton();
                 }
             }

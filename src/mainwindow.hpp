@@ -15,11 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef MAINWINDOW_HPP
+#define MAINWINDOW_HPP
 
-#include "mltcontroller.h"
-#include "mltxmlchecker.h"
+#include "mltcontroller.hpp"
+#include "mltxmlchecker.hpp"
 
 #include <QDateTime>
 #include <QMainWindow>
@@ -216,7 +216,6 @@ private:
     KeyframesDock *m_keyframesDock;
     QDateTime m_clipboardUpdatedAt;
     QDateTime m_sourceUpdatedAt;
-    QDateTime m_lastBackupDateTime;
     MarkersDock *m_markersDock;
     NotesDock *m_notesDock;
     SubtitlesDock *m_subtitlesDock;
@@ -411,4 +410,4 @@ private slots:
 
 #define MAIN MainWindow::singleton()
 
-#endif // MAINWINDOW_H
+#endif // MAINWINDOW_HPP

@@ -15,10 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PLAYER_H
-#define PLAYER_H
+#ifndef PLAYER_HPP
+#define PLAYER_HPP
 
-#include "sharedframe.h"
+#include "sharedframe.hpp"
 
 #include <QIcon>
 #include <QSize>
@@ -192,4 +192,4 @@ private slots:
     void onOffsetChanged(const QPoint &offset);
 };
 
-#endif // PLAYER_H
+#endif // PLAYER_HPP

@@ -19,8 +19,8 @@
 #include "ui_recentdock.h"
 
 #include "Logger.h"
-#include "settings.h"
-#include "util.h"
+#include "settings.hpp"
+#include "util.hpp"
 
 #include <QAction>
 #include <QDir>

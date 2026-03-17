@@ -1,9 +1,9 @@
 find_package(Qt6 REQUIRED COMPONENTS Core)
 
 add_executable(shotcut WIN32 MACOSX_BUNDLE
-  abstractproducerwidget.cpp abstractproducerwidget.h
-  actions.cpp actions.h
-  autosavefile.cpp autosavefile.h
+  abstractproducerwidget.cpp abstractproducerwidget.hpp
+  actions.cpp actions.hpp
+  autosavefile.cpp autosavefile.hpp
   commands/filtercommands.cpp commands/filtercommands.h
   commands/markercommands.cpp commands/markercommands.h
   commands/playlistcommands.cpp commands/playlistcommands.h
@@ -12,7 +12,7 @@ add_executable(shotcut WIN32 MACOSX_BUNDLE
   commands/undohelper.cpp commands/undohelper.h
   controllers/filtercontroller.cpp controllers/filtercontroller.h
   controllers/scopecontroller.cpp controllers/scopecontroller.h
-  database.cpp database.h
+  database.cpp database.hpp
   dialogs/actionsdialog.cpp dialogs/actionsdialog.h
   dialogs/addencodepresetdialog.cpp dialogs/addencodepresetdialog.h
   dialogs/addencodepresetdialog.ui
@@ -61,9 +61,9 @@ add_executable(shotcut WIN32 MACOSX_BUNDLE
   docks/scopedock.cpp docks/scopedock.h
   docks/subtitlesdock.cpp docks/subtitlesdock.h
   docks/timelinedock.cpp docks/timelinedock.h
-  FlatpakWrapperGenerator.cpp FlatpakWrapperGenerator.h
-  htmlgenerator.h htmlgenerator.cpp
-  jobqueue.cpp jobqueue.h
+  FlatpakWrapperGenerator.cpp FlatpakWrapperGenerator.hpp
+  htmlgenerator.cpp htmlgenerator.hpp
+  jobqueue.cpp jobqueue.hpp
   jobs/abstractjob.cpp jobs/abstractjob.h
   jobs/bitrateviewerjob.h jobs/bitrateviewerjob.cpp
   jobs/dockerpulljob.h jobs/dockerpulljob.cpp
@@ -80,10 +80,10 @@ add_executable(shotcut WIN32 MACOSX_BUNDLE
   jobs/videoqualityjob.cpp jobs/videoqualityjob.h
   jobs/whisperjob.cpp jobs/whisperjob.h
   main.cpp
-  mainwindow.cpp mainwindow.h
+  mainwindow.cpp mainwindow.hpp
   mainwindow.ui
-  mltcontroller.cpp mltcontroller.h
-  mltxmlchecker.cpp mltxmlchecker.h
+  mltcontroller.cpp mltcontroller.hpp
+  mltxmlchecker.cpp mltxmlchecker.hpp
   models/actionsmodel.cpp models/actionsmodel.h
   models/alignclipsmodel.cpp models/alignclipsmodel.h
   models/attachedfiltersmodel.cpp models/attachedfiltersmodel.h
@@ -99,10 +99,10 @@ add_executable(shotcut WIN32 MACOSX_BUNDLE
   models/subtitles.cpp models/subtitles.h
   models/subtitlesmodel.cpp models/subtitlesmodel.h
   models/subtitlesselectionmodel.cpp models/subtitlesselectionmodel.h
-  openotherdialog.cpp openotherdialog.h
+  openotherdialog.cpp openotherdialog.hpp
   openotherdialog.ui
-  player.cpp player.h
-  proxymanager.cpp proxymanager.h
+  player.cpp player.hpp
+  proxymanager.cpp proxymanager.hpp
   qmltypes/colordialog.h qmltypes/colordialog.cpp
   qmltypes/colorpickeritem.cpp qmltypes/colorpickeritem.h
   qmltypes/colorwheelitem.cpp qmltypes/colorwheelitem.h
@@ -125,27 +125,28 @@ add_executable(shotcut WIN32 MACOSX_BUNDLE
   qmltypes/thumbnailprovider.cpp qmltypes/thumbnailprovider.h
   qmltypes/timelineitems.cpp qmltypes/timelineitems.h
   resources.qrc
-  scrubbar.cpp scrubbar.h
-  settings.cpp settings.h
-  sharedframe.cpp sharedframe.h
-  shotcut_mlt_properties.h
-  transcoder.cpp transcoder.h
+  scrubbar.cpp scrubbar.hpp
+  settings.cpp settings.hpp
+  sharedframe.cpp sharedframe.hpp
+  shotcut_mlt_properties.hpp
+  transcoder.cpp transcoder.hpp
   screencapture/rectangleselector.cpp
-  screencapture/rectangleselector.h
+  screencapture/rectangleselector.hpp
   screencapture/screencapture.cpp
-  screencapture/screencapture.h
+  screencapture/screencapture.hpp
   screencapture/toolbarwidget.cpp
-  screencapture/toolbarwidget.h
+  screencapture/toolbarwidget.hpp
   screencapture/windowpicker.cpp
-  screencapture/windowpicker.h
-  spatialmedia/box.cpp spatialmedia/box.h
-  spatialmedia/container.cpp spatialmedia/container.h
-  spatialmedia/mpeg4_container.cpp spatialmedia/mpeg4_container.h
-  spatialmedia/sa3d.cpp spatialmedia/sa3d.h
-  spatialmedia/spatialmedia.cpp spatialmedia/spatialmedia.h
-  transportcontrol.h
-  util.cpp util.h
-  videowidget.cpp videowidget.h
+  screencapture/windowpicker.hpp
+  spatialmedia/box.cpp spatialmedia/box.hpp
+  spatialmedia/container.cpp spatialmedia/container.hpp
+  spatialmedia/constants.hpp
+  spatialmedia/mpeg4_container.cpp spatialmedia/mpeg4_container.hpp
+  spatialmedia/sa3d.cpp spatialmedia/sa3d.hpp
+  spatialmedia/spatialmedia.cpp spatialmedia/spatialmedia.hpp
+  transportcontrol.hpp
+  util.cpp util.hpp
+  videowidget.cpp videowidget.hpp
   widgets/alsawidget.cpp widgets/alsawidget.h
   widgets/alsawidget.ui
   widgets/audiometerwidget.cpp widgets/audiometerwidget.h
@@ -291,7 +292,7 @@ file(GLOB_RECURSE QML_SRC "qml/*")
 target_sources(shotcut PRIVATE ${QML_SRC})
 
 target_include_directories(shotcut PRIVATE ${CMAKE_SOURCE_DIR}/CuteLogger/include)
-target_compile_definitions(shotcut PRIVATE SHOTCUT_VERSION="${SHOTCUT_VERSION}")
+target_compile_definitions(shotcut PRIVATE SHOTCUT_VERSION=${SHOTCUT_VERSION})
 
 # Add compile definitions when certain custom cache variables are ON
 if(EXTERNAL_LAUNCHERS)

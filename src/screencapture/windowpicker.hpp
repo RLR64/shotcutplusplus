@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef WINDOWPICKER_H
-#define WINDOWPICKER_H
+#ifndef WINDOWPICKER_HPP
+#define WINDOWPICKER_HPP
 
 #include <QList>
 #include <QRect>
@@ -56,4 +56,4 @@ private:
     int m_highlightedWindow;
 };
 
-#endif // WINDOWPICKER_H
+#endif // WINDOWPICKER_HPP

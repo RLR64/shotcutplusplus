@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef JOBQUEUE_H
-#define JOBQUEUE_H
+#ifndef JOBQUEUE_HPP
+#define JOBQUEUE_HPP
 
 #include "jobs/abstractjob.h"
 
@@ -63,4 +63,4 @@ private:
 
 #define JOBS JobQueue::singleton()
 
-#endif // JOBQUEUE_H
+#endif // JOBQUEUE_HPP

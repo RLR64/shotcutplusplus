@@ -16,8 +16,7 @@
  */
 
 #include "statuslabelwidget.h"
-
-#include "settings.h"
+#include "settings.hpp"
 
 #include <QAction>
 #include <QApplication>

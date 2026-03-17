@@ -18,9 +18,9 @@
 #include "mltclipproducerwidget.h"
 
 #include "Logger.h"
-#include "mltcontroller.h"
-#include "settings.h"
-#include "util.h"
+#include "mltcontroller.hpp"
+#include "settings.hpp"
+#include "util.hpp"
 
 #include <QGridLayout>
 #include <QLabel>

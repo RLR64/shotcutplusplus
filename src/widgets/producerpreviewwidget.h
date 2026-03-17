@@ -18,7 +18,7 @@
 #ifndef PRODUCERPREVIEWWIDGET_H
 #define PRODUCERPREVIEWWIDGET_H
 
-#include "dataqueue.h"
+#include "dataqueue.hpp"
 
 #include <MltProducer.h>
 #include <QFuture>

@@ -15,8 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "settings.h"
-
+#include "settings.hpp"
 #include "Logger.h"
 #include "qmltypes/qmlapplication.h"
 
@@ -1699,16 +1698,6 @@ QString ShotcutSettings::whisperModel()
     return settings.value("subtitles/whisperModel", "").toString();
 }
 
-void ShotcutSettings::setWhisperUseGpu(bool b)
-{
-    settings.setValue("subtitles/whisperUseGpu", b);
-}
-
-bool ShotcutSettings::whisperUseGpu() const
-{
-    return settings.value("subtitles/whisperUseGpu", true).toBool();
-}
-
 void ShotcutSettings::setNotesZoom(int zoom)
 {
     settings.setValue("notes/zoom", zoom);
@@ -1744,21 +1733,6 @@ int ShotcutSettings::backupPeriod() const
 void ShotcutSettings::setBackupPeriod(int minutes)
 {
     settings.setValue("backupPeriod", minutes);
-}
-
-QDateTime ShotcutSettings::lastBackupDateTime(const QString &filePath) const
-{
-    return settings.value("lastBackupDateTimeMap").toMap().value(filePath).toDateTime();
-}
-
-void ShotcutSettings::setLastBackupDateTime(const QString &filePath, const QDateTime &dt)
-{
-    auto map = settings.value("lastBackupDateTimeMap").toMap();
-    if (dt.isValid())
-        map[filePath] = dt;
-    else
-        map.remove(filePath);
-    settings.setValue("lastBackupDateTimeMap", map);
 }
 
 mlt_time_format ShotcutSettings::timeFormat() const

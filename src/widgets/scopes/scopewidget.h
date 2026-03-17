@@ -19,8 +19,8 @@
 #define SCOPEWIDGET_H
 
 #include "Logger.h"
-#include "dataqueue.h"
-#include "sharedframe.h"
+#include "dataqueue.hpp"
+#include "sharedframe.hpp"
 
 #include <QFuture>
 #include <QMutex>

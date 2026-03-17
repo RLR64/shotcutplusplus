@@ -15,20 +15,19 @@
  * limitations under the License.
  * 
  ****************************************************************************/
+#include "mpeg4_container.hpp"
 
 #include <iostream>
-#include <string.h>
-#include <stdlib.h>
-
-#include "mpeg4_container.h"
+#include <cstring>
+#include <cstdlib>
 
 Mpeg4Container::Mpeg4Container ( )
   : Container ( )
 {
-  m_pMoovBox      = NULL;
-  m_pFreeBox      = NULL;
-  m_pFirstMDatBox = NULL;
-  m_pFTYPBox      = NULL;
+  m_pMoovBox      = nullptr;
+  m_pFreeBox      = nullptr;
+  m_pFirstMDatBox = nullptr;
+  m_pFTYPBox      = nullptr;
   m_iFirstMDatPos = 0;
 }
 
@@ -45,8 +44,8 @@ Mpeg4Container *Mpeg4Container::load ( std::fstream &fsIn ) //, uint32_t /* iPos
   std::vector<Box *> list = load_multiple ( fsIn, 0, iSize );
 
   if ( list.empty ( ) )  {
-    std::cerr << "Error, failed to load .mp4 file." << std::endl;
-    return NULL; 
+    std::cerr << "Error, failed to load .mp4 file.\n";
+    return nullptr;
   }
   Mpeg4Container *pNewBox = new Mpeg4Container ( );
   pNewBox->m_listContents = list;
@@ -65,14 +64,14 @@ Mpeg4Container *Mpeg4Container::load ( std::fstream &fsIn ) //, uint32_t /* iPos
       pNewBox->m_pFTYPBox = pBox;
   }
   if ( ! pNewBox->m_pMoovBox )  {
-    std::cerr << "Error, file does not contain moov box." << std::endl;
+    std::cerr << "Error, file does not contain moov box.\n";
     delete pNewBox;
-    return NULL;
+    return nullptr;
   }
   if ( ! pNewBox->m_pFirstMDatBox )  {
-    std::cerr << "Error, file does not contain mdat box." << std::endl;
+    std::cerr << "Error, file does not contain mdat box.\n";
     delete pNewBox;
-    return NULL;
+    return nullptr;
   }
   pNewBox->m_iFirstMDatPos  = pNewBox->m_pFirstMDatBox->m_iPosition; //m_iFirstMDatPos;
   pNewBox->m_iFirstMDatPos += pNewBox->m_pFirstMDatBox->m_iHeaderSize;
@@ -89,14 +88,14 @@ void Mpeg4Container::merge ( Box *pElement )
 {
   (void) pElement; // unused
   // Mpeg4 containers do not support merging."""
-  std::cerr << "Cannot merge mpeg4 files" << std::endl;
+  std::cerr << "Cannot merge mpeg4 files\n";
   exit ( 0 );
 }
 
 void Mpeg4Container::print_structure ( const char *pIndent )
 {
   // Print mpeg4 file structure recursively."""
-  std::cout << "mpeg4 [" << m_iContentSize << "]" << std::endl;
+  std::cout << "mpeg4 [" << m_iContentSize << "]";
   uint32_t iCount = m_listContents.size ( );
   std::string strIndent = pIndent;
   std::vector<Box *>::iterator it = m_listContents.begin ( );

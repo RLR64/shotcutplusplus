@@ -18,7 +18,7 @@
 #ifndef ENCODEDOCK_H
 #define ENCODEDOCK_H
 
-#include "settings.h"
+#include "settings.hpp"
 
 #include <MltProperties.h>
 #include <QDockWidget>

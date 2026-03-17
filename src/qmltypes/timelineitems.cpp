@@ -16,12 +16,11 @@
  */
 
 #include "timelineitems.h"
-
 #include "Logger.h"
-#include "mltcontroller.h"
+#include "mltcontroller.hpp"
 #include "models/multitrackmodel.h"
 #include "qmltypes/qmlproducer.h"
-#include "settings.h"
+#include "settings.hpp"
 
 #include <QLinearGradient>
 #include <QModelIndex>

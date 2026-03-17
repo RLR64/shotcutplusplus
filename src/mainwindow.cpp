@@ -15,17 +15,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "mainwindow.h"
+#include "mainwindow.hpp"
 #include "ui_mainwindow.h"
-
 #include "Logger.h"
-#include "actions.h"
-#include "autosavefile.h"
+#include "actions.hpp"
+#include "autosavefile.hpp"
 #include "commands/playlistcommands.h"
 #include "controllers/filtercontroller.h"
 #include "controllers/scopecontroller.h"
-#include "database.h"
-#include "defaultlayouts.h"
+#include "database.hpp"
+#include "defaultlayouts.hpp"
 #include "dialogs/actionsdialog.h"
 #include "dialogs/customprofiledialog.h"
 #include "dialogs/listselectiondialog.h"
@@ -47,22 +46,22 @@
 #include "docks/recentdock.h"
 #include "docks/subtitlesdock.h"
 #include "docks/timelinedock.h"
-#include "jobqueue.h"
+#include "jobqueue.hpp"
 #include "jobs/screencapturejob.h"
 #include "models/audiolevelstask.h"
 #include "models/keyframesmodel.h"
 #include "models/motiontrackermodel.h"
-#include "openotherdialog.h"
-#include "player.h"
-#include "proxymanager.h"
+#include "openotherdialog.hpp"
+#include "player.hpp"
+#include "proxymanager.hpp"
 #include "qmltypes/qmlapplication.h"
 #include "qmltypes/qmlprofile.h"
 #include "qmltypes/qmlutilities.h"
-#include "screencapture/screencapture.h"
-#include "settings.h"
-#include "shotcut_mlt_properties.h"
-#include "util.h"
-#include "videowidget.h"
+#include "screencapture/screencapture.hpp"
+#include "settings.hpp"
+#include "shotcut_mlt_properties.hpp"
+#include "util.hpp"
+#include "videowidget.hpp"
 #include "widgets/alsawidget.h"
 #include "widgets/avformatproducerwidget.h"
 #include "widgets/avfoundationproducerwidget.h"
@@ -2828,13 +2827,10 @@ void MainWindow::configureVideoWidget()
 
 void MainWindow::setCurrentFile(const QString &filename)
 {
-    QString newFile = (filename == untitledFileName()) ? QString() : filename;
-    if (newFile != m_currentFile) {
-        m_lastBackupDateTime = Settings.lastBackupDateTime(newFile);
-        if (!m_lastBackupDateTime.isValid())
-            m_lastBackupDateTime = QFileInfo(newFile).lastModified();
-    }
-    m_currentFile = newFile;
+    if (filename == untitledFileName())
+        m_currentFile.clear();
+    else
+        m_currentFile = filename;
     updateWindowTitle();
     ui->actionShowProjectFolder->setDisabled(m_currentFile.isEmpty());
 }
@@ -4711,14 +4707,10 @@ void MainWindow::backup()
 
 void MainWindow::backupPeriodically()
 {
-    if (m_currentFile.isEmpty())
-        return;
+    auto dateTime = QFileInfo(m_currentFile).lastModified();
     if (Settings.backupPeriod() > 0 && !kBackupFileRegex.match(m_currentFile).hasMatch()
-        && m_lastBackupDateTime.secsTo(QDateTime::currentDateTime()) / 60
-               >= Settings.backupPeriod()) {
+        && dateTime.secsTo(QDateTime::currentDateTime()) / 60 > Settings.backupPeriod()) {
         backup();
-        m_lastBackupDateTime = QDateTime::currentDateTime();
-        Settings.setLastBackupDateTime(m_currentFile, m_lastBackupDateTime);
     }
 }
 

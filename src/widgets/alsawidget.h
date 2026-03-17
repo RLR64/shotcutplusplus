@@ -18,7 +18,7 @@
 #ifndef ALSAWIDGET_H
 #define ALSAWIDGET_H
 
-#include "abstractproducerwidget.h"
+#include "abstractproducerwidget.hpp"
 
 #include <QWidget>
 

@@ -19,7 +19,7 @@
 #define FILTERSDOCK_H
 
 #include "qmltypes/qmlproducer.h"
-#include "sharedframe.h"
+#include "sharedframe.hpp"
 
 #include <QDockWidget>
 #include <QObject>

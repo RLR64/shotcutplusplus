@@ -17,9 +17,8 @@
 
 #include "timelinepropertieswidget.h"
 #include "ui_timelinepropertieswidget.h"
-
-#include "mltcontroller.h"
-#include "util.h"
+#include "mltcontroller.hpp"
+#include "util.hpp"
 
 TimelinePropertiesWidget::TimelinePropertiesWidget(Mlt::Service &service, QWidget *parent)
     : QWidget(parent)

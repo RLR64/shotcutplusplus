@@ -15,10 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "actions.h"
+#include "actions.hpp"
 
 #include "Logger.h"
-#include "settings.h"
+#include "settings.hpp"
 
 #include <QAction>
 #include <QMenu>

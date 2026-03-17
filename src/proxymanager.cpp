@@ -15,17 +15,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "proxymanager.h"
+#include "proxymanager.hpp"
 
 #include "Logger.h"
 #include "dialogs/longuitask.h"
-#include "jobqueue.h"
+#include "jobqueue.hpp"
 #include "jobs/ffmpegjob.h"
 #include "jobs/qimagejob.h"
-#include "mltcontroller.h"
-#include "settings.h"
-#include "shotcut_mlt_properties.h"
-#include "util.h"
+#include "mltcontroller.hpp"
+#include "settings.hpp"
+#include "shotcut_mlt_properties.hpp"
+#include "util.hpp"
 
 #include <QFile>
 #include <QImageReader>
@@ -43,8 +43,8 @@ static constexpr char kDJIProxyVideoExtension[] = ".LRF";
 static constexpr char kProxyPendingVideoExtension[] = ".pending.mp4";
 static constexpr char kProxyImageExtension[] = ".jpg";
 static constexpr char kProxyPendingImageExtension[] = ".pending.jpg";
-static constexpr float kProxyResolutionRatio = 1.3f;
-static constexpr int kFallbackProxyResolution = 540;
+static constexpr float kProxyResolutionRatio = {1.3f};
+static constexpr int kFallbackProxyResolution = {540};
 static const QStringList kPixFmtsWithAlpha
     = {"pal8",         "argb",         "rgba",         "abgr",         "bgra",
        "yuva420p",     "yuva422p",     "yuva444p",     "yuva420p9be",  "yuva420p9le",

@@ -23,14 +23,14 @@
  * https://github.com/google/spatial-media/docs/spatial-audio-rfc.md
  */
 
+#include "constants.hpp"
+#include "sa3d.hpp"
+
 #include <string.h>
 #include <iostream>
 #include <sstream>
 #include <iterator>
 #include <cmath>
-
-#include "constants.h"
-#include "sa3d.h"
 
 SA3DBox::SA3DBox ()
   : Box ( )

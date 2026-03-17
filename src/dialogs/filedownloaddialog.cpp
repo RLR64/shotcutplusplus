@@ -18,7 +18,7 @@
 #include "filedownloaddialog.h"
 
 #include "Logger.h"
-#include "mainwindow.h"
+#include "mainwindow.hpp"
 #include "qmltypes/qmlapplication.h"
 
 #include <QMessageBox>

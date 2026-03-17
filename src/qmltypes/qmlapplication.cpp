@@ -18,12 +18,12 @@
 #include "qmlapplication.h"
 
 #include "controllers/filtercontroller.h"
-#include "mainwindow.h"
-#include "mltcontroller.h"
+#include "mainwindow.hpp"
+#include "mltcontroller.hpp"
 #include "models/attachedfiltersmodel.h"
-#include "settings.h"
-#include "util.h"
-#include "videowidget.h"
+#include "settings.hpp"
+#include "util.hpp"
+#include "videowidget.hpp"
 
 #include <QApplication>
 #include <QCheckBox>

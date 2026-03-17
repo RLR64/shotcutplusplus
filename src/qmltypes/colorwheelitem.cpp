@@ -19,7 +19,7 @@
  */
 
 #include "colorwheelitem.h"
-#include "mainwindow.h"
+#include "mainwindow.hpp"
 
 #include <QCursor>
 #include <QPainter>

@@ -18,7 +18,7 @@
 #ifndef COUNTPRODUCERWIDGET_H
 #define COUNTPRODUCERWIDGET_H
 
-#include "abstractproducerwidget.h"
+#include "abstractproducerwidget.hpp"
 
 #include <QWidget>
 

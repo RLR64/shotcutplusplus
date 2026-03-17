@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef UTIL_H
-#define UTIL_H
+#ifndef UTIL_HPP
+#define UTIL_HPP
 
 #include <MltProperties.h>
 #include <functional>
@@ -111,4 +111,4 @@ public:
     static bool openUrl(const QUrl &url);
 };
 
-#endif // UTIL_H
+#endif // UTIL_HPP

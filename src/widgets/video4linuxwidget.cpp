@@ -19,11 +19,11 @@
 #include "ui_video4linuxwidget.h"
 
 #include "alsawidget.h"
-#include "mltcontroller.h"
+#include "mltcontroller.hpp"
 #include "pulseaudiowidget.h"
-#include "settings.h"
-#include "shotcut_mlt_properties.h"
-#include "util.h"
+#include "settings.hpp"
+#include "shotcut_mlt_properties.hpp"
+#include "util.hpp"
 
 #include <QtWidgets>
 

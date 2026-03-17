@@ -17,7 +17,7 @@
 
 #include "qmlfile.h"
 
-#include "Logger.h"
+#include "Logger.hpp"
 
 #include <QDir>
 #include <QFile>

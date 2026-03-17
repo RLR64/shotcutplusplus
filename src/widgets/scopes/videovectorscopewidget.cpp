@@ -18,7 +18,7 @@
 #include "videovectorscopewidget.h"
 
 #include "Logger.h"
-#include "mltcontroller.h"
+#include "mltcontroller.hpp"
 #include "qmltypes/qmlprofile.h"
 
 #include <QMouseEvent>

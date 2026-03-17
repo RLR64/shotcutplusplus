@@ -16,7 +16,6 @@
  */
 
 #include "audiospectrumscopewidget.h"
-
 #include "Logger.h"
 #include "widgets/audiometerwidget.h"
 

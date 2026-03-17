@@ -16,12 +16,11 @@
  */
 
 #include "filtersdock.h"
-
 #include "Logger.h"
-#include "actions.h"
+#include "actions.hpp"
 #include "controllers/filtercontroller.h"
-#include "mainwindow.h"
-#include "mltcontroller.h"
+#include "mainwindow.hpp"
+#include "mltcontroller.hpp"
 #include "models/attachedfiltersmodel.h"
 #include "models/metadatamodel.h"
 #include "models/motiontrackermodel.h"

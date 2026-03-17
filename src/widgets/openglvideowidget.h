@@ -18,7 +18,7 @@
 #ifndef OPENGLVIDEOWIDGET_H
 #define OPENGLVIDEOWIDGET_H
 
-#include "videowidget.h"
+#include "videowidget.hpp"
 
 #include <QOffscreenSurface>
 #include <QOpenGLContext>

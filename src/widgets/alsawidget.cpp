@@ -18,10 +18,10 @@
 #include "alsawidget.h"
 #include "ui_alsawidget.h"
 
-#include "mltcontroller.h"
-#include "settings.h"
-#include "shotcut_mlt_properties.h"
-#include "util.h"
+#include "mltcontroller.hpp"
+#include "settings.hpp"
+#include "shotcut_mlt_properties.hpp"
+#include "util.hpp"
 
 AlsaWidget::AlsaWidget(QWidget *parent)
     : QWidget(parent)

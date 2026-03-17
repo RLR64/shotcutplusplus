@@ -18,20 +18,20 @@
 #include "playlistdock.h"
 
 #include "Logger.h"
-#include "actions.h"
+#include "actions.hpp"
 #include "commands/playlistcommands.h"
 #include "dialogs/durationdialog.h"
 #include "dialogs/filedatedialog.h"
 #include "dialogs/longuitask.h"
 #include "dialogs/resourcedialog.h"
 #include "dialogs/slideshowgeneratordialog.h"
-#include "mainwindow.h"
-#include "proxymanager.h"
+#include "mainwindow.hpp"
+#include "proxymanager.hpp"
 #include "qmltypes/qmlapplication.h"
-#include "settings.h"
-#include "shotcut_mlt_properties.h"
+#include "settings.hpp"
+#include "shotcut_mlt_properties.hpp"
 #include "ui_playlistdock.h"
-#include "util.h"
+#include "util.hpp"
 #include "widgets/docktoolbar.h"
 #include "widgets/lineeditclear.h"
 #include "widgets/playlisticonview.h"
@@ -2151,7 +2151,7 @@ void PlaylistDock::onAddFilesActionTriggered()
     if (filenames.length() > 0) {
         Settings.setOpenPath(QFileInfo(filenames.first()).path());
         for (const auto &s : filenames) {
-            urls << QUrl::fromLocalFile(s);
+            urls << s;
         }
         mimeData.setUrls(urls);
         auto index = m_proxyModel->mapToSource(m_view->currentIndex());

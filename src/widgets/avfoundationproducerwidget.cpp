@@ -19,10 +19,10 @@
 #include "ui_avfoundationproducerwidget.h"
 
 #include "Logger.h"
-#include "mltcontroller.h"
-#include "settings.h"
-#include "shotcut_mlt_properties.h"
-#include "util.h"
+#include "mltcontroller.hpp"
+#include "settings.hpp"
+#include "shotcut_mlt_properties.hpp"
+#include "util.hpp"
 
 #include <QAudioDevice>
 #include <QCamera>

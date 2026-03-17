@@ -15,9 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "htmlgenerator.h"
+#include "htmlgenerator.hpp"
 #include "Logger.h"
-#include "settings.h"
+#include "settings.hpp"
 
 #include <QDir>
 #include <QFile>

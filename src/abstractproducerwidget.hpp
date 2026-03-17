@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ABSTRACTPRODUCERWIDGET_H
-#define ABSTRACTPRODUCERWIDGET_H
+#ifndef ABSTRACTPRODUCERWIDGET_HPP
+#define ABSTRACTPRODUCERWIDGET_HPP
 
 #include <MltProducer.h>
 #include <QScopedPointer>
@@ -43,4 +43,4 @@ protected:
     QScopedPointer<Mlt::Producer> m_producer;
 };
 
-#endif // ABSTRACTPRODUCERWIDGET_H
+#endif // ABSTRACTPRODUCERWIDGET_HPP

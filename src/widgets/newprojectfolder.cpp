@@ -21,10 +21,10 @@
 #include "Logger.h"
 #include "dialogs/customprofiledialog.h"
 #include "dialogs/listselectiondialog.h"
-#include "mainwindow.h"
+#include "mainwindow.hpp"
 #include "qmltypes/qmlapplication.h"
-#include "settings.h"
-#include "util.h"
+#include "settings.hpp"
+#include "util.hpp"
 
 #include <QActionGroup>
 #include <QDir>

@@ -15,14 +15,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "mltxmlchecker.h"
-
+#include "mltxmlchecker.hpp"
 #include "Logger.h"
-#include "mltcontroller.h"
-#include "proxymanager.h"
-#include "settings.h"
-#include "shotcut_mlt_properties.h"
-#include "util.h"
+#include "mltcontroller.hpp"
+#include "proxymanager.hpp"
+#include "settings.hpp"
+#include "shotcut_mlt_properties.hpp"
+#include "util.hpp"
 
 #include <QCoreApplication>
 #include <QDir>
@@ -98,7 +97,7 @@ QXmlStreamReader::Error MltXmlChecker::check(const QString &fileName)
                         m_mltVersion = QVersionNumber::fromString(a.value());
                     } else if (a.name().toString().toLower() == "title") {
                         m_newXml.writeAttribute(a.name().toString(),
-                                                "Shotcut version " SHOTCUT_VERSION);
+                                                "Shotcut version 26.2 ");
                         auto parts = a.value().split(' ');
                         LOG_DEBUG() << parts;
                         if (parts.size() > 2 && parts[1].toString() == "version") {

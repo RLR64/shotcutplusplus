@@ -17,11 +17,11 @@
  ****************************************************************************/
 
 // Tool for loading mpeg4 files and manipulating atoms.
-#include <string.h>
-#include <iostream>
+#include "box.hpp"
+#include "constants.hpp"
 
-#include "constants.h"
-#include "box.h"
+#include <cstring>
+#include <iostream>
 
 Box::Box ( )
 {

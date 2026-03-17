@@ -20,7 +20,7 @@
 
 #include "Logger.h"
 #include "qmltypes/qmlapplication.h"
-#include "settings.h"
+#include "settings.hpp"
 
 #include <QDir>
 #include <QInputDialog>

@@ -16,13 +16,12 @@
  */
 
 #include "markersdock.h"
-
 #include "Logger.h"
-#include "actions.h"
-#include "mainwindow.h"
+#include "actions.hpp"
+#include "mainwindow.hpp"
 #include "models/markersmodel.h"
-#include "settings.h"
-#include "util.h"
+#include "settings.hpp"
+#include "util.hpp"
 #include "widgets/docktoolbar.h"
 #include "widgets/editmarkerwidget.h"
 

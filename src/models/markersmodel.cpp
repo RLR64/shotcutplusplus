@@ -19,9 +19,9 @@
 
 #include "Logger.h"
 #include "commands/markercommands.h"
-#include "mainwindow.h"
-#include "settings.h"
-#include "shotcut_mlt_properties.h"
+#include "mainwindow.hpp"
+#include "settings.hpp"
+#include "shotcut_mlt_properties.hpp"
 
 enum Columns {
     COLUMN_COLOR = 0,

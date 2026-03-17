@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SETTINGS_H
-#define SETTINGS_H
+#ifndef SETTINGS_HPP
+#define SETTINGS_HPP
 
 #include <framework/mlt_types.h>
 #include <QByteArray>
@@ -311,8 +311,6 @@ public:
     bool warnLowMemory() const;
     int backupPeriod() const;
     void setBackupPeriod(int i);
-    QDateTime lastBackupDateTime(const QString &filePath) const;
-    void setLastBackupDateTime(const QString &filePath, const QDateTime &dt);
     mlt_time_format timeFormat() const;
     void setTimeFormat(int format);
     bool askFlatpakWrappers();
@@ -370,8 +368,6 @@ public:
     QString whisperExe();
     void setWhisperModel(const QString &path);
     QString whisperModel();
-    void setWhisperUseGpu(bool b);
-    bool whisperUseGpu() const;
 
     // Notes
     void setNotesZoom(int zoom);
@@ -452,4 +448,4 @@ private:
 
 #define Settings ShotcutSettings::singleton()
 
-#endif // SETTINGS_H
+#endif // SETTINGS_HPP

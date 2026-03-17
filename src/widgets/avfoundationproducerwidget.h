@@ -19,7 +19,7 @@
 #ifndef AVFOUNDATIONPRODUCERWIDGET_H
 #define AVFOUNDATIONPRODUCERWIDGET_H
 
-#include "abstractproducerwidget.h"
+#include "abstractproducerwidget.hpp"
 
 #include <QWidget>
 

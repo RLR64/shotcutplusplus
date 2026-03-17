@@ -15,19 +15,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "transcoder.h"
-
-#include "jobqueue.h"
+#include "transcoder.hpp"
+#include "jobqueue.hpp"
 #include "jobs/ffmpegjob.h"
-#include "mainwindow.h"
-#include "settings.h"
-#include "shotcut_mlt_properties.h"
-#include "util.h"
+#include "mainwindow.hpp"
+#include "settings.hpp"
+#include "shotcut_mlt_properties.hpp"
+#include "util.hpp"
 
 #include <QFileDialog>
 #include <QMessageBox>
 
-static const auto kHandleSeconds = 15.0;
+#define kHandleSeconds 15.0
 
 void Transcoder::setProducers(QList<Mlt::Producer> &producers)
 {

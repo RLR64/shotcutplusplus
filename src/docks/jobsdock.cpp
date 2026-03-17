@@ -17,10 +17,9 @@
 
 #include "jobsdock.h"
 #include "ui_jobsdock.h"
-
 #include "Logger.h"
 #include "dialogs/textviewerdialog.h"
-#include "jobqueue.h"
+#include "jobqueue.hpp"
 
 #include <QtWidgets>
 

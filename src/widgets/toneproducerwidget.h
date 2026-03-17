@@ -18,7 +18,7 @@
 #ifndef TONEPRODUCERWIDGET_H
 #define TONEPRODUCERWIDGET_H
 
-#include "abstractproducerwidget.h"
+#include "abstractproducerwidget.hpp"
 
 #include <QWidget>
 

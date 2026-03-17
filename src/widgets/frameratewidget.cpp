@@ -17,7 +17,7 @@
 
 #include "widgets/frameratewidget.h"
 
-#include "util.h"
+#include "util.hpp"
 
 #include <QComboBox>
 #include <QDoubleSpinBox>

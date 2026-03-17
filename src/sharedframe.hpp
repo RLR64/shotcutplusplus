@@ -15,14 +15,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SHAREDFRAME_H
-#define SHAREDFRAME_H
+#ifndef SHAREDFRAME_HPP
+#define SHAREDFRAME_HPP
 
 #include <MltFrame.h>
 #include <QExplicitlySharedDataPointer>
 #include <QObject>
 
-#include <stdint.h>
+#include <cstdint>
 
 class FrameData;
 
@@ -75,4 +75,4 @@ private:
     QExplicitlySharedDataPointer<FrameData> d;
 };
 
-#endif // SHAREDFRAME_H
+#endif // SHAREDFRAME_HPP

@@ -18,8 +18,8 @@
 #include "lissajouswidget.h"
 #include "ui_lissajouswidget.h"
 
-#include "shotcut_mlt_properties.h"
-#include "util.h"
+#include "shotcut_mlt_properties.hpp"
+#include "util.hpp"
 
 static const char *kParamRatioX = "0";
 static const char *kParamRatioY = "1";

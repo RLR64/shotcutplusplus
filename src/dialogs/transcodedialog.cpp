@@ -17,9 +17,8 @@
 
 #include "transcodedialog.h"
 #include "ui_transcodedialog.h"
-
-#include "mltcontroller.h"
-#include "settings.h"
+#include "mltcontroller.hpp"
+#include "settings.hpp"
 
 #include <QPushButton>
 

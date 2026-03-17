@@ -19,7 +19,7 @@
 #ifndef PLASMAWIDGET_H
 #define PLASMAWIDGET_H
 
-#include <abstractproducerwidget.h>
+#include <abstractproducerwidget.hpp>
 
 #include <QWidget>
 

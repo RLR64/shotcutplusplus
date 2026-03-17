@@ -18,9 +18,9 @@
 #include "filedatedialog.h"
 
 #include "Logger.h"
-#include "mltcontroller.h"
-#include "proxymanager.h"
-#include "shotcut_mlt_properties.h"
+#include "mltcontroller.hpp"
+#include "proxymanager.hpp"
+#include "shotcut_mlt_properties.hpp"
 
 #include <MltProducer.h>
 #include <QComboBox>
