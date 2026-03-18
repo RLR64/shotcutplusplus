@@ -99,7 +99,11 @@ Rectangle {
     }
 
     border.color: (selected || Drag.active || trackIndex != originalTrackIndex) ? group < 0 ? 'red' : 'white' : 'black'
+<<<<<<< HEAD
     border.width: isBlank && !selected ? 0 : 1
+=======
+    border.width: (isBlank && !selected) ? 0 : 1
+>>>>>>> upstream/master
     clip: true
     Drag.active: mouseArea.drag.active
     Drag.proposedAction: Qt.MoveAction
