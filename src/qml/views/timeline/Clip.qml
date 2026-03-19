@@ -39,6 +39,7 @@ Rectangle {
     property int trackIndex
     property int originalTrackIndex: trackIndex
     property int originalClipIndex: index
+    readonly property int readonlyClipIndex: index
     property int originalX: x
     property bool selected: false
     property string hash: ''
