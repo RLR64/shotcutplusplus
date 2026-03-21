@@ -18,7 +18,7 @@
 #ifndef TRANSCODER_HPP
 #define TRANSCODER_HPP
 
-#include "dialogs/transcodedialog.h"
+#include "dialogs/transcodedialog.hpp"
 
 #include <MltProducer.h>
 #include <QList>

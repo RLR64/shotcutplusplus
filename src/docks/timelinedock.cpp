@@ -15,18 +15,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "timelinedock.h"
-
+#include "timelinedock.hpp"
 #include "Logger.h"
 #include "abstractproducerwidget.hpp"
 #include "actions.hpp"
-#include "commands/timelinecommands.h"
-#include "dialogs/alignaudiodialog.h"
-#include "dialogs/durationdialog.h"
-#include "dialogs/editmarkerdialog.h"
-#include "dialogs/longuitask.h"
-#include "dialogs/resourcedialog.h"
-#include "jobs/meltjob.h"
+#include "commands/timelinecommands.hpp"
+#include "dialogs/alignaudiodialog.hpp"
+#include "dialogs/durationdialog.hpp"
+#include "dialogs/editmarkerdialog.hpp"
+#include "dialogs/longuitask.hpp"
+#include "dialogs/resourcedialog.hpp"
+#include "jobs/meltjob.hpp"
 #include "mainwindow.hpp"
 #include "models/audiolevelstask.hpp"
 #include "models/multitrackmodel.hpp"

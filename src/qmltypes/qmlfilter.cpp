@@ -17,10 +17,10 @@
 
 #include "qmlfilter.hpp"
 #include "Logger.h"
-#include "commands/filtercommands.h"
-#include "controllers/filtercontroller.h"
+#include "commands/filtercommands.hpp"
+#include "controllers/filtercontroller.hpp"
 #include "jobqueue.hpp"
-#include "jobs/encodejob.h"
+#include "jobs/encodejob.hpp"
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"
 #include "proxymanager.hpp"

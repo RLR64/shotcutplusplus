@@ -17,8 +17,8 @@
 
 #include "attachedfiltersmodel.hpp"
 #include "Logger.h"
-#include "commands/filtercommands.h"
-#include "controllers/filtercontroller.h"
+#include "commands/filtercommands.hpp"
+#include "controllers/filtercontroller.hpp"
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"
 #include "qmltypes/qmlapplication.hpp"

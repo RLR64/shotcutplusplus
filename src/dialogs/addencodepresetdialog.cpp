@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "addencodepresetdialog.h"
+#include "addencodepresetdialog.hpp"
 #include "ui_addencodepresetdialog.h"
 
 AddEncodePresetDialog::AddEncodePresetDialog(QWidget *parent)

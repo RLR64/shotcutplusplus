@@ -15,10 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "timelinecommands.h"
+#include "timelinecommands.hpp"
 #include "Logger.h"
-#include "controllers/filtercontroller.h"
-#include "dialogs/longuitask.h"
+#include "controllers/filtercontroller.hpp"
+#include "dialogs/longuitask.hpp"
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"
 #include "proxymanager.hpp"

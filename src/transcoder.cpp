@@ -17,7 +17,7 @@
 
 #include "transcoder.hpp"
 #include "jobqueue.hpp"
-#include "jobs/ffmpegjob.h"
+#include "jobs/ffmpegjob.hpp"
 #include "mainwindow.hpp"
 #include "settings.hpp"
 #include "shotcut_mlt_properties.hpp"

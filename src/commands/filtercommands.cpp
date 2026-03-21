@@ -15,10 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "filtercommands.h"
+#include "filtercommands.hpp"
 #include "shotcut_mlt_properties.hpp"
 #include "Logger.h"
-#include "controllers/filtercontroller.h"
+#include "controllers/filtercontroller.hpp"
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"
 #include "qmltypes/qmlapplication.hpp"

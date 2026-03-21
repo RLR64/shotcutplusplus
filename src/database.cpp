@@ -17,7 +17,7 @@
 
 #include "database.hpp"
 #include "Logger.hpp"
-#include "dialogs/longuitask.h"
+#include "dialogs/longuitask.hpp"
 #include "settings.hpp"
 
 #include <utime.h>

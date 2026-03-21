@@ -16,12 +16,11 @@
  */
 
 #include "proxymanager.hpp"
-
 #include "Logger.h"
-#include "dialogs/longuitask.h"
+#include "dialogs/longuitask.hpp"
 #include "jobqueue.hpp"
-#include "jobs/ffmpegjob.h"
-#include "jobs/qimagejob.h"
+#include "jobs/ffmpegjob.hpp"
+#include "jobs/qimagejob.hpp"
 #include "mltcontroller.hpp"
 #include "settings.hpp"
 #include "shotcut_mlt_properties.hpp"

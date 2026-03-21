@@ -15,10 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "abstractjob.h"
-
+#include "abstractjob.hpp"
 #include "Logger.h"
-#include "postjobaction.h"
+#include "postjobaction.hpp"
 
 #include <QAction>
 #include <QApplication>

@@ -15,8 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "filedatedialog.h"
-
+#include "filedatedialog.hpp"
 #include "Logger.h"
 #include "mltcontroller.hpp"
 #include "proxymanager.hpp"

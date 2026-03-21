@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "alignmentarray.h"
+#include "alignmentarray.hpp"
 
 #include <QDebug>
 #include <QMutexLocker>

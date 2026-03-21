@@ -15,10 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "transcribeaudiodialog.h"
+#include "transcribeaudiodialog.hpp"
 #include "Logger.h"
-#include "dialogs/filedownloaddialog.h"
-#include "docks/timelinedock.h"
+#include "dialogs/filedownloaddialog.hpp"
+#include "docks/timelinedock.hpp"
 #include "mainwindow.hpp"
 #include "models/extensionmodel.hpp"
 #include "qmltypes/qmlapplication.hpp"

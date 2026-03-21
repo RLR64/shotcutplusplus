@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "multifileexportdialog.h"
+#include "multifileexportdialog.hpp"
 #include "mainwindow.hpp"
 #include "proxymanager.hpp"
 #include "qmltypes/qmlapplication.hpp"

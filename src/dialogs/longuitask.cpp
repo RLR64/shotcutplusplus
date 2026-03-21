@@ -15,8 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "longuitask.h"
-
+#include "longuitask.hpp"
 #include "mainwindow.hpp"
 
 static QMutex g_mutex;

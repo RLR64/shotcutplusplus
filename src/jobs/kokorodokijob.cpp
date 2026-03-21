@@ -15,10 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "kokorodokijob.h"
+#include "kokorodokijob.hpp"
 #include "Logger.h"
 #include "jobqueue.hpp"
-#include "jobs/dockerpulljob.h"
+#include "jobs/dockerpulljob.hpp"
 #include "mainwindow.hpp"
 #include "qmltypes/qmlapplication.hpp"
 #include "settings.hpp"

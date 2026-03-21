@@ -15,8 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "filedownloaddialog.h"
-
+#include "filedownloaddialog.hpp"
 #include "Logger.h"
 #include "mainwindow.hpp"
 #include "qmltypes/qmlapplication.hpp"

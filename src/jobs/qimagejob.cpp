@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "qimagejob.h"
+#include "qimagejob.hpp"
 #include "util.hpp"
 
 #include <QImage>

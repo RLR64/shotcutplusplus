@@ -15,9 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ffmpegjob.h"
+#include "ffmpegjob.hpp"
 #include "Logger.h"
-#include "dialogs/textviewerdialog.h"
+#include "dialogs/textviewerdialog.hpp"
 #include "mainwindow.hpp"
 #include "util.hpp"
 

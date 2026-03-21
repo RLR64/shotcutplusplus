@@ -17,7 +17,7 @@
 
 #include "metadatamodel.hpp"
 #include "Logger.h"
-#include "controllers/filtercontroller.h"
+#include "controllers/filtercontroller.hpp"
 #include "mainwindow.hpp"
 #include "qmltypes/qmlmetadata.hpp"
 #include "settings.hpp"

@@ -15,10 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "postjobaction.h"
+#include "postjobaction.hpp"
 #include "Logger.h"
 #include "docks/playlistdock.h"
-#include "docks/subtitlesdock.h"
+#include "docks/subtitlesdock.hpp"
 #include "mainwindow.hpp"
 #include "shotcut_mlt_properties.hpp"
 

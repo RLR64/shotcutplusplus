@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "actionsdialog.h"
+#include "actionsdialog.hpp"
 #include "widgets/statuslabelwidget.h"
 
 #include <QAction>

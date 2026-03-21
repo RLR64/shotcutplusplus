@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "transcodedialog.h"
+#include "transcodedialog.hpp"
 #include "ui_transcodedialog.h"
 #include "mltcontroller.hpp"
 #include "settings.hpp"

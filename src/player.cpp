@@ -18,7 +18,7 @@
 #include "player.hpp"
 #include "Logger.h"
 #include "actions.hpp"
-#include "dialogs/durationdialog.h"
+#include "dialogs/durationdialog.hpp"
 #include "mainwindow.hpp"
 #include "proxymanager.hpp"
 #include "scrubbar.hpp"

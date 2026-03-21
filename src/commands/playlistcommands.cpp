@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "playlistcommands.h"
+#include "playlistcommands.hpp"
 #include "Logger.h"
 #include "docks/playlistdock.h"
 #include "mainwindow.hpp"

@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "textviewerdialog.h"
+#include "textviewerdialog.hpp"
 #include "ui_textviewerdialog.h"
 #include "settings.hpp"
 #include "util.hpp"

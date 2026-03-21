@@ -17,7 +17,7 @@
 
 #include "qmlmarkermenu.hpp"
 #include "actions.hpp"
-#include "docks/timelinedock.h"
+#include "docks/timelinedock.hpp"
 #include "qmltypes/colordialog.hpp"
 #include "qmltypes/qmlapplication.hpp"
 

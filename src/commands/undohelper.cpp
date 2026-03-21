@@ -15,8 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "undohelper.h"
-
+#include "undohelper.hpp"
 #include "Logger.h"
 #include "mltcontroller.hpp"
 #include "models/audiolevelstask.hpp"

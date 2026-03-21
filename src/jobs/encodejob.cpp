@@ -16,11 +16,11 @@
  */
 
 #include "Logger.h"
-#include "encodejob.h"
-#include "dialogs/listselectiondialog.h"
-#include "docks/timelinedock.h"
+#include "encodejob.hpp"
+#include "dialogs/listselectiondialog.hpp"
+#include "docks/timelinedock.hpp"
 #include "jobqueue.hpp"
-#include "jobs/videoqualityjob.h"
+#include "jobs/videoqualityjob.hpp"
 #include "mainwindow.hpp"
 #include "qmltypes/qmlapplication.hpp"
 #include "qmltypes/qmlutilities.hpp"

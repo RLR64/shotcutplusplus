@@ -15,8 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "htmlgeneratorjob.h"
-
+#include "htmlgeneratorjob.hpp"
 #include "Logger.h"
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"

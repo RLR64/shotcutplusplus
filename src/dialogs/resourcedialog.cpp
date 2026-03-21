@@ -15,11 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "resourcedialog.h"
+#include "resourcedialog.hpp"
 #include "Logger.h"
 #include "mltcontroller.hpp"
 #include "qmltypes/qmlapplication.hpp"
-#include "transcodedialog.h"
+#include "transcodedialog.hpp"
 #include "transcoder.hpp"
 #include "widgets/resourcewidget.h"
 

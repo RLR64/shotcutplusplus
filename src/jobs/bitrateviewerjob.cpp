@@ -15,10 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "bitrateviewerjob.h"
-
+#include "bitrateviewerjob.hpp"
 #include "Logger.h"
-#include "dialogs/bitratedialog.h"
+#include "dialogs/bitratedialog.hpp"
 #include "mainwindow.hpp"
 #include "util.hpp"
 

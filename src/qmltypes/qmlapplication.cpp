@@ -16,7 +16,7 @@
  */
 
 #include "qmlapplication.hpp"
-#include "controllers/filtercontroller.h"
+#include "controllers/filtercontroller.hpp"
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"
 #include "models/attachedfiltersmodel.hpp"

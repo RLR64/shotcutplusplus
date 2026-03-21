@@ -17,7 +17,7 @@
 
 #include "videowidget.hpp"
 #include "Logger.h"
-#include "dialogs/durationdialog.h"
+#include "dialogs/durationdialog.hpp"
 #include "mainwindow.hpp"
 #include "qmltypes/qmlfilter.hpp"
 #include "qmltypes/qmlutilities.hpp"

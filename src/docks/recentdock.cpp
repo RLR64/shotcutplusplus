@@ -15,9 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "recentdock.h"
+#include "recentdock.hpp"
 #include "ui_recentdock.h"
-
 #include "Logger.h"
 #include "settings.hpp"
 #include "util.hpp"

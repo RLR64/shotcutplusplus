@@ -15,17 +15,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "subtitlesdock.h"
-
+#include "subtitlesdock.hpp"
 #include "Logger.h"
 #include "actions.hpp"
-#include "dialogs/speechdialog.h"
-#include "dialogs/subtitletrackdialog.h"
-#include "dialogs/transcribeaudiodialog.h"
+#include "dialogs/speechdialog.hpp"
+#include "dialogs/subtitletrackdialog.hpp"
+#include "dialogs/transcribeaudiodialog.hpp"
 #include "jobqueue.hpp"
-#include "jobs/kokorodokijob.h"
-#include "jobs/meltjob.h"
-#include "jobs/whisperjob.h"
+#include "jobs/kokorodokijob.hpp"
+#include "jobs/meltjob.hpp"
+#include "jobs/whisperjob.hpp"
 #include "mainwindow.hpp"
 #include "models/subtitlesmodel.hpp"
 #include "models/subtitlesselectionmodel.hpp"

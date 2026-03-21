@@ -15,12 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "notesdock.h"
+#include "notesdock.hpp"
 #include "Logger.h"
 #include "actions.hpp"
-#include "dialogs/speechdialog.h"
+#include "dialogs/speechdialog.hpp"
 #include "jobqueue.hpp"
-#include "jobs/kokorodokijob.h"
+#include "jobs/kokorodokijob.hpp"
 #include "mltcontroller.hpp"
 #include "settings.hpp"
 #include "util.hpp"

@@ -17,7 +17,7 @@
 
 #include "trackpropertieswidget.h"
 #include "ui_trackpropertieswidget.h"
-#include "commands/timelinecommands.h"
+#include "commands/timelinecommands.hpp"
 #include "mainwindow.hpp"
 #include "shotcut_mlt_properties.hpp"
 #include "util.hpp"

@@ -15,12 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "screencapturejob.h"
+#include "screencapturejob.hpp"
 #include "Logger.h"
-#include "ffmpegjob.h"
+#include "ffmpegjob.hpp"
 #include "jobqueue.hpp"
 #include "mainwindow.hpp"
-#include "postjobaction.h"
+#include "postjobaction.hpp"
 #include "screencapture/screencapture.hpp"
 #include "settings.hpp"
 

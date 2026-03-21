@@ -18,7 +18,7 @@
 #include "util.hpp"
 #include "FlatpakWrapperGenerator.hpp"
 #include "Logger.h"
-#include "dialogs/transcodedialog.h"
+#include "dialogs/transcodedialog.hpp"
 #include "mainwindow.hpp"
 #include "proxymanager.hpp"
 #include "qmltypes/qmlapplication.hpp"

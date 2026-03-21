@@ -16,15 +16,14 @@
  */
 
 #include "playlistdock.h"
-
 #include "Logger.h"
 #include "actions.hpp"
-#include "commands/playlistcommands.h"
-#include "dialogs/durationdialog.h"
-#include "dialogs/filedatedialog.h"
-#include "dialogs/longuitask.h"
-#include "dialogs/resourcedialog.h"
-#include "dialogs/slideshowgeneratordialog.h"
+#include "commands/playlistcommands.hpp"
+#include "dialogs/durationdialog.hpp"
+#include "dialogs/filedatedialog.hpp"
+#include "dialogs/longuitask.hpp"
+#include "dialogs/resourcedialog.hpp"
+#include "dialogs/slideshowgeneratordialog.hpp"
 #include "mainwindow.hpp"
 #include "proxymanager.hpp"
 #include "qmltypes/qmlapplication.hpp"

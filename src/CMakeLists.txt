@@ -4,81 +4,81 @@ add_executable(shotcut WIN32 MACOSX_BUNDLE
   abstractproducerwidget.cpp abstractproducerwidget.hpp
   actions.cpp actions.hpp
   autosavefile.cpp autosavefile.hpp
-  commands/filtercommands.cpp commands/filtercommands.h
-  commands/markercommands.cpp commands/markercommands.h
-  commands/playlistcommands.cpp commands/playlistcommands.h
-  commands/subtitlecommands.cpp commands/subtitlecommands.h
-  commands/timelinecommands.cpp commands/timelinecommands.h
-  commands/undohelper.cpp commands/undohelper.h
-  controllers/filtercontroller.cpp controllers/filtercontroller.h
-  controllers/scopecontroller.cpp controllers/scopecontroller.h
+  commands/filtercommands.cpp commands/filtercommands.hpp
+  commands/markercommands.cpp commands/markercommands.hpp
+  commands/playlistcommands.cpp commands/playlistcommands.hpp
+  commands/subtitlecommands.cpp commands/subtitlecommands.hpp
+  commands/timelinecommands.cpp commands/timelinecommands.hpp
+  commands/undohelper.cpp commands/undohelper.hpp
+  controllers/filtercontroller.cpp controllers/filtercontroller.hpp
+  controllers/scopecontroller.cpp controllers/scopecontroller.hpp
   database.cpp database.hpp
-  dialogs/actionsdialog.cpp dialogs/actionsdialog.h
-  dialogs/addencodepresetdialog.cpp dialogs/addencodepresetdialog.h
+  dialogs/actionsdialog.cpp dialogs/actionsdialog.hpp
+  dialogs/addencodepresetdialog.cpp dialogs/addencodepresetdialog.hpp
   dialogs/addencodepresetdialog.ui
-  dialogs/alignaudiodialog.cpp dialogs/alignaudiodialog.h
-  dialogs/alignmentarray.cpp dialogs/alignmentarray.h
-  dialogs/bitratedialog.h dialogs/bitratedialog.cpp
-  dialogs/customprofiledialog.cpp dialogs/customprofiledialog.h
+  dialogs/alignaudiodialog.cpp dialogs/alignaudiodialog.hpp
+  dialogs/alignmentarray.cpp dialogs/alignmentarray.hpp
+  dialogs/bitratedialog.cpp dialogs/bitratedialog.hpp
+  dialogs/customprofiledialog.cpp dialogs/customprofiledialog.hpp
   dialogs/customprofiledialog.ui
-  dialogs/durationdialog.cpp dialogs/durationdialog.h
+  dialogs/durationdialog.cpp dialogs/durationdialog.hpp
   dialogs/durationdialog.ui
-  dialogs/editmarkerdialog.cpp dialogs/editmarkerdialog.h
-  dialogs/filedatedialog.cpp dialogs/filedatedialog.h
-  dialogs/filedownloaddialog.cpp dialogs/filedownloaddialog.h
-  dialogs/listselectiondialog.cpp dialogs/listselectiondialog.h
+  dialogs/editmarkerdialog.cpp dialogs/editmarkerdialog.hpp
+  dialogs/filedatedialog.cpp dialogs/filedatedialog.hpp
+  dialogs/filedownloaddialog.cpp dialogs/filedownloaddialog.hpp
+  dialogs/listselectiondialog.cpp dialogs/listselectiondialog.hpp
   dialogs/listselectiondialog.ui
-  dialogs/longuitask.cpp dialogs/longuitask.h
-  dialogs/multifileexportdialog.cpp dialogs/multifileexportdialog.h
-  dialogs/resourcedialog.cpp dialogs/resourcedialog.h
-  dialogs/saveimagedialog.cpp dialogs/saveimagedialog.h
-  dialogs/slideshowgeneratordialog.cpp dialogs/slideshowgeneratordialog.h
-  dialogs/speechdialog.h dialogs/speechdialog.cpp
-  dialogs/subtitletrackdialog.cpp dialogs/subtitletrackdialog.h
-  dialogs/systemsyncdialog.cpp dialogs/systemsyncdialog.h
+  dialogs/longuitask.cpp dialogs/longuitask.hpp
+  dialogs/multifileexportdialog.cpp dialogs/multifileexportdialog.hpp
+  dialogs/resourcedialog.cpp dialogs/resourcedialog.hpp
+  dialogs/saveimagedialog.cpp dialogs/saveimagedialog.hpp
+  dialogs/slideshowgeneratordialog.cpp dialogs/slideshowgeneratordialog.hpp
+  dialogs/speechdialog.cpp dialogs/speechdialog.hpp
+  dialogs/subtitletrackdialog.cpp dialogs/subtitletrackdialog.hpp
+  dialogs/systemsyncdialog.cpp dialogs/systemsyncdialog.hpp
   dialogs/systemsyncdialog.ui
-  dialogs/textviewerdialog.cpp dialogs/textviewerdialog.h
+  dialogs/textviewerdialog.cpp dialogs/textviewerdialog.hpp
   dialogs/textviewerdialog.ui
-  dialogs/transcodedialog.cpp dialogs/transcodedialog.h
+  dialogs/transcodedialog.cpp dialogs/transcodedialog.hpp
   dialogs/transcodedialog.ui
-  dialogs/transcribeaudiodialog.cpp dialogs/transcribeaudiodialog.h
-  dialogs/unlinkedfilesdialog.cpp dialogs/unlinkedfilesdialog.h
+  dialogs/transcribeaudiodialog.cpp dialogs/transcribeaudiodialog.hpp
+  dialogs/unlinkedfilesdialog.cpp dialogs/unlinkedfilesdialog.hpp
   dialogs/unlinkedfilesdialog.ui
-  docks/encodedock.cpp docks/encodedock.h
+  docks/encodedock.cpp docks/encodedock.hpp
   docks/encodedock.ui
-  docks/filesdock.cpp docks/filesdock.h
+  docks/filesdock.cpp docks/filesdock.hpp
   docks/filesdock.ui
-  docks/filtersdock.cpp docks/filtersdock.h
-  docks/jobsdock.cpp docks/jobsdock.h
+  docks/filtersdock.cpp docks/filtersdock.hpp
+  docks/jobsdock.cpp docks/jobsdock.hpp
   docks/jobsdock.ui
-  docks/keyframesdock.cpp docks/keyframesdock.h
-  docks/markersdock.cpp docks/markersdock.h
-  docks/notesdock.cpp docks/notesdock.h
+  docks/keyframesdock.cpp docks/keyframesdock.hpp
+  docks/markersdock.cpp docks/markersdock.hpp
+  docks/notesdock.cpp docks/notesdock.hpp
   docks/playlistdock.cpp docks/playlistdock.h
   docks/playlistdock.ui
-  docks/recentdock.cpp docks/recentdock.h
+  docks/recentdock.cpp docks/recentdock.hpp
   docks/recentdock.ui
-  docks/scopedock.cpp docks/scopedock.h
-  docks/subtitlesdock.cpp docks/subtitlesdock.h
-  docks/timelinedock.cpp docks/timelinedock.h
+  docks/scopedock.cpp docks/scopedock.hpp
+  docks/subtitlesdock.cpp docks/subtitlesdock.hpp
+  docks/timelinedock.cpp docks/timelinedock.hpp
   FlatpakWrapperGenerator.cpp FlatpakWrapperGenerator.hpp
   htmlgenerator.cpp htmlgenerator.hpp
   jobqueue.cpp jobqueue.hpp
-  jobs/abstractjob.cpp jobs/abstractjob.h
-  jobs/bitrateviewerjob.h jobs/bitrateviewerjob.cpp
-  jobs/dockerpulljob.h jobs/dockerpulljob.cpp
-  jobs/encodejob.cpp jobs/encodejob.h
-  jobs/ffmpegjob.cpp jobs/ffmpegjob.h
-  jobs/ffprobejob.cpp jobs/ffprobejob.h
-  jobs/gopro2gpxjob.cpp jobs/gopro2gpxjob.h
-  jobs/htmlgeneratorjob.cpp jobs/htmlgeneratorjob.h
-  jobs/kokorodokijob.cpp jobs/kokorodokijob.h
-  jobs/meltjob.cpp jobs/meltjob.h
-  jobs/postjobaction.cpp jobs/postjobaction.h
-  jobs/qimagejob.cpp jobs/qimagejob.h
-  jobs/screencapturejob.cpp jobs/screencapturejob.h
-  jobs/videoqualityjob.cpp jobs/videoqualityjob.h
-  jobs/whisperjob.cpp jobs/whisperjob.h
+  jobs/abstractjob.cpp jobs/abstractjob.hpp
+  jobs/bitrateviewerjob.cpp jobs/bitrateviewerjob.hpp
+  jobs/dockerpulljob.cpp jobs/dockerpulljob.hpp
+  jobs/encodejob.cpp jobs/encodejob.hpp
+  jobs/ffmpegjob.cpp jobs/ffmpegjob.hpp
+  jobs/ffprobejob.cpp jobs/ffprobejob.hpp
+  jobs/gopro2gpxjob.cpp jobs/gopro2gpxjob.hpp
+  jobs/htmlgeneratorjob.cpp jobs/htmlgeneratorjob.hpp
+  jobs/kokorodokijob.cpp jobs/kokorodokijob.hpp
+  jobs/meltjob.cpp jobs/meltjob.hpp
+  jobs/postjobaction.cpp jobs/postjobaction.hpp
+  jobs/qimagejob.cpp jobs/qimagejob.hpp
+  jobs/screencapturejob.cpp jobs/screencapturejob.hpp
+  jobs/videoqualityjob.cpp jobs/videoqualityjob.hpp
+  jobs/whisperjob.cpp jobs/whisperjob.hpp
   main.cpp
   mainwindow.cpp mainwindow.hpp
   mainwindow.ui

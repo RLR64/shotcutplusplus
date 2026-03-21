@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "listselectiondialog.h"
+#include "listselectiondialog.hpp"
 #include "ui_listselectiondialog.h"
 
 #include <QListWidget>

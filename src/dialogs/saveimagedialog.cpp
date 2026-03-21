@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "saveimagedialog.h"
+#include "saveimagedialog.hpp"
 #include "Logger.h"
 #include "mltcontroller.hpp"
 #include "settings.hpp"

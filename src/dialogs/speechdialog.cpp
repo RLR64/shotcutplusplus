@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "speechdialog.h"
+#include "speechdialog.hpp"
 #include "Logger.h"
 #include "mltcontroller.hpp"
 #include "qmltypes/qmlapplication.hpp"

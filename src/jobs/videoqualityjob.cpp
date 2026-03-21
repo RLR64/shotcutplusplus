@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "videoqualityjob.h"
-#include "dialogs/textviewerdialog.h"
+#include "videoqualityjob.hpp"
+#include "dialogs/textviewerdialog.hpp"
 #include "mainwindow.hpp"
 
 #include <QAction>

@@ -16,7 +16,6 @@
  */
 
 #include "qmlprofile.hpp"
-
 #include "mltcontroller.hpp"
 
 QmlProfile &QmlProfile::singleton()

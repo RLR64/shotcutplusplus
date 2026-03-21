@@ -15,12 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "filesdock.h"
+#include "filesdock.hpp"
 #include "ui_filesdock.h"
 #include "Logger.h"
 #include "actions.hpp"
 #include "database.hpp"
-#include "dialogs/listselectiondialog.h"
+#include "dialogs/listselectiondialog.hpp"
 #include "mainwindow.hpp"
 #include "models/playlistmodel.hpp"
 #include "qmltypes/qmlapplication.hpp"

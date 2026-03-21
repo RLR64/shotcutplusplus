@@ -17,7 +17,7 @@
 
 #include "markersmodel.hpp"
 #include "Logger.h"
-#include "commands/markercommands.h"
+#include "commands/markercommands.hpp"
 #include "mainwindow.hpp"
 #include "settings.hpp"
 #include "shotcut_mlt_properties.hpp"

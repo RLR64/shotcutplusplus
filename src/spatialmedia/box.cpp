@@ -30,13 +30,13 @@ Box::Box ( )
   m_iPosition     = 0;
   m_iHeaderSize   = 0;
   m_iContentSize  = 0;
-  m_pContents     = NULL;
+  m_pContents     = nullptr;
 }
 
 Box::~Box ( )
 {
   delete m_pContents;
-  m_pContents = NULL;
+  m_pContents = nullptr;
   m_iContentSize = m_iHeaderSize = m_iPosition = 0;
 }
 
@@ -199,19 +199,19 @@ Box *Box::load ( std::fstream &fs, uint32_t iPos, uint32_t iEnd )
   }
   if ( iSize < 8 )  { 
     std::cerr << "Error, invalid size " << iSize << " in " << name << " at " << iPos << std::endl;
-    return NULL;
+    return nullptr;
   }
 
   if ( iPos + iSize > iEnd )  {
     std::cerr << "Error: Leaf box size exceeds bounds." << std::endl;
-    return NULL;
+    return nullptr;
   }
   Box *pNewBox = new Box ( );
   memcpy ( pNewBox->m_name, name, sizeof ( name ) );
   pNewBox->m_iPosition    = iPos;
   pNewBox->m_iHeaderSize  = iHeaderSize;
   pNewBox->m_iContentSize = iSize - iHeaderSize;
-  pNewBox->m_pContents = NULL;
+  pNewBox->m_pContents = nullptr;
   return pNewBox;
 }
 

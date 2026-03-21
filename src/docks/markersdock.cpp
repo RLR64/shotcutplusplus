@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "markersdock.h"
+#include "markersdock.hpp"
 #include "Logger.h"
 #include "actions.hpp"
 #include "mainwindow.hpp"

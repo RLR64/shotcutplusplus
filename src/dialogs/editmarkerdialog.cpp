@@ -15,8 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "editmarkerdialog.h"
-
+#include "editmarkerdialog.hpp"
 #include "Logger.h"
 #include "widgets/editmarkerwidget.h"
 

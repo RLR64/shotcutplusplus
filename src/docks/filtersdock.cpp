@@ -15,10 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "filtersdock.h"
+#include "filtersdock.hpp"
 #include "Logger.h"
 #include "actions.hpp"
-#include "controllers/filtercontroller.h"
+#include "controllers/filtercontroller.hpp"
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"
 #include "models/attachedfiltersmodel.hpp"

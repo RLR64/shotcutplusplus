@@ -18,7 +18,7 @@
 #ifndef JOBQUEUE_HPP
 #define JOBQUEUE_HPP
 
-#include "jobs/abstractjob.h"
+#include "jobs/abstractjob.hpp"
 
 #include <QMutex>
 #include <QStandardItemModel>

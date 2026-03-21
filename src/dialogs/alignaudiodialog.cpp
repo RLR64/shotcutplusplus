@@ -15,11 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "alignaudiodialog.h"
+#include "alignaudiodialog.hpp"
 #include "Logger.h"
-#include "commands/timelinecommands.h"
-#include "dialogs/alignmentarray.h"
-#include "dialogs/longuitask.h"
+#include "commands/timelinecommands.hpp"
+#include "dialogs/alignmentarray.hpp"
+#include "dialogs/longuitask.hpp"
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"
 #include "models/multitrackmodel.hpp"

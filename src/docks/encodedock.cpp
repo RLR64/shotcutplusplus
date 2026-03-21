@@ -15,16 +15,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "encodedock.h"
+#include "encodedock.hpp"
 #include "ui_encodedock.h"
-
 #include "Logger.h"
-#include "dialogs/addencodepresetdialog.h"
-#include "dialogs/listselectiondialog.h"
-#include "dialogs/multifileexportdialog.h"
-#include "findanalysisfilterparser.h"
+#include "dialogs/addencodepresetdialog.hpp"
+#include "dialogs/listselectiondialog.hpp"
+#include "dialogs/multifileexportdialog.hpp"
+#include "findanalysisfilterparser.hpp"
 #include "jobqueue.hpp"
-#include "jobs/encodejob.h"
+#include "jobs/encodejob.hpp"
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"
 #include "models/markersmodel.hpp"

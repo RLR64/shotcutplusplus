@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "systemsyncdialog.h"
+#include "systemsyncdialog.hpp"
 #include "ui_systemsyncdialog.h"
 #include "mltcontroller.hpp"
 #include "settings.hpp"

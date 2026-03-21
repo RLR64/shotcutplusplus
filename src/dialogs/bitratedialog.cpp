@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "bitratedialog.h"
-#include "dialogs/saveimagedialog.h"
+#include "bitratedialog.hpp"
+#include "dialogs/saveimagedialog.hpp"
 #include "settings.hpp"
 
 #include <QDialogButtonBox>

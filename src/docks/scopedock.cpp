@@ -15,10 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "scopedock.h"
-
+#include "scopedock.hpp"
 #include "Logger.h"
-#include "controllers/scopecontroller.h"
+#include "controllers/scopecontroller.hpp"
 #include "mltcontroller.hpp"
 
 #include <QAction>

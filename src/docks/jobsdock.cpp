@@ -15,10 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "jobsdock.h"
+#include "jobsdock.hpp"
 #include "ui_jobsdock.h"
 #include "Logger.h"
-#include "dialogs/textviewerdialog.h"
+#include "dialogs/textviewerdialog.hpp"
 #include "jobqueue.hpp"
 
 #include <QtWidgets>

@@ -15,9 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "customprofiledialog.h"
+#include "customprofiledialog.hpp"
 #include "ui_customprofiledialog.h"
-
 #include "mltcontroller.hpp"
 #include "settings.hpp"
 #include "util.hpp"
