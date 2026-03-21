@@ -17,7 +17,6 @@
 
 #include "avfoundationproducerwidget.h"
 #include "ui_avfoundationproducerwidget.h"
-
 #include "Logger.h"
 #include "mltcontroller.hpp"
 #include "settings.hpp"

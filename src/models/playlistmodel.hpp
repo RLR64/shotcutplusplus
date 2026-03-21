@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PLAYLISTMODEL_H
-#define PLAYLISTMODEL_H
+#ifndef PLAYLISTMODEL_HPP
+#define PLAYLISTMODEL_HPP
 
 #include <MltPlaylist.h>
 #include <QAbstractTableModel>
@@ -138,4 +138,4 @@ private slots:
     void onRowsAboutToBeRemoved(const QModelIndex &parent, int first, int last);
 };
 
-#endif // PLAYLISTMODEL_H
+#endif // PLAYLISTMODEL_HPP

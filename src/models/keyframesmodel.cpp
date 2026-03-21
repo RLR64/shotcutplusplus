@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "keyframesmodel.h"
+#include "keyframesmodel.hpp"
 #include "Logger.h"
 #include "mltcontroller.hpp"
 #include "qmltypes/qmlapplication.hpp"

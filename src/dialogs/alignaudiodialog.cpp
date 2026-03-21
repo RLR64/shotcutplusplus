@@ -22,7 +22,7 @@
 #include "dialogs/longuitask.h"
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"
-#include "models/multitrackmodel.h"
+#include "models/multitrackmodel.hpp"
 #include "proxymanager.hpp"
 #include "qmltypes/qmlapplication.hpp"
 #include "settings.hpp"

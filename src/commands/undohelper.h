@@ -18,7 +18,7 @@
 #ifndef UNDOHELPER_H
 #define UNDOHELPER_H
 
-#include "models/multitrackmodel.h"
+#include "models/multitrackmodel.hpp"
 
 #include <MltPlaylist.h>
 #include <QList>

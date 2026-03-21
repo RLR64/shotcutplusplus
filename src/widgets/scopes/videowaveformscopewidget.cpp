@@ -16,7 +16,6 @@
  */
 
 #include "videowaveformscopewidget.h"
-
 #include "Logger.h"
 
 #include <QMouseEvent>

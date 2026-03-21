@@ -19,7 +19,7 @@
 
 #include "Logger.h"
 #include "mltcontroller.hpp"
-#include "models/audiolevelstask.h"
+#include "models/audiolevelstask.hpp"
 #include "shotcut_mlt_properties.hpp"
 
 #include <QScopedPointer>

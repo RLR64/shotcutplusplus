@@ -18,7 +18,7 @@
 #ifndef ALIGNAUDIODIALOG_H
 #define ALIGNAUDIODIALOG_H
 
-#include "models/alignclipsmodel.h"
+#include "models/alignclipsmodel.hpp"
 
 #include <QDialog>
 #include <QUuid>

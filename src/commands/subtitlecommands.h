@@ -18,7 +18,7 @@
 #ifndef SUBTITLECOMMANDS_H
 #define SUBTITLECOMMANDS_H
 
-#include "models/subtitlesmodel.h"
+#include "models/subtitlesmodel.hpp"
 
 #include <QUndoCommand>
 

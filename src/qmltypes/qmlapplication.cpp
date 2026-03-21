@@ -19,7 +19,7 @@
 #include "controllers/filtercontroller.h"
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"
-#include "models/attachedfiltersmodel.h"
+#include "models/attachedfiltersmodel.hpp"
 #include "settings.hpp"
 #include "util.hpp"
 #include "videowidget.hpp"

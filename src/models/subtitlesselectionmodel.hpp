@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SUBTITLESSELECTIONMODEL_H
-#define SUBTITLESSELECTIONMODEL_H
+#ifndef SUBTITLESSELECTIONMODEL_HPP
+#define SUBTITLESSELECTIONMODEL_HPP
 
 #include <QItemSelectionModel>
 
@@ -47,4 +47,4 @@ private:
     int m_lastSingleSelection;
 };
 
-#endif // SUBTITLESSELECTIONMODEL_H
+#endif // SUBTITLESSELECTIONMODEL_HPP

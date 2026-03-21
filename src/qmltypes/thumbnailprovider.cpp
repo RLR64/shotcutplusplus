@@ -19,7 +19,7 @@
 #include "Logger.h"
 #include "database.hpp"
 #include "mltcontroller.hpp"
-#include "models/playlistmodel.h"
+#include "models/playlistmodel.hpp"
 #include "settings.hpp"
 #include "util.hpp"
 

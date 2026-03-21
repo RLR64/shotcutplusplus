@@ -18,7 +18,7 @@
 #ifndef MARKERCOMMANDS_H
 #define MARKERCOMMANDS_H
 
-#include "models/markersmodel.h"
+#include "models/markersmodel.hpp"
 
 #include <QUndoCommand>
 

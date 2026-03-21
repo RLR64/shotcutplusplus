@@ -39,7 +39,6 @@ Rectangle {
     property int trackIndex
     property int originalTrackIndex: trackIndex
     property int originalClipIndex: index
-    readonly property int readonlyClipIndex: index
     property int originalX: x
     property bool selected: false
     property string hash: ''
@@ -100,7 +99,7 @@ Rectangle {
     }
 
     border.color: (selected || Drag.active || trackIndex != originalTrackIndex) ? group < 0 ? 'red' : 'white' : 'black'
-    border.width: (isBlank && !selected) ? 0 : 1
+    border.width: isBlank && !selected ? 0 : 1
     clip: true
     Drag.active: mouseArea.drag.active
     Drag.proposedAction: Qt.MoveAction

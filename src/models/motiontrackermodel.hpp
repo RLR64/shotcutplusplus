@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MOTIONTRACKERMODEL_H
-#define MOTIONTRACKERMODEL_H
+#ifndef MOTIONTRACKERMODEL_HPP
+#define MOTIONTRACKERMODEL_HPP
 
 #include <MltProducer.h>
 #include <QAbstractListModel>
@@ -89,4 +89,4 @@ private:
     QMap<QString, Item> m_data; // key is a UUID
 };
 
-#endif // MOTIONTRACKERMODEL_H
+#endif // MOTIONTRACKERMODEL_HPP

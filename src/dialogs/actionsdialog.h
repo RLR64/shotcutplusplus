@@ -18,7 +18,7 @@
 #ifndef ACTIONSDIALOG_H
 #define ACTIONSDIALOG_H
 
-#include "models/actionsmodel.h"
+#include "models/actionsmodel.hpp"
 
 #include <QDialog>
 

@@ -27,7 +27,7 @@
 #include "jobs/encodejob.h"
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"
-#include "models/markersmodel.h"
+#include "models/markersmodel.hpp"
 #include "qmltypes/qmlfilter.hpp"
 #include "settings.hpp"
 #include "shotcut_mlt_properties.hpp"

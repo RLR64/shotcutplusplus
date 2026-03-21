@@ -15,10 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SUBTITLESMODEL_H
-#define SUBTITLESMODEL_H
+#ifndef SUBTITLESMODEL_HPP
+#define SUBTITLESMODEL_HPP
 
-#include "models/subtitles.h"
+#include "models/subtitles.hpp"
 
 #include <MltProducer.h>
 #include <QAbstractItemModel>
@@ -123,4 +123,4 @@ private:
     int m_commitTrack;
 };
 
-#endif // SUBTITLESMODEL_H
+#endif // SUBTITLESMODEL_HPP

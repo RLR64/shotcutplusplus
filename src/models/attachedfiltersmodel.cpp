@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "attachedfiltersmodel.h"
+#include "attachedfiltersmodel.hpp"
 #include "Logger.h"
 #include "commands/filtercommands.h"
 #include "controllers/filtercontroller.h"

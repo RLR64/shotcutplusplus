@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "audiolevelstask.h"
+#include "audiolevelstask.hpp"
 #include "Logger.h"
 #include "database.hpp"
 #include "mainwindow.hpp"

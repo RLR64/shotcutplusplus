@@ -15,10 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "models/keyframesmodel.h"
-#include "models/metadatamodel.h"
-#include "models/subtitlesmodel.h"
-#include "models/subtitlesselectionmodel.h"
+#include "models/keyframesmodel.hpp"
+#include "models/metadatamodel.hpp"
+#include "models/subtitlesmodel.hpp"
+#include "models/subtitlesselectionmodel.hpp"
 #include "qmltypes/qmlutilities.hpp"
 #include "qmltypes/colordialog.hpp"
 #include "qmltypes/colorpickeritem.hpp"

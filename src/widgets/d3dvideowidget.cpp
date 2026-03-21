@@ -16,7 +16,6 @@
  */
 
 #include "d3dvideowidget.h"
-
 #include "Logger.h"
 
 #include <d3dcompiler.h>

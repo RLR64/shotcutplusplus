@@ -18,9 +18,9 @@
 #ifndef FILTERCONTROLLER_H
 #define FILTERCONTROLLER_H
 
-#include "models/attachedfiltersmodel.h"
-#include "models/metadatamodel.h"
-#include "models/motiontrackermodel.h"
+#include "models/attachedfiltersmodel.hpp"
+#include "models/metadatamodel.hpp"
+#include "models/motiontrackermodel.hpp"
 #include "qmltypes/qmlfilter.hpp"
 #include "qmltypes/qmlmetadata.hpp"
 

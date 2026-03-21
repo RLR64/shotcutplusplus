@@ -16,7 +16,6 @@
  */
 
 #include "actions.hpp"
-
 #include "Logger.h"
 #include "settings.hpp"
 

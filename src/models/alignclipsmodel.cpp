@@ -15,8 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "alignclipsmodel.h"
-
+#include "alignclipsmodel.hpp"
 #include "Logger.h"
 #include "mltcontroller.hpp"
 #include "settings.hpp"

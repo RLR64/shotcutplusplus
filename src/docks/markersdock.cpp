@@ -19,7 +19,7 @@
 #include "Logger.h"
 #include "actions.hpp"
 #include "mainwindow.hpp"
-#include "models/markersmodel.h"
+#include "models/markersmodel.hpp"
 #include "settings.hpp"
 #include "util.hpp"
 #include "widgets/docktoolbar.h"

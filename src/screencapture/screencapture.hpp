@@ -18,11 +18,12 @@
 #ifndef SCREENCAPTURE_HPP
 #define SCREENCAPTURE_HPP
 
-#include <memory>
 #include <QObject>
 #include <QRect>
 #include <QScreen>
 #include <QVariant>
+
+#include <memory>
 
 class QEventLoop;
 class ScreenCaptureToolbar;

@@ -20,8 +20,6 @@
 
 #include "abstractproducerwidget.hpp"
 
-//#include "dialogs/transcodedialog.h"
-
 #include <QRunnable>
 #include <QWidget>
 

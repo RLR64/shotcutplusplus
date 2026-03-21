@@ -18,7 +18,7 @@
 #ifndef PLAYLISTDOCK_H
 #define PLAYLISTDOCK_H
 
-#include "models/playlistmodel.h"
+#include "models/playlistmodel.hpp"
 
 #include <QDockWidget>
 #include <QTimer>

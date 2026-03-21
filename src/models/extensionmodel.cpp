@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "extensionmodel.h"
+#include "extensionmodel.hpp"
 #include "Logger.h"
 #include "qmltypes/qmlextension.hpp"
 #include "settings.hpp"

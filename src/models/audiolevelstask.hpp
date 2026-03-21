@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef AUDIOLEVELSTASK_H
-#define AUDIOLEVELSTASK_H
+#ifndef AUDIOLEVELSTASK_HPP
+#define AUDIOLEVELSTASK_HPP
 
 #include <MltProducer.h>
 #include <MltProfile.h>
@@ -54,4 +54,4 @@ private:
     Mlt::Profile m_profile;
 };
 
-#endif // AUDIOLEVELSTASK_H
+#endif // AUDIOLEVELSTASK_HPP

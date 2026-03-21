@@ -17,8 +17,8 @@
  *
  ****************************************************************************/
 
-#ifndef SPATIALMEDIA_H
-#define SPATIALMEDIA_H
+#ifndef SPATIALMEDIA_HPP
+#define SPATIALMEDIA_HPP
 
 #include <string>
 
@@ -31,4 +31,4 @@ public:
     static bool injectSpherical(const std::string& inFile, const std::string& outFile);
 };
 
-#endif // SPATIALMEDIA_H
+#endif // SPATIALMEDIA_HPP

@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "resourcemodel.h"
+#include "resourcemodel.hpp"
 #include "Logger.h"
 #include "shotcut_mlt_properties.hpp"
 #include "util.hpp"

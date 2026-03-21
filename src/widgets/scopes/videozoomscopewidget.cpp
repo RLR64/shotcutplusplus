@@ -16,7 +16,6 @@
  */
 
 #include "videozoomscopewidget.h"
-
 #include "videowidget.hpp"
 #include "videozoomwidget.h"
 

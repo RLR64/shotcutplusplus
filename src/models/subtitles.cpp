@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "subtitles.h"
+#include "subtitles.hpp"
 #include <cmath>
 #include <fstream>
 #include <iostream>

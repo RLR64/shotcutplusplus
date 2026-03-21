@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ATTACHEDFILTERSMODEL_H
-#define ATTACHEDFILTERSMODEL_H
+#ifndef ATTACHEDFILTERSMODEL_HPP
+#define ATTACHEDFILTERSMODEL_HPP
 
 #include <MltEvent.h>
 #include <MltFilter.h>
@@ -102,4 +102,4 @@ private:
     MetadataList m_metaList;
 };
 
-#endif // ATTACHEDFILTERSMODEL_H
+#endif // ATTACHEDFILTERSMODEL_HPP

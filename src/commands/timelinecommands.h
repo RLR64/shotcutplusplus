@@ -19,8 +19,8 @@
 #define COMMANDS_H
 
 #include "docks/timelinedock.h"
-#include "models/markersmodel.h"
-#include "models/multitrackmodel.h"
+#include "models/markersmodel.hpp"
+#include "models/multitrackmodel.hpp"
 #include "undohelper.h"
 
 #include <MltProducer.h>

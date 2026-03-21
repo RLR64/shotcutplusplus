@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Meltytech, LLC
+ * Copyright (c) 2022 Meltytech, LLC
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,36 +15,36 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef EXTENSIONMODEL_H
-#define EXTENSIONMODEL_H
-
-#include "qmltypes/qmlextension.hpp"
+#ifndef ALIGNCLIPSMODEL_HPP
+#define ALIGNCLIPSMODEL_HPP
 
 #include <QAbstractItemModel>
 
-class ExtensionModel : public QAbstractItemModel
+#include <limits>
+
+class AlignClipsModel : public QAbstractItemModel
 {
     Q_OBJECT
 
 public:
     enum Columns {
-        COLUMN_STATUS = 0,
+        COLUMN_ERROR = 0,
         COLUMN_NAME,
-        COLUMN_SIZE,
+        COLUMN_OFFSET,
+        COLUMN_SPEED,
         COLUMN_COUNT,
     };
-    explicit ExtensionModel(QObject *parent = 0);
-    virtual ~ExtensionModel();
-    void load(const QString &id);
-    int count();
-    QString getName(int row) const;
-    QString getFormattedDataSize(int row) const;
-    QString localPath(int row) const;
-    QString url(int row) const;
-    bool downloaded(int row) const;
-    void deleteFile(int row);
-    int getStandardIndex() const;
-    QModelIndex getIndexForPath(QString path);
+    static const int INVALID_OFFSET = std::numeric_limits<int>::max();
+
+    explicit AlignClipsModel(QObject *parent = 0);
+    virtual ~AlignClipsModel();
+    void clear();
+    void addClip(const QString &name, int offset, int speed, const QString &error);
+    void updateProgress(int row, int percent);
+    int getProgress(int row) const;
+    void updateOffsetAndSpeed(int row, int offset, double speed, const QString &error);
+    int getOffset(int row);
+    double getSpeed(int row);
 
 protected:
     // Implement QAbstractItemModel
@@ -56,7 +56,15 @@ protected:
     QModelIndex parent(const QModelIndex &index) const;
 
 private:
-    QmlExtension *m_ext;
+    typedef struct
+    {
+        QString name;
+        int offset;
+        double speed;
+        QString error;
+        int progress;
+    } ClipAlignment;
+    QList<ClipAlignment> m_clips;
 };
 
-#endif // EXTENSIONMODEL_H
+#endif // ALIGNCLIPSMODEL_HPP

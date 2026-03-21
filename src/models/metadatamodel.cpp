@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "metadatamodel.h"
+#include "metadatamodel.hpp"
 #include "Logger.h"
 #include "controllers/filtercontroller.h"
 #include "mainwindow.hpp"

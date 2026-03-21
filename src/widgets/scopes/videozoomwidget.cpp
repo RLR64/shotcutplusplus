@@ -16,7 +16,6 @@
  */
 
 #include "videozoomwidget.h"
-
 #include "Logger.h"
 
 #include <QMouseEvent>

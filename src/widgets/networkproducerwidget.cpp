@@ -17,7 +17,6 @@
 
 #include "networkproducerwidget.h"
 #include "ui_networkproducerwidget.h"
-
 #include "mltcontroller.hpp"
 #include "util.hpp"
 

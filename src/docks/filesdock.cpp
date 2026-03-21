@@ -22,7 +22,7 @@
 #include "database.hpp"
 #include "dialogs/listselectiondialog.h"
 #include "mainwindow.hpp"
-#include "models/playlistmodel.h"
+#include "models/playlistmodel.hpp"
 #include "qmltypes/qmlapplication.hpp"
 #include "settings.hpp"
 #include "util.hpp"

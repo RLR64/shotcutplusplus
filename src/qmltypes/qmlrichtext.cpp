@@ -32,7 +32,6 @@
 ****************************************************************************/
 
 #include "qmlrichtext.hpp"
-
 #include "Logger.h"
 
 #include <QClipboard>

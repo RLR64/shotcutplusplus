@@ -16,7 +16,6 @@
  */
 
 #include "mltclipproducerwidget.h"
-
 #include "Logger.h"
 #include "mltcontroller.hpp"
 #include "settings.hpp"

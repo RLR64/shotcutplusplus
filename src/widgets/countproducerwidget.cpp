@@ -17,7 +17,6 @@
 
 #include "countproducerwidget.h"
 #include "ui_countproducerwidget.h"
-
 #include "mltcontroller.hpp"
 #include "shotcut_mlt_properties.hpp"
 #include "util.hpp"

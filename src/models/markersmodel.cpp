@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "markersmodel.h"
+#include "markersmodel.hpp"
 #include "Logger.h"
 #include "commands/markercommands.h"
 #include "mainwindow.hpp"

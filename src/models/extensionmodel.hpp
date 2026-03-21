@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Meltytech, LLC
+ * Copyright (c) 2025 Meltytech, LLC
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,34 +15,38 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef RESOURCEMODEL_H
-#define RESOURCEMODEL_H
+#ifndef EXTENSIONMODEL_HPP
+#define EXTENSIONMODEL_HPP
 
-#include <MltProducer.h>
+#include "qmltypes/qmlextension.hpp"
+
 #include <QAbstractItemModel>
 
-class ResourceModel : public QAbstractItemModel
+class ExtensionModel : public QAbstractItemModel
 {
     Q_OBJECT
 
 public:
     enum Columns {
-        COLUMN_INFO = 0,
+        COLUMN_STATUS = 0,
         COLUMN_NAME,
         COLUMN_SIZE,
-        COLUMN_VID_DESCRIPTION,
-        COLUMN_AUD_DESCRIPTION,
         COLUMN_COUNT,
     };
+    explicit ExtensionModel(QObject *parent = 0);
+    virtual ~ExtensionModel();
+    void load(const QString &id);
+    int count();
+    QString getName(int row) const;
+    QString getFormattedDataSize(int row) const;
+    QString localPath(int row) const;
+    QString url(int row) const;
+    bool downloaded(int row) const;
+    void deleteFile(int row);
+    int getStandardIndex() const;
+    QModelIndex getIndexForPath(QString path);
 
-    explicit ResourceModel(QObject *parent = 0);
-    virtual ~ResourceModel();
-    void search(Mlt::Producer *producer);
-    void add(Mlt::Producer *producer, const QString &location = QString());
-    QList<Mlt::Producer> getProducers(const QModelIndexList &indices);
-    bool exists(const QString &hash);
-    int producerCount();
-    Mlt::Producer producer(int index);
+protected:
     // Implement QAbstractItemModel
     int rowCount(const QModelIndex &parent) const;
     int columnCount(const QModelIndex &parent) const;
@@ -52,8 +56,7 @@ public:
     QModelIndex parent(const QModelIndex &index) const;
 
 private:
-    QList<Mlt::Producer> m_producers;
-    QMap<QString, QString> m_locations;
+    QmlExtension *m_ext;
 };
 
-#endif // RESOURCEMODEL_H
+#endif // EXTENSIONMODEL_HPP

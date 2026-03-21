@@ -16,7 +16,6 @@
  */
 
 #include "videowidget.hpp"
-
 #include "Logger.h"
 #include "dialogs/durationdialog.h"
 #include "mainwindow.hpp"

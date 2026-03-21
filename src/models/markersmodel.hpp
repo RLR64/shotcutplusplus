@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MARKERSMODEL_H
-#define MARKERSMODEL_H
+#ifndef MARKERSMODEL_HPP
+#define MARKERSMODEL_HPP
 
 #include <MltProducer.h>
 #include <QAbstractItemModel>
@@ -109,4 +109,4 @@ private:
     QMap<QRgb, QString> m_recentColors;
 };
 
-#endif // MARKERSMODEL_H
+#endif // MARKERSMODEL_HPP

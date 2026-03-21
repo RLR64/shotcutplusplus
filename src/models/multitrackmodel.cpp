@@ -15,9 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "multitrackmodel.h"
+#include "multitrackmodel.hpp"
 #include "Logger.h"
-#include "audiolevelstask.h"
+#include "audiolevelstask.hpp"
 #include "controllers/filtercontroller.h"
 #include "dialogs/longuitask.h"
 #include "docks/playlistdock.h"

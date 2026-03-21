@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SUBTITLES_H
-#define SUBTITLES_H
+#ifndef SUBTITLES_HPP
+#define SUBTITLES_HPP
 
 #include <cstdint>
 #include <string>
@@ -40,4 +40,4 @@ bool writeToSrtString(std::string &text, const SubtitleVector &items);
 int indexForTime(const SubtitleVector &items, int64_t msTime, int searchStart, int msMargin);
 } // namespace Subtitles
 
-#endif // SUBTITLES_H
+#endif // SUBTITLES_HPP

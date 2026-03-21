@@ -19,7 +19,7 @@
 #include "Logger.h"
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"
-#include "models/audiolevelstask.h"
+#include "models/audiolevelstask.hpp"
 #include "qmltypes/qmlapplication.hpp"
 #include "util.hpp"
 #include "widgets/glaxnimateproducerwidget.h"

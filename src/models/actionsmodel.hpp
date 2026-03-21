@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ACTIONSMODEL_H
-#define ACTIONSMODEL_H
+#ifndef ACTIONSMODEL_HPP
+#define ACTIONSMODEL_HPP
 
 #include <QAbstractItemModel>
 
@@ -62,4 +62,4 @@ private:
     QList<QAction *> m_actions;
 };
 
-#endif // ACTIONSMODEL_H
+#endif // ACTIONSMODEL_HPP

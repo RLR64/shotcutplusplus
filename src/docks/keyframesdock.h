@@ -18,7 +18,7 @@
 #ifndef KEYFRAMESDOCK_H
 #define KEYFRAMESDOCK_H
 
-#include "models/keyframesmodel.h"
+#include "models/keyframesmodel.hpp"
 #include "qmltypes/qmlfilter.hpp"
 
 #include <QDockWidget>

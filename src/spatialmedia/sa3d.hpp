@@ -1,5 +1,5 @@
-#ifndef SA3D_H
-#define SA3D_H
+#ifndef SA3D_HPP
+#define SA3D_HPP
 
 /*****************************************************************************
  * 
@@ -73,4 +73,4 @@ class SA3DBox : public Box
     std::vector<uint32_t> m_ChannelMap;
 };
 
-#endif // SA3D_H
+#endif // SA3D_HPP

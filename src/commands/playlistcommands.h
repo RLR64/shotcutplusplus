@@ -18,7 +18,7 @@
 #ifndef PLAYLISTCOMMANDS_H
 #define PLAYLISTCOMMANDS_H
 
-#include "models/playlistmodel.h"
+#include "models/playlistmodel.hpp"
 
 #include <QString>
 #include <QUndoCommand>

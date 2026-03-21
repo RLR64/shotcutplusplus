@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MULTITRACKMODEL_H
-#define MULTITRACKMODEL_H
+#ifndef MULTITRACKMODEL_HPP
+#define MULTITRACKMODEL_HPP
 
 #include <MltPlaylist.h>
 #include <MltTractor.h>
@@ -249,4 +249,4 @@ private slots:
     void adjustTrackFilters();
 };
 
-#endif // MULTITRACKMODEL_H
+#endif // MULTITRACKMODEL_HPP

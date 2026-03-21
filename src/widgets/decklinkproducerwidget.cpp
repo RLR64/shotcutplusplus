@@ -17,7 +17,6 @@
 
 #include "decklinkproducerwidget.h"
 #include "ui_decklinkproducerwidget.h"
-
 #include "mltcontroller.hpp"
 #include "shotcut_mlt_properties.hpp"
 #include "util.hpp"

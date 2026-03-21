@@ -16,7 +16,6 @@
  */
 
 #include "scrubbar.hpp"
-
 #include "mltcontroller.hpp"
 #include "settings.hpp"
 

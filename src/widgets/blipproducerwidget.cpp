@@ -16,7 +16,6 @@
  */
 
 #include "blipproducerwidget.h"
-
 #include "shotcut_mlt_properties.hpp"
 #include "ui_blipproducerwidget.h"
 #include "util.hpp"

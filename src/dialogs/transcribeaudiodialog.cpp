@@ -20,7 +20,7 @@
 #include "dialogs/filedownloaddialog.h"
 #include "docks/timelinedock.h"
 #include "mainwindow.hpp"
-#include "models/extensionmodel.h"
+#include "models/extensionmodel.hpp"
 #include "qmltypes/qmlapplication.hpp"
 #include "shotcut_mlt_properties.hpp"
 #include "util.hpp"

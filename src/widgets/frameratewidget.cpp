@@ -16,7 +16,6 @@
  */
 
 #include "widgets/frameratewidget.h"
-
 #include "util.hpp"
 
 #include <QComboBox>

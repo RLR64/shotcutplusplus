@@ -18,7 +18,7 @@
 #include "timelineitems.hpp"
 #include "Logger.h"
 #include "mltcontroller.hpp"
-#include "models/multitrackmodel.h"
+#include "models/multitrackmodel.hpp"
 #include "qmltypes/qmlproducer.hpp"
 #include "settings.hpp"
 

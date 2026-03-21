@@ -84,21 +84,21 @@ add_executable(shotcut WIN32 MACOSX_BUNDLE
   mainwindow.ui
   mltcontroller.cpp mltcontroller.hpp
   mltxmlchecker.cpp mltxmlchecker.hpp
-  models/actionsmodel.cpp models/actionsmodel.h
-  models/alignclipsmodel.cpp models/alignclipsmodel.h
-  models/attachedfiltersmodel.cpp models/attachedfiltersmodel.h
-  models/audiolevelstask.cpp models/audiolevelstask.h
-  models/extensionmodel.cpp models/extensionmodel.h
-  models/keyframesmodel.cpp models/keyframesmodel.h
-  models/markersmodel.cpp models/markersmodel.h
-  models/metadatamodel.cpp models/metadatamodel.h
-  models/motiontrackermodel.h models/motiontrackermodel.cpp
-  models/multitrackmodel.cpp models/multitrackmodel.h
-  models/playlistmodel.cpp models/playlistmodel.h
-  models/resourcemodel.cpp models/resourcemodel.h
-  models/subtitles.cpp models/subtitles.h
-  models/subtitlesmodel.cpp models/subtitlesmodel.h
-  models/subtitlesselectionmodel.cpp models/subtitlesselectionmodel.h
+  models/actionsmodel.cpp models/actionsmodel.hpp
+  models/alignclipsmodel.cpp models/alignclipsmodel.hpp
+  models/attachedfiltersmodel.cpp models/attachedfiltersmodel.hpp
+  models/audiolevelstask.cpp models/audiolevelstask.hpp
+  models/extensionmodel.cpp models/extensionmodel.hpp
+  models/keyframesmodel.cpp models/keyframesmodel.hpp
+  models/markersmodel.cpp models/markersmodel.hpp
+  models/metadatamodel.cpp models/metadatamodel.hpp
+  models/motiontrackermodel.cpp models/motiontrackermodel.hpp
+  models/multitrackmodel.cpp models/multitrackmodel.hpp
+  models/playlistmodel.cpp models/playlistmodel.hpp
+  models/resourcemodel.cpp models/resourcemodel.hpp
+  models/subtitles.cpp models/subtitles.hpp
+  models/subtitlesmodel.cpp models/subtitlesmodel.hpp
+  models/subtitlesselectionmodel.cpp models/subtitlesselectionmodel.hpp
   openotherdialog.cpp openotherdialog.hpp
   openotherdialog.ui
   player.cpp player.hpp

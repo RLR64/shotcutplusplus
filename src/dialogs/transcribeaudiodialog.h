@@ -18,7 +18,7 @@
 #ifndef TRANSCRIBEAUDIODIALOG_H
 #define TRANSCRIBEAUDIODIALOG_H
 
-#include "models/extensionmodel.h"
+#include "models/extensionmodel.hpp"
 
 #include <QDialog>
 

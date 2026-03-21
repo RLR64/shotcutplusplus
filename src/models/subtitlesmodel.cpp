@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "subtitlesmodel.h"
+#include "subtitlesmodel.hpp"
 #include "Logger.h"
 #include "commands/subtitlecommands.h"
 #include "mainwindow.hpp"

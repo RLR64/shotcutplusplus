@@ -15,9 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "subtitlesselectionmodel.h"
+#include "subtitlesselectionmodel.hpp"
 #include "Logger.h"
-#include "models/subtitlesmodel.h"
+#include "models/subtitlesmodel.hpp"
 
 SubtitlesSelectionModel::SubtitlesSelectionModel(QAbstractItemModel *model)
     : QItemSelectionModel(model)

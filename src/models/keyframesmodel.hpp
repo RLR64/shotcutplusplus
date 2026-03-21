@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef KEYFRAMESMODEL_H
-#define KEYFRAMESMODEL_H
+#ifndef KEYFRAMESMODEL_HPP
+#define KEYFRAMESMODEL_HPP
 
 #include <MltAnimation.h>
 #include <MltProperties.h>
@@ -143,4 +143,4 @@ private:
     QStringList gangedProperties(int parameterIndex) const;
 };
 
-#endif // KEYFRAMESMODEL_H
+#endif // KEYFRAMESMODEL_HPP

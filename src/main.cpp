@@ -20,7 +20,6 @@
 #include "Logger.h"
 #include "mainwindow.hpp"
 #include "settings.hpp"
-
 #include <framework/mlt_log.h>
 #include <QCommandLineParser>
 #include <QFile>

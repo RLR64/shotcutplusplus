@@ -19,10 +19,10 @@
 #define TIMELINEDOCK_H
 
 #include "jobs/ffmpegjob.h"
-#include "models/markersmodel.h"
-#include "models/multitrackmodel.h"
-#include "models/subtitlesmodel.h"
-#include "models/subtitlesselectionmodel.h"
+#include "models/markersmodel.hpp"
+#include "models/multitrackmodel.hpp"
+#include "models/subtitlesmodel.hpp"
+#include "models/subtitlesselectionmodel.hpp"
 #include "sharedframe.hpp"
 
 #include <QApplication>

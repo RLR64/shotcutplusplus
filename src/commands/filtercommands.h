@@ -18,7 +18,7 @@
 #ifndef FILTERCOMMANDS_H
 #define FILTERCOMMANDS_H
 
-#include "models/attachedfiltersmodel.h"
+#include "models/attachedfiltersmodel.hpp"
 
 #include <MltProducer.h>
 #include <MltService.h>
