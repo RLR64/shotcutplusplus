@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "settings.h"
+#include "settings.hpp"
 
 #include "Logger.h"
 #include "qmltypes/qmlapplication.h"
