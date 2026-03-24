@@ -16,7 +16,7 @@
  */
 
 #include "filedownloaddialog.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "mainwindow.hpp"
 #include "qmltypes/qmlapplication.hpp"
 

@@ -16,7 +16,7 @@
  */
 
 #include "gopro2gpxjob.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "dialogs/textviewerdialog.hpp"
 #include "mainwindow.hpp"
 #include "util.hpp"

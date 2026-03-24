@@ -16,7 +16,7 @@
  */
 
 #include "kokorodokijob.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "jobqueue.hpp"
 #include "jobs/dockerpulljob.hpp"
 #include "mainwindow.hpp"

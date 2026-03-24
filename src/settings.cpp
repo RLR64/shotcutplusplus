@@ -16,11 +16,8 @@
  */
 
 #include "settings.hpp"
-
-#include "Logger.h"
-#include "qmltypes/qmlapplication.h"
-
-#include <algorithm>
+#include "Logger.hpp"
+#include "qmltypes/qmlapplication.hpp"
 
 #include <QApplication>
 #include <QAudioDevice>
@@ -1701,16 +1698,6 @@ QString ShotcutSettings::whisperModel()
     return settings.value("subtitles/whisperModel", "").toString();
 }
 
-void ShotcutSettings::setWhisperUseGpu(bool b)
-{
-    settings.setValue("subtitles/whisperUseGpu", b);
-}
-
-bool ShotcutSettings::whisperUseGpu() const
-{
-    return settings.value("subtitles/whisperUseGpu", true).toBool();
-}
-
 void ShotcutSettings::setNotesZoom(int zoom)
 {
     settings.setValue("notes/zoom", zoom);
@@ -1746,32 +1733,6 @@ int ShotcutSettings::backupPeriod() const
 void ShotcutSettings::setBackupPeriod(int minutes)
 {
     settings.setValue("backupPeriod", minutes);
-}
-
-QDateTime ShotcutSettings::lastBackupDateTime(const QString &filePath) const
-{
-    return settings.value("lastBackupDateTimeMap").toMap().value(filePath).toDateTime();
-}
-
-void ShotcutSettings::setLastBackupDateTime(const QString &filePath, const QDateTime &dt)
-{
-    static const int kMaxBackupEntries = 100;
-    auto map = settings.value("lastBackupDateTimeMap").toMap();
-    if (dt.isValid())
-        map[filePath] = dt;
-    else
-        map.remove(filePath);
-    // Prune entries for files that no longer exist.
-    for (const auto &path : map.keys())
-        if (!QFile::exists(path))
-            map.remove(path);
-    // If still over the limit, remove the oldest entries.
-    while (map.size() > kMaxBackupEntries) {
-        map.erase(std::min_element(map.begin(), map.end(), [](const QVariant &a, const QVariant &b) {
-            return a.toDateTime() < b.toDateTime();
-        }));
-    }
-    settings.setValue("lastBackupDateTimeMap", map);
 }
 
 mlt_time_format ShotcutSettings::timeFormat() const

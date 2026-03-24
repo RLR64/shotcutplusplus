@@ -17,7 +17,7 @@
 
 #include "htmlgeneratorwidget.h"
 #include "ui_htmlgeneratorwidget.h"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "dialogs/durationdialog.hpp"
 #include "htmlgenerator.hpp"
 #include "jobqueue.hpp"

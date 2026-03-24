@@ -21,6 +21,8 @@
 #include <QHash>
 #include <QObject>
 
+#define Actions ShotcutActions::singleton()
+
 class QAction;
 class QMenu;
 
@@ -51,7 +53,5 @@ private:
     void addShortcutToToolTip(QAction *action);
     QHash<QString, QAction *> m_actions;
 };
-
-#define Actions ShotcutActions::singleton()
 
 #endif // ACTIONS_HPP

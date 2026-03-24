@@ -16,7 +16,7 @@
  */
 
 #include "messagedialog.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "qmlapplication.hpp"
 
 #include <QApplication>

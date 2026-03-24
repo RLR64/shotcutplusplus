@@ -17,20 +17,20 @@ SOURCES += src/Logger.cpp \
            src/FileAppender.cpp \
            src/RollingFileAppender.cpp
 
-HEADERS += include/Logger.h \
-           include/CuteLogger_global.h \
-           include/AbstractAppender.h \
-           include/AbstractStringAppender.h \
-           include/ConsoleAppender.h \
-           include/FileAppender.h \
-           include/RollingFileAppender.h
+HEADERS += include/Logger.hpp \
+           include/CuteLogger_global.hpp \
+           include/AbstractAppender.hpp \
+           include/AbstractStringAppender.hpp \
+           include/ConsoleAppender.hpp \
+           include/FileAppender.hpp \
+           include/RollingFileAppender.hpp
 
 win32 {
     SOURCES += src/OutputDebugAppender.cpp
-    HEADERS += include/OutputDebugAppender.h
+    HEADERS += include/OutputDebugAppender.hpp
 }
 
 android {
     SOURCES += src/AndroidAppender.cpp
-    HEADERS += include/AndroidAppender.h
+    HEADERS += include/AndroidAppender.hpp
 }

@@ -12,11 +12,10 @@
   GNU Lesser General Public License for more details.
 */
 // Local
-#include "OutputDebugAppender.h"
+#include "OutputDebugAppender.hpp"
 
 // STL
 #include <windows.h>
-
 
 /**
  * \class OutputDebugAppender

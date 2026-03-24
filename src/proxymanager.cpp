@@ -16,7 +16,7 @@
  */
 
 #include "proxymanager.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "dialogs/longuitask.hpp"
 #include "jobqueue.hpp"
 #include "jobs/ffmpegjob.hpp"

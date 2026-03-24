@@ -16,7 +16,7 @@
  */
 
 #include "markersdock.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "actions.hpp"
 #include "mainwindow.hpp"
 #include "models/markersmodel.hpp"

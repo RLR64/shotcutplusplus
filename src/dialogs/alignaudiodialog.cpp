@@ -16,7 +16,7 @@
  */
 
 #include "alignaudiodialog.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "commands/timelinecommands.hpp"
 #include "dialogs/alignmentarray.hpp"
 #include "dialogs/longuitask.hpp"

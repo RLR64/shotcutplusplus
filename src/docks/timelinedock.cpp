@@ -16,7 +16,7 @@
  */
 
 #include "timelinedock.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "abstractproducerwidget.hpp"
 #include "actions.hpp"
 #include "commands/timelinecommands.hpp"

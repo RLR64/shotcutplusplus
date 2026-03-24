@@ -20,7 +20,7 @@
 #include "spatialmedia.hpp"
 #include "mpeg4_container.hpp"
 #include "sa3d.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 
 #include <cstdint>
 #include <fstream>

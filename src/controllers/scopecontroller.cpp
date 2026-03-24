@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "scopecontroller.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "docks/scopedock.hpp"
 #include "widgets/scopes/audioloudnessscopewidget.h"
 #include "widgets/scopes/audiopeakmeterscopewidget.h"

@@ -16,7 +16,7 @@
  */
 
 #include "qmlfilter.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "commands/filtercommands.hpp"
 #include "controllers/filtercontroller.hpp"
 #include "jobqueue.hpp"

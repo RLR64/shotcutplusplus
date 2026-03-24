@@ -16,7 +16,7 @@
  */
 
 #include "multitrackmodel.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "audiolevelstask.hpp"
 #include "controllers/filtercontroller.hpp"
 #include "dialogs/longuitask.hpp"

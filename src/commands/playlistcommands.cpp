@@ -16,7 +16,7 @@
  */
 
 #include "playlistcommands.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "docks/playlistdock.h"
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"

@@ -16,7 +16,7 @@
  */
 
 #include "unlinkedfilesdialog.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "mltxmlchecker.hpp"
 #include "settings.hpp"
 #include "ui_unlinkedfilesdialog.h"

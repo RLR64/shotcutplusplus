@@ -17,7 +17,7 @@
 
 #include "filtercommands.hpp"
 #include "shotcut_mlt_properties.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "controllers/filtercontroller.hpp"
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"

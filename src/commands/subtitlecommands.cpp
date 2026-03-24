@@ -16,7 +16,7 @@
  */
 
 #include "subtitlecommands.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "mainwindow.hpp"
 
 #include <QFileInfo>

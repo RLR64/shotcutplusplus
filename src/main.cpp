@@ -15,9 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ConsoleAppender.h"
-#include "FileAppender.h"
-#include "Logger.h"
+#include "ConsoleAppender.hpp"
+#include "FileAppender.hpp"
+#include "Logger.hpp"
 #include "mainwindow.hpp"
 #include "settings.hpp"
 #include <framework/mlt_log.h>
@@ -31,7 +31,7 @@
 #include <QtWidgets>
 
 #ifdef Q_OS_MAC
-#include "macos.h"
+#include "macos.hpp"
 #endif
 
 #ifdef Q_OS_WIN

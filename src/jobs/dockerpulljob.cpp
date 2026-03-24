@@ -16,7 +16,7 @@
  */
 
 #include "dockerpulljob.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "settings.hpp"
 
 #include <QRegularExpression>

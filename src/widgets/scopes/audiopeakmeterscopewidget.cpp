@@ -16,7 +16,7 @@
  */
 
 #include "audiopeakmeterscopewidget.h"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "mltcontroller.hpp"
 #include "settings.hpp"
 #include "widgets/audiometerwidget.h"

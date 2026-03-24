@@ -16,7 +16,7 @@
  */
 
 #include "screencapture.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "rectangleselector.hpp"
 #include "toolbarwidget.hpp"
 #include "windowpicker.hpp"

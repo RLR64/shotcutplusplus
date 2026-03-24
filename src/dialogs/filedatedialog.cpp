@@ -16,7 +16,7 @@
  */
 
 #include "filedatedialog.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "mltcontroller.hpp"
 #include "proxymanager.hpp"
 #include "shotcut_mlt_properties.hpp"

@@ -27,7 +27,6 @@
  */
 
 /* MLT XML annotations */
-
 #define kShotcutXmlProperty "shotcut"
 #define kAudioTrackProperty "shotcut:audio"
 #define kCommentProperty "shotcut:comment"
@@ -51,6 +50,7 @@
 #define kShotcutAnimOutProperty "shotcut:animOut"
 #define kShotcutMarkersProperty "shotcut:markers"
 #define kShotcutGroupProperty "shotcut:group"
+
 // Shotcut's VUI (video user interface) components set this so that glwidget can
 // hide the VUI when the play head is not over the clip with the current filter.
 #define kShotcutVuiMetaProperty "meta.shotcut.vui"
@@ -60,6 +60,7 @@
 #define kOriginalOutProperty "shotcut:originalOut"
 #define kDisableProxyProperty "shotcut:disableProxy"
 #define kBackupProperty "shotcut:backup"
+
 // "shotcut:proxy" is internal only because older versions do not know to hide it.
 // "shotcut:metaProxy" indicates whether the "meta." properties reflect source or proxy.
 #define kMetaProxyProperty "shotcut:proxy.meta"
@@ -73,7 +74,6 @@
 
 /* Ideally all shotcut properties should begin with "shotcut:", but these
  * do not and kept for legacy reasons? */
-
 #define kAspectRatioNumerator "shotcut_aspect_num"
 #define kAspectRatioDenominator "shotcut_aspect_den"
 #define kShotcutSequenceProperty "shotcut_sequence"
@@ -85,7 +85,6 @@
 #define kPlaylistTrackId "main_bin"
 
 /* Internal only */
-
 #define kAudioLevelsProperty "_shotcut:audio-levels"
 #define kBackgroundCaptureProperty "_shotcut:bgcapture"
 #define kPlaylistIndexProperty "_shotcut:playlistIndex"

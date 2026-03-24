@@ -17,7 +17,7 @@
 
 #include "imageproducerwidget.h"
 #include "ui_imageproducerwidget.h"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "dialogs/filedatedialog.hpp"
 #include "dialogs/listselectiondialog.hpp"
 #include "mainwindow.hpp"

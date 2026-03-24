@@ -16,7 +16,7 @@
  */
 
 #include "audioscale.h"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "iecscale.h"
 
 #include <QFont>

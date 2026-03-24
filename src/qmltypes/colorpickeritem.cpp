@@ -18,7 +18,7 @@
  */
 
 #include "colorpickeritem.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 
 #include <QApplication>
 #include <QGuiApplication>

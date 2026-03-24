@@ -16,7 +16,7 @@
  */
 
 #include "FlatpakWrapperGenerator.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 
 #include <QDebug>
 #include <QDir>

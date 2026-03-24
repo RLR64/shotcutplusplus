@@ -16,8 +16,7 @@
  */
 
 #include "videovectorscopewidget.h"
-
-#include "Logger.h"
+#include "Logger.hpp"
 #include "mltcontroller.hpp"
 #include "qmltypes/qmlprofile.hpp"
 

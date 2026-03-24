@@ -16,7 +16,7 @@
  */
 
 #include "scopedock.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "controllers/scopecontroller.hpp"
 #include "mltcontroller.hpp"
 

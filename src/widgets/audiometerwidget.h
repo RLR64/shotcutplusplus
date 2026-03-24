@@ -23,6 +23,8 @@
 #include <QVector>
 #include <QWidget>
 
+#include <cstdint>
+
 class QLabel;
 
 class AudioMeterWidget : public QWidget
@@ -62,4 +64,4 @@ private:
     QString m_chanLabelUnits;
 };
 
-#endif
+#endif // AUDIOMETERWIDGET_H

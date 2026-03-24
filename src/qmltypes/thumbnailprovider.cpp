@@ -16,7 +16,7 @@
  */
 
 #include "thumbnailprovider.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "database.hpp"
 #include "mltcontroller.hpp"
 #include "models/playlistmodel.hpp"

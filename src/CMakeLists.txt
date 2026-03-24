@@ -313,8 +313,8 @@ if(WIN32)
 #  find_package(Qt 6.2 REQUIRED COMPONENTS WinExtras)
 #  target_sources(shotcut PRIVATE windowstools.cpp windowstools.h)
 #  target_link_libraries(shotcut PRIVATE Qt6::WinExtras)
-  target_sources(shotcut PRIVATE widgets/d3dvideowidget.h widgets/d3dvideowidget.cpp)
-  target_sources(shotcut PRIVATE widgets/openglvideowidget.h widgets/openglvideowidget.cpp)
+  target_sources(shotcut PRIVATE widgets/d3dvideowidget.cpp widgets/d3dvideowidget.h)
+  target_sources(shotcut PRIVATE widgets/openglvideowidget.cpp widgets/openglvideowidget.h)
   target_link_libraries(shotcut PRIVATE d3d11 d3dcompiler)
 
   # Runtime exception handler for debug only

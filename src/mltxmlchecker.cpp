@@ -16,7 +16,7 @@
  */
 
 #include "mltxmlchecker.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "mltcontroller.hpp"
 #include "proxymanager.hpp"
 #include "settings.hpp"

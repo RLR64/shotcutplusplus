@@ -16,7 +16,7 @@
  */
 
 #include "playlistmodel.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "database.hpp"
 #include "mainwindow.hpp"
 #include "proxymanager.hpp"

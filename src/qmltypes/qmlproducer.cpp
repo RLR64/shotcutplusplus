@@ -16,7 +16,7 @@
  */
 
 #include "qmlproducer.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"
 #include "models/audiolevelstask.hpp"

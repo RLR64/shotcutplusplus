@@ -16,7 +16,7 @@
  */
 
 #include "mltcontroller.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "controllers/filtercontroller.hpp"
 #include "mainwindow.hpp"
 #include "proxymanager.hpp"

@@ -16,7 +16,7 @@
  */
 
 #include "playlisticonview.h"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "models/playlistmodel.hpp"
 #include "settings.hpp"
 

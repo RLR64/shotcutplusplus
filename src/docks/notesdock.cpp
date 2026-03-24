@@ -16,7 +16,7 @@
  */
 
 #include "notesdock.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "actions.hpp"
 #include "dialogs/speechdialog.hpp"
 #include "jobqueue.hpp"

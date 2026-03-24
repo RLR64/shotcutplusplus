@@ -17,7 +17,7 @@
 
 #include "colorproducerwidget.h"
 #include "ui_colorproducerwidget.h"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "mltcontroller.hpp"
 #include "qmltypes/colordialog.hpp"
 #include "qmltypes/qmlapplication.hpp"

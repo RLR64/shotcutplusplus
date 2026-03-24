@@ -12,7 +12,7 @@
   GNU Lesser General Public License for more details.
 */
 // Local
-#include "AbstractAppender.h"
+#include "AbstractAppender.hpp"
 
 // Qt
 #include <QMutexLocker>

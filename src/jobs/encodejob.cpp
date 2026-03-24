@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Logger.h"
+#include "Logger.hpp"
 #include "encodejob.hpp"
 #include "dialogs/listselectiondialog.hpp"
 #include "docks/timelinedock.hpp"

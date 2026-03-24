@@ -32,6 +32,7 @@
 
 #define EXIT_RESTART (42)
 #define EXIT_RESET (43)
+#define MAIN MainWindow::singleton()
 
 namespace Ui {
 class MainWindow;
@@ -407,7 +408,5 @@ private slots:
     void on_actionPauseAfterSeek_triggered(bool checked);
     void on_actionWhatsThis_triggered();
 };
-
-#define MAIN MainWindow::singleton()
 
 #endif // MAINWINDOW_HPP

@@ -17,7 +17,7 @@
 
 #include "avformatproducerwidget.h"
 #include "ui_avformatproducerwidget.h"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "dialogs/filedatedialog.hpp"
 #include "dialogs/listselectiondialog.hpp"
 #include "dialogs/longuitask.hpp"

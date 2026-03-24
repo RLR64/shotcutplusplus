@@ -16,8 +16,7 @@
  */
 
 #include "scopewidget.h"
-
-#include "Logger.h"
+#include "Logger.hpp"
 
 #include <QtConcurrent/QtConcurrent>
 

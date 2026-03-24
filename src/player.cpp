@@ -16,7 +16,7 @@
  */
 
 #include "player.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "actions.hpp"
 #include "dialogs/durationdialog.hpp"
 #include "mainwindow.hpp"

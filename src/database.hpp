@@ -22,6 +22,8 @@
 #include <QImage>
 #include <QTimer>
 
+#define DB Database::singleton()
+
 class Database : public QObject
 {
     Q_OBJECT
@@ -40,7 +42,5 @@ private:
 private slots:
     void deleteOldThumbnails();
 };
-
-#define DB Database::singleton()
 
 #endif // DATABASE_HPP

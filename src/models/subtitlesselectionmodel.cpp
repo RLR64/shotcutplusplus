@@ -16,7 +16,7 @@
  */
 
 #include "subtitlesselectionmodel.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "models/subtitlesmodel.hpp"
 
 SubtitlesSelectionModel::SubtitlesSelectionModel(QAbstractItemModel *model)

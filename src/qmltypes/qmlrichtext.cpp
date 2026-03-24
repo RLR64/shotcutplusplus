@@ -32,7 +32,7 @@
 ****************************************************************************/
 
 #include "qmlrichtext.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 
 #include <QClipboard>
 #include <QGuiApplication>

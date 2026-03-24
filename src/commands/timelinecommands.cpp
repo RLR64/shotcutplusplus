@@ -16,7 +16,7 @@
  */
 
 #include "timelinecommands.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "controllers/filtercontroller.hpp"
 #include "dialogs/longuitask.hpp"
 #include "mainwindow.hpp"

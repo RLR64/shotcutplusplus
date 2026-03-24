@@ -17,7 +17,7 @@
 
 #include "servicepresetwidget.h"
 #include "ui_servicepresetwidget.h"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "qmltypes/qmlapplication.hpp"
 #include "settings.hpp"
 

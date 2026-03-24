@@ -16,7 +16,7 @@
  */
 
 #include "editmarkerdialog.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "widgets/editmarkerwidget.h"
 
 #include <QDebug>

@@ -16,7 +16,7 @@
  */
 
 #include "windowpicker.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include <QDebug>
 #include <QGuiApplication>
 #include <QKeyEvent>

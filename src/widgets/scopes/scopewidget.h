@@ -18,7 +18,7 @@
 #ifndef SCOPEWIDGET_H
 #define SCOPEWIDGET_H
 
-#include "Logger.h"
+#include "Logger.hpp"
 #include "dataqueue.hpp"
 #include "sharedframe.hpp"
 

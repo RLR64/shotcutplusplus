@@ -16,7 +16,7 @@
  */
 
 #include "actionsmodel.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "actions.hpp"
 
 #include <QAction>

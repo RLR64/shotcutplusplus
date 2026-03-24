@@ -17,7 +17,7 @@
 
 #include "avfoundationproducerwidget.h"
 #include "ui_avfoundationproducerwidget.h"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "mltcontroller.hpp"
 #include "settings.hpp"
 #include "shotcut_mlt_properties.hpp"

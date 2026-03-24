@@ -1,9 +1,8 @@
+#include "RollingFileAppender.hpp"
+
 #include <QDateTime>
 #include <QDir>
 #include <QFileInfo>
-
-#include "RollingFileAppender.h"
-
 
 RollingFileAppender::RollingFileAppender(const QString& fileName)
   : FileAppender(fileName)

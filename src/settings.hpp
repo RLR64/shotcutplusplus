@@ -26,6 +26,8 @@
 #include <QStringList>
 #include <QThread>
 
+#define Settings ShotcutSettings::singleton()
+
 class ShotcutSettings : public QObject
 {
     Q_OBJECT
@@ -445,7 +447,5 @@ private:
     QString m_appDataLocation;
     QSettings m_recent;
 };
-
-#define Settings ShotcutSettings::singleton()
 
 #endif // SETTINGS_HPP

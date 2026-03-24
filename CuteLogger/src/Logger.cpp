@@ -12,9 +12,9 @@
   GNU Lesser General Public License for more details.
 */
 // Local
-#include "Logger.h"
-#include "AbstractAppender.h"
-#include "AbstractStringAppender.h"
+#include "Logger.hpp"
+#include "AbstractAppender.hpp"
+#include "AbstractStringAppender.hpp"
 
 // Qt
 #include <QCoreApplication>
@@ -25,12 +25,11 @@
 
 #if defined(Q_OS_ANDROID)
 #  include <android/log.h>
-#  include <AndroidAppender.h>
+#  include <AndroidAppender.hpp>
 #endif
 
 // STL
 #include <iostream>
-
 
 /**
  * \file Logger.h

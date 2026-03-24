@@ -16,7 +16,7 @@
  */
 
 #include "abstractjob.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "postjobaction.hpp"
 
 #include <QAction>

@@ -14,7 +14,7 @@
   GNU Lesser General Public License for more details.
 */
 // Local
-#include "AbstractStringAppender.h"
+#include "AbstractStringAppender.hpp"
 
 // Qt
 #include <QReadLocker>
@@ -23,7 +23,6 @@
 #include <QRegularExpression>
 #include <QCoreApplication>
 #include <QThread>
-
 
 /**
  * \class AbstractStringAppender

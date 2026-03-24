@@ -16,7 +16,7 @@
  */
 
 #include "postjobaction.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "docks/playlistdock.h"
 #include "docks/subtitlesdock.hpp"
 #include "mainwindow.hpp"

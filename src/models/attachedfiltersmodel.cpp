@@ -16,7 +16,7 @@
  */
 
 #include "attachedfiltersmodel.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "commands/filtercommands.hpp"
 #include "controllers/filtercontroller.hpp"
 #include "mainwindow.hpp"

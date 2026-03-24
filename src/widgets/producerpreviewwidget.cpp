@@ -16,7 +16,7 @@
  */
 
 #include "widgets/producerpreviewwidget.h"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "mltcontroller.hpp"
 #include "scrubbar.hpp"
 #include "settings.hpp"

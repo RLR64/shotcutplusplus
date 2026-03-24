@@ -16,7 +16,7 @@
  */
 
 #include "markercommands.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 
 namespace Markers {
 

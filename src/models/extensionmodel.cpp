@@ -16,7 +16,7 @@
  */
 
 #include "extensionmodel.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "qmltypes/qmlextension.hpp"
 #include "settings.hpp"
 

@@ -17,7 +17,7 @@
 
 #include "filesdock.hpp"
 #include "ui_filesdock.h"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "actions.hpp"
 #include "database.hpp"
 #include "dialogs/listselectiondialog.hpp"

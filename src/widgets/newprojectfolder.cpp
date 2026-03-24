@@ -17,7 +17,7 @@
 
 #include "newprojectfolder.h"
 #include "ui_newprojectfolder.h"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "dialogs/customprofiledialog.hpp"
 #include "dialogs/listselectiondialog.hpp"
 #include "mainwindow.hpp"

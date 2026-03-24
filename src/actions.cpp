@@ -16,7 +16,7 @@
  */
 
 #include "actions.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "settings.hpp"
 
 #include <QAction>

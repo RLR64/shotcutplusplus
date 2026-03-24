@@ -16,7 +16,7 @@
  */
 
 #include "playlistdock.h"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "actions.hpp"
 #include "commands/playlistcommands.hpp"
 #include "dialogs/durationdialog.hpp"

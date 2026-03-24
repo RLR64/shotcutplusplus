@@ -16,7 +16,7 @@
  */
 
 #include "screencapturejob.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "ffmpegjob.hpp"
 #include "jobqueue.hpp"
 #include "mainwindow.hpp"

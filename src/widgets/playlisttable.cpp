@@ -16,7 +16,7 @@
  */
 
 #include "playlisttable.h"
-#include "Logger.h"
+#include "Logger.hpp"
 
 #include <QKeyEvent>
 

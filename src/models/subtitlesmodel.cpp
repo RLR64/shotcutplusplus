@@ -16,7 +16,7 @@
  */
 
 #include "subtitlesmodel.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "commands/subtitlecommands.hpp"
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"

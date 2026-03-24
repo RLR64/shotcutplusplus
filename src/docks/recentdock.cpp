@@ -17,7 +17,7 @@
 
 #include "recentdock.hpp"
 #include "ui_recentdock.h"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "settings.hpp"
 #include "util.hpp"
 

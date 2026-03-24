@@ -12,11 +12,10 @@
   GNU Lesser General Public License for more details.
 */
 // Local
-#include "ConsoleAppender.h"
+#include "ConsoleAppender.hpp"
 
 // STL
 #include <iostream>
-
 
 /**
  * \class ConsoleAppender

@@ -16,7 +16,7 @@
  */
 
 #include "transcribeaudiodialog.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "dialogs/filedownloaddialog.hpp"
 #include "docks/timelinedock.hpp"
 #include "mainwindow.hpp"

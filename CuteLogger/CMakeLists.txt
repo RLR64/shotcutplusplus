@@ -20,20 +20,20 @@ SET(sources
 )
 
 SET(includes
-  include/Logger.h
-  include/FileAppender.h
-  include/CuteLogger_global.h
-  include/ConsoleAppender.h
-  include/AbstractStringAppender.h
-  include/AbstractAppender.h
-  include/RollingFileAppender.h
+  include/Logger.hpp
+  include/FileAppender.hpp
+  include/CuteLogger_global.hpp
+  include/ConsoleAppender.hpp
+  include/AbstractStringAppender.hpp
+  include/AbstractAppender.hpp
+  include/RollingFileAppender.hpp
  )
 
 
 # OutputDebugAppender is only for Windows systems
 IF(WIN32)
   SET(sources ${sources} src/OutputDebugAppender.cpp)
-  SET(includes ${includes} include/OutputDebugAppender.h)
+  SET(includes ${includes} include/OutputDebugAppender.hpp)
 ENDIF(WIN32)
 
 

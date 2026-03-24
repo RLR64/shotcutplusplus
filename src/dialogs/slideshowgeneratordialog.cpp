@@ -16,8 +16,9 @@
  */
 
 #include "slideshowgeneratordialog.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "widgets/slideshowgeneratorwidget.h"
+
 #include <MltProfile.h>
 #include <MltTransition.h>
 

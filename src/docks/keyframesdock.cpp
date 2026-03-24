@@ -16,7 +16,7 @@
  */
 
 #include "keyframesdock.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "actions.hpp"
 #include "mainwindow.hpp"
 #include "qmltypes/qmlproducer.hpp"

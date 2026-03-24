@@ -19,6 +19,7 @@
 #define AVFORMATPRODUCERWIDGET_H
 
 #include "abstractproducerwidget.hpp"
+#include "dialogs/transcodedialog.hpp"
 
 #include <QRunnable>
 #include <QWidget>

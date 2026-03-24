@@ -16,7 +16,7 @@
  */
 
 #include "resourcewidget.h"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "models/resourcemodel.hpp"
 
 #include <QHeaderView>

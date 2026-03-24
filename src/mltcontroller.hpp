@@ -31,9 +31,9 @@
 
 #define MLT_LC_CATEGORY LC_ALL
 #define MLT_LC_NAME "LC_ALL"
-
 #define kAudioIndexProperty "astream"
 #define kVideoIndexProperty "vstream"
+#define MLT Mlt::Controller::singleton()
 
 namespace Mlt {
 
@@ -218,7 +218,5 @@ private:
 };
 
 } // namespace Mlt
-
-#define MLT Mlt::Controller::singleton()
 
 #endif // MLTCONTROLLER_HPP

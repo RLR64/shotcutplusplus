@@ -16,7 +16,7 @@
  */
 
 #include "audiosurroundscopewidget.h"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "settings.hpp"
 #include "widgets/iecscale.h"
 

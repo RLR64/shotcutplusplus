@@ -17,6 +17,7 @@
 
 #include "alsawidget.h"
 #include "ui_alsawidget.h"
+
 #include "mltcontroller.hpp"
 #include "settings.hpp"
 #include "shotcut_mlt_properties.hpp"

@@ -16,7 +16,7 @@
  */
 
 #include "audiovectorscopewidget.h"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "settings.hpp"
 
 #include <QComboBox>

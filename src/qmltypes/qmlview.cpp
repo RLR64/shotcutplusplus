@@ -16,7 +16,7 @@
  */
 
 #include "qmlview.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 
 #include <QWidget>
 

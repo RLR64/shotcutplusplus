@@ -16,7 +16,7 @@
  */
 
 #include "jobqueue.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 
 #include <QtWidgets>
 #if defined(Q_OS_WIN) && (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))

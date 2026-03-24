@@ -17,7 +17,7 @@
 
 #include "glaxnimateproducerwidget.h"
 #include "ui_glaxnimateproducerwidget.h"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "dialogs/longuitask.hpp"
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"

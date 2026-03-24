@@ -16,7 +16,7 @@
  */
 
 #include "subtitlesdock.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "actions.hpp"
 #include "dialogs/speechdialog.hpp"
 #include "dialogs/subtitletrackdialog.hpp"

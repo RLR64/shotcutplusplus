@@ -16,7 +16,7 @@
  */
 
 #include "bitrateviewerjob.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "dialogs/bitratedialog.hpp"
 #include "mainwindow.hpp"
 #include "util.hpp"

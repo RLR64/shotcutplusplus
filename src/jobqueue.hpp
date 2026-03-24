@@ -23,6 +23,8 @@
 #include <QMutex>
 #include <QStandardItemModel>
 
+#define JOBS JobQueue::singleton()
+
 class JobQueue : public QStandardItemModel
 {
     Q_OBJECT
@@ -60,7 +62,5 @@ private:
     QMutex m_mutex; // protects m_jobs
     bool m_paused;
 };
-
-#define JOBS JobQueue::singleton()
 
 #endif // JOBQUEUE_HPP

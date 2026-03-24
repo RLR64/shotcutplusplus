@@ -17,7 +17,7 @@
 
 #include "jobsdock.hpp"
 #include "ui_jobsdock.h"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "dialogs/textviewerdialog.hpp"
 #include "jobqueue.hpp"
 

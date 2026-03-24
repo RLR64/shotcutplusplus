@@ -16,7 +16,7 @@
  */
 
 #include "meltjob.hpp"
-#include "Logger.h"
+#include "Logger.hpp"
 #include "dialogs/textviewerdialog.hpp"
 #include "mainwindow.hpp"
 #include "settings.hpp"
