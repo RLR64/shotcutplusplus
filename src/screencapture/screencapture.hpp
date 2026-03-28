@@ -22,7 +22,6 @@
 #include <QRect>
 #include <QScreen>
 #include <QVariant>
-
 #include <memory>
 
 class QEventLoop;
@@ -30,64 +29,63 @@ class ScreenCaptureToolbar;
 class RectangleSelector;
 class WindowPicker;
 
-class ScreenCapture : public QObject
-{
-    Q_OBJECT
+class ScreenCapture : public QObject {
+	Q_OBJECT
 
-public:
-    enum CaptureMode { Fullscreen, Rectangle, Window, Interactive };
+  public:
+	enum CaptureMode { Fullscreen, Rectangle, Window, Interactive };
 
-    explicit ScreenCapture(const QString &outputFile, CaptureMode mode, QObject *parent = nullptr);
-    ~ScreenCapture();
+	explicit ScreenCapture(const QString& outputFile, CaptureMode mode, QObject* parent = nullptr);
+	~ScreenCapture();
 
-    void startRecording();
-    void startSnapshot();
-    static bool isWayland();
+	void        startRecording();
+	void        startSnapshot();
+	static bool isWayland();
 
-signals:
-    void finished(bool success);
-    void beginRecording(const QRect &captureRect, bool recordAudio);
-    void onSelectionCanceled();
-    void minimizeShotcut();
+  signals:
+	void finished(bool success);
+	void beginRecording(const QRect& captureRect, bool recordAudio);
+	void onSelectionCanceled();
+	void minimizeShotcut();
 
-private slots:
-    void onCaptureModeSelected(CaptureMode mode, bool minimizeShotcut, bool recordAudio);
-    void onRectangleSelected(const QRect &rect);
-    void onWindowSelected(const QRect &rect);
-    void onImageRectangleSelected(const QRect &rect);
-    void onImageWindowSelected(const QRect &rect);
-    // xdg-desktop-portal response handler
-    void onPortalResponse(uint response, const QVariantMap &results);
+  private slots:
+	void onCaptureModeSelected(CaptureMode mode, bool minimizeShotcut, bool recordAudio);
+	void onRectangleSelected(const QRect& rect);
+	void onWindowSelected(const QRect& rect);
+	void onImageRectangleSelected(const QRect& rect);
+	void onImageWindowSelected(const QRect& rect);
+	// xdg-desktop-portal response handler
+	void onPortalResponse(uint response, const QVariantMap& results);
 
-private:
-    void startFullscreenRecording();
-    void startRectangleRecording();
-    void startWindowRecording();
-    void startFullscreenSnapshot();
-    void startRectangleSnapshot();
-    void startWindowSnapshot();
-    void captureAndSaveImage(const QRect &rect);
-    void doCaptureAndSaveImage(const QRect &rect);
-    QPixmap captureScreen(const QRect &rect);
-    QRect adjustRectForVideo(const QRect &rect);
-    QRect applyDevicePixelRatio(const QRect &rect);
-    QRect invertDevicePixelRatio(const QRect &rect);
-    bool captureImagePortal(const QRect &rect, const QString &outputPath);
+  private:
+	void    startFullscreenRecording();
+	void    startRectangleRecording();
+	void    startWindowRecording();
+	void    startFullscreenSnapshot();
+	void    startRectangleSnapshot();
+	void    startWindowSnapshot();
+	void    captureAndSaveImage(const QRect& rect);
+	void    doCaptureAndSaveImage(const QRect& rect);
+	QPixmap captureScreen(const QRect& rect);
+	QRect   adjustRectForVideo(const QRect& rect);
+	QRect   applyDevicePixelRatio(const QRect& rect);
+	QRect   invertDevicePixelRatio(const QRect& rect);
+	bool    captureImagePortal(const QRect& rect, const QString& outputPath);
 
-    // Portal call state
-    bool m_portalSuccess = false;
-    QString m_portalUri;
-    QEventLoop *m_portalEventLoop = nullptr;
+	// Portal call state
+	bool        m_portalSuccess = false;
+	QString     m_portalUri;
+	QEventLoop* m_portalEventLoop = nullptr;
 
-    QString m_outputFile;
-    CaptureMode m_mode;
-    bool m_isImageMode;
-    bool m_minimizeShotcut;
-    bool m_recordAudio;
+	QString     m_outputFile;
+	CaptureMode m_mode;
+	bool        m_isImageMode;
+	bool        m_minimizeShotcut;
+	bool        m_recordAudio;
 
-    std::unique_ptr<ScreenCaptureToolbar> m_toolbar;
-    std::unique_ptr<RectangleSelector> m_rectangleSelector;
-    std::unique_ptr<WindowPicker> m_windowPicker;
+	std::unique_ptr<ScreenCaptureToolbar> m_toolbar;
+	std::unique_ptr<RectangleSelector>    m_rectangleSelector;
+	std::unique_ptr<WindowPicker>         m_windowPicker;
 };
 
 #endif // SCREENCAPTURE_HPP

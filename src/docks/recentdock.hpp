@@ -26,37 +26,36 @@ namespace Ui {
 class RecentDock;
 }
 
-class RecentDock : public QDockWidget
-{
-    Q_OBJECT
+class RecentDock : public QDockWidget {
+	Q_OBJECT
 
-public:
-    explicit RecentDock(QWidget *parent = 0);
-    ~RecentDock();
+  public:
+	explicit RecentDock(QWidget* parent = 0);
+	~RecentDock();
 
-signals:
-    void itemActivated(const QString &url);
-    void deleted(const QString &url);
+  signals:
+	void itemActivated(const QString& url);
+	void deleted(const QString& url);
 
-public slots:
-    void add(const QString &);
-    QString remove(const QString &s);
-    void find();
+  public slots:
+	void    add(const QString&);
+	QString remove(const QString& s);
+	void    find();
 
-protected:
-    void keyPressEvent(QKeyEvent *event);
+  protected:
+	void keyPressEvent(QKeyEvent* event);
 
-private:
-    Ui::RecentDock *ui;
-    QStringList m_recent;
-    QStandardItemModel m_model;
-    QSortFilterProxyModel m_proxyModel;
+  private:
+	Ui::RecentDock*       ui;
+	QStringList           m_recent;
+	QStandardItemModel    m_model;
+	QSortFilterProxyModel m_proxyModel;
 
-private slots:
-    void on_listWidget_activated(const QModelIndex &i);
-    void on_lineEdit_textChanged(const QString &search);
-    void on_actionDelete_triggered();
-    void on_listWidget_customContextMenuRequested(const QPoint &pos);
+  private slots:
+	void on_listWidget_activated(const QModelIndex& i);
+	void on_lineEdit_textChanged(const QString& search);
+	void on_actionDelete_triggered();
+	void on_listWidget_customContextMenuRequested(const QPoint& pos);
 };
 
 #endif // RECENTDOCK_HPP

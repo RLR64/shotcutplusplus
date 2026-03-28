@@ -29,143 +29,141 @@ class AvformatProducerWidget;
 }
 class QFileSystemWatcher;
 
-class AvformatProducerWidget : public QWidget, public AbstractProducerWidget
-{
-    Q_OBJECT
+class AvformatProducerWidget : public QWidget, public AbstractProducerWidget {
+	Q_OBJECT
 
-public:
-    explicit AvformatProducerWidget(QWidget *parent = 0);
-    ~AvformatProducerWidget();
+  public:
+	explicit AvformatProducerWidget(QWidget* parent = 0);
+	~AvformatProducerWidget();
 
-    // AbstractProducerWidget overrides
-    Mlt::Producer *newProducer(Mlt::Profile &);
-    void setProducer(Mlt::Producer *);
+	// AbstractProducerWidget overrides
+	Mlt::Producer* newProducer(Mlt::Profile&);
+	void           setProducer(Mlt::Producer*);
 
-public slots:
-    void updateDuration();
-    void rename();
-    void offerConvert(QString message, bool set709Convert = false, bool setSubClip = false);
+  public slots:
+	void updateDuration();
+	void rename();
+	void offerConvert(QString message, bool set709Convert = false, bool setSubClip = false);
 
-signals:
-    void producerChanged(Mlt::Producer *);
-    void producerReopened(bool play);
-    void modified();
-    void showInFiles(QString);
+  signals:
+	void producerChanged(Mlt::Producer*);
+	void producerReopened(bool play);
+	void modified();
+	void showInFiles(QString);
 
-protected:
-    void keyPressEvent(QKeyEvent *event);
+  protected:
+	void keyPressEvent(QKeyEvent* event);
 
-private slots:
+  private slots:
 
-    void onProducerChanged(Mlt::Producer *);
+	void onProducerChanged(Mlt::Producer*);
 
-    void on_videoTrackComboBox_activated(int index);
+	void on_videoTrackComboBox_activated(int index);
 
-    void on_audioTrackComboBox_activated(int index);
+	void on_audioTrackComboBox_activated(int index);
 
-    void on_scanComboBox_activated(int index);
+	void on_scanComboBox_activated(int index);
 
-    void on_fieldOrderComboBox_activated(int index);
+	void on_fieldOrderComboBox_activated(int index);
 
-    void on_aspectNumSpinBox_valueChanged(int);
+	void on_aspectNumSpinBox_valueChanged(int);
 
-    void on_aspectDenSpinBox_valueChanged(int);
+	void on_aspectDenSpinBox_valueChanged(int);
 
-    void on_durationSpinBox_editingFinished();
+	void on_durationSpinBox_editingFinished();
 
-    void on_speedSpinBox_editingFinished();
+	void on_speedSpinBox_editingFinished();
 
-    void on_pitchCheckBox_stateChanged(int state);
+	void on_pitchCheckBox_stateChanged(int state);
 
-    void on_syncSlider_valueChanged(int value);
+	void on_syncSlider_valueChanged(int value);
 
-    void on_actionOpenFolder_triggered();
+	void on_actionOpenFolder_triggered();
 
-    void on_menuButton_clicked();
+	void on_menuButton_clicked();
 
-    void on_actionCopyFullFilePath_triggered();
+	void on_actionCopyFullFilePath_triggered();
 
-    void on_notesTextEdit_textChanged();
+	void on_notesTextEdit_textChanged();
 
-    void on_actionFFmpegInfo_triggered();
+	void on_actionFFmpegInfo_triggered();
 
-    void on_actionFFmpegIntegrityCheck_triggered();
+	void on_actionFFmpegIntegrityCheck_triggered();
 
-    void on_actionFFmpegConvert_triggered();
+	void on_actionFFmpegConvert_triggered();
 
-    void on_reverseButton_clicked();
+	void on_reverseButton_clicked();
 
-    void on_actionExtractSubclip_triggered();
+	void on_actionExtractSubclip_triggered();
 
-    void on_actionExtractSubtitles_triggered();
+	void on_actionExtractSubtitles_triggered();
 
-    void on_actionSetFileDate_triggered();
+	void on_actionSetFileDate_triggered();
 
-    void on_rangeComboBox_activated(int index);
+	void on_rangeComboBox_activated(int index);
 
-    void on_filenameLabel_editingFinished();
+	void on_filenameLabel_editingFinished();
 
-    void on_convertButton_clicked();
+	void on_convertButton_clicked();
 
-    void on_actionDisableProxy_triggered(bool checked);
+	void on_actionDisableProxy_triggered(bool checked);
 
-    void on_actionMakeProxy_triggered();
+	void on_actionMakeProxy_triggered();
 
-    void on_actionDeleteProxy_triggered();
+	void on_actionDeleteProxy_triggered();
 
-    void on_actionCopyHashCode_triggered();
+	void on_actionCopyHashCode_triggered();
 
-    void on_proxyButton_clicked();
+	void on_proxyButton_clicked();
 
-    void on_actionReset_triggered();
+	void on_actionReset_triggered();
 
-    void on_actionSetEquirectangular_triggered();
+	void on_actionSetEquirectangular_triggered();
 
-    void on_actionFFmpegVideoQuality_triggered();
+	void on_actionFFmpegVideoQuality_triggered();
 
-    void on_rotationComboBox_activated(int index);
+	void on_rotationComboBox_activated(int index);
 
-    void on_actionExportGPX_triggered();
+	void on_actionExportGPX_triggered();
 
-    void on_speedComboBox_textActivated(const QString &arg1);
+	void on_speedComboBox_textActivated(const QString& arg1);
 
-private:
-    Ui::AvformatProducerWidget *ui;
-    int m_defaultDuration;
-    bool m_recalcDuration;
-    bool m_askToConvert;
-    std::unique_ptr<QFileSystemWatcher> m_watcher;
+  private:
+	Ui::AvformatProducerWidget*         ui;
+	int                                 m_defaultDuration;
+	bool                                m_recalcDuration;
+	bool                                m_askToConvert;
+	std::unique_ptr<QFileSystemWatcher> m_watcher;
 
-    void reopen(Mlt::Producer *p);
-    void recreateProducer(bool getFrame = false);
-    bool revertToOriginalResource();
-    void setSyncVisibility();
-    double fps();
-    void onOpenOtherAdd();
-    void onOpenOtherRemove();
-    QString mediaType();
+	void    reopen(Mlt::Producer* p);
+	void    recreateProducer(bool getFrame = false);
+	bool    revertToOriginalResource();
+	void    setSyncVisibility();
+	double  fps();
+	void    onOpenOtherAdd();
+	void    onOpenOtherRemove();
+	QString mediaType();
 
-private slots:
-    void reloadProducerValues();
-    void on_actionBitrateViewer_triggered();
-    void on_actionShowInFiles_triggered();
-    void on_openWithButton_clicked();
-    void on_reloadButton_clicked();
+  private slots:
+	void reloadProducerValues();
+	void on_actionBitrateViewer_triggered();
+	void on_actionShowInFiles_triggered();
+	void on_openWithButton_clicked();
+	void on_reloadButton_clicked();
 };
 
-class ProbeTask : public QObject, public QRunnable
-{
-    Q_OBJECT
+class ProbeTask : public QObject, public QRunnable {
+	Q_OBJECT
 
-public:
-    explicit ProbeTask(Mlt::Producer *producer);
-    void run();
+  public:
+	explicit ProbeTask(Mlt::Producer* producer);
+	void run();
 
-signals:
-    void probeFinished();
+  signals:
+	void probeFinished();
 
-private:
-    Mlt::Producer m_producer;
+  private:
+	Mlt::Producer m_producer;
 };
 
 #endif // AVFORMATPRODUCERWIDGET_H

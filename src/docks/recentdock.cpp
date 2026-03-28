@@ -16,9 +16,10 @@
  */
 
 #include "recentdock.hpp"
-#include "ui_recentdock.h"
+
 #include "Logger.hpp"
 #include "settings.hpp"
+#include "ui_recentdock.h"
 #include "util.hpp"
 
 #include <QAction>
@@ -28,139 +29,127 @@
 
 static const int MaxItems = 200;
 
-RecentDock::RecentDock(QWidget *parent)
-    : QDockWidget(parent)
-    , ui(new Ui::RecentDock)
-{
-    LOG_DEBUG() << "begin";
-    ui->setupUi(this);
-    QIcon icon = QIcon::fromTheme("document-open-recent",
-                                  QIcon(":/icons/oxygen/32x32/actions/document-open-recent.png"));
-    toggleViewAction()->setIcon(icon);
-    m_recent = Settings.recent();
+RecentDock::RecentDock(QWidget* parent) : QDockWidget(parent), ui(new Ui::RecentDock) {
+	LOG_DEBUG() << "begin";
+	ui->setupUi(this);
+	QIcon icon =
+	    QIcon::fromTheme("document-open-recent", QIcon(":/icons/oxygen/32x32/actions/document-open-recent.png"));
+	toggleViewAction()->setIcon(icon);
+	m_recent = Settings.recent();
 
 #ifdef Q_OS_WIN
-    // Remove bad entries on Windows due to bug in v17.01.
-    QStringList newList;
-    bool isRepaired = false;
-    foreach (QString s, m_recent) {
-        if (s.size() >= 3 && s[0] == '/' && s[2] == ':') {
-            s.remove(0, 1);
-            isRepaired = true;
-        }
-        newList << s;
-    }
-    if (isRepaired) {
-        m_recent = newList;
-        Settings.setRecent(m_recent);
-        Settings.sync();
-    }
+	// Remove bad entries on Windows due to bug in v17.01.
+	QStringList newList;
+	bool        isRepaired = false;
+	foreach (QString s, m_recent) {
+		if (s.size() >= 3 && s[0] == '/' && s[2] == ':') {
+			s.remove(0, 1);
+			isRepaired = true;
+		}
+		newList << s;
+	}
+	if (isRepaired) {
+		m_recent = newList;
+		Settings.setRecent(m_recent);
+		Settings.sync();
+	}
 #endif
 
-    ui->listWidget->setDragEnabled(true);
-    ui->listWidget->setDragDropMode(QAbstractItemView::DragOnly);
-    foreach (QString s, m_recent) {
-        QStandardItem *item = new QStandardItem(Util::baseName(s));
-        item->setToolTip(QDir::toNativeSeparators(s));
-        m_model.appendRow(item);
-    }
-    m_proxyModel.setSourceModel(&m_model);
-    m_proxyModel.setFilterCaseSensitivity(Qt::CaseInsensitive);
-    ui->listWidget->setModel(&m_proxyModel);
-    LOG_DEBUG() << "end";
+	ui->listWidget->setDragEnabled(true);
+	ui->listWidget->setDragDropMode(QAbstractItemView::DragOnly);
+	foreach (QString s, m_recent) {
+		QStandardItem* item = new QStandardItem(Util::baseName(s));
+		item->setToolTip(QDir::toNativeSeparators(s));
+		m_model.appendRow(item);
+	}
+	m_proxyModel.setSourceModel(&m_model);
+	m_proxyModel.setFilterCaseSensitivity(Qt::CaseInsensitive);
+	ui->listWidget->setModel(&m_proxyModel);
+	LOG_DEBUG() << "end";
 }
 
-RecentDock::~RecentDock()
-{
-    delete ui;
+RecentDock::~RecentDock() {
+	delete ui;
 }
 
-void RecentDock::add(const QString &s)
-{
-    // Block anything big that can cause a performance problem
-    if (s.size() > ShotcutSettings::MaxPath)
-        return;
+void RecentDock::add(const QString& s) {
+	// Block anything big that can cause a performance problem
+	if (s.size() > ShotcutSettings::MaxPath)
+		return;
 
-    QString filePath = QDir::fromNativeSeparators(s);
-    if (filePath.startsWith(QDir::tempPath()))
-        return;
-    QString name = remove(s);
-    QStandardItem *item = new QStandardItem(name);
-    item->setToolTip(QDir::toNativeSeparators(s));
-    m_model.insertRow(0, item);
-    m_recent.prepend(filePath);
-    while (m_recent.count() > MaxItems)
-        m_recent.removeLast();
-    Settings.setRecent(m_recent);
-    if (filePath.endsWith(".mlt")) {
-        auto projects = Settings.projects();
-        projects.removeOne(filePath);
-        projects.prepend(filePath);
-        Settings.setProjects(projects);
-    }
+	QString filePath = QDir::fromNativeSeparators(s);
+	if (filePath.startsWith(QDir::tempPath()))
+		return;
+	QString        name = remove(s);
+	QStandardItem* item = new QStandardItem(name);
+	item->setToolTip(QDir::toNativeSeparators(s));
+	m_model.insertRow(0, item);
+	m_recent.prepend(filePath);
+	while (m_recent.count() > MaxItems)
+		m_recent.removeLast();
+	Settings.setRecent(m_recent);
+	if (filePath.endsWith(".mlt")) {
+		auto projects = Settings.projects();
+		projects.removeOne(filePath);
+		projects.prepend(filePath);
+		Settings.setProjects(projects);
+	}
 }
 
-void RecentDock::on_listWidget_activated(const QModelIndex &i)
-{
-    ui->listWidget->setCurrentIndex(QModelIndex());
-    emit itemActivated(m_proxyModel.itemData(i)[Qt::ToolTipRole].toString());
+void RecentDock::on_listWidget_activated(const QModelIndex& i) {
+	ui->listWidget->setCurrentIndex(QModelIndex());
+	emit itemActivated(m_proxyModel.itemData(i)[Qt::ToolTipRole].toString());
 }
 
-QString RecentDock::remove(const QString &s)
-{
-    QString filePath = QDir::fromNativeSeparators(s);
-    m_recent.removeOne(filePath);
-    Settings.setRecent(m_recent);
+QString RecentDock::remove(const QString& s) {
+	QString filePath = QDir::fromNativeSeparators(s);
+	m_recent.removeOne(filePath);
+	Settings.setRecent(m_recent);
 
-    QString name = Util::baseName(filePath);
-    QList<QStandardItem *> items = m_model.findItems(name);
-    if (items.count() > 0)
-        m_model.removeRow(items.first()->row());
-    return name;
+	QString               name  = Util::baseName(filePath);
+	QList<QStandardItem*> items = m_model.findItems(name);
+	if (items.count() > 0)
+		m_model.removeRow(items.first()->row());
+	return name;
 }
 
-void RecentDock::find()
-{
-    ui->lineEdit->setFocus();
-    ui->lineEdit->selectAll();
+void RecentDock::find() {
+	ui->lineEdit->setFocus();
+	ui->lineEdit->selectAll();
 }
 
-void RecentDock::keyPressEvent(QKeyEvent *event)
-{
-    if (event->key() == Qt::Key_Backspace || event->key() == Qt::Key_Delete) {
-        on_actionDelete_triggered();
-    } else {
-        QDockWidget::keyPressEvent(event);
-    }
+void RecentDock::keyPressEvent(QKeyEvent* event) {
+	if (event->key() == Qt::Key_Backspace || event->key() == Qt::Key_Delete) {
+		on_actionDelete_triggered();
+	} else {
+		QDockWidget::keyPressEvent(event);
+	}
 }
 
-void RecentDock::on_lineEdit_textChanged(const QString &search)
-{
-    m_proxyModel.setFilterFixedString(search);
+void RecentDock::on_lineEdit_textChanged(const QString& search) {
+	m_proxyModel.setFilterFixedString(search);
 }
 
-void RecentDock::on_actionDelete_triggered()
-{
-    if (ui->listWidget->currentIndex().isValid()) {
-        auto row = ui->listWidget->currentIndex().row();
-        auto url = m_recent[row];
-        m_recent.removeAt(row);
-        Settings.setRecent(m_recent);
-        m_model.removeRow(row);
-        if (url.endsWith(".mlt")) {
-            auto ls = Settings.projects();
-            if (ls.removeAll(url) > 0)
-                Settings.setProjects(ls);
-        }
-        emit deleted(url);
-    }
+void RecentDock::on_actionDelete_triggered() {
+	if (ui->listWidget->currentIndex().isValid()) {
+		auto row = ui->listWidget->currentIndex().row();
+		auto url = m_recent[row];
+		m_recent.removeAt(row);
+		Settings.setRecent(m_recent);
+		m_model.removeRow(row);
+		if (url.endsWith(".mlt")) {
+			auto ls = Settings.projects();
+			if (ls.removeAll(url) > 0)
+				Settings.setProjects(ls);
+		}
+		emit deleted(url);
+	}
 }
 
-void RecentDock::on_listWidget_customContextMenuRequested(const QPoint &pos)
-{
-    if (ui->listWidget->currentIndex().isValid()) {
-        QMenu menu(this);
-        menu.addAction(ui->actionDelete);
-        menu.exec(mapToGlobal(pos + QPoint(0, ui->lineEdit->height())));
-    }
+void RecentDock::on_listWidget_customContextMenuRequested(const QPoint& pos) {
+	if (ui->listWidget->currentIndex().isValid()) {
+		QMenu menu(this);
+		menu.addAction(ui->actionDelete);
+		menu.exec(mapToGlobal(pos + QPoint(0, ui->lineEdit->height())));
+	}
 }

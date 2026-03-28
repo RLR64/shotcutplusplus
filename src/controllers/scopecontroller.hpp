@@ -27,19 +27,17 @@ class QMainWindow;
 class QMenu;
 class QWidget;
 
-class ScopeController Q_DECL_FINAL : public QObject
-{
-    Q_OBJECT
+class ScopeController Q_DECL_FINAL : public QObject {
+	Q_OBJECT
 
-public:
-    ScopeController(QMainWindow *mainWindow, QMenu *menu);
+  public:
+	ScopeController(QMainWindow* mainWindow, QMenu* menu);
 
-signals:
-    void newFrame(const SharedFrame &frame);
+  signals:
+	void newFrame(const SharedFrame& frame);
 
-private:
-    template<typename ScopeTYPE>
-    void createScopeDock(QMainWindow *mainWindow, QMenu *menu);
+  private:
+	template <typename ScopeTYPE> void createScopeDock(QMainWindow* mainWindow, QMenu* menu);
 };
 
 #endif // SCOPECONTROLLER_HPP

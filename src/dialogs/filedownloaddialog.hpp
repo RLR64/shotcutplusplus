@@ -24,26 +24,25 @@
 class QFile;
 class QNetworkReply;
 
-class FileDownloadDialog : public QProgressDialog
-{
-public:
-    explicit FileDownloadDialog(const QString &title, QWidget *parent = nullptr);
-    ~FileDownloadDialog();
-    void setSrc(const QString &src);
-    void setDst(const QString &dst);
-    bool start();
-private slots:
-    void onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal);
-    void onReadyRead();
-    void onFinished();
-    void sslErrors(const QList<QSslError> &errors);
+class FileDownloadDialog : public QProgressDialog {
+  public:
+	explicit FileDownloadDialog(const QString& title, QWidget* parent = nullptr);
+	~FileDownloadDialog();
+	void setSrc(const QString& src);
+	void setDst(const QString& dst);
+	bool start();
+  private slots:
+	void onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal);
+	void onReadyRead();
+	void onFinished();
+	void sslErrors(const QList<QSslError>& errors);
 
-private:
-    QString m_src;
-    QString m_dst;
-    QFile *m_file;
-    QNetworkReply *m_reply;
-    int m_replyCode;
+  private:
+	QString        m_src;
+	QString        m_dst;
+	QFile*         m_file;
+	QNetworkReply* m_reply;
+	int            m_replyCode;
 };
 
 #endif // FILEDOWNLOADDIALOG_HPP

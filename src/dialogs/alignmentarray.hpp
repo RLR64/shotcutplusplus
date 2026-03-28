@@ -21,38 +21,33 @@
 #define ALIGNMENTARRAY_HPP
 
 #include <QMutex>
-
 #include <complex>
 #include <fftw3.h>
 #include <vector>
 
-class AlignmentArray
-{
-public:
-    AlignmentArray();
-    AlignmentArray(size_t minimum_size);
-    virtual ~AlignmentArray();
+class AlignmentArray {
+  public:
+	AlignmentArray();
+	AlignmentArray(size_t minimum_size);
+	virtual ~AlignmentArray();
 
-    void init(size_t minimum_size);
-    void setValues(const std::vector<double> &values);
-    double calculateOffset(AlignmentArray &from, int *offset);
-    double calculateOffsetAndSpeed(AlignmentArray &from,
-                                   double *speed,
-                                   int *offset,
-                                   double speedRange);
+	void   init(size_t minimum_size);
+	void   setValues(const std::vector<double>& values);
+	double calculateOffset(AlignmentArray& from, int* offset);
+	double calculateOffsetAndSpeed(AlignmentArray& from, double* speed, int* offset, double speedRange);
 
-private:
-    void transform();
-    std::vector<double> m_values;
-    fftw_plan m_forwardPlan;
-    std::complex<double> *m_forwardBuf;
-    fftw_plan m_backwardPlan;
-    std::complex<double> *m_backwardBuf;
-    double m_autocorrelationMax;
-    size_t m_minimumSize;
-    size_t m_actualComplexSize;
-    bool m_isTransformed;
-    QMutex m_transformMutex;
+  private:
+	void                  transform();
+	std::vector<double>   m_values;
+	fftw_plan             m_forwardPlan;
+	std::complex<double>* m_forwardBuf;
+	fftw_plan             m_backwardPlan;
+	std::complex<double>* m_backwardBuf;
+	double                m_autocorrelationMax;
+	size_t                m_minimumSize;
+	size_t                m_actualComplexSize;
+	bool                  m_isTransformed;
+	QMutex                m_transformMutex;
 };
 
 #endif // ALIGNMENTARRAY_HPP

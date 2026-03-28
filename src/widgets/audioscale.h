@@ -21,17 +21,16 @@
 
 #include <QWidget>
 
-class AudioScale : public QWidget
-{
-    Q_OBJECT
-public:
-    explicit AudioScale(QWidget *parent = 0);
+class AudioScale : public QWidget {
+	Q_OBJECT
+  public:
+	explicit AudioScale(QWidget* parent = 0);
 
-protected:
-    void paintEvent(QPaintEvent *);
+  protected:
+	void paintEvent(QPaintEvent*);
 
-private:
-    QVector<int> dbscale;
+  private:
+	QVector<int> dbscale;
 };
 
 #endif // AUDIOSCALE_H

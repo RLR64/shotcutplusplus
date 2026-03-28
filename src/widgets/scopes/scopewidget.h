@@ -54,80 +54,79 @@
   an appropriate title for the scope.
 */
 
-class ScopeWidget : public QWidget
-{
-    Q_OBJECT
+class ScopeWidget : public QWidget {
+	Q_OBJECT
 
-public:
-    /*!
-      Constructs an ScopeWidget.
+  public:
+	/*!
+	  Constructs an ScopeWidget.
 
-      The \a name will be set as the objectName and should be initialized by
-      subclasses.
-    */
-    explicit ScopeWidget(const QString &name);
+	  The \a name will be set as the objectName and should be initialized by
+	  subclasses.
+	*/
+	explicit ScopeWidget(const QString& name);
 
-    //! Destructs a ScopeWidget.
-    virtual ~ScopeWidget();
+	//! Destructs a ScopeWidget.
+	virtual ~ScopeWidget();
 
-    /*!
-      Returns the title of the scope to be displayed by the application.
-      This virtual function must be implemented by subclasses.
-    */
-    virtual QString getTitle() = 0;
+	/*!
+	  Returns the title of the scope to be displayed by the application.
+	  This virtual function must be implemented by subclasses.
+	*/
+	virtual QString getTitle() = 0;
 
-    /*!
-      Sets the preferred orientation on the scope.
-      This virtual function may be reimplemented by subclasses.
-    */
-    virtual void setOrientation(Qt::Orientation){};
+	/*!
+	  Sets the preferred orientation on the scope.
+	  This virtual function may be reimplemented by subclasses.
+	*/
+	virtual void setOrientation(Qt::Orientation){};
 
-public slots:
-    //! Provides a new frame to the scope. Should be called by the application.
-    virtual void onNewFrame(const SharedFrame &frame) Q_DECL_FINAL;
+  public slots:
+	//! Provides a new frame to the scope. Should be called by the application.
+	virtual void onNewFrame(const SharedFrame& frame) Q_DECL_FINAL;
 
-signals:
-    //! Tells the widget it has been moved. Should be called by the application.
-    void moved();
+  signals:
+	//! Tells the widget it has been moved. Should be called by the application.
+	void moved();
 
-protected:
-    /*!
-      Triggers refreshScope() to be called in a new thread context.
-      Typically requestRefresh would be called from the GUI thread
-      (e.g. in resizeEvent()). onNewFrame() also calls requestRefresh().
-    */
-    virtual void requestRefresh() Q_DECL_FINAL;
+  protected:
+	/*!
+	  Triggers refreshScope() to be called in a new thread context.
+	  Typically requestRefresh would be called from the GUI thread
+	  (e.g. in resizeEvent()). onNewFrame() also calls requestRefresh().
+	*/
+	virtual void requestRefresh() Q_DECL_FINAL;
 
-    /*!
-      Performs the main, CPU intensive, scope drawing in a new thread.
+	/*!
+	  Performs the main, CPU intensive, scope drawing in a new thread.
 
-      refreshScope() Shall be implemented by subclasses. Care must be taken to
-      protect any members that may be accessed concurrently by the refresh
-      thread and the GUI thread.
-    */
-    virtual void refreshScope(const QSize &size, bool full) = 0;
+	  refreshScope() Shall be implemented by subclasses. Care must be taken to
+	  protect any members that may be accessed concurrently by the refresh
+	  thread and the GUI thread.
+	*/
+	virtual void refreshScope(const QSize& size, bool full) = 0;
 
-    /*!
-      Stores frames received by onNewFrame().
+	/*!
+	  Stores frames received by onNewFrame().
 
-      Subclasses should check this queue for new frames in the refreshScope()
-      implementation.
-    */
-    DataQueue<SharedFrame> m_queue;
+	  Subclasses should check this queue for new frames in the refreshScope()
+	  implementation.
+	*/
+	DataQueue<SharedFrame> m_queue;
 
-    void resizeEvent(QResizeEvent *) Q_DECL_OVERRIDE;
-    void changeEvent(QEvent *) Q_DECL_OVERRIDE;
+	void resizeEvent(QResizeEvent*) Q_DECL_OVERRIDE;
+	void changeEvent(QEvent*) Q_DECL_OVERRIDE;
 
-private:
-    Q_INVOKABLE virtual void onRefreshThreadComplete() Q_DECL_FINAL;
-    virtual void refreshInThread() Q_DECL_FINAL;
-    QFuture<void> m_future;
-    bool m_refreshPending;
+  private:
+	Q_INVOKABLE virtual void onRefreshThreadComplete() Q_DECL_FINAL;
+	virtual void             refreshInThread() Q_DECL_FINAL;
+	QFuture<void>            m_future;
+	bool                     m_refreshPending;
 
-    // Members accessed in multiple threads (mutex protected).
-    QMutex m_mutex;
-    bool m_forceRefresh;
-    QSize m_size;
+	// Members accessed in multiple threads (mutex protected).
+	QMutex m_mutex;
+	bool   m_forceRefresh;
+	QSize  m_size;
 };
 
 #endif // SCOPEWIDGET_H

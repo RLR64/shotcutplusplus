@@ -26,77 +26,95 @@
 #include <QString>
 #include <QVariant>
 
-class QmlProducer : public QObject
-{
-    Q_OBJECT
-    Q_PROPERTY(int in READ in() NOTIFY inChanged)
-    Q_PROPERTY(int out READ out() NOTIFY outChanged)
-    Q_PROPERTY(int aspectRatio READ aspectRatio() NOTIFY producerChanged)
-    Q_PROPERTY(int duration READ duration() NOTIFY durationChanged)
-    Q_PROPERTY(int length READ length() NOTIFY lengthChanged)
-    Q_PROPERTY(QString resource READ resource() NOTIFY producerChanged)
-    Q_PROPERTY(QString mlt_service READ mlt_service() NOTIFY producerChanged)
-    Q_PROPERTY(QString hash READ hash() NOTIFY producerChanged)
-    Q_PROPERTY(QString name READ name() NOTIFY producerChanged)
-    Q_PROPERTY(int fadeIn READ fadeIn NOTIFY producerChanged)
-    Q_PROPERTY(int fadeOut READ fadeOut NOTIFY producerChanged)
-    Q_PROPERTY(double speed READ speed NOTIFY producerChanged)
-    Q_PROPERTY(int position READ position WRITE setPosition NOTIFY positionChanged)
-    Q_PROPERTY(double displayAspectRatio READ displayAspectRatio NOTIFY producerChanged)
+class QmlProducer : public QObject {
+	Q_OBJECT
+	Q_PROPERTY(int in READ in() NOTIFY inChanged)
+	Q_PROPERTY(int out READ out() NOTIFY outChanged)
+	Q_PROPERTY(int aspectRatio READ aspectRatio() NOTIFY producerChanged)
+	Q_PROPERTY(int duration READ duration() NOTIFY durationChanged)
+	Q_PROPERTY(int length READ length() NOTIFY lengthChanged)
+	Q_PROPERTY(QString resource READ resource() NOTIFY producerChanged)
+	Q_PROPERTY(QString mlt_service READ mlt_service() NOTIFY producerChanged)
+	Q_PROPERTY(QString hash READ hash() NOTIFY producerChanged)
+	Q_PROPERTY(QString name READ name() NOTIFY producerChanged)
+	Q_PROPERTY(int fadeIn READ fadeIn NOTIFY producerChanged)
+	Q_PROPERTY(int fadeOut READ fadeOut NOTIFY producerChanged)
+	Q_PROPERTY(double speed READ speed NOTIFY producerChanged)
+	Q_PROPERTY(int position READ position WRITE setPosition NOTIFY positionChanged)
+	Q_PROPERTY(double displayAspectRatio READ displayAspectRatio NOTIFY producerChanged)
 
-public:
-    explicit QmlProducer(QObject *parent = 0);
+  public:
+	explicit QmlProducer(QObject* parent = 0);
 
-    int in();
-    int out();
-    double aspectRatio();
-    int duration() { return m_producer.is_valid() ? out() - in() + 1 : 0; }
-    int length() { return m_producer.is_valid() ? m_producer.get_length() : 0; }
-    QString resource();
-    QString mlt_service()
-    {
-        return m_producer.is_valid() ? m_producer.get("mlt_service") : QString();
-    }
-    QString hash()
-    {
-        return m_producer.is_valid() ? m_producer.get(kShotcutHashProperty) : QString();
-    }
-    QString name();
-    const QVariantList *audioLevels();
-    int fadeIn();
-    int fadeOut();
-    double speed();
-    int position() const { return m_position; }
-    void setPosition(int position);
-    void seek(int position);
-    Mlt::Producer &producer() { return m_producer; }
-    Q_INVOKABLE Mlt::Producer *getMltProducer() { return &m_producer; }
-    Q_INVOKABLE void remakeAudioLevels();
-    double displayAspectRatio();
-    Q_INVOKABLE QString get(QString name, int position = -1);
-    Q_INVOKABLE double getDouble(QString name, int position = -1);
-    Q_INVOKABLE QRectF getRect(QString name, int position = -1);
-    Q_INVOKABLE bool outOfBounds();
-    Q_INVOKABLE void newGlaxnimateFile(const QString &filename);
-    Q_INVOKABLE void launchGlaxnimate(const QString &filename = QString()) const;
+	int    in();
+	int    out();
+	double aspectRatio();
 
-signals:
-    void producerChanged();
-    void positionChanged(int position);
-    void seeked(int position);
-    void inChanged(int delta);
-    void outChanged(int delta);
-    void audioLevelsChanged();
-    void durationChanged();
-    void lengthChanged();
+	int duration() {
+		return m_producer.is_valid() ? out() - in() + 1 : 0;
+	}
 
-public slots:
-    void setProducer(Mlt::Producer &producer);
-    void remakeAudioLevels(bool isKeyframesVisible);
+	int length() {
+		return m_producer.is_valid() ? m_producer.get_length() : 0;
+	}
 
-private:
-    Mlt::Producer m_producer;
-    int m_position;
+	QString resource();
+
+	QString mlt_service() {
+		return m_producer.is_valid() ? m_producer.get("mlt_service") : QString();
+	}
+
+	QString hash() {
+		return m_producer.is_valid() ? m_producer.get(kShotcutHashProperty) : QString();
+	}
+
+	QString             name();
+	const QVariantList* audioLevels();
+	int                 fadeIn();
+	int                 fadeOut();
+	double              speed();
+
+	int position() const {
+		return m_position;
+	}
+
+	void setPosition(int position);
+	void seek(int position);
+
+	Mlt::Producer& producer() {
+		return m_producer;
+	}
+
+	Q_INVOKABLE Mlt::Producer* getMltProducer() {
+		return &m_producer;
+	}
+
+	Q_INVOKABLE void    remakeAudioLevels();
+	double              displayAspectRatio();
+	Q_INVOKABLE QString get(QString name, int position = -1);
+	Q_INVOKABLE double  getDouble(QString name, int position = -1);
+	Q_INVOKABLE QRectF  getRect(QString name, int position = -1);
+	Q_INVOKABLE bool    outOfBounds();
+	Q_INVOKABLE void    newGlaxnimateFile(const QString& filename);
+	Q_INVOKABLE void    launchGlaxnimate(const QString& filename = QString()) const;
+
+  signals:
+	void producerChanged();
+	void positionChanged(int position);
+	void seeked(int position);
+	void inChanged(int delta);
+	void outChanged(int delta);
+	void audioLevelsChanged();
+	void durationChanged();
+	void lengthChanged();
+
+  public slots:
+	void setProducer(Mlt::Producer& producer);
+	void remakeAudioLevels(bool isKeyframesVisible);
+
+  private:
+	Mlt::Producer m_producer;
+	int           m_position;
 };
 
 #endif // QMLPRODUCER_HPP

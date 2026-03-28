@@ -23,24 +23,23 @@
 
 class TextEditor;
 
-class NotesDock : public QDockWidget
-{
-    Q_OBJECT
+class NotesDock : public QDockWidget {
+	Q_OBJECT
 
-public:
-    explicit NotesDock(QWidget *parent = 0);
-    QString getText();
-    void setText(const QString &text);
+  public:
+	explicit NotesDock(QWidget* parent = 0);
+	QString getText();
+	void    setText(const QString& text);
 
-signals:
-    void modified();
+  signals:
+	void modified();
 
-private slots:
-    void onTextChanged();
+  private slots:
+	void onTextChanged();
 
-private:
-    TextEditor *m_textEdit;
-    bool m_blockUpdate;
+  private:
+	TextEditor* m_textEdit;
+	bool        m_blockUpdate;
 };
 
 #endif // NOTESDOCK_HPP

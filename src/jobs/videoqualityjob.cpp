@@ -16,6 +16,7 @@
  */
 
 #include "videoqualityjob.hpp"
+
 #include "dialogs/textviewerdialog.hpp"
 #include "mainwindow.hpp"
 
@@ -27,76 +28,69 @@
 #include <QTextStream>
 #include <QUrl>
 
-VideoQualityJob::VideoQualityJob(const QString &name,
-                                 const QString &xml,
-                                 const QString &reportPath,
-                                 int frameRateNum,
+VideoQualityJob::VideoQualityJob(const QString& name, const QString& xml, const QString& reportPath, int frameRateNum,
                                  int frameRateDen)
-    : MeltJob(name, xml, frameRateNum, frameRateDen)
-    , m_reportPath(reportPath)
-{
-    QAction *action = new QAction(tr("Open"), this);
-    action->setData("Open");
-    action->setToolTip(tr("Open original and encoded side-by-side in the Shotcut player"));
-    connect(action, SIGNAL(triggered()), this, SLOT(onOpenTiggered()));
-    m_successActions << action;
+    : MeltJob(name, xml, frameRateNum, frameRateDen), m_reportPath(reportPath) {
+	QAction* action = new QAction(tr("Open"), this);
+	action->setData("Open");
+	action->setToolTip(tr("Open original and encoded side-by-side in the Shotcut player"));
+	connect(action, SIGNAL(triggered()), this, SLOT(onOpenTiggered()));
+	m_successActions << action;
 
-    action = new QAction(tr("View Report"), this);
-    connect(action, SIGNAL(triggered()), this, SLOT(onViewReportTriggered()));
-    m_successActions << action;
+	action = new QAction(tr("View Report"), this);
+	connect(action, SIGNAL(triggered()), this, SLOT(onViewReportTriggered()));
+	m_successActions << action;
 
-    action = new QAction(tr("Show In Files"), this);
-    connect(action, SIGNAL(triggered()), this, SLOT(onShowInFilesTriggered()));
-    m_successActions << action;
+	action = new QAction(tr("Show In Files"), this);
+	connect(action, SIGNAL(triggered()), this, SLOT(onShowInFilesTriggered()));
+	m_successActions << action;
 
-    action = new QAction(tr("Show In Folder"), this);
-    connect(action, SIGNAL(triggered()), this, SLOT(onShowFolderTriggered()));
-    m_successActions << action;
+	action = new QAction(tr("Show In Folder"), this);
+	connect(action, SIGNAL(triggered()), this, SLOT(onShowFolderTriggered()));
+	m_successActions << action;
 
-    setLabel(tr("Measure %1").arg(objectName()));
-    setStandardOutputFile(reportPath);
+	setLabel(tr("Measure %1").arg(objectName()));
+	setStandardOutputFile(reportPath);
 }
 
-void VideoQualityJob::onOpenTiggered()
-{
-    // Parse the XML.
-    QFile file(xmlPath());
-    file.open(QIODevice::ReadOnly);
-    QDomDocument dom(xmlPath());
-    dom.setContent(&file);
-    file.close();
+void VideoQualityJob::onOpenTiggered() {
+	// Parse the XML.
+	QFile file(xmlPath());
+	file.open(QIODevice::ReadOnly);
+	QDomDocument dom(xmlPath());
+	dom.setContent(&file);
+	file.close();
 
-    // Locate the VQM transition.
-    QDomNodeList transitions = dom.elementsByTagName("transition");
-    for (int i = 0; i < transitions.length(); i++) {
-        QDomElement property = transitions.at(i).firstChildElement("property");
-        while (!property.isNull()) {
-            // Change the render property to 1.
-            if (property.attribute("name") == "render") {
-                property.firstChild().setNodeValue("1");
+	// Locate the VQM transition.
+	QDomNodeList transitions = dom.elementsByTagName("transition");
+	for (int i = 0; i < transitions.length(); i++) {
+		QDomElement property = transitions.at(i).firstChildElement("property");
+		while (!property.isNull()) {
+			// Change the render property to 1.
+			if (property.attribute("name") == "render") {
+				property.firstChild().setNodeValue("1");
 
-                // Save the new XML.
-                file.open(QIODevice::WriteOnly);
-                QTextStream textStream(&file);
-                dom.save(textStream, 2);
-                file.close();
+				// Save the new XML.
+				file.open(QIODevice::WriteOnly);
+				QTextStream textStream(&file);
+				dom.save(textStream, 2);
+				file.close();
 
-                MAIN.open(xmlPath().toUtf8().constData());
-                break;
-            }
-            property = property.nextSiblingElement("property");
-        }
-    }
+				MAIN.open(xmlPath().toUtf8().constData());
+				break;
+			}
+			property = property.nextSiblingElement("property");
+		}
+	}
 }
 
-void VideoQualityJob::onViewReportTriggered()
-{
-    TextViewerDialog dialog(&MAIN);
-    dialog.setWindowTitle(tr("Video Quality Measurement"));
-    QFile f(m_reportPath);
-    f.open(QIODevice::ReadOnly);
-    QString s(f.readAll());
-    f.close();
-    dialog.setText(s);
-    dialog.exec();
+void VideoQualityJob::onViewReportTriggered() {
+	TextViewerDialog dialog(&MAIN);
+	dialog.setWindowTitle(tr("Video Quality Measurement"));
+	QFile f(m_reportPath);
+	f.open(QIODevice::ReadOnly);
+	QString s(f.readAll());
+	f.close();
+	dialog.setText(s);
+	dialog.exec();
 }

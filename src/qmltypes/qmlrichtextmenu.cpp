@@ -19,66 +19,64 @@
 
 #include <QMenu>
 
-QmlRichTextMenu::QmlRichTextMenu(QObject *parent)
-    : QObject(parent)
-{}
+QmlRichTextMenu::QmlRichTextMenu(QObject* parent) : QObject(parent) {
+}
 
-void QmlRichTextMenu::popup()
-{
-    QMenu menu;
+void QmlRichTextMenu::popup() {
+	QMenu menu;
 
-    QMenu *fileMenu = menu.addMenu(tr("File"));
+	QMenu* fileMenu = menu.addMenu(tr("File"));
 
-    QAction openAction(tr("Open..."));
-    connect(&openAction, &QAction::triggered, this, &QmlRichTextMenu::openTriggered);
-    fileMenu->addAction(&openAction);
+	QAction openAction(tr("Open..."));
+	connect(&openAction, &QAction::triggered, this, &QmlRichTextMenu::openTriggered);
+	fileMenu->addAction(&openAction);
 
-    QAction saveAsAction(tr("Save As..."));
-    connect(&saveAsAction, &QAction::triggered, this, &QmlRichTextMenu::saveAsTriggered);
-    fileMenu->addAction(&saveAsAction);
+	QAction saveAsAction(tr("Save As..."));
+	connect(&saveAsAction, &QAction::triggered, this, &QmlRichTextMenu::saveAsTriggered);
+	fileMenu->addAction(&saveAsAction);
 
-    QMenu *editMenu = menu.addMenu(tr("Edit"));
+	QMenu* editMenu = menu.addMenu(tr("Edit"));
 
-    QAction undoAction(tr("Undo"));
-    undoAction.setShortcut(QKeySequence::Undo);
-    connect(&undoAction, &QAction::triggered, this, &QmlRichTextMenu::undoTriggered);
-    editMenu->addAction(&undoAction);
+	QAction undoAction(tr("Undo"));
+	undoAction.setShortcut(QKeySequence::Undo);
+	connect(&undoAction, &QAction::triggered, this, &QmlRichTextMenu::undoTriggered);
+	editMenu->addAction(&undoAction);
 
-    QAction redoAction(tr("Redo"));
-    redoAction.setShortcut(QKeySequence::Redo);
-    connect(&redoAction, &QAction::triggered, this, &QmlRichTextMenu::redoTriggered);
-    editMenu->addAction(&redoAction);
+	QAction redoAction(tr("Redo"));
+	redoAction.setShortcut(QKeySequence::Redo);
+	connect(&redoAction, &QAction::triggered, this, &QmlRichTextMenu::redoTriggered);
+	editMenu->addAction(&redoAction);
 
-    editMenu->addSeparator();
+	editMenu->addSeparator();
 
-    QAction cutAction(tr("Cut"));
-    cutAction.setShortcut(QKeySequence::Cut);
-    connect(&cutAction, &QAction::triggered, this, &QmlRichTextMenu::cutTriggered);
-    editMenu->addAction(&cutAction);
+	QAction cutAction(tr("Cut"));
+	cutAction.setShortcut(QKeySequence::Cut);
+	connect(&cutAction, &QAction::triggered, this, &QmlRichTextMenu::cutTriggered);
+	editMenu->addAction(&cutAction);
 
-    QAction copyAction(tr("Copy"));
-    copyAction.setShortcut(QKeySequence::Copy);
-    connect(&copyAction, &QAction::triggered, this, &QmlRichTextMenu::copyTriggered);
-    editMenu->addAction(&copyAction);
+	QAction copyAction(tr("Copy"));
+	copyAction.setShortcut(QKeySequence::Copy);
+	connect(&copyAction, &QAction::triggered, this, &QmlRichTextMenu::copyTriggered);
+	editMenu->addAction(&copyAction);
 
-    QAction pasteAction(tr("Paste"));
-    pasteAction.setShortcut(QKeySequence::Paste);
-    connect(&pasteAction, &QAction::triggered, this, &QmlRichTextMenu::pasteTriggered);
-    editMenu->addAction(&pasteAction);
+	QAction pasteAction(tr("Paste"));
+	pasteAction.setShortcut(QKeySequence::Paste);
+	connect(&pasteAction, &QAction::triggered, this, &QmlRichTextMenu::pasteTriggered);
+	editMenu->addAction(&pasteAction);
 
-    QAction pastePlainAction(tr("Paste Text Only"));
-    pastePlainAction.setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_V));
-    connect(&pastePlainAction, &QAction::triggered, this, &QmlRichTextMenu::pastePlainTriggered);
-    editMenu->addAction(&pastePlainAction);
+	QAction pastePlainAction(tr("Paste Text Only"));
+	pastePlainAction.setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_V));
+	connect(&pastePlainAction, &QAction::triggered, this, &QmlRichTextMenu::pastePlainTriggered);
+	editMenu->addAction(&pastePlainAction);
 
-    QAction selectAllAction(tr("Select All"));
-    selectAllAction.setShortcut(QKeySequence::SelectAll);
-    connect(&selectAllAction, &QAction::triggered, this, &QmlRichTextMenu::selectAllTriggered);
-    menu.addAction(&selectAllAction);
+	QAction selectAllAction(tr("Select All"));
+	selectAllAction.setShortcut(QKeySequence::SelectAll);
+	connect(&selectAllAction, &QAction::triggered, this, &QmlRichTextMenu::selectAllTriggered);
+	menu.addAction(&selectAllAction);
 
-    QAction tableAction(tr("Insert Table"));
-    connect(&tableAction, &QAction::triggered, this, &QmlRichTextMenu::insertTableTriggered);
-    menu.addAction(&tableAction);
+	QAction tableAction(tr("Insert Table"));
+	connect(&tableAction, &QAction::triggered, this, &QmlRichTextMenu::insertTableTriggered);
+	menu.addAction(&tableAction);
 
-    menu.exec(QCursor::pos());
+	menu.exec(QCursor::pos());
 }

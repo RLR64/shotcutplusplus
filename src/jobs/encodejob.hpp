@@ -22,23 +22,19 @@
 
 #include <QThread>
 
-class EncodeJob : public MeltJob
-{
-    Q_OBJECT
-public:
-    EncodeJob(const QString &name,
-              const QString &xml,
-              int frameRateNum,
-              int frameRateDen,
-              const QThread::Priority priority);
+class EncodeJob : public MeltJob {
+	Q_OBJECT
+  public:
+	EncodeJob(const QString& name, const QString& xml, int frameRateNum, int frameRateDen,
+	          const QThread::Priority priority);
 
-private slots:
-    void onVideoQualityTriggered();
-    void onSpatialMediaTriggered();
-    void onEmbedChapters();
+  private slots:
+	void onVideoQualityTriggered();
+	void onSpatialMediaTriggered();
+	void onEmbedChapters();
 
-protected slots:
-    void onFinished(int exitCode, QProcess::ExitStatus exitStatus) override;
+  protected slots:
+	void onFinished(int exitCode, QProcess::ExitStatus exitStatus) override;
 };
 
 #endif // ENCODEJOB_HPP

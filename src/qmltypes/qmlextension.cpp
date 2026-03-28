@@ -16,6 +16,7 @@
  */
 
 #include "qmlextension.hpp"
+
 #include "Logger.hpp"
 #include "qmltypes/qmlutilities.hpp"
 #include "settings.hpp"
@@ -25,85 +26,73 @@
 
 const QString QmlExtension::WHISPER_ID = QStringLiteral("whispermodel");
 
-QmlExtensionFile::QmlExtensionFile(QObject *parent)
-    : QObject(parent)
-    , m_standard(false)
-{}
-
-QmlExtension *QmlExtension::load(const QString &id)
-{
-    QString filePath = appDir(id).absoluteFilePath(extensionFileName(id));
-    if (!QFile::exists(filePath)) {
-        filePath = installDir(id).absoluteFilePath(extensionFileName(id));
-    }
-    if (!QFile::exists(filePath)) {
-        LOG_ERROR() << filePath << "does not exist";
-        return nullptr;
-    }
-    QQmlComponent component(QmlUtilities::sharedEngine(), filePath);
-    QmlExtension *extension = qobject_cast<QmlExtension *>(component.create());
-    if (!extension) {
-        LOG_ERROR() << component.errorString();
-    }
-    return extension;
+QmlExtensionFile::QmlExtensionFile(QObject* parent) : QObject(parent), m_standard(false) {
 }
 
-QString QmlExtension::extensionFileName(const QString &id)
-{
-    return id + ".qml";
+QmlExtension* QmlExtension::load(const QString& id) {
+	QString filePath = appDir(id).absoluteFilePath(extensionFileName(id));
+	if (!QFile::exists(filePath)) {
+		filePath = installDir(id).absoluteFilePath(extensionFileName(id));
+	}
+	if (!QFile::exists(filePath)) {
+		LOG_ERROR() << filePath << "does not exist";
+		return nullptr;
+	}
+	QQmlComponent component(QmlUtilities::sharedEngine(), filePath);
+	QmlExtension* extension = qobject_cast<QmlExtension*>(component.create());
+	if (!extension) {
+		LOG_ERROR() << component.errorString();
+	}
+	return extension;
 }
 
-QDir QmlExtension::installDir(const QString &id)
-{
-    QDir dir = QmlUtilities::qmlDir();
-    dir.mkdir("extensions");
-    dir.cd("extensions");
-    return dir;
+QString QmlExtension::extensionFileName(const QString& id) {
+	return id + ".qml";
 }
 
-QDir QmlExtension::appDir(const QString &id)
-{
-    QDir dir = Settings.appDataLocation();
-    dir.mkdir("extensions");
-    dir.cd("extensions");
-    dir.mkdir(id);
-    dir.cd(id);
-    return dir;
+QDir QmlExtension::installDir(const QString& id) {
+	QDir dir = QmlUtilities::qmlDir();
+	dir.mkdir("extensions");
+	dir.cd("extensions");
+	return dir;
 }
 
-QmlExtension::QmlExtension(QObject *parent)
-    : QObject(parent)
-{}
-
-void QmlExtension::setId(const QString &id)
-{
-    m_id = id;
-    emit changed();
+QDir QmlExtension::appDir(const QString& id) {
+	QDir dir = Settings.appDataLocation();
+	dir.mkdir("extensions");
+	dir.cd("extensions");
+	dir.mkdir(id);
+	dir.cd(id);
+	return dir;
 }
 
-void QmlExtension::setName(const QString &name)
-{
-    m_name = name;
-    emit changed();
+QmlExtension::QmlExtension(QObject* parent) : QObject(parent) {
 }
 
-void QmlExtension::setVersion(const QString &version)
-{
-    m_version = version;
-    emit changed();
+void QmlExtension::setId(const QString& id) {
+	m_id = id;
+	emit changed();
 }
 
-QString QmlExtension::localPath(int index)
-{
-    if (index < 0 || index >= fileCount()) {
-        LOG_ERROR() << "Invalid Index" << index;
-        return QString();
-    }
-    QDir localPath = appDir(m_id);
-    return localPath.absoluteFilePath(m_files[index]->file());
+void QmlExtension::setName(const QString& name) {
+	m_name = name;
+	emit changed();
 }
 
-bool QmlExtension::downloaded(int index)
-{
-    return QFile(localPath(index)).exists();
+void QmlExtension::setVersion(const QString& version) {
+	m_version = version;
+	emit changed();
+}
+
+QString QmlExtension::localPath(int index) {
+	if (index < 0 || index >= fileCount()) {
+		LOG_ERROR() << "Invalid Index" << index;
+		return QString();
+	}
+	QDir localPath = appDir(m_id);
+	return localPath.absoluteFilePath(m_files[index]->file());
+}
+
+bool QmlExtension::downloaded(int index) {
+	return QFile(localPath(index)).exists();
 }

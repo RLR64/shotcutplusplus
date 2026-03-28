@@ -16,42 +16,37 @@
  */
 
 #include "timelinepropertieswidget.h"
-#include "ui_timelinepropertieswidget.h"
+
 #include "mltcontroller.hpp"
+#include "ui_timelinepropertieswidget.h"
 #include "util.hpp"
 
-TimelinePropertiesWidget::TimelinePropertiesWidget(Mlt::Service &service, QWidget *parent)
-    : QWidget(parent)
-    , ui(new Ui::TimelinePropertiesWidget)
-    , m_service(service)
-{
-    ui->setupUi(this);
-    connect(ui->editButton, &QAbstractButton::clicked, this, &TimelinePropertiesWidget::editProfile);
-    Util::setColorsToHighlight(ui->nameLabel);
-    if (m_service.is_valid()) {
-        Mlt::Profile &profile = MLT.profile();
-        ui->resolutionLabel->setText(
-            QStringLiteral("%1 x %2").arg(profile.width()).arg(profile.height()));
-        ui->aspectRatioLabel->setText(QStringLiteral("%1 : %2")
-                                          .arg(profile.display_aspect_num())
-                                          .arg(profile.display_aspect_den()));
-        ui->frameRateLabel->setText(tr("%L1 fps").arg(profile.fps(), 0, 'f', 6));
-        if (profile.progressive())
-            ui->scanModeLabel->setText(tr("Progressive"));
-        else
-            ui->scanModeLabel->setText(tr("Interlaced"));
-        if (profile.colorspace() == 601)
-            ui->colorspaceLabel->setText("ITU-R BT.601");
-        else if (profile.colorspace() == 709)
-            ui->colorspaceLabel->setText("ITU-R BT.709");
-        else if (profile.colorspace() == 2020)
-            ui->colorspaceLabel->setText("ITU-R BT.2020");
-        else
-            ui->colorspaceLabel->setText("");
-    }
+TimelinePropertiesWidget::TimelinePropertiesWidget(Mlt::Service& service, QWidget* parent)
+    : QWidget(parent), ui(new Ui::TimelinePropertiesWidget), m_service(service) {
+	ui->setupUi(this);
+	connect(ui->editButton, &QAbstractButton::clicked, this, &TimelinePropertiesWidget::editProfile);
+	Util::setColorsToHighlight(ui->nameLabel);
+	if (m_service.is_valid()) {
+		Mlt::Profile& profile = MLT.profile();
+		ui->resolutionLabel->setText(QStringLiteral("%1 x %2").arg(profile.width()).arg(profile.height()));
+		ui->aspectRatioLabel->setText(
+		    QStringLiteral("%1 : %2").arg(profile.display_aspect_num()).arg(profile.display_aspect_den()));
+		ui->frameRateLabel->setText(tr("%L1 fps").arg(profile.fps(), 0, 'f', 6));
+		if (profile.progressive())
+			ui->scanModeLabel->setText(tr("Progressive"));
+		else
+			ui->scanModeLabel->setText(tr("Interlaced"));
+		if (profile.colorspace() == 601)
+			ui->colorspaceLabel->setText("ITU-R BT.601");
+		else if (profile.colorspace() == 709)
+			ui->colorspaceLabel->setText("ITU-R BT.709");
+		else if (profile.colorspace() == 2020)
+			ui->colorspaceLabel->setText("ITU-R BT.2020");
+		else
+			ui->colorspaceLabel->setText("");
+	}
 }
 
-TimelinePropertiesWidget::~TimelinePropertiesWidget()
-{
-    delete ui;
+TimelinePropertiesWidget::~TimelinePropertiesWidget() {
+	delete ui;
 }

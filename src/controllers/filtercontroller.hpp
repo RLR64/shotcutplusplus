@@ -30,68 +30,79 @@
 
 class QTimerEvent;
 
-class FilterController : public QObject
-{
-    Q_OBJECT
+class FilterController : public QObject {
+	Q_OBJECT
 
-public:
-    explicit FilterController(QObject *parent = 0);
-    MetadataModel *metadataModel();
-    MotionTrackerModel *motionTrackerModel() { return &m_motionTrackerModel; }
-    AttachedFiltersModel *attachedModel();
+  public:
+	explicit FilterController(QObject* parent = 0);
+	MetadataModel* metadataModel();
 
-    QmlMetadata *metadata(const QString &id);
-    QmlMetadata *metadataForService(Mlt::Service *service);
-    QmlFilter *currentFilter() const { return m_currentFilter.data(); }
-    bool isOutputTrackSelected() const;
-    void onUndoOrRedo(Mlt::Service &service);
-    int currentIndex() const { return m_currentFilterIndex; }
-    void addOrEditFilter(Mlt::Filter *filter, const QStringList &key_properties);
-    void setTrackTransitionService(const QString &service);
+	MotionTrackerModel* motionTrackerModel() {
+		return &m_motionTrackerModel;
+	}
 
-protected:
-    void timerEvent(QTimerEvent *);
+	AttachedFiltersModel* attachedModel();
 
-signals:
-    void currentFilterChanged(QmlFilter *filter, QmlMetadata *meta, int index);
-    void statusChanged(QString);
-    void filterChanged(Mlt::Service *);
-    void undoOrRedo();
+	QmlMetadata* metadata(const QString& id);
+	QmlMetadata* metadataForService(Mlt::Service* service);
 
-public slots:
-    void setProducer(Mlt::Producer *producer = 0);
-    void setCurrentFilter(int attachedIndex);
-    void onFadeInChanged();
-    void onFadeOutChanged();
-    void onGainChanged();
-    void onServiceInChanged(int delta, Mlt::Service *service = 0);
-    void onServiceOutChanged(int delta, Mlt::Service *service = 0);
-    void removeCurrent();
-    void onProducerChanged();
-    void pauseUndoTracking();
-    void resumeUndoTracking();
+	QmlFilter* currentFilter() const {
+		return m_currentFilter.data();
+	}
 
-private slots:
-    void handleAttachedModelChange();
-    void handleAttachedModelAboutToReset();
-    void addMetadata(QmlMetadata *);
-    void handleAttachedRowsAboutToBeRemoved(const QModelIndex &parent, int first, int last);
-    void handleAttachedRowsRemoved(const QModelIndex &parent, int first, int last);
-    void handleAttachedRowsInserted(const QModelIndex &parent, int first, int last);
-    void handleAttachDuplicateFailed(int index);
-    void onQmlFilterChanged(const QString &name);
+	bool isOutputTrackSelected() const;
+	void onUndoOrRedo(Mlt::Service& service);
 
-private:
-    void loadFilterSets();
-    void loadFilterMetadata();
+	int currentIndex() const {
+		return m_currentFilterIndex;
+	}
 
-    QFuture<void> m_future;
-    QScopedPointer<QmlFilter> m_currentFilter;
-    Mlt::Service m_mltService;
-    MetadataModel m_metadataModel;
-    MotionTrackerModel m_motionTrackerModel;
-    AttachedFiltersModel m_attachedModel;
-    int m_currentFilterIndex;
+	void addOrEditFilter(Mlt::Filter* filter, const QStringList& key_properties);
+	void setTrackTransitionService(const QString& service);
+
+  protected:
+	void timerEvent(QTimerEvent*);
+
+  signals:
+	void currentFilterChanged(QmlFilter* filter, QmlMetadata* meta, int index);
+	void statusChanged(QString);
+	void filterChanged(Mlt::Service*);
+	void undoOrRedo();
+
+  public slots:
+	void setProducer(Mlt::Producer* producer = 0);
+	void setCurrentFilter(int attachedIndex);
+	void onFadeInChanged();
+	void onFadeOutChanged();
+	void onGainChanged();
+	void onServiceInChanged(int delta, Mlt::Service* service = 0);
+	void onServiceOutChanged(int delta, Mlt::Service* service = 0);
+	void removeCurrent();
+	void onProducerChanged();
+	void pauseUndoTracking();
+	void resumeUndoTracking();
+
+  private slots:
+	void handleAttachedModelChange();
+	void handleAttachedModelAboutToReset();
+	void addMetadata(QmlMetadata*);
+	void handleAttachedRowsAboutToBeRemoved(const QModelIndex& parent, int first, int last);
+	void handleAttachedRowsRemoved(const QModelIndex& parent, int first, int last);
+	void handleAttachedRowsInserted(const QModelIndex& parent, int first, int last);
+	void handleAttachDuplicateFailed(int index);
+	void onQmlFilterChanged(const QString& name);
+
+  private:
+	void loadFilterSets();
+	void loadFilterMetadata();
+
+	QFuture<void>             m_future;
+	QScopedPointer<QmlFilter> m_currentFilter;
+	Mlt::Service              m_mltService;
+	MetadataModel             m_metadataModel;
+	MotionTrackerModel        m_motionTrackerModel;
+	AttachedFiltersModel      m_attachedModel;
+	int                       m_currentFilterIndex;
 };
 
 #endif // FILTERCONTROLLER_HPP

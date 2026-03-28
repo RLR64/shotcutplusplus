@@ -27,33 +27,32 @@ namespace Ui {
 class Video4LinuxWidget;
 }
 
-class Video4LinuxWidget : public QWidget, public AbstractProducerWidget
-{
-    Q_OBJECT
+class Video4LinuxWidget : public QWidget, public AbstractProducerWidget {
+	Q_OBJECT
 
-public:
-    explicit Video4LinuxWidget(QWidget *parent = 0);
-    ~Video4LinuxWidget();
+  public:
+	explicit Video4LinuxWidget(QWidget* parent = 0);
+	~Video4LinuxWidget();
 
-    // AbstractProducerWidget overrides
-    Mlt::Producer *newProducer(Mlt::Profile &);
-    Mlt::Properties getPreset() const;
-    void loadPreset(Mlt::Properties &);
-    void setProducer(Mlt::Producer *);
+	// AbstractProducerWidget overrides
+	Mlt::Producer*  newProducer(Mlt::Profile&);
+	Mlt::Properties getPreset() const;
+	void            loadPreset(Mlt::Properties&);
+	void            setProducer(Mlt::Producer*);
 
-signals:
-    void producerChanged(Mlt::Producer *);
+  signals:
+	void producerChanged(Mlt::Producer*);
 
-private slots:
-    void on_v4lAudioComboBox_activated(int index);
-    void on_preset_selected(void *p);
-    void on_preset_saveClicked();
-    void on_applyButton_clicked();
+  private slots:
+	void on_v4lAudioComboBox_activated(int index);
+	void on_preset_selected(void* p);
+	void on_preset_saveClicked();
+	void on_applyButton_clicked();
 
-private:
-    Ui::Video4LinuxWidget *ui;
-    QWidget *m_audioWidget;
-    QString URL() const;
+  private:
+	Ui::Video4LinuxWidget* ui;
+	QWidget*               m_audioWidget;
+	QString                URL() const;
 };
 
 #endif // VIDEO4LINUXWIDGET_H

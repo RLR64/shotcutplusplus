@@ -24,6 +24,7 @@
 namespace Ui {
 class OpenOtherDialog;
 }
+
 namespace Mlt {
 class Properties;
 class Producer;
@@ -31,28 +32,30 @@ class Profile;
 } // namespace Mlt
 class QPushButton;
 
-class OpenOtherDialog : public QDialog
-{
-    Q_OBJECT
+class OpenOtherDialog : public QDialog {
+	Q_OBJECT
 
-public:
-    explicit OpenOtherDialog(QWidget *parent = 0);
-    ~OpenOtherDialog();
+  public:
+	explicit OpenOtherDialog(QWidget* parent = 0);
+	~OpenOtherDialog();
 
-    Mlt::Producer *newProducer(Mlt::Profile &) const;
-    void load(Mlt::Producer *);
-    QWidget *currentWidget() const { return m_current; }
+	Mlt::Producer* newProducer(Mlt::Profile&) const;
+	void           load(Mlt::Producer*);
 
-private slots:
-    void on_treeWidget_currentItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous);
+	QWidget* currentWidget() const {
+		return m_current;
+	}
 
-private:
-    Ui::OpenOtherDialog *ui;
-    QWidget *m_current;
-    QPushButton *m_addTimelineButton;
+  private slots:
+	void on_treeWidget_currentItemChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous);
 
-    Mlt::Producer *newProducer(Mlt::Profile &, QObject *widget) const;
-    void selectTreeWidget(const QString &s);
+  private:
+	Ui::OpenOtherDialog* ui;
+	QWidget*             m_current;
+	QPushButton*         m_addTimelineButton;
+
+	Mlt::Producer* newProducer(Mlt::Profile&, QObject* widget) const;
+	void           selectTreeWidget(const QString& s);
 };
 
 #endif // OPENOTHERDIALOG_HPP

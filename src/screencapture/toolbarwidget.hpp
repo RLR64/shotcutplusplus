@@ -24,32 +24,31 @@
 
 class ScreenCapture;
 
-class ScreenCaptureToolbar : public QWidget
-{
-    Q_OBJECT
+class ScreenCaptureToolbar : public QWidget {
+	Q_OBJECT
 
-public:
-    explicit ScreenCaptureToolbar(bool isRecordingMode, QWidget *parent = nullptr);
-    ~ScreenCaptureToolbar();
+  public:
+	explicit ScreenCaptureToolbar(bool isRecordingMode, QWidget* parent = nullptr);
+	~ScreenCaptureToolbar();
 
-signals:
-    void captureModeSelected(int mode, bool minimizeShotcut, bool recordAudio);
+  signals:
+	void captureModeSelected(int mode, bool minimizeShotcut, bool recordAudio);
 
-protected:
-    void paintEvent(QPaintEvent *event) override;
+  protected:
+	void paintEvent(QPaintEvent* event) override;
 
-private slots:
-    void onFullscreenClicked();
-    void onRectangleClicked();
-    void onWindowClicked();
+  private slots:
+	void onFullscreenClicked();
+	void onRectangleClicked();
+	void onWindowClicked();
 
-private:
-    bool m_isRecordingMode;
-    QPushButton *m_fullscreenButton;
-    QPushButton *m_rectangleButton;
-    QPushButton *m_windowButton;
-    QCheckBox *m_minimizeCheckbox;
-    QCheckBox *m_audioCheckbox;
+  private:
+	bool         m_isRecordingMode;
+	QPushButton* m_fullscreenButton;
+	QPushButton* m_rectangleButton;
+	QPushButton* m_windowButton;
+	QCheckBox*   m_minimizeCheckbox;
+	QCheckBox*   m_audioCheckbox;
 };
 
 #endif // TOOLBARWIDGET_HPP

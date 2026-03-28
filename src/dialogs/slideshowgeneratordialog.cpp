@@ -16,50 +16,46 @@
  */
 
 #include "slideshowgeneratordialog.hpp"
+
 #include "Logger.hpp"
 #include "widgets/slideshowgeneratorwidget.h"
 
 #include <MltProfile.h>
 #include <MltTransition.h>
-
 #include <QDebug>
 #include <QDialogButtonBox>
 #include <QVBoxLayout>
 
-SlideshowGeneratorDialog::SlideshowGeneratorDialog(QWidget *parent, Mlt::Playlist &clips)
-    : QDialog(parent)
-{
-    setWindowTitle(tr("Slideshow Generator - %n Clips", nullptr, clips.count()));
+SlideshowGeneratorDialog::SlideshowGeneratorDialog(QWidget* parent, Mlt::Playlist& clips) : QDialog(parent) {
+	setWindowTitle(tr("Slideshow Generator - %n Clips", nullptr, clips.count()));
 
-    QVBoxLayout *VLayout = new QVBoxLayout(this);
+	QVBoxLayout* VLayout = new QVBoxLayout(this);
 
-    m_sWidget = new SlideshowGeneratorWidget(&clips, this);
-    VLayout->addWidget(m_sWidget);
+	m_sWidget = new SlideshowGeneratorWidget(&clips, this);
+	VLayout->addWidget(m_sWidget);
 
-    m_buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Close);
-    VLayout->addWidget(m_buttonBox);
-    connect(m_buttonBox, SIGNAL(clicked(QAbstractButton *)), this, SLOT(clicked(QAbstractButton *)));
+	m_buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Close);
+	VLayout->addWidget(m_buttonBox);
+	connect(m_buttonBox, SIGNAL(clicked(QAbstractButton*)), this, SLOT(clicked(QAbstractButton*)));
 
-    setLayout(VLayout);
-    setModal(true);
-    layout()->setSizeConstraint(QLayout::SetFixedSize);
+	setLayout(VLayout);
+	setModal(true);
+	layout()->setSizeConstraint(QLayout::SetFixedSize);
 }
 
-Mlt::Playlist *SlideshowGeneratorDialog::getSlideshow()
-{
-    return m_sWidget->getSlideshow();
+Mlt::Playlist* SlideshowGeneratorDialog::getSlideshow() {
+	return m_sWidget->getSlideshow();
 }
 
-void SlideshowGeneratorDialog::clicked(QAbstractButton *button)
-{
-    QDialogButtonBox::ButtonRole role = m_buttonBox->buttonRole(button);
-    if (role == QDialogButtonBox::AcceptRole) {
-        LOG_DEBUG() << "Accept";
-        accept();
-    } else if (role == QDialogButtonBox::RejectRole) {
-        LOG_DEBUG() << "Reject";
-        reject();
-    } else {
-        LOG_DEBUG() << "Unknown role" << role;
-    }
+void SlideshowGeneratorDialog::clicked(QAbstractButton* button) {
+	QDialogButtonBox::ButtonRole role = m_buttonBox->buttonRole(button);
+	if (role == QDialogButtonBox::AcceptRole) {
+		LOG_DEBUG() << "Accept";
+		accept();
+	} else if (role == QDialogButtonBox::RejectRole) {
+		LOG_DEBUG() << "Reject";
+		reject();
+	} else {
+		LOG_DEBUG() << "Unknown role" << role;
+	}
 }

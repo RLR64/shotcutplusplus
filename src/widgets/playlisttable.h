@@ -20,16 +20,15 @@
 
 #include <QTableView>
 
-class PlaylistTable : public QTableView
-{
-    Q_OBJECT
-public:
-    PlaylistTable(QWidget *parent = nullptr);
-    void keyPressEvent(QKeyEvent *) Q_DECL_OVERRIDE;
-    void dropEvent(QDropEvent *event) Q_DECL_OVERRIDE;
+class PlaylistTable : public QTableView {
+	Q_OBJECT
+  public:
+	PlaylistTable(QWidget* parent = nullptr);
+	void keyPressEvent(QKeyEvent*) Q_DECL_OVERRIDE;
+	void dropEvent(QDropEvent* event) Q_DECL_OVERRIDE;
 
-signals:
-    void movedToEnd();
+  signals:
+	void movedToEnd();
 };
 
 #endif

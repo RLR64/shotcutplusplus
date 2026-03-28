@@ -22,34 +22,29 @@
 #include <QProgressDialog>
 #include <QtConcurrent/QtConcurrent>
 
-class LongUiTask : public QProgressDialog
-{
-public:
-    explicit LongUiTask(QString title);
-    ~LongUiTask();
+class LongUiTask : public QProgressDialog {
+  public:
+	explicit LongUiTask(QString title);
+	~LongUiTask();
 
-    template<class Ret>
-    Ret wait(QString text, const QFuture<Ret> &future)
-    {
-        setLabelText(text);
-        setRange(0, 0);
-        while (!future.isFinished()) {
-            setValue(0);
-            QCoreApplication::processEvents();
-            QThread::msleep(100);
-        }
-        return future.result();
-    }
+	template <class Ret> Ret wait(QString text, const QFuture<Ret>& future) {
+		setLabelText(text);
+		setRange(0, 0);
+		while (!future.isFinished()) {
+			setValue(0);
+			QCoreApplication::processEvents();
+			QThread::msleep(100);
+		}
+		return future.result();
+	}
 
-    template<class Ret, class Func, class... Args>
-    Ret runAsync(QString text, Func &&f, Args &&...args)
-    {
-        QFuture<Ret> future = QtConcurrent::run(f, std::forward<Args>(args)...);
-        return wait<Ret>(text, future);
-    }
+	template <class Ret, class Func, class... Args> Ret runAsync(QString text, Func&& f, Args&&... args) {
+		QFuture<Ret> future = QtConcurrent::run(f, std::forward<Args>(args)...);
+		return wait<Ret>(text, future);
+	}
 
-    void reportProgress(QString text, int value, int max);
-    static void cancel();
+	void        reportProgress(QString text, int value, int max);
+	static void cancel();
 };
 
 #endif // LONGUITASK_HPP

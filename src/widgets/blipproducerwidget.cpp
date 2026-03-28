@@ -16,74 +16,64 @@
  */
 
 #include "blipproducerwidget.h"
+
 #include "shotcut_mlt_properties.hpp"
 #include "ui_blipproducerwidget.h"
 #include "util.hpp"
 
 #include <MltProfile.h>
 
-BlipProducerWidget::BlipProducerWidget(QWidget *parent)
-    : QWidget(parent)
-    , ui(new Ui::BlipProducerWidget)
-{
-    ui->setupUi(this);
-    Util::setColorsToHighlight(ui->nameLabel);
-    ui->preset->saveDefaultPreset(getPreset());
-    ui->preset->loadPresets();
-    on_periodSpinBox_valueChanged(ui->periodSpinBox->value());
+BlipProducerWidget::BlipProducerWidget(QWidget* parent) : QWidget(parent), ui(new Ui::BlipProducerWidget) {
+	ui->setupUi(this);
+	Util::setColorsToHighlight(ui->nameLabel);
+	ui->preset->saveDefaultPreset(getPreset());
+	ui->preset->loadPresets();
+	on_periodSpinBox_valueChanged(ui->periodSpinBox->value());
 }
 
-BlipProducerWidget::~BlipProducerWidget()
-{
-    delete ui;
+BlipProducerWidget::~BlipProducerWidget() {
+	delete ui;
 }
 
-Mlt::Producer *BlipProducerWidget::newProducer(Mlt::Profile &profile)
-{
-    Mlt::Producer *p = new Mlt::Producer(profile, "blipflash:");
-    p->set("period", ui->periodSpinBox->value());
-    p->set("force_seekable", 1);
-    p->set(kShotcutCaptionProperty, ui->nameLabel->text().toUtf8().constData());
-    p->set(kShotcutDetailProperty, detail().toUtf8().constData());
-    return p;
+Mlt::Producer* BlipProducerWidget::newProducer(Mlt::Profile& profile) {
+	Mlt::Producer* p = new Mlt::Producer(profile, "blipflash:");
+	p->set("period", ui->periodSpinBox->value());
+	p->set("force_seekable", 1);
+	p->set(kShotcutCaptionProperty, ui->nameLabel->text().toUtf8().constData());
+	p->set(kShotcutDetailProperty, detail().toUtf8().constData());
+	return p;
 }
 
-Mlt::Properties BlipProducerWidget::getPreset() const
-{
-    Mlt::Properties p;
-    p.set("period", ui->periodSpinBox->value());
-    return p;
+Mlt::Properties BlipProducerWidget::getPreset() const {
+	Mlt::Properties p;
+	p.set("period", ui->periodSpinBox->value());
+	return p;
 }
 
-void BlipProducerWidget::loadPreset(Mlt::Properties &p)
-{
-    ui->periodSpinBox->setValue(p.get_int("period"));
-    p.set(kShotcutDetailProperty, detail().toUtf8().constData());
+void BlipProducerWidget::loadPreset(Mlt::Properties& p) {
+	ui->periodSpinBox->setValue(p.get_int("period"));
+	p.set(kShotcutDetailProperty, detail().toUtf8().constData());
 }
 
-void BlipProducerWidget::on_periodSpinBox_valueChanged(int value)
-{
-    ui->periodSpinBox->setSuffix(tr(" second(s)", nullptr, value));
-    if (m_producer) {
-        m_producer->set("period", value);
-        m_producer->set(kShotcutDetailProperty, detail().toUtf8().constData());
-        emit producerChanged(producer());
-    }
+void BlipProducerWidget::on_periodSpinBox_valueChanged(int value) {
+	ui->periodSpinBox->setSuffix(tr(" second(s)", nullptr, value));
+	if (m_producer) {
+		m_producer->set("period", value);
+		m_producer->set(kShotcutDetailProperty, detail().toUtf8().constData());
+		emit producerChanged(producer());
+	}
 }
 
-void BlipProducerWidget::on_preset_selected(void *p)
-{
-    Mlt::Properties *properties = (Mlt::Properties *) p;
-    loadPreset(*properties);
-    delete properties;
+void BlipProducerWidget::on_preset_selected(void* p) {
+	Mlt::Properties* properties = (Mlt::Properties*)p;
+	loadPreset(*properties);
+	delete properties;
 }
 
-void BlipProducerWidget::on_preset_saveClicked()
-{
-    ui->preset->savePreset(getPreset());
+void BlipProducerWidget::on_preset_saveClicked() {
+	ui->preset->savePreset(getPreset());
 }
 
-QString BlipProducerWidget::detail() const
-{
-    return tr("Period: %1s").arg(ui->periodSpinBox->value());
+QString BlipProducerWidget::detail() const {
+	return tr("Period: %1s").arg(ui->periodSpinBox->value());
 }

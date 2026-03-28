@@ -27,19 +27,18 @@ namespace Ui {
 class PulseAudioWidget;
 }
 
-class PulseAudioWidget : public QWidget, public AbstractProducerWidget
-{
-    Q_OBJECT
+class PulseAudioWidget : public QWidget, public AbstractProducerWidget {
+	Q_OBJECT
 
-public:
-    explicit PulseAudioWidget(QWidget *parent = 0);
-    ~PulseAudioWidget();
+  public:
+	explicit PulseAudioWidget(QWidget* parent = 0);
+	~PulseAudioWidget();
 
-    // AbstractProducerWidget overrides
-    Mlt::Producer *newProducer(Mlt::Profile &profile);
+	// AbstractProducerWidget overrides
+	Mlt::Producer* newProducer(Mlt::Profile& profile);
 
-private:
-    Ui::PulseAudioWidget *ui;
+  private:
+	Ui::PulseAudioWidget* ui;
 };
 
 #endif // PULSEAUDIOWIDGET_H

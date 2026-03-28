@@ -16,29 +16,24 @@
  */
 
 #include "durationdialog.hpp"
+
 #include "mltcontroller.hpp"
 #include "ui_durationdialog.h"
 
-DurationDialog::DurationDialog(QWidget *parent)
-    : QDialog(parent)
-    , ui(new Ui::DurationDialog)
-{
-    ui->setupUi(this);
-    ui->spinBox->setMaximum(MLT.maxFrameCount());
-    connect(ui->spinBox, &TimeSpinBox::accepted, this, &QDialog::accept);
+DurationDialog::DurationDialog(QWidget* parent) : QDialog(parent), ui(new Ui::DurationDialog) {
+	ui->setupUi(this);
+	ui->spinBox->setMaximum(MLT.maxFrameCount());
+	connect(ui->spinBox, &TimeSpinBox::accepted, this, &QDialog::accept);
 }
 
-DurationDialog::~DurationDialog()
-{
-    delete ui;
+DurationDialog::~DurationDialog() {
+	delete ui;
 }
 
-void DurationDialog::setDuration(int frames)
-{
-    ui->spinBox->setValue(frames);
+void DurationDialog::setDuration(int frames) {
+	ui->spinBox->setValue(frames);
 }
 
-int DurationDialog::duration() const
-{
-    return ui->spinBox->value();
+int DurationDialog::duration() const {
+	return ui->spinBox->value();
 }

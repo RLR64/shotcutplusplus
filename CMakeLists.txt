@@ -5,15 +5,13 @@ if (${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.20")
 endif()
 
 if(NOT DEFINED SHOTCUT_VERSION)
-  string(TIMESTAMP SHOTCUT_VERSION "%y.%m.%d")
-  # Remove leading zeros from each digit group
-  string(REGEX REPLACE "0*([0-9]+)" "\\1" SHOTCUT_VERSION "${SHOTCUT_VERSION}")
+  set(SHOTCUT_VERSION "26.2")
 endif()
 
 project(shotcut
   VERSION ${SHOTCUT_VERSION}
-  DESCRIPTION "cross-platform (Qt), open-source (GPLv3) video editor"
-  HOMEPAGE_URL "https://www.shotcut.org"
+  DESCRIPTION "Shotcut++ - Windows video editor, modernized C++ fork"
+  HOMEPAGE_URL "https://github.com/RLR64/shotcutplusplus"
   LANGUAGES CXX
 )
 
@@ -50,6 +48,7 @@ find_package(Qt6 6.4 REQUIRED
   Widgets
   Xml
 )
+
 if(UNIX AND NOT APPLE)
   find_package(Qt6 6.4 REQUIRED COMPONENTS DBus)
   # X11 for WindowPicker (Linux/X11)
@@ -75,28 +74,6 @@ add_custom_target(codespell COMMAND
   -L shotcut,uint,seeked,really,prevent
   -S export-chapters.js,export-edl.js,CuteLogger,drmingw,node_modules,moc_*,index.theme,*.ts,three.min.js,three.js,jquery.js,rangy-*.js,Makefile,shotcut.pro,*.desktop
 )
-
-if(CLANG_FORMAT)
-  # Formatting may change with different versions of clang-format.
-  # Test new versions before changing the allowed version here to avoid
-  # accidental broad changes to formatting.
-  find_package(ClangFormat 14 EXACT)
-  if(CLANGFORMAT_FOUND)
-    file(GLOB_RECURSE FORMAT_FILES "src/*.h" "src/*.c" "src/*.cpp")
-    # exclude 3rd party & generated source from format checking
-    list(FILTER FORMAT_FILES EXCLUDE REGEX "/.*/spatialmedia/")
-    list(FILTER FORMAT_FILES EXCLUDE REGEX "/.*/defaultlayouts.h")
-    list(FILTER FORMAT_FILES EXCLUDE REGEX "/.*/*_autogen/")
-    add_custom_target(clang-format COMMAND
-      ${CLANGFORMAT_EXECUTABLE} -style=file -i ${FORMAT_FILES}
-    )
-    add_custom_target(clang-format-check COMMAND
-      ${CLANGFORMAT_EXECUTABLE} --dry-run --Werror -style=file -i ${FORMAT_FILES}
-    )
-  else()
-    set(CLANG_FORMAT OFF)
-  endif()
-endif()
 
 file(GLOB_RECURSE QML_SRC "src/qml/*.qml")
 add_custom_target(qmlformat COMMAND

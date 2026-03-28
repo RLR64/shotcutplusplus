@@ -20,31 +20,29 @@
 
 #include <QItemSelectionModel>
 
-class SubtitlesSelectionModel : public QItemSelectionModel
-{
-    Q_OBJECT
-    Q_PROPERTY(QModelIndex selectedTrackModelIndex READ selectedTrackModelIndex NOTIFY
-                   selectedTrackModelIndexChanged)
-    Q_PROPERTY(QVariantList selectedItems READ selectedItems NOTIFY selectedItemsChanged)
-public:
-    explicit SubtitlesSelectionModel(QAbstractItemModel *model);
+class SubtitlesSelectionModel : public QItemSelectionModel {
+	Q_OBJECT
+	Q_PROPERTY(QModelIndex selectedTrackModelIndex READ selectedTrackModelIndex NOTIFY selectedTrackModelIndexChanged)
+	Q_PROPERTY(QVariantList selectedItems READ selectedItems NOTIFY selectedItemsChanged)
+  public:
+	explicit SubtitlesSelectionModel(QAbstractItemModel* model);
 
-    QModelIndex selectedTrackModelIndex();
-    Q_INVOKABLE int selectedTrack();
-    void setSelectedTrack(int trackIndex);
-    QVariantList selectedItems();
-    Q_INVOKABLE bool isItemSelected(int itemIndex);
-    Q_INVOKABLE void selectItem(int itemIndex);
-    Q_INVOKABLE void selectRange(int itemIndex);
+	QModelIndex      selectedTrackModelIndex();
+	Q_INVOKABLE int  selectedTrack();
+	void             setSelectedTrack(int trackIndex);
+	QVariantList     selectedItems();
+	Q_INVOKABLE bool isItemSelected(int itemIndex);
+	Q_INVOKABLE void selectItem(int itemIndex);
+	Q_INVOKABLE void selectRange(int itemIndex);
 
-signals:
-    void selectedTrackModelIndexChanged(QModelIndex trackModelIndex);
-    void selectedItemsChanged();
+  signals:
+	void selectedTrackModelIndexChanged(QModelIndex trackModelIndex);
+	void selectedItemsChanged();
 
-private:
-    int m_selectedTrackIndex;
-    QVariantList m_selectedItems;
-    int m_lastSingleSelection;
+  private:
+	int          m_selectedTrackIndex;
+	QVariantList m_selectedItems;
+	int          m_lastSingleSelection;
 };
 
 #endif // SUBTITLESSELECTIONMODEL_HPP

@@ -26,35 +26,34 @@
 #include <QOpenGLFunctions>
 #include <QOpenGLShaderProgram>
 
-class OpenGLVideoWidget : public Mlt::VideoWidget, protected QOpenGLFunctions
-{
-    Q_OBJECT
+class OpenGLVideoWidget : public Mlt::VideoWidget, protected QOpenGLFunctions {
+	Q_OBJECT
 
-public:
-    explicit OpenGLVideoWidget(QObject *parent = nullptr);
-    virtual ~OpenGLVideoWidget();
+  public:
+	explicit OpenGLVideoWidget(QObject* parent = nullptr);
+	virtual ~OpenGLVideoWidget();
 
-public slots:
-    virtual void initialize();
-    virtual void renderVideo();
-    virtual void onFrameDisplayed(const SharedFrame &frame);
+  public slots:
+	virtual void initialize();
+	virtual void renderVideo();
+	virtual void onFrameDisplayed(const SharedFrame& frame);
 
-private:
-    void createShader();
+  private:
+	void createShader();
 
-    QOffscreenSurface m_offscreenSurface;
-    std::unique_ptr<QOpenGLShaderProgram> m_shader;
-    GLint m_projectionLocation;
-    GLint m_modelViewLocation;
-    GLint m_vertexLocation;
-    GLint m_texCoordLocation;
-    GLint m_colorspaceLocation;
-    GLint m_textureLocation[3];
-    QOpenGLContext *m_quickContext;
-    std::unique_ptr<QOpenGLContext> m_context;
-    GLuint m_renderTexture[3];
-    GLuint m_displayTexture[3];
-    bool m_isThreadedOpenGL;
+	QOffscreenSurface                     m_offscreenSurface;
+	std::unique_ptr<QOpenGLShaderProgram> m_shader;
+	GLint                                 m_projectionLocation;
+	GLint                                 m_modelViewLocation;
+	GLint                                 m_vertexLocation;
+	GLint                                 m_texCoordLocation;
+	GLint                                 m_colorspaceLocation;
+	GLint                                 m_textureLocation[3];
+	QOpenGLContext*                       m_quickContext;
+	std::unique_ptr<QOpenGLContext>       m_context;
+	GLuint                                m_renderTexture[3];
+	GLuint                                m_displayTexture[3];
+	bool                                  m_isThreadedOpenGL;
 };
 
 #endif // OPENGLVIDEOWIDGET_H

@@ -25,19 +25,18 @@ namespace Ui {
 class AddEncodePresetDialog;
 }
 
-class AddEncodePresetDialog : public QDialog
-{
-    Q_OBJECT
+class AddEncodePresetDialog : public QDialog {
+	Q_OBJECT
 
-public:
-    explicit AddEncodePresetDialog(QWidget *parent = 0);
-    ~AddEncodePresetDialog();
-    void setProperties(const QString &);
-    QString presetName() const;
-    QString properties() const;
+  public:
+	explicit AddEncodePresetDialog(QWidget* parent = 0);
+	~AddEncodePresetDialog();
+	void    setProperties(const QString&);
+	QString presetName() const;
+	QString properties() const;
 
-private:
-    Ui::AddEncodePresetDialog *ui;
+  private:
+	Ui::AddEncodePresetDialog* ui;
 };
 
 #endif // ADDENCODEPRESETDIALOG_HPP

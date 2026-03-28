@@ -35,37 +35,33 @@ class AlignTableDelegate;
 class MultitrackModel;
 class LongUiTask;
 
-class AlignAudioDialog : public QDialog
-{
-    Q_OBJECT
-public:
-    explicit AlignAudioDialog(QString title,
-                              MultitrackModel *model,
-                              const QVector<QUuid> &uuids,
-                              QWidget *parent = 0);
-    virtual ~AlignAudioDialog();
+class AlignAudioDialog : public QDialog {
+	Q_OBJECT
+  public:
+	explicit AlignAudioDialog(QString title, MultitrackModel* model, const QVector<QUuid>& uuids, QWidget* parent = 0);
+	virtual ~AlignAudioDialog();
 
-private slots:
-    void rebuildClipList();
-    void process();
-    void apply();
-    void processAndApply();
-    void updateReferenceProgress(int percent);
-    void updateClipProgress(int index, int percent);
-    void clipFinished(int index, int offset, double speed, double quality);
+  private slots:
+	void rebuildClipList();
+	void process();
+	void apply();
+	void processAndApply();
+	void updateReferenceProgress(int percent);
+	void updateClipProgress(int index, int percent);
+	void clipFinished(int index, int offset, double speed, double quality);
 
-private:
-    AlignTableDelegate *m_delegate;
-    MultitrackModel *m_model;
-    AlignClipsModel m_alignClipsModel;
-    QVector<QUuid> m_uuids;
-    QComboBox *m_trackCombo;
-    QComboBox *m_speedCombo;
-    QTreeView *m_table;
-    QDialogButtonBox *m_buttonBox;
-    QPushButton *m_applyButton;
-    QPushButton *m_processAndApplyButton;
-    LongUiTask *m_uiTask;
+  private:
+	AlignTableDelegate* m_delegate;
+	MultitrackModel*    m_model;
+	AlignClipsModel     m_alignClipsModel;
+	QVector<QUuid>      m_uuids;
+	QComboBox*          m_trackCombo;
+	QComboBox*          m_speedCombo;
+	QTreeView*          m_table;
+	QDialogButtonBox*   m_buttonBox;
+	QPushButton*        m_applyButton;
+	QPushButton*        m_processAndApplyButton;
+	LongUiTask*         m_uiTask;
 };
 
 #endif // ALIGNAUDIODIALOG_HPP

@@ -24,34 +24,30 @@
 #include <QPersistentModelIndex>
 #include <QRunnable>
 
-class AudioLevelsTask : public QRunnable
-{
-public:
-    AudioLevelsTask(Mlt::Producer &producer, QObject *object, const QModelIndex &index);
-    virtual ~AudioLevelsTask();
-    static void start(Mlt::Producer &producer,
-                      QObject *object,
-                      const QModelIndex &index,
-                      bool force = false);
-    static void closeAll();
-    bool operator==(AudioLevelsTask &b);
+class AudioLevelsTask : public QRunnable {
+  public:
+	AudioLevelsTask(Mlt::Producer& producer, QObject* object, const QModelIndex& index);
+	virtual ~AudioLevelsTask();
+	static void start(Mlt::Producer& producer, QObject* object, const QModelIndex& index, bool force = false);
+	static void closeAll();
+	bool        operator==(AudioLevelsTask& b);
 
-protected:
-    void run();
+  protected:
+	void run();
 
-private:
-    Mlt::Producer *tempProducer();
-    QString cacheKey();
-    void notifyQObjects(const QPersistentModelIndex &index);
+  private:
+	Mlt::Producer* tempProducer();
+	QString        cacheKey();
+	void           notifyQObjects(const QPersistentModelIndex& index);
 
-    QObject *m_object;
-    QObject *m_qmlProducer;
-    typedef QPair<Mlt::Producer *, QPersistentModelIndex> ProducerAndIndex;
-    QList<ProducerAndIndex> m_producers;
-    QScopedPointer<Mlt::Producer> m_tempProducer;
-    bool m_isCanceled;
-    bool m_isForce;
-    Mlt::Profile m_profile;
+	QObject*                                             m_object;
+	QObject*                                             m_qmlProducer;
+	typedef QPair<Mlt::Producer*, QPersistentModelIndex> ProducerAndIndex;
+	QList<ProducerAndIndex>                              m_producers;
+	QScopedPointer<Mlt::Producer>                        m_tempProducer;
+	bool                                                 m_isCanceled;
+	bool                                                 m_isForce;
+	Mlt::Profile                                         m_profile;
 };
 
 #endif // AUDIOLEVELSTASK_HPP

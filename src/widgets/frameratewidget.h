@@ -23,28 +23,27 @@
 class QDoubleSpinBox;
 class QComboBox;
 
-class FrameRateWidget : public QWidget
-{
-    Q_OBJECT
+class FrameRateWidget : public QWidget {
+	Q_OBJECT
 
-public:
-    explicit FrameRateWidget(QWidget *parent = nullptr);
-    double fps();
+  public:
+	explicit FrameRateWidget(QWidget* parent = nullptr);
+	double fps();
 
-public slots:
-    void setFps(double);
+  public slots:
+	void setFps(double);
 
-signals:
-    void fpsChanged(double);
+  signals:
+	void fpsChanged(double);
 
-private slots:
-    void on_fpsSpinner_editingFinished();
-    void on_fpsComboBox_activated(const QString &arg1);
+  private slots:
+	void on_fpsSpinner_editingFinished();
+	void on_fpsComboBox_activated(const QString& arg1);
 
-private:
-    QDoubleSpinBox *m_fpsSpinner;
-    QComboBox *m_fpsComboBox;
-    double m_fps;
+  private:
+	QDoubleSpinBox* m_fpsSpinner;
+	QComboBox*      m_fpsComboBox;
+	double          m_fps;
 };
 
 #endif // FRAMERATEWIDGET_H

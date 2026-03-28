@@ -26,36 +26,35 @@ namespace Ui {
 class ColorProducerWidget;
 }
 
-class ColorProducerWidget : public QWidget, public AbstractProducerWidget
-{
-    Q_OBJECT
+class ColorProducerWidget : public QWidget, public AbstractProducerWidget {
+	Q_OBJECT
 
-public:
-    explicit ColorProducerWidget(QWidget *parent = 0);
-    ~ColorProducerWidget();
+  public:
+	explicit ColorProducerWidget(QWidget* parent = 0);
+	~ColorProducerWidget();
 
-    // AbstractProducerWidget overrides
-    Mlt::Producer *newProducer(Mlt::Profile &);
-    Mlt::Properties getPreset() const;
-    void loadPreset(Mlt::Properties &);
+	// AbstractProducerWidget overrides
+	Mlt::Producer*  newProducer(Mlt::Profile&);
+	Mlt::Properties getPreset() const;
+	void            loadPreset(Mlt::Properties&);
 
-signals:
-    void producerChanged(Mlt::Producer *);
-    void modified();
+  signals:
+	void producerChanged(Mlt::Producer*);
+	void modified();
 
-public slots:
-    void rename();
+  public slots:
+	void rename();
 
-private slots:
-    void on_colorButton_clicked();
-    void on_preset_selected(void *p);
-    void on_preset_saveClicked();
-    void on_lineEdit_editingFinished();
-    void on_notesTextEdit_textChanged();
+  private slots:
+	void on_colorButton_clicked();
+	void on_preset_selected(void* p);
+	void on_preset_saveClicked();
+	void on_lineEdit_editingFinished();
+	void on_notesTextEdit_textChanged();
 
-private:
-    Ui::ColorProducerWidget *ui;
-    QString m_title;
+  private:
+	Ui::ColorProducerWidget* ui;
+	QString                  m_title;
 };
 
 #endif // COLORPRODUCERWIDGET_H

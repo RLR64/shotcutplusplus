@@ -22,33 +22,27 @@
 
 #include <QTemporaryFile>
 
-class WhisperJob : public AbstractJob
-{
-    Q_OBJECT
-public:
-    WhisperJob(const QString &name,
-               const QString &iWavFile,
-               const QString &oSrtFile,
-               const QString &lang,
-               bool translate,
-               int maxLength,
-               QThread::Priority priority = Settings.jobPriority());
-    virtual ~WhisperJob();
+class WhisperJob : public AbstractJob {
+	Q_OBJECT
+  public:
+	WhisperJob(const QString& name, const QString& iWavFile, const QString& oSrtFile, const QString& lang,
+	           bool translate, int maxLength, QThread::Priority priority = Settings.jobPriority());
+	virtual ~WhisperJob();
 
-public slots:
-    void start();
-    void onViewSrtTriggered();
+  public slots:
+	void start();
+	void onViewSrtTriggered();
 
-protected slots:
-    void onReadyRead();
+  protected slots:
+	void onReadyRead();
 
-private:
-    const QString m_iWavFile;
-    const QString m_oSrtFile;
-    const QString m_lang;
-    const bool m_translate;
-    const int m_maxLength;
-    int m_previousPercent;
+  private:
+	const QString m_iWavFile;
+	const QString m_oSrtFile;
+	const QString m_lang;
+	const bool    m_translate;
+	const int     m_maxLength;
+	int           m_previousPercent;
 };
 
 #endif // WHISPERJOB_HPP

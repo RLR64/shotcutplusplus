@@ -20,35 +20,34 @@
 
 #include <QObject>
 
-class QmlEditMenu : public QObject
-{
-    Q_OBJECT
+class QmlEditMenu : public QObject {
+	Q_OBJECT
 
-    Q_PROPERTY(bool showPastePlain MEMBER m_showPastePlain NOTIFY showPastePlainChanged)
-    Q_PROPERTY(bool readOnly MEMBER m_readOnly NOTIFY readOnlyChanged)
+	Q_PROPERTY(bool showPastePlain MEMBER m_showPastePlain NOTIFY showPastePlainChanged)
+	Q_PROPERTY(bool readOnly MEMBER m_readOnly NOTIFY readOnlyChanged)
 
-public:
-    explicit QmlEditMenu(QObject *parent = 0);
+  public:
+	explicit QmlEditMenu(QObject* parent = 0);
 
-signals:
-    void showPastePlainChanged();
-    void readOnlyChanged();
-    void undoTriggered();
-    void redoTriggered();
-    void cutTriggered();
-    void copyTriggered();
-    void pasteTriggered();
-    void pastePlainTriggered();
-    void deleteTriggered();
-    void clearTriggered();
-    void selectAllTriggered();
+  signals:
+	void showPastePlainChanged();
+	void readOnlyChanged();
+	void undoTriggered();
+	void redoTriggered();
+	void cutTriggered();
+	void copyTriggered();
+	void pasteTriggered();
+	void pastePlainTriggered();
+	void deleteTriggered();
+	void clearTriggered();
+	void selectAllTriggered();
 
-public slots:
-    void popup();
+  public slots:
+	void popup();
 
-private:
-    bool m_showPastePlain;
-    bool m_readOnly;
+  private:
+	bool m_showPastePlain;
+	bool m_readOnly;
 };
 
 #endif // QMLEDITMENU_HPP

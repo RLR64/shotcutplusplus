@@ -16,70 +16,62 @@
  */
 
 #include "filedialog.hpp"
+
 #include "mainwindow.hpp"
 #include "settings.hpp"
 #include "util.hpp"
 
-FileDialog::FileDialog(QObject *parent)
-    : QObject{parent}
-{
-    m_fileDialog.reset(new QFileDialog(&MAIN));
-    connect(m_fileDialog.get(), &QDialog::accepted, this, &FileDialog::accepted);
-    connect(m_fileDialog.get(), &QDialog::rejected, this, &FileDialog::rejected);
-    connect(m_fileDialog.get(), &QFileDialog::fileSelected, this, &FileDialog::fileSelected);
-    connect(m_fileDialog.get(), &QFileDialog::filterSelected, this, &FileDialog::filterSelected);
+FileDialog::FileDialog(QObject* parent) : QObject{parent} {
+	m_fileDialog.reset(new QFileDialog(&MAIN));
+	connect(m_fileDialog.get(), &QDialog::accepted, this, &FileDialog::accepted);
+	connect(m_fileDialog.get(), &QDialog::rejected, this, &FileDialog::rejected);
+	connect(m_fileDialog.get(), &QFileDialog::fileSelected, this, &FileDialog::fileSelected);
+	connect(m_fileDialog.get(), &QFileDialog::filterSelected, this, &FileDialog::filterSelected);
 }
 
-void FileDialog::setFileMode(FileMode mode)
-{
-    m_fileMode = mode;
+void FileDialog::setFileMode(FileMode mode) {
+	m_fileMode = mode;
 }
 
-QString FileDialog::title() const
-{
-    return m_fileDialog->windowTitle();
+QString FileDialog::title() const {
+	return m_fileDialog->windowTitle();
 }
 
-void FileDialog::setTitle(const QString &title)
-{
-    if (title != m_fileDialog->windowTitle()) {
-        m_fileDialog->setWindowTitle(title);
-        emit titleChanged();
-    }
+void FileDialog::setTitle(const QString& title) {
+	if (title != m_fileDialog->windowTitle()) {
+		m_fileDialog->setWindowTitle(title);
+		emit titleChanged();
+	}
 }
 
-QStringList FileDialog::nameFilters() const
-{
-    return m_fileDialog->nameFilters();
+QStringList FileDialog::nameFilters() const {
+	return m_fileDialog->nameFilters();
 }
 
-void FileDialog::setNameFilters(const QStringList &filters)
-{
-    if (filters != m_fileDialog->nameFilters()) {
-        m_fileDialog->setNameFilters(filters);
-        emit nameFiltersChanged();
-    }
+void FileDialog::setNameFilters(const QStringList& filters) {
+	if (filters != m_fileDialog->nameFilters()) {
+		m_fileDialog->setNameFilters(filters);
+		emit nameFiltersChanged();
+	}
 }
 
-QString FileDialog::selectedFile()
-{
-    return m_fileDialog->selectedFiles().first();
+QString FileDialog::selectedFile() {
+	return m_fileDialog->selectedFiles().first();
 }
 
-void FileDialog::open()
-{
-    if (m_fileMode == FileDialog::OpenFile) {
-        m_fileDialog->setAcceptMode(QFileDialog::AcceptOpen);
-        m_fileDialog->setDirectory(Settings.openPath());
-    } else {
-        m_fileDialog->setAcceptMode(QFileDialog::AcceptSave);
-        m_fileDialog->setDirectory(Settings.savePath());
-    }
+void FileDialog::open() {
+	if (m_fileMode == FileDialog::OpenFile) {
+		m_fileDialog->setAcceptMode(QFileDialog::AcceptOpen);
+		m_fileDialog->setDirectory(Settings.openPath());
+	} else {
+		m_fileDialog->setAcceptMode(QFileDialog::AcceptSave);
+		m_fileDialog->setDirectory(Settings.savePath());
+	}
 #ifdef Q_OS_MAC
-    m_fileDialog->setWindowModality(Qt::NonModal);
+	m_fileDialog->setWindowModality(Qt::NonModal);
 #else
-    m_fileDialog->setWindowModality(Qt::ApplicationModal);
+	m_fileDialog->setWindowModality(Qt::ApplicationModal);
 #endif
-    m_fileDialog->setOptions(Util::getFileDialogOptions());
-    m_fileDialog->open();
+	m_fileDialog->setOptions(Util::getFileDialogOptions());
+	m_fileDialog->open();
 }

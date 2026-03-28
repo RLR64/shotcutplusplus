@@ -25,20 +25,19 @@ namespace Ui {
 class TimelinePropertiesWidget;
 }
 
-class TimelinePropertiesWidget : public QWidget
-{
-    Q_OBJECT
+class TimelinePropertiesWidget : public QWidget {
+	Q_OBJECT
 
-public:
-    explicit TimelinePropertiesWidget(Mlt::Service &service, QWidget *parent = 0);
-    ~TimelinePropertiesWidget();
+  public:
+	explicit TimelinePropertiesWidget(Mlt::Service& service, QWidget* parent = 0);
+	~TimelinePropertiesWidget();
 
-signals:
-    void editProfile();
+  signals:
+	void editProfile();
 
-private:
-    Ui::TimelinePropertiesWidget *ui;
-    Mlt::Service m_service;
+  private:
+	Ui::TimelinePropertiesWidget* ui;
+	Mlt::Service                  m_service;
 };
 
-#endif //TIMELINEPROPERTIESWIDGET_H
+#endif // TIMELINEPROPERTIESWIDGET_H

@@ -30,32 +30,31 @@ namespace Ui {
 class LissajousWidget;
 }
 
-class LissajousWidget : public QWidget, public AbstractProducerWidget
-{
-    Q_OBJECT
+class LissajousWidget : public QWidget, public AbstractProducerWidget {
+	Q_OBJECT
 
-public:
-    explicit LissajousWidget(QWidget *parent = 0);
-    ~LissajousWidget();
+  public:
+	explicit LissajousWidget(QWidget* parent = 0);
+	~LissajousWidget();
 
-    // AbstractProducerWidget overrides
-    Mlt::Producer *newProducer(Mlt::Profile &);
-    Mlt::Properties getPreset() const;
-    void loadPreset(Mlt::Properties &);
+	// AbstractProducerWidget overrides
+	Mlt::Producer*  newProducer(Mlt::Profile&);
+	Mlt::Properties getPreset() const;
+	void            loadPreset(Mlt::Properties&);
 
-signals:
-    void producerChanged(Mlt::Producer *);
+  signals:
+	void producerChanged(Mlt::Producer*);
 
-private slots:
-    void on_xratioDial_valueChanged(int value);
-    void on_xratioSpinner_valueChanged(double arg1);
-    void on_yratioDial_valueChanged(int value);
-    void on_yratioSpinner_valueChanged(double arg1);
-    void on_preset_selected(void *p);
-    void on_preset_saveClicked();
+  private slots:
+	void on_xratioDial_valueChanged(int value);
+	void on_xratioSpinner_valueChanged(double arg1);
+	void on_yratioDial_valueChanged(int value);
+	void on_yratioSpinner_valueChanged(double arg1);
+	void on_preset_selected(void* p);
+	void on_preset_saveClicked();
 
-private:
-    Ui::LissajousWidget *ui;
+  private:
+	Ui::LissajousWidget* ui;
 };
 
 #endif // LISSAJOUSWIDGET_H

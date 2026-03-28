@@ -25,32 +25,31 @@ namespace Ui {
 class ServicePresetWidget;
 }
 
-class ServicePresetWidget : public QWidget
-{
-    Q_OBJECT
+class ServicePresetWidget : public QWidget {
+	Q_OBJECT
 
-public:
-    explicit ServicePresetWidget(QWidget *parent = 0);
-    ~ServicePresetWidget();
+  public:
+	explicit ServicePresetWidget(QWidget* parent = 0);
+	~ServicePresetWidget();
 
-    void loadPresets();
-    void saveDefaultPreset(const Mlt::Properties &);
-    void savePreset(const Mlt::Properties &);
-    void savePreset(const Mlt::Properties &properties, QString name);
-    void setPreset(const QString &name);
+	void loadPresets();
+	void saveDefaultPreset(const Mlt::Properties&);
+	void savePreset(const Mlt::Properties&);
+	void savePreset(const Mlt::Properties& properties, QString name);
+	void setPreset(const QString& name);
 
-signals:
-    void selected(void *properties);
-    void saveClicked();
+  signals:
+	void selected(void* properties);
+	void saveClicked();
 
-private slots:
-    void on_presetCombo_activated(int index);
-    void on_savePresetButton_clicked();
-    void on_deletePresetButton_clicked();
+  private slots:
+	void on_presetCombo_activated(int index);
+	void on_savePresetButton_clicked();
+	void on_deletePresetButton_clicked();
 
-private:
-    Ui::ServicePresetWidget *ui;
-    QString m_widgetName;
+  private:
+	Ui::ServicePresetWidget* ui;
+	QString                  m_widgetName;
 };
 
 #endif // SERVICEPRESETWIDGET_H

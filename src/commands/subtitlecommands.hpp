@@ -25,162 +25,159 @@
 namespace Subtitles {
 
 enum {
-    UndoIdSubText = 400,
-    UndoIdSubStart,
-    UndoIdSubEnd,
-    UndoIdSubMove,
+	UndoIdSubText = 400,
+	UndoIdSubStart,
+	UndoIdSubEnd,
+	UndoIdSubMove,
 };
 
-class InsertTrackCommand : public QUndoCommand
-{
-public:
-    InsertTrackCommand(SubtitlesModel &model, const SubtitlesModel::SubtitleTrack &track, int index);
-    void redo();
-    void undo();
+class InsertTrackCommand : public QUndoCommand {
+  public:
+	InsertTrackCommand(SubtitlesModel& Model, const SubtitlesModel::SubtitleTrack& Track, int Index);
+	void Redo();
+	void Undo();
 
-private:
-    SubtitlesModel &m_model;
-    SubtitlesModel::SubtitleTrack m_track;
-    int m_index;
+  private:
+	SubtitlesModel&               m_model;
+	SubtitlesModel::SubtitleTrack m_track;
+	int                           m_index;
 };
 
-class RemoveTrackCommand : public QUndoCommand
-{
-public:
-    RemoveTrackCommand(SubtitlesModel &model, int trackIndex);
-    void redo();
-    void undo();
+class RemoveTrackCommand : public QUndoCommand {
+  public:
+	RemoveTrackCommand(SubtitlesModel& Model, int TrackIndex);
+	void Redo();
+	void Undo();
 
-private:
-    SubtitlesModel &m_model;
-    int m_trackIndex;
-    SubtitlesModel::SubtitleTrack m_saveTrack;
-    QList<Subtitles::SubtitleItem> m_saveSubtitles;
+  private:
+	SubtitlesModel&                m_model;
+	int                            m_trackIndex;
+	SubtitlesModel::SubtitleTrack  m_saveTrack;
+	QList<Subtitles::SubtitleItem> m_saveSubtitles;
 };
 
-class EditTrackCommand : public QUndoCommand
-{
-public:
-    EditTrackCommand(SubtitlesModel &model, const SubtitlesModel::SubtitleTrack &track, int index);
-    void redo();
-    void undo();
+class EditTrackCommand : public QUndoCommand {
+  public:
+	EditTrackCommand(SubtitlesModel& Model, const SubtitlesModel::SubtitleTrack& Track, int Index);
+	void Redo();
+	void Undo();
 
-private:
-    SubtitlesModel &m_model;
-    SubtitlesModel::SubtitleTrack m_oldTrack;
-    SubtitlesModel::SubtitleTrack m_newTrack;
-    int m_index;
+  private:
+	SubtitlesModel&               m_model;
+	SubtitlesModel::SubtitleTrack m_oldTrack;
+	SubtitlesModel::SubtitleTrack m_newTrack;
+	int                           m_index;
 };
 
-class OverwriteSubtitlesCommand : public QUndoCommand
-{
-public:
-    OverwriteSubtitlesCommand(SubtitlesModel &model,
-                              int trackIndex,
-                              const QList<Subtitles::SubtitleItem> &items);
-    void redo();
-    void undo();
+class OverwriteSubtitlesCommand : public QUndoCommand {
+  public:
+	OverwriteSubtitlesCommand(SubtitlesModel& Model, int TrackIndex, const QList<Subtitles::SubtitleItem>& Items);
+	void Redo();
+	void Undo();
 
-protected:
-    QList<Subtitles::SubtitleItem> m_newSubtitles;
+  protected:
+	QList<Subtitles::SubtitleItem> m_newSubtitles;
 
-private:
-    SubtitlesModel &m_model;
-    int m_trackIndex;
-    QList<Subtitles::SubtitleItem> m_saveSubtitles;
+  private:
+	SubtitlesModel&                m_model;
+	int                            m_trackIndex;
+	QList<Subtitles::SubtitleItem> m_saveSubtitles;
 };
 
-class RemoveSubtitlesCommand : public QUndoCommand
-{
-public:
-    RemoveSubtitlesCommand(SubtitlesModel &model,
-                           int trackIndex,
-                           const QList<Subtitles::SubtitleItem> &items);
-    void redo();
-    void undo();
+class RemoveSubtitlesCommand : public QUndoCommand {
+  public:
+	RemoveSubtitlesCommand(SubtitlesModel& Model, int TrackIndex, const QList<Subtitles::SubtitleItem>& Items);
+	void Redo();
+	void Undo();
 
-private:
-    SubtitlesModel &m_model;
-    int m_trackIndex;
-    QList<Subtitles::SubtitleItem> m_items;
+  private:
+	SubtitlesModel&                m_model;
+	int                            m_trackIndex;
+	QList<Subtitles::SubtitleItem> m_items;
 };
 
-class SetTextCommand : public QUndoCommand
-{
-public:
-    SetTextCommand(SubtitlesModel &model, int trackIndex, int itemIndex, const QString &text);
-    void redo();
-    void undo();
+class SetTextCommand : public QUndoCommand {
+  public:
+	SetTextCommand(SubtitlesModel& Model, int TrackIndex, int ItemIndex, const QString& Text);
+	void Redo();
+	void Undo();
 
-protected:
-    int id() const { return UndoIdSubText; }
-    bool mergeWith(const QUndoCommand *other);
+  protected:
+	int Id() const {
+		return UndoIdSubText;
+	}
 
-private:
-    SubtitlesModel &m_model;
-    int m_trackIndex;
-    int m_itemIndex;
-    QString m_newText;
-    QString m_oldText;
+	bool MergeWith(const QUndoCommand* Other);
+
+  private:
+	SubtitlesModel& m_model;
+	int             m_trackIndex;
+	int             m_itemIndex;
+	QString         m_newText;
+	QString         m_oldText;
 };
 
-class SetStartCommand : public QUndoCommand
-{
-public:
-    SetStartCommand(SubtitlesModel &model, int trackIndex, int itemIndex, int64_t msTime);
-    void redo();
-    void undo();
+class SetStartCommand : public QUndoCommand {
+  public:
+	SetStartCommand(SubtitlesModel& Model, int TrackIndex, int ItemIndex, int64_t MsTime);
+	void Redo();
+	void Undo();
 
-protected:
-    int id() const { return UndoIdSubStart; }
-    bool mergeWith(const QUndoCommand *other);
+  protected:
+	int Id() const {
+		return UndoIdSubStart;
+	}
 
-private:
-    SubtitlesModel &m_model;
-    int m_trackIndex;
-    int m_itemIndex;
-    int64_t m_newStart;
-    int64_t m_oldStart;
+	bool MergeWith(const QUndoCommand* Other);
+
+  private:
+	SubtitlesModel& m_model;
+	int             m_trackIndex;
+	int             m_itemIndex;
+	int64_t         m_newStart;
+	int64_t         m_oldStart;
 };
 
-class SetEndCommand : public QUndoCommand
-{
-public:
-    SetEndCommand(SubtitlesModel &model, int trackIndex, int itemIndex, int64_t msTime);
-    void redo();
-    void undo();
+class SetEndCommand : public QUndoCommand {
+  public:
+	SetEndCommand(SubtitlesModel& Model, int TrackIndex, int ItemIndex, int64_t MsTime);
+	void Redo();
+	void Undo();
 
-protected:
-    int id() const { return UndoIdSubEnd; }
-    bool mergeWith(const QUndoCommand *other);
+  protected:
+	int Id() const {
+		return UndoIdSubEnd;
+	}
 
-private:
-    SubtitlesModel &m_model;
-    int m_trackIndex;
-    int m_itemIndex;
-    int64_t m_newEnd;
-    int64_t m_oldEnd;
+	bool MergeWith(const QUndoCommand* Other);
+
+  private:
+	SubtitlesModel& m_model;
+	int             m_trackIndex;
+	int             m_itemIndex;
+	int64_t         m_newEnd;
+	int64_t         m_oldEnd;
 };
 
-class MoveSubtitlesCommand : public QUndoCommand
-{
-public:
-    MoveSubtitlesCommand(SubtitlesModel &model,
-                         int trackIndex,
-                         const QList<Subtitles::SubtitleItem> &items,
-                         int64_t msTime);
-    void redo();
-    void undo();
+class MoveSubtitlesCommand : public QUndoCommand {
+  public:
+	MoveSubtitlesCommand(SubtitlesModel& Model, int TrackIndex, const QList<Subtitles::SubtitleItem>& Items,
+	                     int64_t MsTime);
+	void Redo();
+	void Undo();
 
-protected:
-    int id() const { return UndoIdSubMove; }
-    bool mergeWith(const QUndoCommand *other);
+  protected:
+	int Id() const {
+		return UndoIdSubMove;
+	}
 
-private:
-    SubtitlesModel &m_model;
-    int m_trackIndex;
-    QList<Subtitles::SubtitleItem> m_oldSubtitles;
-    QList<Subtitles::SubtitleItem> m_newSubtitles;
+	bool MergeWith(const QUndoCommand* Other);
+
+  private:
+	SubtitlesModel&                m_model;
+	int                            m_trackIndex;
+	QList<Subtitles::SubtitleItem> m_oldSubtitles;
+	QList<Subtitles::SubtitleItem> m_newSubtitles;
 };
 
 } // namespace Subtitles

@@ -21,39 +21,38 @@
 #include <MltProducer.h>
 #include <QAbstractItemModel>
 
-class ResourceModel : public QAbstractItemModel
-{
-    Q_OBJECT
+class ResourceModel : public QAbstractItemModel {
+	Q_OBJECT
 
-public:
-    enum Columns {
-        COLUMN_INFO = 0,
-        COLUMN_NAME,
-        COLUMN_SIZE,
-        COLUMN_VID_DESCRIPTION,
-        COLUMN_AUD_DESCRIPTION,
-        COLUMN_COUNT,
-    };
+  public:
+	enum Columns {
+		COLUMN_INFO = 0,
+		COLUMN_NAME,
+		COLUMN_SIZE,
+		COLUMN_VID_DESCRIPTION,
+		COLUMN_AUD_DESCRIPTION,
+		COLUMN_COUNT,
+	};
 
-    explicit ResourceModel(QObject *parent = 0);
-    virtual ~ResourceModel();
-    void search(Mlt::Producer *producer);
-    void add(Mlt::Producer *producer, const QString &location = QString());
-    QList<Mlt::Producer> getProducers(const QModelIndexList &indices);
-    bool exists(const QString &hash);
-    int producerCount();
-    Mlt::Producer producer(int index);
-    // Implement QAbstractItemModel
-    int rowCount(const QModelIndex &parent) const;
-    int columnCount(const QModelIndex &parent) const;
-    QVariant data(const QModelIndex &index, int role) const;
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
-    QModelIndex index(int row, int column = 0, const QModelIndex &parent = QModelIndex()) const;
-    QModelIndex parent(const QModelIndex &index) const;
+	explicit ResourceModel(QObject* parent = 0);
+	virtual ~ResourceModel();
+	void                 search(Mlt::Producer* producer);
+	void                 add(Mlt::Producer* producer, const QString& location = QString());
+	QList<Mlt::Producer> getProducers(const QModelIndexList& indices);
+	bool                 exists(const QString& hash);
+	int                  producerCount();
+	Mlt::Producer        producer(int index);
+	// Implement QAbstractItemModel
+	int         rowCount(const QModelIndex& parent) const;
+	int         columnCount(const QModelIndex& parent) const;
+	QVariant    data(const QModelIndex& index, int role) const;
+	QVariant    headerData(int section, Qt::Orientation orientation, int role) const;
+	QModelIndex index(int row, int column = 0, const QModelIndex& parent = QModelIndex()) const;
+	QModelIndex parent(const QModelIndex& index) const;
 
-private:
-    QList<Mlt::Producer> m_producers;
-    QMap<QString, QString> m_locations;
+  private:
+	QList<Mlt::Producer>   m_producers;
+	QMap<QString, QString> m_locations;
 };
 
 #endif // RESOURCEMODEL_HPP

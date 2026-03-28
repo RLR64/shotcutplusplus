@@ -27,18 +27,17 @@
 class QQmlContext;
 class QQmlEngine;
 
-class QmlUtilities : public QObject
-{
-    Q_OBJECT
+class QmlUtilities : public QObject {
+	Q_OBJECT
 
-public:
-    explicit QmlUtilities(QObject *parent = 0);
+  public:
+	explicit QmlUtilities(QObject* parent = 0);
 
-    static void registerCommonTypes();
-    static void setCommonProperties(QQmlContext *context);
-    static QDir qmlDir();
-    static QUrl blankVui();
-    static QQmlEngine *sharedEngine();
+	static void        registerCommonTypes();
+	static void        setCommonProperties(QQmlContext* context);
+	static QDir        qmlDir();
+	static QUrl        blankVui();
+	static QQmlEngine* sharedEngine();
 };
 
 #endif // QMLUTILITIES_HPP

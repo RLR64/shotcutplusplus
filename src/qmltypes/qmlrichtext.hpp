@@ -42,102 +42,115 @@ QT_BEGIN_NAMESPACE
 class QTextDocument;
 QT_END_NAMESPACE
 
-class QmlRichText : public QObject
-{
-    Q_OBJECT
+class QmlRichText : public QObject {
+	Q_OBJECT
 
-    Q_ENUMS(HAlignment)
+	Q_ENUMS(HAlignment)
 
-    Q_PROPERTY(QQuickItem *target READ target WRITE setTarget NOTIFY targetChanged)
-    Q_PROPERTY(
-        int cursorPosition READ cursorPosition WRITE setCursorPosition NOTIFY cursorPositionChanged)
-    Q_PROPERTY(
-        int selectionStart READ selectionStart WRITE setSelectionStart NOTIFY selectionStartChanged)
-    Q_PROPERTY(int selectionEnd READ selectionEnd WRITE setSelectionEnd NOTIFY selectionEndChanged)
-    Q_PROPERTY(QColor textColor READ textColor WRITE setTextColor NOTIFY textColorChanged)
-    Q_PROPERTY(QString fontFamily READ fontFamily WRITE setFontFamily NOTIFY fontFamilyChanged)
-    Q_PROPERTY(Qt::Alignment alignment READ alignment WRITE setAlignment NOTIFY alignmentChanged)
-    Q_PROPERTY(bool bold READ bold WRITE setBold NOTIFY boldChanged)
-    Q_PROPERTY(bool italic READ italic WRITE setItalic NOTIFY italicChanged)
-    Q_PROPERTY(bool underline READ underline WRITE setUnderline NOTIFY underlineChanged)
-    Q_PROPERTY(bool strikeout READ strikeout WRITE setStrikeout NOTIFY strikeoutChanged)
-    Q_PROPERTY(int fontSize READ fontSize WRITE setFontSize NOTIFY fontSizeChanged)
-    Q_PROPERTY(QUrl fileUrl READ fileUrl WRITE setFileUrl NOTIFY fileUrlChanged)
-    Q_PROPERTY(QString text READ text WRITE setText NOTIFY textChanged)
-    Q_PROPERTY(QSizeF size READ size NOTIFY sizeChanged)
+	Q_PROPERTY(QQuickItem* target READ target WRITE setTarget NOTIFY targetChanged)
+	Q_PROPERTY(int cursorPosition READ cursorPosition WRITE setCursorPosition NOTIFY cursorPositionChanged)
+	Q_PROPERTY(int selectionStart READ selectionStart WRITE setSelectionStart NOTIFY selectionStartChanged)
+	Q_PROPERTY(int selectionEnd READ selectionEnd WRITE setSelectionEnd NOTIFY selectionEndChanged)
+	Q_PROPERTY(QColor textColor READ textColor WRITE setTextColor NOTIFY textColorChanged)
+	Q_PROPERTY(QString fontFamily READ fontFamily WRITE setFontFamily NOTIFY fontFamilyChanged)
+	Q_PROPERTY(Qt::Alignment alignment READ alignment WRITE setAlignment NOTIFY alignmentChanged)
+	Q_PROPERTY(bool bold READ bold WRITE setBold NOTIFY boldChanged)
+	Q_PROPERTY(bool italic READ italic WRITE setItalic NOTIFY italicChanged)
+	Q_PROPERTY(bool underline READ underline WRITE setUnderline NOTIFY underlineChanged)
+	Q_PROPERTY(bool strikeout READ strikeout WRITE setStrikeout NOTIFY strikeoutChanged)
+	Q_PROPERTY(int fontSize READ fontSize WRITE setFontSize NOTIFY fontSizeChanged)
+	Q_PROPERTY(QUrl fileUrl READ fileUrl WRITE setFileUrl NOTIFY fileUrlChanged)
+	Q_PROPERTY(QString text READ text WRITE setText NOTIFY textChanged)
+	Q_PROPERTY(QSizeF size READ size NOTIFY sizeChanged)
 
-public:
-    QmlRichText();
+  public:
+	QmlRichText();
 
-    QQuickItem *target() { return m_target; }
-    void setTarget(QQuickItem *target);
-    void setCursorPosition(int position);
-    void setSelectionStart(int position);
-    void setSelectionEnd(int position);
-    int cursorPosition() const { return m_cursorPosition; }
-    int selectionStart() const { return m_selectionStart; }
-    int selectionEnd() const { return m_selectionEnd; }
-    QString fontFamily() const;
-    QColor textColor() const;
-    Qt::Alignment alignment() const;
-    void setAlignment(Qt::Alignment a);
-    bool bold() const;
-    bool italic() const;
-    bool underline() const;
-    bool strikeout() const;
-    int fontSize() const;
-    QUrl fileUrl() const;
-    QString text() const;
-    QSizeF size() const { return m_doc->size(); }
+	QQuickItem* target() {
+		return m_target;
+	}
 
-public slots:
-    void setBold(bool arg);
-    void setItalic(bool arg);
-    void setUnderline(bool arg);
-    void setStrikeout(bool arg);
-    void setFontSize(int arg);
-    void setTextColor(const QColor &arg);
-    void setFontFamily(const QString &arg);
-    void setFileUrl(const QUrl &arg);
-    void setText(const QString &arg);
-    void saveAs(const QUrl &arg, QString fileType = QString());
-    void insertTable(int rows = 1, int columns = 2, int border = 0);
-    void indentLess();
-    void indentMore();
-    void pastePlain();
-    void reset();
+	void setTarget(QQuickItem* target);
+	void setCursorPosition(int position);
+	void setSelectionStart(int position);
+	void setSelectionEnd(int position);
 
-signals:
-    void targetChanged();
-    void cursorPositionChanged();
-    void selectionStartChanged();
-    void selectionEndChanged();
-    void fontFamilyChanged();
-    void textColorChanged();
-    void alignmentChanged();
-    void boldChanged();
-    void italicChanged();
-    void underlineChanged();
-    void fontSizeChanged();
-    void strikeoutChanged();
-    void fileUrlChanged();
-    void textChanged();
-    void error(QString message);
-    void sizeChanged();
+	int cursorPosition() const {
+		return m_cursorPosition;
+	}
 
-private:
-    QTextCursor textCursor() const;
-    void mergeFormatOnWordOrSelection(const QTextCharFormat &format);
-    QQuickItem *m_target;
-    QTextDocument *m_doc;
-    int m_cursorPosition;
-    int m_selectionStart;
-    int m_selectionEnd;
-    QFont m_font;
-    int m_fontSize;
-    QUrl m_fileUrl;
-    QString m_text;
-    QString m_documentTitle;
+	int selectionStart() const {
+		return m_selectionStart;
+	}
+
+	int selectionEnd() const {
+		return m_selectionEnd;
+	}
+
+	QString       fontFamily() const;
+	QColor        textColor() const;
+	Qt::Alignment alignment() const;
+	void          setAlignment(Qt::Alignment a);
+	bool          bold() const;
+	bool          italic() const;
+	bool          underline() const;
+	bool          strikeout() const;
+	int           fontSize() const;
+	QUrl          fileUrl() const;
+	QString       text() const;
+
+	QSizeF size() const {
+		return m_doc->size();
+	}
+
+  public slots:
+	void setBold(bool arg);
+	void setItalic(bool arg);
+	void setUnderline(bool arg);
+	void setStrikeout(bool arg);
+	void setFontSize(int arg);
+	void setTextColor(const QColor& arg);
+	void setFontFamily(const QString& arg);
+	void setFileUrl(const QUrl& arg);
+	void setText(const QString& arg);
+	void saveAs(const QUrl& arg, QString fileType = QString());
+	void insertTable(int rows = 1, int columns = 2, int border = 0);
+	void indentLess();
+	void indentMore();
+	void pastePlain();
+	void reset();
+
+  signals:
+	void targetChanged();
+	void cursorPositionChanged();
+	void selectionStartChanged();
+	void selectionEndChanged();
+	void fontFamilyChanged();
+	void textColorChanged();
+	void alignmentChanged();
+	void boldChanged();
+	void italicChanged();
+	void underlineChanged();
+	void fontSizeChanged();
+	void strikeoutChanged();
+	void fileUrlChanged();
+	void textChanged();
+	void error(QString message);
+	void sizeChanged();
+
+  private:
+	QTextCursor    textCursor() const;
+	void           mergeFormatOnWordOrSelection(const QTextCharFormat& format);
+	QQuickItem*    m_target;
+	QTextDocument* m_doc;
+	int            m_cursorPosition;
+	int            m_selectionStart;
+	int            m_selectionEnd;
+	QFont          m_font;
+	int            m_fontSize;
+	QUrl           m_fileUrl;
+	QString        m_text;
+	QString        m_documentTitle;
 };
 
 #endif // QMLRICHTEXT_HPP

@@ -16,38 +16,34 @@
  */
 
 #include "longuitask.hpp"
+
 #include "mainwindow.hpp"
 
-static QMutex g_mutex;
-static LongUiTask *g_instance = nullptr;
+static QMutex      g_mutex;
+static LongUiTask* g_instance = nullptr;
 
-LongUiTask::LongUiTask(QString title)
-    : QProgressDialog(title, QString(), 0, 0, &MAIN)
-{
-    setWindowTitle(title);
-    setModal(true);
-    setWindowModality(Qt::ApplicationModal);
-    setMinimumDuration(2000);
-    setRange(0, 0);
-    g_instance = this;
+LongUiTask::LongUiTask(QString title) : QProgressDialog(title, QString(), 0, 0, &MAIN) {
+	setWindowTitle(title);
+	setModal(true);
+	setWindowModality(Qt::ApplicationModal);
+	setMinimumDuration(2000);
+	setRange(0, 0);
+	g_instance = this;
 }
 
-LongUiTask::~LongUiTask()
-{
-    g_instance = nullptr;
+LongUiTask::~LongUiTask() {
+	g_instance = nullptr;
 }
 
-void LongUiTask::reportProgress(QString text, int value, int max)
-{
-    setLabelText(text);
-    setRange(0, max - 1);
-    setValue(value);
-    QCoreApplication::processEvents();
+void LongUiTask::reportProgress(QString text, int value, int max) {
+	setLabelText(text);
+	setRange(0, max - 1);
+	setValue(value);
+	QCoreApplication::processEvents();
 }
 
-void LongUiTask::cancel()
-{
-    if (g_instance) {
-        g_instance->QProgressDialog::cancel();
-    }
+void LongUiTask::cancel() {
+	if (g_instance) {
+		g_instance->QProgressDialog::cancel();
+	}
 }

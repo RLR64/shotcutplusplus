@@ -16,128 +16,117 @@
  */
 
 #include "qmlfile.hpp"
+
 #include "Logger.hpp"
 
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
 
-QmlFile::QmlFile(QObject *parent)
-    : QObject(parent)
-    , m_url()
-{}
-
-QString QmlFile::getUrl()
-{
-    auto s = QUrl::fromPercentEncoding(m_url.toString().toUtf8());
-#ifdef Q_OS_WIN
-    if (s.size() > 2 && s[1] == ':' && s[2] == '/') {
-        s[0] = s[0].toUpper();
-    }
-#endif
-    return s;
+QmlFile::QmlFile(QObject* parent) : QObject(parent), m_url() {
 }
 
-void QmlFile::setUrl(QString text)
-{
-    QUrl url = text.replace('\\', "/");
-    QString s = url.toString();
-    ;
-    QUrl::FormattingOptions options = QUrl::RemoveScheme | QUrl::RemovePassword
-                                      | QUrl::RemoveUserInfo | QUrl::RemovePort
-                                      | QUrl::RemoveAuthority | QUrl::RemoveQuery;
+QString QmlFile::getUrl() {
+	auto s = QUrl::fromPercentEncoding(m_url.toString().toUtf8());
+#ifdef Q_OS_WIN
+	if (s.size() > 2 && s[1] == ':' && s[2] == '/') {
+		s[0] = s[0].toUpper();
+	}
+#endif
+	return s;
+}
 
-    if (s.startsWith("file://") && s.size() > 9 && s[9] != ':') {
-        // QUrl removes the host from a UNC path when removing the scheme.
-        options ^= QUrl::RemoveScheme;
-        options ^= QUrl::RemoveAuthority;
-    }
+void QmlFile::setUrl(QString text) {
+	QUrl    url = text.replace('\\', "/");
+	QString s   = url.toString();
+	;
+	QUrl::FormattingOptions options = QUrl::RemoveScheme | QUrl::RemovePassword | QUrl::RemoveUserInfo |
+	                                  QUrl::RemovePort | QUrl::RemoveAuthority | QUrl::RemoveQuery;
+
+	if (s.startsWith("file://") && s.size() > 9 && s[9] != ':') {
+		// QUrl removes the host from a UNC path when removing the scheme.
+		options ^= QUrl::RemoveScheme;
+		options ^= QUrl::RemoveAuthority;
+	}
 
 #ifdef Q_OS_WIN
-    // If the scheme is a drive letter, do not remove it.
-    if (url.scheme().size() == 1) {
-        options ^= QUrl::RemoveScheme;
-    }
+	// If the scheme is a drive letter, do not remove it.
+	if (url.scheme().size() == 1) {
+		options ^= QUrl::RemoveScheme;
+	}
 #endif
 
-    s = url.adjusted(options).toString();
+	s = url.adjusted(options).toString();
 
 #ifdef Q_OS_WIN
-    // If there is a slash before a drive letter.
-    // On Windows, file URLs look like file:///C:/Users/....
-    // The scheme is removed but only "://" (not 3 slashes) between scheme and path.
-    if (s.size() > 2 && s[0] == '/' && s[2] == ':') {
-        // Remove the leading slash.
-        s = s.mid(1);
-    }
+	// If there is a slash before a drive letter.
+	// On Windows, file URLs look like file:///C:/Users/....
+	// The scheme is removed but only "://" (not 3 slashes) between scheme and path.
+	if (s.size() > 2 && s[0] == '/' && s[2] == ':') {
+		// Remove the leading slash.
+		s = s.mid(1);
+	}
 #endif
 
-    if (s.startsWith("file://")) { // UNC path
-        // Remove the scheme.
-        s = s.mid(5);
-    }
+	if (s.startsWith("file://")) { // UNC path
+		// Remove the scheme.
+		s = s.mid(5);
+	}
 
-    if (s.startsWith("///")) {
-        // Linux leaves 3 leading slashes sometimes
-        s = s.mid(2);
-    }
+	if (s.startsWith("///")) {
+		// Linux leaves 3 leading slashes sometimes
+		s = s.mid(2);
+	}
 
-    QUrl adj = s;
+	QUrl adj = s;
 
-    if (m_url != adj) {
-        m_url = adj;
-        emit urlChanged(m_url);
-    }
+	if (m_url != adj) {
+		m_url = adj;
+		emit urlChanged(m_url);
+	}
 }
 
-QString QmlFile::getFileName()
-{
-    return QFileInfo(getUrl()).fileName();
+QString QmlFile::getFileName() {
+	return QFileInfo(getUrl()).fileName();
 }
 
-QString QmlFile::getPath()
-{
-    return QDir::toNativeSeparators(QFileInfo(getUrl()).path());
+QString QmlFile::getPath() {
+	return QDir::toNativeSeparators(QFileInfo(getUrl()).path());
 }
 
-QString QmlFile::getFilePath()
-{
-    return QDir::toNativeSeparators(getUrl());
+QString QmlFile::getFilePath() {
+	return QDir::toNativeSeparators(getUrl());
 }
 
-void QmlFile::copyFromFile(QString source)
-{
-    if (QFile::exists(m_url.toString())) {
-        QFile::remove(m_url.toString());
-    }
+void QmlFile::copyFromFile(QString source) {
+	if (QFile::exists(m_url.toString())) {
+		QFile::remove(m_url.toString());
+	}
 
-    QFile inFile(source);
-    QFile outfile(m_url.toString());
-    if (!inFile.open(QFile::ReadOnly)) {
-        LOG_ERROR() << "Failed to open source file for reading" << source;
-        return;
-    }
+	QFile inFile(source);
+	QFile outfile(m_url.toString());
+	if (!inFile.open(QFile::ReadOnly)) {
+		LOG_ERROR() << "Failed to open source file for reading" << source;
+		return;
+	}
 
-    if (!outfile.open(QFile::WriteOnly)) {
-        LOG_ERROR() << "Failed to open destination file for writing" << m_url.toString();
-        return;
-    }
-    outfile.write(inFile.readAll());
-    outfile.close();
+	if (!outfile.open(QFile::WriteOnly)) {
+		LOG_ERROR() << "Failed to open destination file for writing" << m_url.toString();
+		return;
+	}
+	outfile.write(inFile.readAll());
+	outfile.close();
 }
 
-bool QmlFile::exists()
-{
-    return QFileInfo(m_url.toString()).exists();
+bool QmlFile::exists() {
+	return QFileInfo(m_url.toString()).exists();
 }
 
-QString QmlFile::suffix()
-{
-    return QFileInfo(m_url.toString()).suffix();
+QString QmlFile::suffix() {
+	return QFileInfo(m_url.toString()).suffix();
 }
 
-void QmlFile::watch()
-{
-    m_watcher.reset(new QFileSystemWatcher({getUrl()}));
-    connect(m_watcher.get(), &QFileSystemWatcher::fileChanged, this, &QmlFile::fileChanged);
+void QmlFile::watch() {
+	m_watcher.reset(new QFileSystemWatcher({getUrl()}));
+	connect(m_watcher.get(), &QFileSystemWatcher::fileChanged, this, &QmlFile::fileChanged);
 }

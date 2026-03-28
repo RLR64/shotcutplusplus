@@ -17,27 +17,23 @@
  */
 
 #include "pulseaudiowidget.h"
-#include "ui_pulseaudiowidget.h"
+
 #include "shotcut_mlt_properties.hpp"
+#include "ui_pulseaudiowidget.h"
 #include "util.hpp"
 
-PulseAudioWidget::PulseAudioWidget(QWidget *parent)
-    : QWidget(parent)
-    , ui(new Ui::PulseAudioWidget)
-{
-    ui->setupUi(this);
-    Util::setColorsToHighlight(ui->label);
+PulseAudioWidget::PulseAudioWidget(QWidget* parent) : QWidget(parent), ui(new Ui::PulseAudioWidget) {
+	ui->setupUi(this);
+	Util::setColorsToHighlight(ui->label);
 }
 
-PulseAudioWidget::~PulseAudioWidget()
-{
-    delete ui;
+PulseAudioWidget::~PulseAudioWidget() {
+	delete ui;
 }
 
-Mlt::Producer *PulseAudioWidget::newProducer(Mlt::Profile &profile)
-{
-    Mlt::Producer *p = new Mlt::Producer(profile, "pulse:default?name=Shotcut");
-    p->set(kBackgroundCaptureProperty, 1);
-    p->set(kShotcutCaptionProperty, "PulseAudio");
-    return p;
+Mlt::Producer* PulseAudioWidget::newProducer(Mlt::Profile& profile) {
+	Mlt::Producer* p = new Mlt::Producer(profile, "pulse:default?name=Shotcut");
+	p->set(kBackgroundCaptureProperty, 1);
+	p->set(kShotcutCaptionProperty, "PulseAudio");
+	return p;
 }

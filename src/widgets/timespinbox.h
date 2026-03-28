@@ -23,40 +23,38 @@
 
 class QRegularExpressionValidator;
 
-class TimeSpinBox : public QSpinBox
-{
-    Q_OBJECT
+class TimeSpinBox : public QSpinBox {
+	Q_OBJECT
 
-public:
-    explicit TimeSpinBox(QWidget *parent = 0);
+  public:
+	explicit TimeSpinBox(QWidget* parent = 0);
 
-protected:
-    QValidator::State validate(QString &input, int &pos) const;
-    int valueFromText(const QString &text) const;
-    QString textFromValue(int val) const;
-    void keyPressEvent(QKeyEvent *event);
+  protected:
+	QValidator::State validate(QString& input, int& pos) const;
+	int               valueFromText(const QString& text) const;
+	QString           textFromValue(int val) const;
+	void              keyPressEvent(QKeyEvent* event);
 
-signals:
-    void accepted();
+  signals:
+	void accepted();
 
-private:
-    QRegularExpressionValidator *m_validator;
+  private:
+	QRegularExpressionValidator* m_validator;
 };
 
-class TimeSpinBoxLineEdit : public QLineEdit
-{
-    Q_OBJECT
+class TimeSpinBoxLineEdit : public QLineEdit {
+	Q_OBJECT
 
-public:
-    explicit TimeSpinBoxLineEdit(QWidget *parent = 0);
+  public:
+	explicit TimeSpinBoxLineEdit(QWidget* parent = 0);
 
-protected:
-    void focusInEvent(QFocusEvent *event);
-    void focusOutEvent(QFocusEvent *event);
-    void mousePressEvent(QMouseEvent *event);
+  protected:
+	void focusInEvent(QFocusEvent* event);
+	void focusOutEvent(QFocusEvent* event);
+	void mousePressEvent(QMouseEvent* event);
 
-private:
-    bool m_selectOnMousePress;
+  private:
+	bool m_selectOnMousePress;
 };
 
 #endif // TIMESPINBOX_H

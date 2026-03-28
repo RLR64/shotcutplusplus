@@ -28,60 +28,57 @@
 #include <QTimer>
 #include <QWebSocket>
 
-class HtmlGenerator : public QObject
-{
-    Q_OBJECT
-public:
-    explicit HtmlGenerator(QObject *parent = nullptr);
-    ~HtmlGenerator();
+class HtmlGenerator : public QObject {
+	Q_OBJECT
+  public:
+	explicit HtmlGenerator(QObject* parent = nullptr);
+	~HtmlGenerator();
 
-    void setAnimationParameters(double fps, int duration);
-    void launchBrowser(const QString &executablePath,
-                       const QString &url,
-                       const QSize &viewport,
-                       const QString &outputPath);
+	void setAnimationParameters(double fps, int duration);
+	void launchBrowser(const QString& executablePath, const QString& url, const QSize& viewport,
+	                   const QString& outputPath);
 
-signals:
-    void progressUpdate(float);
-    void imageReady(QString outputPath);
+  signals:
+	void progressUpdate(float);
+	void imageReady(QString outputPath);
 
-private slots:
-    void connectToBrowser();
-    void createNewPage();
-    void onWebSocketConnected();
-    void onMessageReceived(const QString &message);
-    void onWebSocketDisconnected();
-    void onChromeProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);
-    void onChromeProcessError(QProcess::ProcessError error);
-    void startAnimationCapture();
-    void captureAnimationFrame();
-    void handleAnimationFrame(const QJsonObject &result);
-    void completeAnimationCapture();
-    void takeScreenshot();
-    void handleScreenshotResult(const QJsonObject &result);
-    int sendCommand(const QString &method, const QJsonObject &params = QJsonObject());
+  private slots:
+	void connectToBrowser();
+	void createNewPage();
+	void onWebSocketConnected();
+	void onMessageReceived(const QString& message);
+	void onWebSocketDisconnected();
+	void onChromeProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);
+	void onChromeProcessError(QProcess::ProcessError error);
+	void startAnimationCapture();
+	void captureAnimationFrame();
+	void handleAnimationFrame(const QJsonObject& result);
+	void completeAnimationCapture();
+	void takeScreenshot();
+	void handleScreenshotResult(const QJsonObject& result);
+	int  sendCommand(const QString& method, const QJsonObject& params = QJsonObject());
 
-private:
-    QWebSocket *m_webSocket;
-    QNetworkAccessManager *m_networkManager;
-    int m_messageId;
-    QProcess *m_chromeProcess;
-    QString m_url;
-    QSize m_viewport;
-    QString m_outputPath;
-    bool m_pendingScreenshot = false;
-    int m_screenshotMessageId = 0;
-    bool m_screenshotCompleted = false;
-    QTemporaryDir m_tempDir;
+  private:
+	QWebSocket*            m_webSocket;
+	QNetworkAccessManager* m_networkManager;
+	int                    m_messageId;
+	QProcess*              m_chromeProcess;
+	QString                m_url;
+	QSize                  m_viewport;
+	QString                m_outputPath;
+	bool                   m_pendingScreenshot   = false;
+	int                    m_screenshotMessageId = 0;
+	bool                   m_screenshotCompleted = false;
+	QTemporaryDir          m_tempDir;
 
-    // Animation recording members
-    bool m_animationMode = false;
-    double m_fps = 0.0;
-    int m_duration = 0;
-    int m_currentFrame = 0;
-    int m_totalFrames = 0;
-    QTimer *m_animationTimer = nullptr;
-    QElapsedTimer m_animationElapsed;
+	// Animation recording members
+	bool          m_animationMode  = false;
+	double        m_fps            = 0.0;
+	int           m_duration       = 0;
+	int           m_currentFrame   = 0;
+	int           m_totalFrames    = 0;
+	QTimer*       m_animationTimer = nullptr;
+	QElapsedTimer m_animationElapsed;
 };
 
 #endif // HTMLGENERATOR_HPP

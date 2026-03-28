@@ -16,39 +16,33 @@
  */
 
 #include "qmlprofile.hpp"
+
 #include "mltcontroller.hpp"
 
-QmlProfile &QmlProfile::singleton()
-{
-    static QmlProfile instance;
-    return instance;
+QmlProfile& QmlProfile::singleton() {
+	static QmlProfile instance;
+	return instance;
 }
 
-QmlProfile::QmlProfile()
-    : QObject()
-{}
-
-int QmlProfile::width() const
-{
-    return MLT.profile().width();
+QmlProfile::QmlProfile() : QObject() {
 }
 
-int QmlProfile::height() const
-{
-    return MLT.profile().height();
+int QmlProfile::width() const {
+	return MLT.profile().width();
 }
 
-double QmlProfile::aspectRatio() const
-{
-    return MLT.profile().dar();
+int QmlProfile::height() const {
+	return MLT.profile().height();
 }
 
-double QmlProfile::fps() const
-{
-    return MLT.profile().fps();
+double QmlProfile::aspectRatio() const {
+	return MLT.profile().dar();
 }
 
-double QmlProfile::sar() const
-{
-    return MLT.profile().sar();
+double QmlProfile::fps() const {
+	return MLT.profile().fps();
+}
+
+double QmlProfile::sar() const {
+	return MLT.profile().sar();
 }

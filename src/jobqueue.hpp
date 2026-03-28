@@ -25,42 +25,45 @@
 
 #define JOBS JobQueue::singleton()
 
-class JobQueue : public QStandardItemModel
-{
-    Q_OBJECT
-protected:
-    JobQueue(QObject *parent);
-    void startNextJob();
+class JobQueue : public QStandardItemModel {
+	Q_OBJECT
+  protected:
+	JobQueue(QObject* parent);
+	void startNextJob();
 
-public:
-    enum ColumnRole { COLUMN_ICON, COLUMN_OUTPUT, COLUMN_STATUS, COLUMN_COUNT };
+  public:
+	enum ColumnRole { COLUMN_ICON, COLUMN_OUTPUT, COLUMN_STATUS, COLUMN_COUNT };
 
-    static JobQueue &singleton(QObject *parent = 0);
-    void cleanup();
-    AbstractJob *add(AbstractJob *job);
-    AbstractJob *jobFromIndex(const QModelIndex &index) const;
-    void pause();
-    void pauseCurrent();
-    void resume();
-    void resumeCurrent();
-    bool isPaused() const;
-    bool hasIncomplete() const;
-    void remove(const QModelIndex &index);
-    void removeFinished();
-    QList<AbstractJob *> jobs() const { return m_jobs; }
-    bool targetIsInProgress(const QString &target);
+	static JobQueue& singleton(QObject* parent = 0);
+	void             cleanup();
+	AbstractJob*     add(AbstractJob* job);
+	AbstractJob*     jobFromIndex(const QModelIndex& index) const;
+	void             pause();
+	void             pauseCurrent();
+	void             resume();
+	void             resumeCurrent();
+	bool             isPaused() const;
+	bool             hasIncomplete() const;
+	void             remove(const QModelIndex& index);
+	void             removeFinished();
 
-signals:
-    void jobAdded();
+	QList<AbstractJob*> jobs() const {
+		return m_jobs;
+	}
 
-public slots:
-    void onProgressUpdated(QStandardItem *standardItem, int percent);
-    void onFinished(AbstractJob *job, bool isSuccess, QString time);
+	bool targetIsInProgress(const QString& target);
 
-private:
-    QList<AbstractJob *> m_jobs;
-    QMutex m_mutex; // protects m_jobs
-    bool m_paused;
+  signals:
+	void jobAdded();
+
+  public slots:
+	void onProgressUpdated(QStandardItem* standardItem, int percent);
+	void onFinished(AbstractJob* job, bool isSuccess, QString time);
+
+  private:
+	QList<AbstractJob*> m_jobs;
+	QMutex              m_mutex; // protects m_jobs
+	bool                m_paused;
 };
 
 #endif // JOBQUEUE_HPP

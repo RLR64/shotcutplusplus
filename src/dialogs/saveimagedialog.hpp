@@ -22,21 +22,23 @@
 #include <QImage>
 #include <QString>
 
-class SaveImageDialog : public QFileDialog
-{
-    Q_OBJECT
+class SaveImageDialog : public QFileDialog {
+	Q_OBJECT
 
-public:
-    explicit SaveImageDialog(QWidget *parent, const QString &caption, QImage &image);
-    QString saveFile() { return m_saveFile; }
+  public:
+	explicit SaveImageDialog(QWidget* parent, const QString& caption, QImage& image);
 
-private slots:
-    void onFilterSelected(const QString &filter);
-    void onFileSelected(const QString &file);
+	QString saveFile() {
+		return m_saveFile;
+	}
 
-private:
-    QImage &m_image;
-    QString m_saveFile;
+  private slots:
+	void onFilterSelected(const QString& filter);
+	void onFileSelected(const QString& file);
+
+  private:
+	QImage& m_image;
+	QString m_saveFile;
 };
 
 #endif // SAVEIMAGEDIALOG_HPP

@@ -27,27 +27,26 @@ namespace Ui {
 class AvfoundationProducerWidget;
 }
 
-class AvfoundationProducerWidget : public QWidget, public AbstractProducerWidget
-{
-    Q_OBJECT
+class AvfoundationProducerWidget : public QWidget, public AbstractProducerWidget {
+	Q_OBJECT
 
-public:
-    explicit AvfoundationProducerWidget(QWidget *parent = 0);
-    ~AvfoundationProducerWidget();
+  public:
+	explicit AvfoundationProducerWidget(QWidget* parent = 0);
+	~AvfoundationProducerWidget();
 
-    // AbstractProducerWidget overrides
-    Mlt::Producer *newProducer(Mlt::Profile &profile);
-    void setProducer(Mlt::Producer *producer);
+	// AbstractProducerWidget overrides
+	Mlt::Producer* newProducer(Mlt::Profile& profile);
+	void           setProducer(Mlt::Producer* producer);
 
-signals:
-    void producerChanged(Mlt::Producer *);
+  signals:
+	void producerChanged(Mlt::Producer*);
 
-private slots:
-    void on_videoCombo_activated(int index);
-    void on_audioCombo_activated(int index);
+  private slots:
+	void on_videoCombo_activated(int index);
+	void on_audioCombo_activated(int index);
 
-private:
-    Ui::AvfoundationProducerWidget *ui;
+  private:
+	Ui::AvfoundationProducerWidget* ui;
 };
 
 #endif // AVFOUNDATIONPRODUCERWIDGET_H

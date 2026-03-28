@@ -19,28 +19,25 @@
 
 #include <QDropEvent>
 
-PlaylistListView::PlaylistListView(QWidget *parent)
-    : QListView(parent)
-{}
-
-void PlaylistListView::dropEvent(QDropEvent *event)
-{
-    QModelIndex index = indexAt(event->position().toPoint());
-    if (event->dropAction() == Qt::MoveAction && index.row() == -1) {
-        event->acceptProposedAction();
-        emit movedToEnd();
-    } else {
-        QListView::dropEvent(event);
-    }
+PlaylistListView::PlaylistListView(QWidget* parent) : QListView(parent) {
 }
 
-void PlaylistListView::keyPressEvent(QKeyEvent *event)
-{
-    // Ignore select all
-    if (event->key() == Qt::Key_A && event->modifiers() == Qt::ControlModifier) {
-        event->ignore();
-        return;
-    }
-    QListView::keyPressEvent(event);
-    event->ignore();
+void PlaylistListView::dropEvent(QDropEvent* event) {
+	QModelIndex index = indexAt(event->position().toPoint());
+	if (event->dropAction() == Qt::MoveAction && index.row() == -1) {
+		event->acceptProposedAction();
+		emit movedToEnd();
+	} else {
+		QListView::dropEvent(event);
+	}
+}
+
+void PlaylistListView::keyPressEvent(QKeyEvent* event) {
+	// Ignore select all
+	if (event->key() == Qt::Key_A && event->modifiers() == Qt::ControlModifier) {
+		event->ignore();
+		return;
+	}
+	QListView::keyPressEvent(event);
+	event->ignore();
 }

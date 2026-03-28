@@ -26,25 +26,24 @@ namespace Ui {
 class UnlinkedFilesDialog;
 }
 
-class UnlinkedFilesDialog : public QDialog
-{
-    Q_OBJECT
+class UnlinkedFilesDialog : public QDialog {
+	Q_OBJECT
 
-public:
-    explicit UnlinkedFilesDialog(QWidget *parent = 0);
-    ~UnlinkedFilesDialog();
+  public:
+	explicit UnlinkedFilesDialog(QWidget* parent = 0);
+	~UnlinkedFilesDialog();
 
-    void setModel(QStandardItemModel &model);
+	void setModel(QStandardItemModel& model);
 
-private slots:
-    void on_tableView_doubleClicked(const QModelIndex &index);
+  private slots:
+	void on_tableView_doubleClicked(const QModelIndex& index);
 
-    void on_searchFolderButton_clicked();
+	void on_searchFolderButton_clicked();
 
-private:
-    bool lookInDir(const QDir &dir, bool recurse = false);
+  private:
+	bool lookInDir(const QDir& dir, bool recurse = false);
 
-    Ui::UnlinkedFilesDialog *ui;
+	Ui::UnlinkedFilesDialog* ui;
 };
 
 #endif // UNLINKEDFILESDIALOG_HPP

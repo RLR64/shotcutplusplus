@@ -16,63 +16,53 @@
  */
 
 #include "systemsyncdialog.hpp"
-#include "ui_systemsyncdialog.h"
+
 #include "mltcontroller.hpp"
 #include "settings.hpp"
+#include "ui_systemsyncdialog.h"
 
-SystemSyncDialog::SystemSyncDialog(QWidget *parent)
-    : QDialog(parent)
-    , ui(new Ui::SystemSyncDialog)
-    , m_oldValue(Settings.playerVideoDelayMs())
-{
-    ui->setupUi(this);
-    ui->syncSlider->setValue(Settings.playerVideoDelayMs());
-    ui->applyButton->hide();
+SystemSyncDialog::SystemSyncDialog(QWidget* parent)
+    : QDialog(parent), ui(new Ui::SystemSyncDialog), m_oldValue(Settings.playerVideoDelayMs()) {
+	ui->setupUi(this);
+	ui->syncSlider->setValue(Settings.playerVideoDelayMs());
+	ui->applyButton->hide();
 }
 
-SystemSyncDialog::~SystemSyncDialog()
-{
-    delete ui;
+SystemSyncDialog::~SystemSyncDialog() {
+	delete ui;
 }
 
-void SystemSyncDialog::on_syncSlider_sliderReleased()
-{
-    setDelay(ui->syncSlider->value());
+void SystemSyncDialog::on_syncSlider_sliderReleased() {
+	setDelay(ui->syncSlider->value());
 }
 
-void SystemSyncDialog::on_syncSpinBox_editingFinished()
-{
-    ui->syncSlider->setValue(ui->syncSpinBox->value());
-    setDelay(ui->syncSpinBox->value());
+void SystemSyncDialog::on_syncSpinBox_editingFinished() {
+	ui->syncSlider->setValue(ui->syncSpinBox->value());
+	setDelay(ui->syncSpinBox->value());
 }
 
-void SystemSyncDialog::on_buttonBox_rejected()
-{
-    setDelay(m_oldValue);
+void SystemSyncDialog::on_buttonBox_rejected() {
+	setDelay(m_oldValue);
 }
 
-void SystemSyncDialog::on_undoButton_clicked()
-{
-    ui->syncSlider->setValue(0);
-    setDelay(0);
+void SystemSyncDialog::on_undoButton_clicked() {
+	ui->syncSlider->setValue(0);
+	setDelay(0);
 }
 
-void SystemSyncDialog::on_syncSpinBox_valueChanged(int arg1)
-{
-    Q_UNUSED(arg1)
-    ui->applyButton->show();
+void SystemSyncDialog::on_syncSpinBox_valueChanged(int arg1) {
+	Q_UNUSED(arg1)
+	ui->applyButton->show();
 }
 
-void SystemSyncDialog::on_applyButton_clicked()
-{
-    setDelay(ui->syncSpinBox->value());
+void SystemSyncDialog::on_applyButton_clicked() {
+	setDelay(ui->syncSpinBox->value());
 }
 
-void SystemSyncDialog::setDelay(int delay)
-{
-    if (delay != Settings.playerVideoDelayMs()) {
-        Settings.setPlayerVideoDelayMs(delay);
-        MLT.consumerChanged();
-    }
-    ui->applyButton->hide();
+void SystemSyncDialog::setDelay(int delay) {
+	if (delay != Settings.playerVideoDelayMs()) {
+		Settings.setPlayerVideoDelayMs(delay);
+		MLT.consumerChanged();
+	}
+	ui->applyButton->hide();
 }

@@ -17,35 +17,32 @@
 
 #include "windowstools.h"
 
-WindowsTaskbarButton::WindowsTaskbarButton() {}
-
-WindowsTaskbarButton &WindowsTaskbarButton::getInstance()
-{
-    static WindowsTaskbarButton *instance = 0;
-    if (!instance)
-        instance = new WindowsTaskbarButton();
-    return *instance;
+WindowsTaskbarButton::WindowsTaskbarButton() {
 }
 
-void WindowsTaskbarButton::setParentWindow(QWidget *parent)
-{
-    m_taskbarButton = new QWinTaskbarButton(parent);
-    m_taskbarButton->setWindow(parent->windowHandle());
-    m_taskbarProgress = m_taskbarButton->progress();
+WindowsTaskbarButton& WindowsTaskbarButton::getInstance() {
+	static WindowsTaskbarButton* instance = 0;
+	if (!instance)
+		instance = new WindowsTaskbarButton();
+	return *instance;
 }
 
-void WindowsTaskbarButton::setProgress(int progress)
-{
-    if (m_taskbarProgress != NULL) {
-        m_taskbarProgress->setVisible(true);
-        m_taskbarProgress->setValue(progress);
-    }
+void WindowsTaskbarButton::setParentWindow(QWidget* parent) {
+	m_taskbarButton = new QWinTaskbarButton(parent);
+	m_taskbarButton->setWindow(parent->windowHandle());
+	m_taskbarProgress = m_taskbarButton->progress();
 }
 
-void WindowsTaskbarButton::resetProgress()
-{
-    if (m_taskbarProgress != NULL) {
-        m_taskbarProgress->setVisible(false);
-        m_taskbarProgress->reset();
-    }
+void WindowsTaskbarButton::setProgress(int progress) {
+	if (m_taskbarProgress != NULL) {
+		m_taskbarProgress->setVisible(true);
+		m_taskbarProgress->setValue(progress);
+	}
+}
+
+void WindowsTaskbarButton::resetProgress() {
+	if (m_taskbarProgress != NULL) {
+		m_taskbarProgress->setVisible(false);
+		m_taskbarProgress->reset();
+	}
 }

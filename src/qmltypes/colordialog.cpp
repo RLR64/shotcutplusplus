@@ -16,74 +16,65 @@
  */
 
 #include "colordialog.hpp"
+
 #include "settings.hpp"
 #include "util.hpp"
 
 #include <QColorDialog>
 
-ColorDialog::ColorDialog(QObject *parent)
-    : QObject{parent}
-{}
-
-QColor ColorDialog::getColor(const QColor &initial,
-                             QWidget *parent,
-                             const QString &title,
-                             bool showAlpha)
-{
-    auto flags = Util::getColorDialogOptions();
-    if (showAlpha) {
-        flags |= QColorDialog::ShowAlphaChannel;
-    }
-
-    auto color = initial;
-    auto newColor = QColorDialog::getColor(color, parent, title, flags);
-
-    // Save custom colors to settings after dialog closes
-    Settings.saveCustomColors();
-
-    if (newColor.isValid() && showAlpha) {
-        auto rgb = newColor;
-        auto transparent = QColor(0, 0, 0, 0);
-        rgb.setAlpha(color.alpha());
-        if (newColor.alpha() == 0
-            && (rgb != color || (newColor == transparent && color == transparent))) {
-            newColor.setAlpha(255);
-        }
-    }
-
-    return newColor;
+ColorDialog::ColorDialog(QObject* parent) : QObject{parent} {
 }
 
-void ColorDialog::open()
-{
-    auto newColor = getColor(m_color, nullptr, m_title, m_showAlpha);
+QColor ColorDialog::getColor(const QColor& initial, QWidget* parent, const QString& title, bool showAlpha) {
+	auto flags = Util::getColorDialogOptions();
+	if (showAlpha) {
+		flags |= QColorDialog::ShowAlphaChannel;
+	}
 
-    if (newColor.isValid()) {
-        setSelectedColor(newColor);
-        emit accepted();
-    }
+	auto color    = initial;
+	auto newColor = QColorDialog::getColor(color, parent, title, flags);
+
+	// Save custom colors to settings after dialog closes
+	Settings.saveCustomColors();
+
+	if (newColor.isValid() && showAlpha) {
+		auto rgb         = newColor;
+		auto transparent = QColor(0, 0, 0, 0);
+		rgb.setAlpha(color.alpha());
+		if (newColor.alpha() == 0 && (rgb != color || (newColor == transparent && color == transparent))) {
+			newColor.setAlpha(255);
+		}
+	}
+
+	return newColor;
 }
 
-void ColorDialog::setSelectedColor(const QColor &color)
-{
-    if (color != m_color) {
-        m_color = color;
-        emit selectedColorChanged(color);
-    }
+void ColorDialog::open() {
+	auto newColor = getColor(m_color, nullptr, m_title, m_showAlpha);
+
+	if (newColor.isValid()) {
+		setSelectedColor(newColor);
+		emit accepted();
+	}
 }
 
-void ColorDialog::setTitle(const QString &title)
-{
-    if (title != m_title) {
-        m_title = title;
-        emit titleChanged();
-    }
+void ColorDialog::setSelectedColor(const QColor& color) {
+	if (color != m_color) {
+		m_color = color;
+		emit selectedColorChanged(color);
+	}
 }
 
-void ColorDialog::setShowAlpha(bool show)
-{
-    if (show != m_showAlpha) {
-        m_showAlpha = show;
-        emit showAlphaChanged();
-    }
+void ColorDialog::setTitle(const QString& title) {
+	if (title != m_title) {
+		m_title = title;
+		emit titleChanged();
+	}
+}
+
+void ColorDialog::setShowAlpha(bool show) {
+	if (show != m_showAlpha) {
+		m_showAlpha = show;
+		emit showAlphaChanged();
+	}
 }

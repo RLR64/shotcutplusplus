@@ -19,48 +19,46 @@
 #ifndef PLASMAWIDGET_H
 #define PLASMAWIDGET_H
 
-#include <abstractproducerwidget.hpp>
-
 #include <QWidget>
+#include <abstractproducerwidget.hpp>
 
 namespace Ui {
 class PlasmaWidget;
 }
 
-class PlasmaWidget : public QWidget, public AbstractProducerWidget
-{
-    Q_OBJECT
+class PlasmaWidget : public QWidget, public AbstractProducerWidget {
+	Q_OBJECT
 
-public:
-    explicit PlasmaWidget(QWidget *parent = 0);
-    ~PlasmaWidget();
+  public:
+	explicit PlasmaWidget(QWidget* parent = 0);
+	~PlasmaWidget();
 
-    // AbstractProducerWidget overrides
-    Mlt::Producer *newProducer(Mlt::Profile &);
-    Mlt::Properties getPreset() const;
-    void loadPreset(Mlt::Properties &);
+	// AbstractProducerWidget overrides
+	Mlt::Producer*  newProducer(Mlt::Profile&);
+	Mlt::Properties getPreset() const;
+	void            loadPreset(Mlt::Properties&);
 
-signals:
-    void producerChanged(Mlt::Producer *);
+  signals:
+	void producerChanged(Mlt::Producer*);
 
-private slots:
-    void on_speed1Dial_valueChanged(int value);
-    void on_speed1Spinner_valueChanged(double arg1);
-    void on_speed2Dial_valueChanged(int value);
-    void on_speed2Spinner_valueChanged(double arg1);
-    void on_speed3Dial_valueChanged(int value);
-    void on_speed3Spinner_valueChanged(double arg1);
-    void on_speed4Dial_valueChanged(int value);
-    void on_speed4Spinner_valueChanged(double arg1);
-    void on_move1Dial_valueChanged(int value);
-    void on_move1Spinner_valueChanged(double arg1);
-    void on_move2Dial_valueChanged(int value);
-    void on_move2Spinner_valueChanged(double arg1);
-    void on_preset_selected(void *p);
-    void on_preset_saveClicked();
+  private slots:
+	void on_speed1Dial_valueChanged(int value);
+	void on_speed1Spinner_valueChanged(double arg1);
+	void on_speed2Dial_valueChanged(int value);
+	void on_speed2Spinner_valueChanged(double arg1);
+	void on_speed3Dial_valueChanged(int value);
+	void on_speed3Spinner_valueChanged(double arg1);
+	void on_speed4Dial_valueChanged(int value);
+	void on_speed4Spinner_valueChanged(double arg1);
+	void on_move1Dial_valueChanged(int value);
+	void on_move1Spinner_valueChanged(double arg1);
+	void on_move2Dial_valueChanged(int value);
+	void on_move2Spinner_valueChanged(double arg1);
+	void on_preset_selected(void* p);
+	void on_preset_saveClicked();
 
-private:
-    Ui::PlasmaWidget *ui;
+  private:
+	Ui::PlasmaWidget* ui;
 };
 
 #endif // PLASMAWIDGET_H

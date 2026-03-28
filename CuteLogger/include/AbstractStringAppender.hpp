@@ -15,32 +15,30 @@
 #define ABSTRACTSTRINGAPPENDER_HPP
 
 // Local
-#include "CuteLogger_global.hpp"
 #include "AbstractAppender.hpp"
+#include "CuteLogger_global.hpp"
 
 // Qt
 #include <QReadWriteLock>
 
-
-class CUTELOGGERSHARED_EXPORT AbstractStringAppender : public AbstractAppender
-{
+class CUTELOGGERSHARED_EXPORT AbstractStringAppender : public AbstractAppender {
   public:
-    AbstractStringAppender();
+	AbstractStringAppender();
 
-    virtual QString format() const;
-    void setFormat(const QString&);
+	virtual QString format() const;
+	void            setFormat(const QString&);
 
-    static QString stripFunctionName(const char*);
+	static QString stripFunctionName(const char*);
 
   protected:
-    QString formattedString(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file, int line,
-                            const char* function, const QString& category, const QString& message) const;
+	QString formattedString(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file, int line,
+	                        const char* function, const QString& category, const QString& message) const;
 
   private:
-    static QByteArray qCleanupFuncinfo(const char*);
+	static QByteArray qCleanupFuncinfo(const char*);
 
-    QString m_format;
-    mutable QReadWriteLock m_formatLock;
+	QString                m_format;
+	mutable QReadWriteLock m_formatLock;
 };
 
 #endif // ABSTRACTSTRINGAPPENDER_HPP

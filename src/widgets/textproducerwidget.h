@@ -26,30 +26,29 @@ namespace Ui {
 class TextProducerWidget;
 }
 
-class TextProducerWidget : public QWidget, public AbstractProducerWidget
-{
-    Q_OBJECT
+class TextProducerWidget : public QWidget, public AbstractProducerWidget {
+	Q_OBJECT
 
-public:
-    explicit TextProducerWidget(QWidget *parent = 0);
-    ~TextProducerWidget();
+  public:
+	explicit TextProducerWidget(QWidget* parent = 0);
+	~TextProducerWidget();
 
-    // AbstractProducerWidget overrides
-    Mlt::Producer *newProducer(Mlt::Profile &);
-    Mlt::Properties getPreset() const;
-    void loadPreset(Mlt::Properties &);
+	// AbstractProducerWidget overrides
+	Mlt::Producer*  newProducer(Mlt::Profile&);
+	Mlt::Properties getPreset() const;
+	void            loadPreset(Mlt::Properties&);
 
-signals:
-    void producerChanged(Mlt::Producer *);
+  signals:
+	void producerChanged(Mlt::Producer*);
 
-private slots:
-    void on_colorButton_clicked();
-    void on_preset_selected(void *p);
-    void on_preset_saveClicked();
+  private slots:
+	void on_colorButton_clicked();
+	void on_preset_selected(void* p);
+	void on_preset_saveClicked();
 
-private:
-    Mlt::Filter *createFilter(Mlt::Profile &, Mlt::Producer *);
-    Ui::TextProducerWidget *ui;
+  private:
+	Mlt::Filter*            createFilter(Mlt::Profile&, Mlt::Producer*);
+	Ui::TextProducerWidget* ui;
 };
 
 #endif // TEXTPRODUCERWIDGET_H

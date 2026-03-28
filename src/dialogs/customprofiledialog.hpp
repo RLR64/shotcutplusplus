@@ -24,33 +24,32 @@ namespace Ui {
 class CustomProfileDialog;
 }
 
-class CustomProfileDialog : public QDialog
-{
-    Q_OBJECT
+class CustomProfileDialog : public QDialog {
+	Q_OBJECT
 
-public:
-    explicit CustomProfileDialog(QWidget *parent = 0);
-    ~CustomProfileDialog();
-    QString profileName() const;
+  public:
+	explicit CustomProfileDialog(QWidget* parent = 0);
+	~CustomProfileDialog();
+	QString profileName() const;
 
-private slots:
-    void on_buttonBox_accepted();
+  private slots:
+	void on_buttonBox_accepted();
 
-    void on_widthSpinner_editingFinished();
+	void on_widthSpinner_editingFinished();
 
-    void on_heightSpinner_editingFinished();
+	void on_heightSpinner_editingFinished();
 
-    void on_fpsSpinner_editingFinished();
+	void on_fpsSpinner_editingFinished();
 
-    void on_fpsComboBox_textActivated(const QString &arg1);
+	void on_fpsComboBox_textActivated(const QString& arg1);
 
-    void on_resolutionComboBox_textActivated(const QString &arg1);
+	void on_resolutionComboBox_textActivated(const QString& arg1);
 
-    void on_aspectRatioComboBox_textActivated(const QString &arg1);
+	void on_aspectRatioComboBox_textActivated(const QString& arg1);
 
-private:
-    Ui::CustomProfileDialog *ui;
-    double m_fps;
+  private:
+	Ui::CustomProfileDialog* ui;
+	double                   m_fps;
 };
 
 #endif // CUSTOMPROFILEDIALOG_HPP

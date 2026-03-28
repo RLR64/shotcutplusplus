@@ -24,26 +24,25 @@
 class ResourceModel;
 class QTreeView;
 
-class ResourceWidget : public QWidget
-{
-    Q_OBJECT
+class ResourceWidget : public QWidget {
+	Q_OBJECT
 
-public:
-    ResourceWidget(QWidget *parent);
-    virtual ~ResourceWidget();
+  public:
+	ResourceWidget(QWidget* parent);
+	virtual ~ResourceWidget();
 
-    void search(Mlt::Producer *producer);
-    void add(Mlt::Producer *producer);
-    void selectTroubleClips();
-    bool hasTroubleClips();
-    int producerCount();
-    Mlt::Producer producer(int index);
-    QList<Mlt::Producer> getSelected();
-    void updateSize();
+	void                 search(Mlt::Producer* producer);
+	void                 add(Mlt::Producer* producer);
+	void                 selectTroubleClips();
+	bool                 hasTroubleClips();
+	int                  producerCount();
+	Mlt::Producer        producer(int index);
+	QList<Mlt::Producer> getSelected();
+	void                 updateSize();
 
-private:
-    ResourceModel *m_model;
-    QTreeView *m_table;
+  private:
+	ResourceModel* m_model;
+	QTreeView*     m_table;
 };
 
 #endif // RESOURCEWIDGET_H

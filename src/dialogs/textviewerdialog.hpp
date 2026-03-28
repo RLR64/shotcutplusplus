@@ -26,22 +26,21 @@ namespace Ui {
 class TextViewerDialog;
 }
 
-class TextViewerDialog : public QDialog
-{
-    Q_OBJECT
+class TextViewerDialog : public QDialog {
+	Q_OBJECT
 
-public:
-    explicit TextViewerDialog(QWidget *parent = 0, bool forMltXml = false);
-    ~TextViewerDialog();
-    void setText(const QString &s, bool scroll = false);
-    QDialogButtonBox *buttonBox() const;
+  public:
+	explicit TextViewerDialog(QWidget* parent = 0, bool forMltXml = false);
+	~TextViewerDialog();
+	void              setText(const QString& s, bool scroll = false);
+	QDialogButtonBox* buttonBox() const;
 
-private slots:
-    void on_buttonBox_accepted();
+  private slots:
+	void on_buttonBox_accepted();
 
-private:
-    Ui::TextViewerDialog *ui;
-    bool m_forMltXml;
+  private:
+	Ui::TextViewerDialog* ui;
+	bool                  m_forMltXml;
 };
 
 #endif // TEXTVIEWERDIALOG_HPP

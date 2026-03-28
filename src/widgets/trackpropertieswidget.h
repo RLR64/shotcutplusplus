@@ -25,27 +25,27 @@
 namespace Ui {
 class TrackPropertiesWidget;
 }
+
 namespace Mlt {
 class Transition;
 }
 
-class TrackPropertiesWidget : public QWidget
-{
-    Q_OBJECT
+class TrackPropertiesWidget : public QWidget {
+	Q_OBJECT
 
-public:
-    explicit TrackPropertiesWidget(Mlt::Producer &track, QWidget *parent = 0);
-    ~TrackPropertiesWidget();
+  public:
+	explicit TrackPropertiesWidget(Mlt::Producer& track, QWidget* parent = 0);
+	~TrackPropertiesWidget();
 
-private slots:
-    void on_blendModeCombo_currentIndexChanged(int index);
-    void onModeChanged(QString &mode);
+  private slots:
+	void on_blendModeCombo_currentIndexChanged(int index);
+	void onModeChanged(QString& mode);
 
-private:
-    Mlt::Transition *getTransition(const QString &name);
+  private:
+	Mlt::Transition* getTransition(const QString& name);
 
-    Ui::TrackPropertiesWidget *ui;
-    Mlt::Producer m_track;
+	Ui::TrackPropertiesWidget* ui;
+	Mlt::Producer              m_track;
 };
 
 #endif // TRACKPROPERTIESWIDGET_H

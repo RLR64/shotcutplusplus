@@ -23,39 +23,38 @@
 #include <QImage>
 #include <QMutex>
 
-class AudioWaveformScopeWidget Q_DECL_FINAL : public ScopeWidget
-{
-    Q_OBJECT
+class AudioWaveformScopeWidget Q_DECL_FINAL : public ScopeWidget {
+	Q_OBJECT
 
-public:
-    explicit AudioWaveformScopeWidget();
-    ~AudioWaveformScopeWidget();
-    QString getTitle() Q_DECL_OVERRIDE;
+  public:
+	explicit AudioWaveformScopeWidget();
+	~AudioWaveformScopeWidget();
+	QString getTitle() Q_DECL_OVERRIDE;
 
-private:
-    // Functions run in scope thread.
-    void refreshScope(const QSize &size, bool full) Q_DECL_OVERRIDE;
-    void createGrid(const QSize &size);
+  private:
+	// Functions run in scope thread.
+	void refreshScope(const QSize& size, bool full) Q_DECL_OVERRIDE;
+	void createGrid(const QSize& size);
 
-    // Functions run in GUI thread.
-    void paintEvent(QPaintEvent *) Q_DECL_OVERRIDE;
-    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void leaveEvent(QEvent *event) Q_DECL_OVERRIDE;
+	// Functions run in GUI thread.
+	void paintEvent(QPaintEvent*) Q_DECL_OVERRIDE;
+	void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
+	void leaveEvent(QEvent* event) Q_DECL_OVERRIDE;
 
-    // Members accessed only in scope thread (no thread protection).
-    QImage m_renderWave;
-    int m_graphTopPadding;
-    int m_graphLeftPadding;
-    int m_channels;
+	// Members accessed only in scope thread (no thread protection).
+	QImage m_renderWave;
+	int    m_graphTopPadding;
+	int    m_graphLeftPadding;
+	int    m_channels;
 
-    // Members accessed only in GUI thread (no thread protection).
-    int m_cursorPos;
+	// Members accessed only in GUI thread (no thread protection).
+	int m_cursorPos;
 
-    // Members accessed in multiple threads (mutex protected).
-    QMutex m_mutex;
-    QImage m_displayWave;
-    QImage m_displayGrid;
-    SharedFrame m_frame;
+	// Members accessed in multiple threads (mutex protected).
+	QMutex      m_mutex;
+	QImage      m_displayWave;
+	QImage      m_displayGrid;
+	SharedFrame m_frame;
 };
 
 #endif // AUDIOWAVEFORMSCOPEWIDGET_H

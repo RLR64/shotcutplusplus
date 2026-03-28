@@ -26,64 +26,63 @@ namespace Ui {
 class HtmlGeneratorWidget;
 }
 
-class HtmlGeneratorWidget : public QWidget, public AbstractProducerWidget
-{
-    Q_OBJECT
+class HtmlGeneratorWidget : public QWidget, public AbstractProducerWidget {
+	Q_OBJECT
 
-public:
-    static const char *kColorProperty;
-    static const char *kCssProperty;
-    static const char *kBodyProperty;
-    static const char *kJavaScriptProperty;
-    static const char *kLine1Property;
-    static const char *kLine2Property;
-    static const char *kLine3Property;
+  public:
+	static const char* kColorProperty;
+	static const char* kCssProperty;
+	static const char* kBodyProperty;
+	static const char* kJavaScriptProperty;
+	static const char* kLine1Property;
+	static const char* kLine2Property;
+	static const char* kLine3Property;
 
-    explicit HtmlGeneratorWidget(QWidget *parent = 0);
-    ~HtmlGeneratorWidget();
+	explicit HtmlGeneratorWidget(QWidget* parent = 0);
+	~HtmlGeneratorWidget();
 
-    // AbstractProducerWidget overrides
-    Mlt::Producer *newProducer(Mlt::Profile &) override;
-    Mlt::Properties getPreset() const override;
-    void loadPreset(Mlt::Properties &) override;
-    void setProducer(Mlt::Producer *p) override;
+	// AbstractProducerWidget overrides
+	Mlt::Producer*  newProducer(Mlt::Profile&) override;
+	Mlt::Properties getPreset() const override;
+	void            loadPreset(Mlt::Properties&) override;
+	void            setProducer(Mlt::Producer* p) override;
 
-signals:
-    void producerChanged(Mlt::Producer *);
+  signals:
+	void producerChanged(Mlt::Producer*);
 
-private slots:
-    void on_colorButton_clicked();
-    void on_preset_selected(void *p);
-    void on_preset_saveClicked();
+  private slots:
+	void on_colorButton_clicked();
+	void on_preset_selected(void* p);
+	void on_preset_saveClicked();
 
-    void on_imageButton_clicked();
+	void on_imageButton_clicked();
 
-    void on_pushButton_clicked();
+	void on_pushButton_clicked();
 
-    void on_videoButton_clicked();
+	void on_videoButton_clicked();
 
-    void on_cssToggleButton_toggled(bool checked);
+	void on_cssToggleButton_toggled(bool checked);
 
-    void on_bodyToggleButton_toggled(bool checked);
+	void on_bodyToggleButton_toggled(bool checked);
 
-    void on_javascriptToggleButton_toggled(bool checked);
+	void on_javascriptToggleButton_toggled(bool checked);
 
-    void on_bodyTextEdit_textChanged();
+	void on_bodyTextEdit_textChanged();
 
-    void on_presetIconView_itemClicked(class QListWidgetItem *item);
+	void on_presetIconView_itemClicked(class QListWidgetItem* item);
 
-protected:
-    bool eventFilter(QObject *watched, QEvent *event) override;
+  protected:
+	bool eventFilter(QObject* watched, QEvent* event) override;
 
-private:
-    QString generateHtml() const;
-    void updateTextSectionVisibility();
-    void populatePresetIconView();
-    QString findPresetIconPath(const QString &presetName);
-    void setupIconAnimation(class QListWidgetItem *item, const QString &iconPath);
-    Ui::HtmlGeneratorWidget *ui;
-    QList<class QMovie *> m_iconMovies;
-    class QListWidgetItem *m_lastHoveredItem = nullptr;
+  private:
+	QString                  generateHtml() const;
+	void                     updateTextSectionVisibility();
+	void                     populatePresetIconView();
+	QString                  findPresetIconPath(const QString& presetName);
+	void                     setupIconAnimation(class QListWidgetItem* item, const QString& iconPath);
+	Ui::HtmlGeneratorWidget* ui;
+	QList<class QMovie*>     m_iconMovies;
+	class QListWidgetItem*   m_lastHoveredItem = nullptr;
 };
 
 #endif // TEXTPRODUCERWIDGET_H

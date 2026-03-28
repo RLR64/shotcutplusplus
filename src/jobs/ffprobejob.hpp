@@ -22,19 +22,18 @@
 
 #include <QStringList>
 
-class FfprobeJob : public AbstractJob
-{
-    Q_OBJECT
-public:
-    FfprobeJob(const QString &name, const QStringList &args);
-    virtual ~FfprobeJob();
-    void start() override;
+class FfprobeJob : public AbstractJob {
+	Q_OBJECT
+  public:
+	FfprobeJob(const QString& name, const QStringList& args);
+	virtual ~FfprobeJob();
+	void start() override;
 
-protected slots:
-    void onFinished(int exitCode, QProcess::ExitStatus exitStatus) override;
+  protected slots:
+	void onFinished(int exitCode, QProcess::ExitStatus exitStatus) override;
 
-private:
-    QStringList m_args;
+  private:
+	QStringList m_args;
 };
 
 #endif // FFPROBEJOB_HPP

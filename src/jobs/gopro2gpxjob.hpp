@@ -22,16 +22,15 @@
 
 #include <QStringList>
 
-class GoPro2GpxJob : public AbstractJob
-{
-    Q_OBJECT
-public:
-    GoPro2GpxJob(const QString &name, const QStringList &args);
-    virtual ~GoPro2GpxJob(){};
-    void start();
+class GoPro2GpxJob : public AbstractJob {
+	Q_OBJECT
+  public:
+	GoPro2GpxJob(const QString& name, const QStringList& args);
+	virtual ~GoPro2GpxJob() {};
+	void start();
 
-private:
-    QStringList m_args;
+  private:
+	QStringList m_args;
 };
 
 #endif // GOPRO2GPXJOB_HPP

@@ -16,6 +16,7 @@
  */
 
 #include "ffprobejob.hpp"
+
 #include "Logger.hpp"
 #include "dialogs/textviewerdialog.hpp"
 #include "mainwindow.hpp"
@@ -26,31 +27,28 @@
 #include <QDir>
 #include <QFileInfo>
 
-FfprobeJob::FfprobeJob(const QString &name, const QStringList &args)
-    : AbstractJob(name)
-{
-    m_args.append(args);
+FfprobeJob::FfprobeJob(const QString& name, const QStringList& args) : AbstractJob(name) {
+	m_args.append(args);
 }
 
-FfprobeJob::~FfprobeJob() {}
-
-void FfprobeJob::start()
-{
-    QString shotcutPath = qApp->applicationDirPath();
-    QFileInfo ffprobePath(shotcutPath, "ffprobe");
-    setReadChannel(QProcess::StandardOutput);
-    LOG_DEBUG() << ffprobePath.absoluteFilePath() + " " + m_args.join(' ');
-    AbstractJob::start(ffprobePath.absoluteFilePath(), m_args);
+FfprobeJob::~FfprobeJob() {
 }
 
-void FfprobeJob::onFinished(int exitCode, QProcess::ExitStatus exitStatus)
-{
-    AbstractJob::onFinished(exitCode, exitStatus);
-    if (exitStatus == QProcess::NormalExit && exitCode == 0) {
-        TextViewerDialog dialog(&MAIN);
-        dialog.setWindowTitle(tr("More Information"));
-        dialog.setText(log().replace("\\:", ":"));
-        dialog.exec();
-    }
-    deleteLater();
+void FfprobeJob::start() {
+	QString   shotcutPath = qApp->applicationDirPath();
+	QFileInfo ffprobePath(shotcutPath, "ffprobe");
+	setReadChannel(QProcess::StandardOutput);
+	LOG_DEBUG() << ffprobePath.absoluteFilePath() + " " + m_args.join(' ');
+	AbstractJob::start(ffprobePath.absoluteFilePath(), m_args);
+}
+
+void FfprobeJob::onFinished(int exitCode, QProcess::ExitStatus exitStatus) {
+	AbstractJob::onFinished(exitCode, exitStatus);
+	if (exitStatus == QProcess::NormalExit && exitCode == 0) {
+		TextViewerDialog dialog(&MAIN);
+		dialog.setWindowTitle(tr("More Information"));
+		dialog.setText(log().replace("\\:", ":"));
+		dialog.exec();
+	}
+	deleteLater();
 }

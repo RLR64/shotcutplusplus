@@ -31,81 +31,78 @@ class QTextEdit;
 class QTreeView;
 class SpeechDialog;
 
-class SubtitlesDock : public QDockWidget
-{
-    Q_OBJECT
+class SubtitlesDock : public QDockWidget {
+	Q_OBJECT
 
-public:
-    explicit SubtitlesDock(QWidget *parent = 0);
-    ~SubtitlesDock();
-    void setModel(SubtitlesModel *model, SubtitlesSelectionModel *selectionModel);
-    void importSrtFromFile(const QString &srtPath,
-                           const QString &trackName,
-                           const QString &lang,
-                           bool includeNonspoken);
+  public:
+	explicit SubtitlesDock(QWidget* parent = 0);
+	~SubtitlesDock();
+	void setModel(SubtitlesModel* model, SubtitlesSelectionModel* selectionModel);
+	void importSrtFromFile(const QString& srtPath, const QString& trackName, const QString& lang,
+	                       bool includeNonspoken);
 
-signals:
-    void seekRequested(int pos);
-    void addAllTimeline(Mlt::Playlist *, bool skipProxy, bool emptyTrack);
-    void createOrEditFilterOnOutput(Mlt::Filter *, const QStringList &key_properties);
+  signals:
+	void seekRequested(int pos);
+	void addAllTimeline(Mlt::Playlist*, bool skipProxy, bool emptyTrack);
+	void createOrEditFilterOnOutput(Mlt::Filter*, const QStringList& key_properties);
 
-private slots:
-    void onPositionChanged(int position);
-    void onStartColumnToggled(bool checked);
-    void onEndColumnToggled(bool checked);
-    void onDurationColumnToggled(bool checked);
+  private slots:
+	void onPositionChanged(int position);
+	void onStartColumnToggled(bool checked);
+	void onEndColumnToggled(bool checked);
+	void onDurationColumnToggled(bool checked);
 
-protected:
-    void resizeEvent(QResizeEvent *) Q_DECL_OVERRIDE;
+  protected:
+	void resizeEvent(QResizeEvent*) Q_DECL_OVERRIDE;
 
-private:
-    void setupActions();
-    void onCreateOrEditRequested();
-    void onAddRequested();
-    void onRemoveRequested();
-    void onSetStartRequested();
-    void onSetEndRequested();
-    void onMoveRequested();
-    void onTextEdited();
-    void onModelReset();
-    void updateActionAvailablity();
-    void addSubtitleTrack();
-    void removeSubtitleTrack();
-    void editSubtitleTrack();
-    void refreshTracksCombo();
-    void importSubtitles();
-    void exportSubtitles();
-    void onItemDoubleClicked(const QModelIndex &index);
-    void resizeTextWidgets();
-    void updateTextWidgets();
-    void setCurrentItem(int trackIndex, int itemIndex);
-    void refreshWidgets();
-    void selectItemForTime();
-    QString availableTrackName();
-    bool trackNameExists(const QString &name);
-    void ensureTrackExists();
-    void burnInOnTimeline();
-    void generateTextOnTimeline();
-    void speechToText();
-    void textToSpeech();
-    bool findWhisperExe();
-    void seekToText(QString text, int step);
+  private:
+	void    setupActions();
+	void    onCreateOrEditRequested();
+	void    onAddRequested();
+	void    onRemoveRequested();
+	void    onSetStartRequested();
+	void    onSetEndRequested();
+	void    onMoveRequested();
+	void    onTextEdited();
+	void    onModelReset();
+	void    updateActionAvailablity();
+	void    addSubtitleTrack();
+	void    removeSubtitleTrack();
+	void    editSubtitleTrack();
+	void    refreshTracksCombo();
+	void    importSubtitles();
+	void    exportSubtitles();
+	void    onItemDoubleClicked(const QModelIndex& index);
+	void    resizeTextWidgets();
+	void    updateTextWidgets();
+	void    setCurrentItem(int trackIndex, int itemIndex);
+	void    refreshWidgets();
+	void    selectItemForTime();
+	QString availableTrackName();
+	bool    trackNameExists(const QString& name);
+	void    ensureTrackExists();
+	void    burnInOnTimeline();
+	void    generateTextOnTimeline();
+	void    speechToText();
+	void    textToSpeech();
+	bool    findWhisperExe();
+	void    seekToText(QString text, int step);
 
-    SubtitlesModel *m_model;
-    SubtitlesSelectionModel *m_selectionModel;
-    QLabel *m_addToTimelineLabel;
-    QComboBox *m_trackCombo;
-    QTreeView *m_treeView;
-    QTextEdit *m_text;
-    QTextEdit *m_prev;
-    QTextEdit *m_next;
-    QLabel *m_prevLabel;
-    QLabel *m_textLabel;
-    QLabel *m_nextLabel;
-    QLineEdit *m_searchField;
-    int m_pos;
-    bool m_textEditInProgress;
-    std::unique_ptr<SpeechDialog> m_speechDialog;
+	SubtitlesModel*               m_model;
+	SubtitlesSelectionModel*      m_selectionModel;
+	QLabel*                       m_addToTimelineLabel;
+	QComboBox*                    m_trackCombo;
+	QTreeView*                    m_treeView;
+	QTextEdit*                    m_text;
+	QTextEdit*                    m_prev;
+	QTextEdit*                    m_next;
+	QLabel*                       m_prevLabel;
+	QLabel*                       m_textLabel;
+	QLabel*                       m_nextLabel;
+	QLineEdit*                    m_searchField;
+	int                           m_pos;
+	bool                          m_textEditInProgress;
+	std::unique_ptr<SpeechDialog> m_speechDialog;
 };
 
 #endif // SUBTITLESDOCK_HPP

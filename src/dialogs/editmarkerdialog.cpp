@@ -16,6 +16,7 @@
  */
 
 #include "editmarkerdialog.hpp"
+
 #include "Logger.hpp"
 #include "widgets/editmarkerwidget.h"
 
@@ -23,54 +24,48 @@
 #include <QDialogButtonBox>
 #include <QVBoxLayout>
 
-EditMarkerDialog::EditMarkerDialog(
-    QWidget *parent, const QString &text, const QColor &color, int start, int end, int maxEnd)
-    : QDialog(parent)
-{
-    setWindowTitle(tr("Edit Marker"));
+EditMarkerDialog::EditMarkerDialog(QWidget* parent, const QString& text, const QColor& color, int start, int end,
+                                   int maxEnd)
+    : QDialog(parent) {
+	setWindowTitle(tr("Edit Marker"));
 
-    QVBoxLayout *VLayout = new QVBoxLayout(this);
+	QVBoxLayout* VLayout = new QVBoxLayout(this);
 
-    m_sWidget = new EditMarkerWidget(this, text, color, start, end, maxEnd);
-    VLayout->addWidget(m_sWidget);
+	m_sWidget = new EditMarkerWidget(this, text, color, start, end, maxEnd);
+	VLayout->addWidget(m_sWidget);
 
-    m_buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-    VLayout->addWidget(m_buttonBox);
-    connect(m_buttonBox, SIGNAL(clicked(QAbstractButton *)), this, SLOT(clicked(QAbstractButton *)));
+	m_buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+	VLayout->addWidget(m_buttonBox);
+	connect(m_buttonBox, SIGNAL(clicked(QAbstractButton*)), this, SLOT(clicked(QAbstractButton*)));
 
-    setLayout(VLayout);
-    setModal(true);
-    layout()->setSizeConstraint(QLayout::SetFixedSize);
+	setLayout(VLayout);
+	setModal(true);
+	layout()->setSizeConstraint(QLayout::SetFixedSize);
 }
 
-QString EditMarkerDialog::getText()
-{
-    return m_sWidget->getText();
+QString EditMarkerDialog::getText() {
+	return m_sWidget->getText();
 }
 
-QColor EditMarkerDialog::getColor()
-{
-    return m_sWidget->getColor();
+QColor EditMarkerDialog::getColor() {
+	return m_sWidget->getColor();
 }
 
-int EditMarkerDialog::getStart()
-{
-    return m_sWidget->getStart();
+int EditMarkerDialog::getStart() {
+	return m_sWidget->getStart();
 }
 
-int EditMarkerDialog::getEnd()
-{
-    return m_sWidget->getEnd();
+int EditMarkerDialog::getEnd() {
+	return m_sWidget->getEnd();
 }
 
-void EditMarkerDialog::clicked(QAbstractButton *button)
-{
-    QDialogButtonBox::ButtonRole role = m_buttonBox->buttonRole(button);
-    if (role == QDialogButtonBox::AcceptRole) {
-        accept();
-    } else if (role == QDialogButtonBox::RejectRole) {
-        reject();
-    } else {
-        LOG_DEBUG() << "Unknown role" << role;
-    }
+void EditMarkerDialog::clicked(QAbstractButton* button) {
+	QDialogButtonBox::ButtonRole role = m_buttonBox->buttonRole(button);
+	if (role == QDialogButtonBox::AcceptRole) {
+		accept();
+	} else if (role == QDialogButtonBox::RejectRole) {
+		reject();
+	} else {
+		LOG_DEBUG() << "Unknown role" << role;
+	}
 }

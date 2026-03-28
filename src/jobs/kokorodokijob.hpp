@@ -19,37 +19,32 @@
 
 #include "abstractjob.hpp"
 
-class KokorodokiJob : public AbstractJob
-{
-    Q_OBJECT
-public:
-    KokorodokiJob(const QString &inputFile,
-                  const QString &outputFile,
-                  const QString &language,
-                  const QString &voice,
-                  double speed,
-                  QThread::Priority priority = Settings.jobPriority());
-    ~KokorodokiJob() override;
+class KokorodokiJob : public AbstractJob {
+	Q_OBJECT
+  public:
+	KokorodokiJob(const QString& inputFile, const QString& outputFile, const QString& language, const QString& voice,
+	              double speed, QThread::Priority priority = Settings.jobPriority());
+	~KokorodokiJob() override;
 
-    static bool checkDockerImage(QWidget *parent);
-    // Calls 'callback' once the image is ready (or immediately if already current).
-    // 'parent' is used for dialogs.
-    static void prepareAndRun(QWidget *parent, std::function<void()> callback);
+	static bool checkDockerImage(QWidget* parent);
+	// Calls 'callback' once the image is ready (or immediately if already current).
+	// 'parent' is used for dialogs.
+	static void prepareAndRun(QWidget* parent, std::function<void()> callback);
 
-public slots:
-    void start() override;
+  public slots:
+	void start() override;
 
-protected slots:
-    void onReadyRead() override;
+  protected slots:
+	void onReadyRead() override;
 
-private:
-    void onOpenTriggered();
-    QString m_inputFile;
-    QString m_outputFile;
-    QString m_language;
-    QString m_voice;
-    double m_speed;
-    QString m_lastTimecode;
-    QString m_lastLogLine;
+  private:
+	void    onOpenTriggered();
+	QString m_inputFile;
+	QString m_outputFile;
+	QString m_language;
+	QString m_voice;
+	double  m_speed;
+	QString m_lastTimecode;
+	QString m_lastLogLine;
 };
 #endif // KOKORODOKIJOB_HPP

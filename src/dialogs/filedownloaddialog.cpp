@@ -16,6 +16,7 @@
  */
 
 #include "filedownloaddialog.hpp"
+
 #include "Logger.hpp"
 #include "mainwindow.hpp"
 #include "qmltypes/qmlapplication.hpp"
@@ -25,117 +26,103 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 
-static const int PROGRESS_MAX = 1000;
+static const int PROGRESS_MAX = {1000};
 
-FileDownloadDialog::FileDownloadDialog(const QString &title, QWidget *parent)
-    : QProgressDialog(title, tr("Cancel"), 0, PROGRESS_MAX, parent ? parent : &MAIN)
-{
-    setWindowTitle(title);
-    setModal(true);
-    setWindowModality(Qt::ApplicationModal);
-    setMinimumDuration(0);
+FileDownloadDialog::FileDownloadDialog(const QString& title, QWidget* parent)
+    : QProgressDialog(title, tr("Cancel"), 0, PROGRESS_MAX, parent ? parent : &MAIN) {
+	setWindowTitle(title);
+	setModal(true);
+	setWindowModality(Qt::ApplicationModal);
+	setMinimumDuration(0);
 }
 
-FileDownloadDialog::~FileDownloadDialog() {}
-
-void FileDownloadDialog::setSrc(const QString &src)
-{
-    m_src = src;
+FileDownloadDialog::~FileDownloadDialog() {
 }
 
-void FileDownloadDialog::setDst(const QString &dst)
-{
-    m_dst = dst;
+void FileDownloadDialog::setSrc(const QString& src) {
+	m_src = src;
 }
 
-bool FileDownloadDialog::start()
-{
-    LOG_INFO() << "Download Source" << m_src;
-    LOG_INFO() << "Download Destination" << m_dst;
-    bool retVal = false;
-    QString tmpPath = m_dst + ".tmp";
-    m_file = new QFile(tmpPath, this);
-    if (!m_file || !m_file->open(QIODevice::WriteOnly)) {
-        LOG_ERROR() << "Unable to open file to write";
-        delete m_file;
-        return retVal;
-    }
-
-    QNetworkAccessManager manager(this);
-    QUrl url = m_src;
-    QNetworkRequest request(url);
-    request.setTransferTimeout(6000);
-    m_reply = manager.get(request);
-
-    QObject::connect(m_reply,
-                     &QNetworkReply::downloadProgress,
-                     this,
-                     &FileDownloadDialog::onDownloadProgress);
-    QObject::connect(m_reply, &QNetworkReply::readyRead, this, &FileDownloadDialog::onReadyRead);
-    QObject::connect(m_reply, &QNetworkReply::finished, this, &FileDownloadDialog::onFinished);
-    QObject::connect(m_reply, &QNetworkReply::sslErrors, this, &FileDownloadDialog::sslErrors);
-
-    int result = exec();
-    if (result != QDialog::Accepted) {
-        LOG_WARNING() << "Download canceled";
-        m_file->remove();
-    } else if (m_reply->error() != QNetworkReply::NoError) {
-        LOG_ERROR() << m_reply->errorString();
-        if (m_reply->error() == QNetworkReply::UnknownNetworkError && m_src.startsWith("https:")) {
-            m_src.replace("https://", "http://");
-            return start();
-        }
-        if (m_reply->error() != QNetworkReply::NoError) {
-            m_file->remove();
-            QMessageBox::information(this, windowTitle(), tr("Download Failed"));
-        }
-    } else {
-        // Notify success
-        m_file->rename(m_dst);
-        retVal = true;
-    }
-    delete m_reply;
-    delete m_file;
-    return retVal;
+void FileDownloadDialog::setDst(const QString& dst) {
+	m_dst = dst;
 }
 
-void FileDownloadDialog::onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal)
-{
-    if (bytesTotal > 0) {
-        int progress = bytesReceived * PROGRESS_MAX / bytesTotal;
-        LOG_INFO() << "Download Progress" << progress / 10;
-        setValue(progress);
-    }
+bool FileDownloadDialog::start() {
+	LOG_INFO() << "Download Source" << m_src;
+	LOG_INFO() << "Download Destination" << m_dst;
+	bool    retVal  = false;
+	QString tmpPath = m_dst + ".tmp";
+	m_file          = new QFile(tmpPath, this);
+	if (!m_file || !m_file->open(QIODevice::WriteOnly)) {
+		LOG_ERROR() << "Unable to open file to write";
+		delete m_file;
+		return retVal;
+	}
+
+	QNetworkAccessManager manager(this);
+	QUrl                  url = m_src;
+	QNetworkRequest       request(url);
+	request.setTransferTimeout(6000);
+	m_reply = manager.get(request);
+
+	QObject::connect(m_reply, &QNetworkReply::downloadProgress, this, &FileDownloadDialog::onDownloadProgress);
+	QObject::connect(m_reply, &QNetworkReply::readyRead, this, &FileDownloadDialog::onReadyRead);
+	QObject::connect(m_reply, &QNetworkReply::finished, this, &FileDownloadDialog::onFinished);
+	QObject::connect(m_reply, &QNetworkReply::sslErrors, this, &FileDownloadDialog::sslErrors);
+
+	int result = exec();
+	if (result != QDialog::Accepted) {
+		LOG_WARNING() << "Download canceled";
+		m_file->remove();
+	} else if (m_reply->error() != QNetworkReply::NoError) {
+		LOG_ERROR() << m_reply->errorString();
+		if (m_reply->error() == QNetworkReply::UnknownNetworkError && m_src.startsWith("https:")) {
+			m_src.replace("https://", "http://");
+			return start();
+		}
+		if (m_reply->error() != QNetworkReply::NoError) {
+			m_file->remove();
+			QMessageBox::information(this, windowTitle(), tr("Download Failed"));
+		}
+	} else {
+		// Notify success
+		m_file->rename(m_dst);
+		retVal = true;
+	}
+	delete m_reply;
+	delete m_file;
+	return retVal;
 }
 
-void FileDownloadDialog::onReadyRead()
-{
-    m_file->write(m_reply->readAll());
+void FileDownloadDialog::onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
+	if (bytesTotal > 0) {
+		int progress = bytesReceived * PROGRESS_MAX / bytesTotal;
+		LOG_INFO() << "Download Progress" << progress / 10;
+		setValue(progress);
+	}
 }
 
-void FileDownloadDialog::onFinished()
-{
-    accept();
+void FileDownloadDialog::onReadyRead() {
+	m_file->write(m_reply->readAll());
 }
 
-void FileDownloadDialog::sslErrors(const QList<QSslError> &errors)
-{
-    LOG_ERROR() << "SSL Errors" << errors;
-    QString message = tr("The following SSL errors were encountered:");
-    foreach (const QSslError &error, errors) {
-        message = QStringLiteral("\n") + error.errorString();
-    }
-    message += tr("Attempt to ignore SSL errors?");
-    QMessageBox qDialog(QMessageBox::Question,
-                        windowTitle(),
-                        message,
-                        QMessageBox::No | QMessageBox::Yes,
-                        this);
-    qDialog.setDefaultButton(QMessageBox::Yes);
-    qDialog.setEscapeButton(QMessageBox::No);
-    qDialog.setWindowModality(QmlApplication::dialogModality());
-    int result = qDialog.exec();
-    if (result == QMessageBox::Yes) {
-        m_reply->ignoreSslErrors();
-    }
+void FileDownloadDialog::onFinished() {
+	accept();
+}
+
+void FileDownloadDialog::sslErrors(const QList<QSslError>& errors) {
+	LOG_ERROR() << "SSL Errors" << errors;
+	QString message = tr("The following SSL errors were encountered:");
+	foreach (const QSslError& error, errors) {
+		message = QStringLiteral("\n") + error.errorString();
+	}
+	message += tr("Attempt to ignore SSL errors?");
+	QMessageBox qDialog(QMessageBox::Question, windowTitle(), message, QMessageBox::No | QMessageBox::Yes, this);
+	qDialog.setDefaultButton(QMessageBox::Yes);
+	qDialog.setEscapeButton(QMessageBox::No);
+	qDialog.setWindowModality(QmlApplication::dialogModality());
+	int result = qDialog.exec();
+	if (result == QMessageBox::Yes) {
+		m_reply->ignoreSslErrors();
+	}
 }

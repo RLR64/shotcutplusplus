@@ -26,29 +26,28 @@ namespace Ui {
 class DecklinkProducerWidget;
 }
 
-class DecklinkProducerWidget : public QWidget, public AbstractProducerWidget
-{
-    Q_OBJECT
+class DecklinkProducerWidget : public QWidget, public AbstractProducerWidget {
+	Q_OBJECT
 
-public:
-    explicit DecklinkProducerWidget(QWidget *parent = 0);
-    ~DecklinkProducerWidget();
+  public:
+	explicit DecklinkProducerWidget(QWidget* parent = 0);
+	~DecklinkProducerWidget();
 
-    // AbstractProducerWidget overrides
-    Mlt::Producer *newProducer(Mlt::Profile &);
-    Mlt::Properties getPreset() const;
-    void loadPreset(Mlt::Properties &);
+	// AbstractProducerWidget overrides
+	Mlt::Producer*  newProducer(Mlt::Profile&);
+	Mlt::Properties getPreset() const;
+	void            loadPreset(Mlt::Properties&);
 
-signals:
-    void producerChanged(Mlt::Producer *);
+  signals:
+	void producerChanged(Mlt::Producer*);
 
-private slots:
-    void on_deviceCombo_activated(int index);
+  private slots:
+	void on_deviceCombo_activated(int index);
 
-    void on_profileCombo_activated(int index);
+	void on_profileCombo_activated(int index);
 
-private:
-    Ui::DecklinkProducerWidget *ui;
+  private:
+	Ui::DecklinkProducerWidget* ui;
 };
 
 #endif // DECKLINKPRODUCERWIDGET_H

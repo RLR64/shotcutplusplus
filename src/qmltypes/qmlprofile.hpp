@@ -20,31 +20,30 @@
 
 #include <QObject>
 
-class QmlProfile : public QObject
-{
-    Q_OBJECT
-    Q_PROPERTY(int width READ width CONSTANT)
-    Q_PROPERTY(int height READ height CONSTANT)
-    Q_PROPERTY(double aspectRatio READ aspectRatio CONSTANT)
-    Q_PROPERTY(double fps READ fps CONSTANT)
-    Q_PROPERTY(double sar READ sar CONSTANT)
+class QmlProfile : public QObject {
+	Q_OBJECT
+	Q_PROPERTY(int width READ width CONSTANT)
+	Q_PROPERTY(int height READ height CONSTANT)
+	Q_PROPERTY(double aspectRatio READ aspectRatio CONSTANT)
+	Q_PROPERTY(double fps READ fps CONSTANT)
+	Q_PROPERTY(double sar READ sar CONSTANT)
 
-public:
-    static QmlProfile &singleton();
+  public:
+	static QmlProfile& singleton();
 
-    int width() const;
-    int height() const;
-    double aspectRatio() const;
-    double fps() const;
-    double sar() const;
+	int    width() const;
+	int    height() const;
+	double aspectRatio() const;
+	double fps() const;
+	double sar() const;
 
-signals:
-    void profileChanged();
+  signals:
+	void profileChanged();
 
-private:
-    explicit QmlProfile();
-    QmlProfile(QmlProfile const &);
-    void operator=(QmlProfile const &);
+  private:
+	explicit QmlProfile();
+	QmlProfile(QmlProfile const&);
+	void operator=(QmlProfile const&);
 };
 
 #endif // PROFILE_HPP

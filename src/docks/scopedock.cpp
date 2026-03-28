@@ -16,6 +16,7 @@
  */
 
 #include "scopedock.hpp"
+
 #include "Logger.hpp"
 #include "controllers/scopecontroller.hpp"
 #include "mltcontroller.hpp"
@@ -23,47 +24,38 @@
 #include <QAction>
 #include <QtWidgets/QScrollArea>
 
-ScopeDock::ScopeDock(ScopeController *scopeController, ScopeWidget *scopeWidget)
-    : QDockWidget()
-    , m_scopeController(scopeController)
-    , m_scopeWidget(scopeWidget)
-{
-    LOG_DEBUG() << "begin";
-    setObjectName(m_scopeWidget->objectName() + "Dock");
-    QScrollArea *scrollArea = new QScrollArea();
-    scrollArea->setFrameShape(QFrame::NoFrame);
-    scrollArea->setWidgetResizable(true);
-    scrollArea->setWidget(m_scopeWidget);
-    QDockWidget::setWidget(scrollArea);
-    QDockWidget::setWindowTitle(m_scopeWidget->getTitle());
+ScopeDock::ScopeDock(ScopeController* scopeController, ScopeWidget* scopeWidget)
+    : QDockWidget(), m_scopeController(scopeController), m_scopeWidget(scopeWidget) {
+	LOG_DEBUG() << "begin";
+	setObjectName(m_scopeWidget->objectName() + "Dock");
+	QScrollArea* scrollArea = new QScrollArea();
+	scrollArea->setFrameShape(QFrame::NoFrame);
+	scrollArea->setWidgetResizable(true);
+	scrollArea->setWidget(m_scopeWidget);
+	QDockWidget::setWidget(scrollArea);
+	QDockWidget::setWindowTitle(m_scopeWidget->getTitle());
 
-    connect(toggleViewAction(), SIGNAL(toggled(bool)), this, SLOT(onActionToggled(bool)));
-    connect(this, &QDockWidget::dockLocationChanged, m_scopeWidget, &ScopeWidget::moved);
-    LOG_DEBUG() << "end";
+	connect(toggleViewAction(), SIGNAL(toggled(bool)), this, SLOT(onActionToggled(bool)));
+	connect(this, &QDockWidget::dockLocationChanged, m_scopeWidget, &ScopeWidget::moved);
+	LOG_DEBUG() << "end";
 }
 
-void ScopeDock::resizeEvent(QResizeEvent *e)
-{
-    if (width() > height()) {
-        m_scopeWidget->setOrientation(Qt::Horizontal);
-    } else {
-        m_scopeWidget->setOrientation(Qt::Vertical);
-    }
-    QDockWidget::resizeEvent(e);
+void ScopeDock::resizeEvent(QResizeEvent* e) {
+	if (width() > height()) {
+		m_scopeWidget->setOrientation(Qt::Horizontal);
+	} else {
+		m_scopeWidget->setOrientation(Qt::Vertical);
+	}
+	QDockWidget::resizeEvent(e);
 }
 
-void ScopeDock::onActionToggled(bool checked)
-{
-    if (checked) {
-        connect(m_scopeController,
-                SIGNAL(newFrame(const SharedFrame &)),
-                m_scopeWidget,
-                SLOT(onNewFrame(const SharedFrame &)));
-        MLT.refreshConsumer();
-    } else {
-        disconnect(m_scopeController,
-                   SIGNAL(newFrame(const SharedFrame &)),
-                   m_scopeWidget,
-                   SLOT(onNewFrame(const SharedFrame &)));
-    }
+void ScopeDock::onActionToggled(bool checked) {
+	if (checked) {
+		connect(m_scopeController, SIGNAL(newFrame(const SharedFrame&)), m_scopeWidget,
+		        SLOT(onNewFrame(const SharedFrame&)));
+		MLT.refreshConsumer();
+	} else {
+		disconnect(m_scopeController, SIGNAL(newFrame(const SharedFrame&)), m_scopeWidget,
+		           SLOT(onNewFrame(const SharedFrame&)));
+	}
 }

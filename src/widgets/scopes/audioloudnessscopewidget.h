@@ -29,46 +29,45 @@ class QQuickWidget;
 class QLabel;
 class QTimer;
 
-class AudioLoudnessScopeWidget Q_DECL_FINAL : public ScopeWidget
-{
-    Q_OBJECT
+class AudioLoudnessScopeWidget Q_DECL_FINAL : public ScopeWidget {
+	Q_OBJECT
 
-public:
-    explicit AudioLoudnessScopeWidget();
-    ~AudioLoudnessScopeWidget();
-    QString getTitle() Q_DECL_OVERRIDE;
-    void setOrientation(Qt::Orientation orientation) Q_DECL_OVERRIDE;
-    void setOrientation(Qt::Orientation orientation, bool force);
+  public:
+	explicit AudioLoudnessScopeWidget();
+	~AudioLoudnessScopeWidget();
+	QString getTitle() Q_DECL_OVERRIDE;
+	void    setOrientation(Qt::Orientation orientation) Q_DECL_OVERRIDE;
+	void    setOrientation(Qt::Orientation orientation, bool force);
 
-protected:
-    bool event(QEvent *event) Q_DECL_OVERRIDE;
+  protected:
+	bool event(QEvent* event) Q_DECL_OVERRIDE;
 
-private slots:
-    void resetQview();
-    void onResetButtonClicked();
-    void onIntegratedToggled(bool checked);
-    void onShorttermToggled(bool checked);
-    void onMomentaryToggled(bool checked);
-    void onRangeToggled(bool checked);
-    void onPeakToggled(bool checked);
-    void onTruePeakToggled(bool checked);
-    void updateMeters(void);
+  private slots:
+	void resetQview();
+	void onResetButtonClicked();
+	void onIntegratedToggled(bool checked);
+	void onShorttermToggled(bool checked);
+	void onMomentaryToggled(bool checked);
+	void onRangeToggled(bool checked);
+	void onPeakToggled(bool checked);
+	void onTruePeakToggled(bool checked);
+	void updateMeters(void);
 
-private:
-    // Functions run in scope thread.
-    void refreshScope(const QSize &size, bool full) Q_DECL_OVERRIDE;
+  private:
+	// Functions run in scope thread.
+	void refreshScope(const QSize& size, bool full) Q_DECL_OVERRIDE;
 
-    // Members accessed by scope thread.
-    Mlt::Filter *m_loudnessFilter;
-    double m_peak;
-    double m_true_peak;
-    bool m_newData;
+	// Members accessed by scope thread.
+	Mlt::Filter* m_loudnessFilter;
+	double       m_peak;
+	double       m_true_peak;
+	bool         m_newData;
 
-    // Members accessed by GUI thread.
-    Qt::Orientation m_orientation;
-    QQuickWidget *m_qview;
-    QLabel *m_timeLabel;
-    QTimer *m_timer;
+	// Members accessed by GUI thread.
+	Qt::Orientation m_orientation;
+	QQuickWidget*   m_qview;
+	QLabel*         m_timeLabel;
+	QTimer*         m_timer;
 };
 
 #endif // AUDIOLOUDNESSSCOPEWIDGET_H

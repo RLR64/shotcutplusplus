@@ -31,60 +31,59 @@ class NewProjectFolder;
 class QAction;
 class QActionGroup;
 
-class NewProjectFolder : public QWidget
-{
-    Q_OBJECT
+class NewProjectFolder : public QWidget {
+	Q_OBJECT
 
-public:
-    explicit NewProjectFolder(QWidget *parent = 0);
-    ~NewProjectFolder();
+  public:
+	explicit NewProjectFolder(QWidget* parent = 0);
+	~NewProjectFolder();
 
-protected:
-    void showEvent(QShowEvent *);
-    void hideEvent(QHideEvent *);
-    bool event(QEvent *event);
+  protected:
+	void showEvent(QShowEvent*);
+	void hideEvent(QHideEvent*);
+	bool event(QEvent* event);
 
-public slots:
-    void updateRecentProjects();
+  public slots:
+	void updateRecentProjects();
 
-signals:
-    void deletedProject(const QString &);
+  signals:
+	void deletedProject(const QString&);
 
-private slots:
-    void on_projectsFolderButton_clicked();
+  private slots:
+	void on_projectsFolderButton_clicked();
 
-    void on_videoModeButton_clicked();
+	void on_videoModeButton_clicked();
 
-    void onProfileTriggered(QAction *action);
+	void onProfileTriggered(QAction* action);
 
-    void on_actionAddCustomProfile_triggered();
+	void on_actionAddCustomProfile_triggered();
 
-    void on_actionProfileRemove_triggered();
+	void on_actionProfileRemove_triggered();
 
-    void on_startButton_clicked();
+	void on_startButton_clicked();
 
-    void on_projectNameLineEdit_textChanged(const QString &arg1);
+	void on_projectNameLineEdit_textChanged(const QString& arg1);
 
-    void on_recentListView_clicked(const QModelIndex &index);
+	void on_recentListView_clicked(const QModelIndex& index);
 
-    void on_recentListView_doubleClicked(const QModelIndex &index);
+	void on_recentListView_doubleClicked(const QModelIndex& index);
 
-    void on_recentListView_customContextMenuRequested(const QPoint &pos);
+	void on_recentListView_customContextMenuRequested(const QPoint& pos);
 
-    void on_actionRecentRemove_triggered();
+	void on_actionRecentRemove_triggered();
 
-private:
-    void setColors();
-    void setProjectFolderButtonText(const QString &text);
+  private:
+	void setColors();
+	void setProjectFolderButtonText(const QString& text);
 
-    Ui::NewProjectFolder *ui;
-    QActionGroup *m_profileGroup;
-    QMenu m_videoModeMenu;
-    QMenu *m_customProfileMenu;
-    QString m_profile;
-    QStandardItemModel m_model;
-    QString m_projectName;
-    bool m_isOpening;
+	Ui::NewProjectFolder* ui;
+	QActionGroup*         m_profileGroup;
+	QMenu                 m_videoModeMenu;
+	QMenu*                m_customProfileMenu;
+	QString               m_profile;
+	QStandardItemModel    m_model;
+	QString               m_projectName;
+	bool                  m_isOpening;
 };
 
 #endif // NEWPROJECTFOLDER_H

@@ -20,7 +20,7 @@
 #include "Logger.hpp"
 #include "mainwindow.hpp"
 #include "settings.hpp"
-#include <framework/mlt_log.h>
+
 #include <QCommandLineParser>
 #include <QFile>
 #include <QProcess>
@@ -29,6 +29,7 @@
 #include <QSysInfo>
 #include <QtGlobal>
 #include <QtWidgets>
+#include <framework/mlt_log.h>
 
 #ifdef Q_OS_MAC
 #include "macos.hpp"
@@ -41,479 +42,448 @@
 #endif
 extern "C" {
 // Inform the driver we could make use of the discrete gpu
-__declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
+__declspec(dllexport) DWORD NvOptimusEnablement                  = 0x00000001;
 __declspec(dllexport) DWORD AmdPowerXpressRequestHighPerformance = 0x00000001;
 }
 #endif
 
 static constexpr int kMaxCacheCount = {5000};
 
-static void mlt_log_handler(void *service, int mlt_level, const char *format, va_list args)
-{
-    if (mlt_level > mlt_log_get_level())
-        return;
+static void mlt_log_handler(void* service, int mlt_level, const char* format, va_list args) {
+	if (mlt_level > mlt_log_get_level())
+		return;
 
-    enum Logger::LogLevel cuteLoggerLevel = Logger::Fatal;
-    switch (mlt_level) {
-    case MLT_LOG_DEBUG:
-        cuteLoggerLevel = Logger::Trace;
-        break;
-    case MLT_LOG_ERROR:
-    case MLT_LOG_FATAL:
-    case MLT_LOG_PANIC:
-        cuteLoggerLevel = Logger::Error;
-        break;
-    case MLT_LOG_INFO:
-        cuteLoggerLevel = Logger::Info;
-        break;
-    case MLT_LOG_VERBOSE:
-        cuteLoggerLevel = Logger::Debug;
-        break;
-    case MLT_LOG_WARNING:
-        cuteLoggerLevel = Logger::Warning;
-        break;
-    }
-    QString message;
-    mlt_properties properties = service ? MLT_SERVICE_PROPERTIES((mlt_service) service) : NULL;
-    if (properties) {
-        char *mlt_type = mlt_properties_get(properties, "mlt_type");
-        char *service_name = mlt_properties_get(properties, "mlt_service");
-        char *resource = mlt_properties_get(properties, "resource");
-        if (!resource || resource[0] != '<' || resource[strlen(resource) - 1] != '>')
-            mlt_type = mlt_properties_get(properties, "mlt_type");
-        if (service_name)
-            message = QStringLiteral("[%1 %2] ").arg(mlt_type, service_name);
-        else
-            message = QString::asprintf("[%s %p] ", mlt_type, service);
-        if (resource)
-            message.append(QStringLiteral("\"%1\" ").arg(resource));
-        message.append(QString::vasprintf(format, args));
-        message.replace('\n', "");
-    } else {
-        message = QString::vasprintf(format, args);
-        message.replace('\n', "");
-    }
-    cuteLogger->write(cuteLoggerLevel,
-                      __FILE__,
-                      __LINE__,
-                      "MLT",
-                      cuteLogger->defaultCategory().toLatin1().constData(),
-                      message);
+	enum Logger::LogLevel cuteLoggerLevel = Logger::Fatal;
+	switch (mlt_level) {
+	case MLT_LOG_DEBUG:
+		cuteLoggerLevel = Logger::Trace;
+		break;
+	case MLT_LOG_ERROR:
+	case MLT_LOG_FATAL:
+	case MLT_LOG_PANIC:
+		cuteLoggerLevel = Logger::Error;
+		break;
+	case MLT_LOG_INFO:
+		cuteLoggerLevel = Logger::Info;
+		break;
+	case MLT_LOG_VERBOSE:
+		cuteLoggerLevel = Logger::Debug;
+		break;
+	case MLT_LOG_WARNING:
+		cuteLoggerLevel = Logger::Warning;
+		break;
+	}
+	QString        message;
+	mlt_properties properties = service ? MLT_SERVICE_PROPERTIES((mlt_service)service) : NULL;
+	if (properties) {
+		char* mlt_type     = mlt_properties_get(properties, "mlt_type");
+		char* service_name = mlt_properties_get(properties, "mlt_service");
+		char* resource     = mlt_properties_get(properties, "resource");
+		if (!resource || resource[0] != '<' || resource[strlen(resource) - 1] != '>')
+			mlt_type = mlt_properties_get(properties, "mlt_type");
+		if (service_name)
+			message = QStringLiteral("[%1 %2] ").arg(mlt_type, service_name);
+		else
+			message = QString::asprintf("[%s %p] ", mlt_type, service);
+		if (resource)
+			message.append(QStringLiteral("\"%1\" ").arg(resource));
+		message.append(QString::vasprintf(format, args));
+		message.replace('\n', "");
+	} else {
+		message = QString::vasprintf(format, args);
+		message.replace('\n', "");
+	}
+	cuteLogger->Write(cuteLoggerLevel, __FILE__, __LINE__, "MLT", cuteLogger->DefaultCategory().toLatin1().constData(),
+	                  message);
 }
 
-class Application : public QApplication
-{
-public:
-    MainWindow *mainWindow{nullptr};
-    QTranslator qtTranslator;
-    QTranslator qtBaseTranslator;
-    QTranslator shotcutTranslator;
-    QStringList resourceArg;
-    bool isFullScreen;
-    QString appDirArg;
+class Application : public QApplication {
+  public:
+	MainWindow* mainWindow{nullptr};
+	QTranslator qtTranslator;
+	QTranslator qtBaseTranslator;
+	QTranslator shotcutTranslator;
+	QStringList resourceArg;
+	bool        isFullScreen;
+	QString     appDirArg;
 
-    Application(int &argc, char **argv)
-        : QApplication(argc, argv)
-    {
-        auto appPath = applicationDirPath();
-        QDir dir(appPath);
+	Application(int& argc, char** argv) : QApplication(argc, argv) {
+		auto appPath = applicationDirPath();
+		QDir dir(appPath);
 
 #ifdef Q_OS_WIN
 #include <winbase.h>
-        SetDllDirectoryA(appPath.toLocal8Bit());
-        CreateMutexA(NULL, FALSE, "Meltytech Shotcut Running Mutex");
+		SetDllDirectoryA(appPath.toLocal8Bit());
+		CreateMutexA(NULL, FALSE, "Meltytech Shotcut Running Mutex");
 #else
-        dir.cdUp();
+		dir.cdUp();
 #endif
 #ifdef Q_OS_MAC
-        dir.cd("PlugIns");
-        dir.cd("qt");
+		dir.cd("PlugIns");
+		dir.cd("qt");
 #else
-        dir.cd("lib");
-        dir.cd("qt6");
+		dir.cd("lib");
+		dir.cd("qt6");
 #endif
-        addLibraryPath(dir.absolutePath());
-        setOrganizationName("Meltytech");
+		addLibraryPath(dir.absolutePath());
+		setOrganizationName("Meltytech");
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
-        setOrganizationDomain("shotcut.org");
-        setDesktopFileName("org.shotcut.Shotcut");
+		setOrganizationDomain("shotcut.org");
+		setDesktopFileName("org.shotcut.Shotcut");
 #else
-        setOrganizationDomain("meltytech.com");
+		setOrganizationDomain("meltytech.com");
 #endif
-        setApplicationName("Shotcut");
-        setApplicationVersion("26.2");
+		setApplicationName("Shotcut");
+		setApplicationVersion("26.2");
 
-        // Process command line options.
-        QCommandLineParser parser;
-        parser.addHelpOption();
-        parser.addVersionOption();
+		// Process command line options.
+		QCommandLineParser parser;
+		parser.addHelpOption();
+		parser.addVersionOption();
 #ifndef Q_OS_WIN
-        QCommandLineOption fullscreenOption(
-            "fullscreen",
-            QCoreApplication::translate("main", "Fill the screen with the Shotcut window."));
-        parser.addOption(fullscreenOption);
+		QCommandLineOption fullscreenOption("fullscreen",
+		                                    QCoreApplication::translate("main",
+		                                                                "Fill the screen with the Shotcut window."));
+		parser.addOption(fullscreenOption);
 #endif
-        QCommandLineOption noupgradeOption(
-            "noupgrade", QCoreApplication::translate("main", "Hide upgrade prompt and menu item."));
-        parser.addOption(noupgradeOption);
-        QCommandLineOption
-            glaxnimateOption("glaxnimate",
-                             QCoreApplication::translate("main",
-                                                         "Run Glaxnimate instead of Shotcut."));
-        parser.addOption(glaxnimateOption);
-        QCommandLineOption gpuOption("gpu",
-                                     QCoreApplication::translate("main", "Use GPU processing."));
-        parser.addOption(gpuOption);
-        QCommandLineOption clearRecentOption("clear-recent",
-                                             QCoreApplication::translate("main",
-                                                                         "Clear Recent on Exit"));
-        parser.addOption(clearRecentOption);
-        QCommandLineOption appDataOption(
-            "appdata",
-            QCoreApplication::translate("main", "The directory for app configuration and data."),
-            QCoreApplication::translate("main", "directory"));
-        parser.addOption(appDataOption);
-        QCommandLineOption
-            scaleOption("QT_SCALE_FACTOR",
-                        QCoreApplication::translate("main",
-                                                    "The scale factor for a high-DPI screen"),
-                        QCoreApplication::translate("main", "number"));
-        parser.addOption(scaleOption);
-        scaleOption
-            = QCommandLineOption("QT_SCREEN_SCALE_FACTORS",
-                                 QCoreApplication::translate(
-                                     "main",
-                                     "A semicolon-separated list of scale factors for each screen"),
-                                 QCoreApplication::translate("main", "list"));
-        parser.addOption(scaleOption);
-        QCommandLineOption scalePolicyOption(
-            "QT_SCALE_FACTOR_ROUNDING_POLICY",
-            QCoreApplication::translate("main", "How to handle a fractional display scale: %1")
-                .arg("Round, Ceil, Floor, RoundPreferFloor, PassThrough"),
-            QCoreApplication::translate("main", "string"),
-            "PassThrough");
-        parser.addOption(scalePolicyOption);
+		QCommandLineOption noupgradeOption("noupgrade",
+		                                   QCoreApplication::translate("main", "Hide upgrade prompt and menu item."));
+		parser.addOption(noupgradeOption);
+		QCommandLineOption glaxnimateOption("glaxnimate",
+		                                    QCoreApplication::translate("main", "Run Glaxnimate instead of Shotcut."));
+		parser.addOption(glaxnimateOption);
+		QCommandLineOption gpuOption("gpu", QCoreApplication::translate("main", "Use GPU processing."));
+		parser.addOption(gpuOption);
+		QCommandLineOption clearRecentOption("clear-recent",
+		                                     QCoreApplication::translate("main", "Clear Recent on Exit"));
+		parser.addOption(clearRecentOption);
+		QCommandLineOption appDataOption("appdata",
+		                                 QCoreApplication::translate("main",
+		                                                             "The directory for app configuration and data."),
+		                                 QCoreApplication::translate("main", "directory"));
+		parser.addOption(appDataOption);
+		QCommandLineOption scaleOption("QT_SCALE_FACTOR",
+		                               QCoreApplication::translate("main", "The scale factor for a high-DPI screen"),
+		                               QCoreApplication::translate("main", "number"));
+		parser.addOption(scaleOption);
+		scaleOption = QCommandLineOption(
+		    "QT_SCREEN_SCALE_FACTORS",
+		    QCoreApplication::translate("main", "A semicolon-separated list of scale factors for each screen"),
+		    QCoreApplication::translate("main", "list"));
+		parser.addOption(scaleOption);
+		QCommandLineOption scalePolicyOption("QT_SCALE_FACTOR_ROUNDING_POLICY",
+		                                     QCoreApplication::translate("main",
+		                                                                 "How to handle a fractional display scale: %1")
+		                                         .arg("Round, Ceil, Floor, RoundPreferFloor, PassThrough"),
+		                                     QCoreApplication::translate("main", "string"), "PassThrough");
+		parser.addOption(scalePolicyOption);
 #if defined(Q_OS_WIN)
-        QCommandLineOption sdlAudioDriverOption(
-            "SDL_AUDIODRIVER",
-            QCoreApplication::translate("main", "Which operating system audio API to use: %1")
-                .arg("directsound, wasapi, winmm"),
-            QCoreApplication::translate("main", "string"),
-            "wasapi");
-        parser.addOption(sdlAudioDriverOption);
+		QCommandLineOption sdlAudioDriverOption(
+		    "SDL_AUDIODRIVER",
+		    QCoreApplication::translate("main", "Which operating system audio API to use: %1")
+		        .arg("directsound, wasapi, winmm"),
+		    QCoreApplication::translate("main", "string"), "wasapi");
+		parser.addOption(sdlAudioDriverOption);
 #elif defined(Q_OS_LINUX)
-        QCommandLineOption sdlAudioDriverOption(
-            "SDL_AUDIODRIVER",
-            QCoreApplication::translate("main", "Which operating system audio API to use: %1")
-                .arg("alsa, arts, dsp, esd, jack, pipewire, pulseaudio"),
-            QCoreApplication::translate("main", "string"),
-            "pulseaudio");
-        parser.addOption(sdlAudioDriverOption);
+		QCommandLineOption sdlAudioDriverOption(
+		    "SDL_AUDIODRIVER",
+		    QCoreApplication::translate("main", "Which operating system audio API to use: %1")
+		        .arg("alsa, arts, dsp, esd, jack, pipewire, pulseaudio"),
+		    QCoreApplication::translate("main", "string"), "pulseaudio");
+		parser.addOption(sdlAudioDriverOption);
 #endif
-        parser.addPositionalArgument(
-            "[FILE]...",
-            QCoreApplication::translate("main", "Zero or more files or folders to open"));
-        parser.process(arguments());
-        if (parser.isSet(glaxnimateOption)) {
-            QStringList args = arguments();
-            if (!args.isEmpty())
-                args.removeFirst();
-            args.removeAll("--glaxnimate");
-            QProcess child;
-            if (child.startDetached(Settings.glaxnimatePath(), args))
-                ::exit(EXIT_SUCCESS);
-        }
+		parser.addPositionalArgument("[FILE]...",
+		                             QCoreApplication::translate("main", "Zero or more files or folders to open"));
+		parser.process(arguments());
+		if (parser.isSet(glaxnimateOption)) {
+			QStringList args = arguments();
+			if (!args.isEmpty())
+				args.removeFirst();
+			args.removeAll("--glaxnimate");
+			QProcess child;
+			if (child.startDetached(Settings.glaxnimatePath(), args))
+				::exit(EXIT_SUCCESS);
+		}
 
 #ifdef Q_OS_WIN
-        isFullScreen = false;
+		isFullScreen = false;
 #else
-        isFullScreen = parser.isSet(fullscreenOption);
+		isFullScreen = parser.isSet(fullscreenOption);
 #endif
-        setProperty("noupgrade", parser.isSet(noupgradeOption));
-        setProperty("clearRecent", parser.isSet(clearRecentOption));
-        if (!parser.value(appDataOption).isEmpty()) {
-            appDirArg = parser.value(appDataOption);
-            ShotcutSettings::setAppDataForSession(appDirArg);
-        }
-        if (parser.isSet(gpuOption))
-            Settings.setProcessingMode(ShotcutSettings::Linear10GpuCpu);
-        if (!parser.positionalArguments().isEmpty())
-            resourceArg = parser.positionalArguments();
+		setProperty("noupgrade", parser.isSet(noupgradeOption));
+		setProperty("clearRecent", parser.isSet(clearRecentOption));
+		if (!parser.value(appDataOption).isEmpty()) {
+			appDirArg = parser.value(appDataOption);
+			ShotcutSettings::setAppDataForSession(appDirArg);
+		}
+		if (parser.isSet(gpuOption))
+			Settings.setProcessingMode(ShotcutSettings::Linear10GpuCpu);
+		if (!parser.positionalArguments().isEmpty())
+			resourceArg = parser.positionalArguments();
 
-        // Startup logging.
-        dir.setPath(Settings.appDataLocation());
-        if (!dir.exists())
-            dir.mkpath(dir.path());
-        const auto logFileName = dir.filePath("shotcut-log.txt");
-        if (QFile::exists(logFileName)) {
-            const auto previousLogName = dir.filePath("shotcut-log.bak");
-            if (QFile::exists(previousLogName))
-                QFile::remove(previousLogName);
-            if (!QFile::rename(logFileName, previousLogName))
-                LOG_WARNING() << "Failed to rename backup log file" << previousLogName;
-        }
-        FileAppender *fileAppender = new FileAppender(logFileName);
-        fileAppender->setFormat("[%{type:-7}] <%{function}> %{message}\n");
-        cuteLogger->registerAppender(fileAppender);
+		// Startup logging.
+		dir.setPath(Settings.appDataLocation());
+		if (!dir.exists())
+			dir.mkpath(dir.path());
+		const auto logFileName = dir.filePath("shotcut-log.txt");
+		if (QFile::exists(logFileName)) {
+			const auto previousLogName = dir.filePath("shotcut-log.bak");
+			if (QFile::exists(previousLogName))
+				QFile::remove(previousLogName);
+			if (!QFile::rename(logFileName, previousLogName))
+				LOG_WARNING() << "Failed to rename backup log file" << previousLogName;
+		}
+		FileAppender* fileAppender = new FileAppender(logFileName);
+		fileAppender->setFormat("[%{type:-7}] <%{function}> %{message}\n");
+		cuteLogger->RegisterAppender(fileAppender);
 #ifndef NDEBUG
-        // Only log to console in dev debug builds.
-        ConsoleAppender *consoleAppender = new ConsoleAppender();
-        consoleAppender->setFormat(fileAppender->format());
-        cuteLogger->registerAppender(consoleAppender);
+		// Only log to console in dev debug builds.
+		ConsoleAppender* consoleAppender = new ConsoleAppender();
+		consoleAppender->setFormat(fileAppender->format());
+		cuteLogger->RegisterAppender(consoleAppender);
 
-        mlt_log_set_level(MLT_LOG_VERBOSE);
+		mlt_log_set_level(MLT_LOG_VERBOSE);
 #else
-        mlt_log_set_level(MLT_LOG_INFO);
+		mlt_log_set_level(MLT_LOG_INFO);
 #endif
-        mlt_log_set_callback(mlt_log_handler);
-        cuteLogger->logToGlobalInstance("qml", true);
+		mlt_log_set_callback(mlt_log_handler);
+		cuteLogger->LogToGlobalInstance("qml", true);
 
 #if defined(Q_OS_WIN)
-        dir.setPath(appPath);
+		dir.setPath(appPath);
 #elif !defined(Q_OS_MAC)
-        if (Settings.drawMethod() == Qt::AA_UseSoftwareOpenGL && !Settings.playerGPU()) {
-            ::qputenv("LIBGL_ALWAYS_SOFTWARE", "1");
-        }
+		if (Settings.drawMethod() == Qt::AA_UseSoftwareOpenGL && !Settings.playerGPU()) {
+			::qputenv("LIBGL_ALWAYS_SOFTWARE", "1");
+		}
 #endif
-        // Load translations
-        QString locale = Settings.language();
-        dir.setPath(appPath);
+		// Load translations
+		QString locale = Settings.language();
+		dir.setPath(appPath);
 #if defined(Q_OS_MAC)
-        dir.cdUp();
-        dir.cd("Resources");
-        dir.cd("shotcut");
-        dir.cd("translations");
+		dir.cdUp();
+		dir.cd("Resources");
+		dir.cd("shotcut");
+		dir.cd("translations");
 #elif defined(Q_OS_WIN)
-        dir.cd("share");
-        dir.cd("translations");
+		dir.cd("share");
+		dir.cd("translations");
 #else
-        dir.cdUp();
-        dir.cd("share");
-        dir.cd("shotcut");
-        dir.cd("translations");
+		dir.cdUp();
+		dir.cd("share");
+		dir.cd("shotcut");
+		dir.cd("translations");
 #endif
-        if (locale.startsWith("pt_"))
-            locale = "pt";
-        else if (locale.startsWith("en_"))
-            locale = "en";
-        if (qtTranslator.load("qt_" + locale, QLibraryInfo::path(QLibraryInfo::TranslationsPath)))
-            installTranslator(&qtTranslator);
-        else if (qtTranslator.load("qt_" + locale, dir.absolutePath()))
-            installTranslator(&qtTranslator);
-        if (qtBaseTranslator.load("qtbase_" + locale,
-                                  QLibraryInfo::path(QLibraryInfo::TranslationsPath)))
-            installTranslator(&qtBaseTranslator);
-        else if (qtBaseTranslator.load("qtbase_" + locale, dir.absolutePath()))
-            installTranslator(&qtBaseTranslator);
-        if (shotcutTranslator.load("shotcut_" + Settings.language(), dir.absolutePath()))
-            installTranslator(&shotcutTranslator);
-    }
+		if (locale.startsWith("pt_"))
+			locale = "pt";
+		else if (locale.startsWith("en_"))
+			locale = "en";
+		if (qtTranslator.load("qt_" + locale, QLibraryInfo::path(QLibraryInfo::TranslationsPath)))
+			installTranslator(&qtTranslator);
+		else if (qtTranslator.load("qt_" + locale, dir.absolutePath()))
+			installTranslator(&qtTranslator);
+		if (qtBaseTranslator.load("qtbase_" + locale, QLibraryInfo::path(QLibraryInfo::TranslationsPath)))
+			installTranslator(&qtBaseTranslator);
+		else if (qtBaseTranslator.load("qtbase_" + locale, dir.absolutePath()))
+			installTranslator(&qtBaseTranslator);
+		if (shotcutTranslator.load("shotcut_" + Settings.language(), dir.absolutePath()))
+			installTranslator(&shotcutTranslator);
+	}
 
-    ~Application()
-    {
-        delete mainWindow;
-        LOG_DEBUG() << "exiting";
-    }
+	~Application() {
+		delete mainWindow;
+		LOG_DEBUG() << "exiting";
+	}
 
-protected:
-    bool event(QEvent *event)
-    {
-        if (event->type() == QEvent::FileOpen) {
-            QFileOpenEvent *openEvent = static_cast<QFileOpenEvent *>(event);
-            resourceArg << openEvent->file();
-            return true;
-        } else
-            return QApplication::event(event);
-    }
+  protected:
+	bool event(QEvent* event) {
+		if (event->type() == QEvent::FileOpen) {
+			QFileOpenEvent* openEvent = static_cast<QFileOpenEvent*>(event);
+			resourceArg << openEvent->file();
+			return true;
+		} else
+			return QApplication::event(event);
+	}
 };
 
-int main(int argc, char **argv)
-{
+int main(int argc, char** argv) {
 #if defined(Q_OS_WIN) && defined(QT_DEBUG) && !defined(__ARM_ARCH)
-    ExcHndlInit();
+	ExcHndlInit();
 #endif
 #ifndef QT_DEBUG
-    ::qputenv("QT_LOGGING_RULES", "*.warning=false");
+	::qputenv("QT_LOGGING_RULES", "*.warning=false");
 #endif
-    for (int i = 1; i + 1 < argc; i++) {
-        if (!::qstrcmp("--QT_SCALE_FACTOR", argv[i])
-            || !::qstrcmp("--QT_SCREEN_SCALE_FACTORS", argv[i])) {
-            QByteArray value(argv[i + 1]);
-            ::qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "0");
-            ::qputenv(value.contains(';') ? "QT_SCREEN_SCALE_FACTORS" : "QT_SCALE_FACTOR", value);
-            break;
-        }
-    }
-    if (!::qEnvironmentVariableIsSet("QT_SCALE_FACTOR_ROUNDING_POLICY")) {
-        for (int i = 1; i + 1 < argc; i++) {
-            if (!::qstrcmp("--QT_SCALE_FACTOR_ROUNDING_POLICY", argv[i])) {
-                ::qputenv("QT_SCALE_FACTOR_ROUNDING_POLICY", argv[i + 1]);
-                break;
-            }
-        }
-    }
+	for (int i = 1; i + 1 < argc; i++) {
+		if (!::qstrcmp("--QT_SCALE_FACTOR", argv[i]) || !::qstrcmp("--QT_SCREEN_SCALE_FACTORS", argv[i])) {
+			QByteArray value(argv[i + 1]);
+			::qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "0");
+			::qputenv(value.contains(';') ? "QT_SCREEN_SCALE_FACTORS" : "QT_SCALE_FACTOR", value);
+			break;
+		}
+	}
+	if (!::qEnvironmentVariableIsSet("QT_SCALE_FACTOR_ROUNDING_POLICY")) {
+		for (int i = 1; i + 1 < argc; i++) {
+			if (!::qstrcmp("--QT_SCALE_FACTOR_ROUNDING_POLICY", argv[i])) {
+				::qputenv("QT_SCALE_FACTOR_ROUNDING_POLICY", argv[i + 1]);
+				break;
+			}
+		}
+	}
 #if defined(Q_OS_WIN) || defined(Q_OS_LINUX)
-    for (int i = 1; i + 1 < argc; i++) {
-        if (!::qstrcmp("--SDL_AUDIODRIVER", argv[i])) {
-            ::qputenv("SDL_AUDIODRIVER", argv[i + 1]);
-            break;
-        }
-    }
+	for (int i = 1; i + 1 < argc; i++) {
+		if (!::qstrcmp("--SDL_AUDIODRIVER", argv[i])) {
+			::qputenv("SDL_AUDIODRIVER", argv[i + 1]);
+			break;
+		}
+	}
 #endif
 
-    // The ffmpeg backend (default as of Qt 6.5) is likely using a different version of FFmpeg.
-    if (!qEnvironmentVariableIsSet("QT_MEDIA_BACKEND"))
+	// The ffmpeg backend (default as of Qt 6.5) is likely using a different version of FFmpeg.
+	if (!qEnvironmentVariableIsSet("QT_MEDIA_BACKEND"))
 #if defined(Q_OS_MAC)
-        qputenv("QT_MEDIA_BACKEND", "darwin");
+		qputenv("QT_MEDIA_BACKEND", "darwin");
 #elif defined(Q_OS_WIN)
-        qputenv("QT_MEDIA_BACKEND", "windows");
-    if (!qEnvironmentVariableIsSet("QT_QPA_PLATFORM"))
-        qputenv("QT_QPA_PLATFORM", "windows:altgr");
+		qputenv("QT_MEDIA_BACKEND", "windows");
+	if (!qEnvironmentVariableIsSet("QT_QPA_PLATFORM"))
+		qputenv("QT_QPA_PLATFORM", "windows:altgr");
 #else
-        ;
+		;
 #endif
 
 #ifdef Q_OS_MAC
-    // Launcher and Spotlight on macOS are not setting this environment
-    // variable needed by setlocale() as used by MLT.
-    if (QProcessEnvironment::systemEnvironment().value(MLT_LC_NAME).isEmpty()) {
-        qputenv(MLT_LC_NAME, QLocale().name().toUtf8());
+	// Launcher and Spotlight on macOS are not setting this environment
+	// variable needed by setlocale() as used by MLT.
+	if (QProcessEnvironment::systemEnvironment().value(MLT_LC_NAME).isEmpty()) {
+		qputenv(MLT_LC_NAME, QLocale().name().toUtf8());
 
-        QLocale localeByName(
-            QLocale(QLocale().language(), QLocale().script(), QLocale().territory()));
-        if (QLocale().decimalPoint() != localeByName.decimalPoint()) {
-            // If region's numeric format does not match the language's, then we run
-            // into problems because we told MLT and libc to use a different numeric
-            // locale than actually in use by Qt because it is unable to give numeric
-            // locale as a set of ISO-639 codes.
-            QLocale::setDefault(localeByName);
-            qputenv("LANG", QLocale().name().toUtf8());
-        }
-    }
-    removeMacosTabBar();
+		QLocale localeByName(QLocale(QLocale().language(), QLocale().script(), QLocale().territory()));
+		if (QLocale().decimalPoint() != localeByName.decimalPoint()) {
+			// If region's numeric format does not match the language's, then we run
+			// into problems because we told MLT and libc to use a different numeric
+			// locale than actually in use by Qt because it is unable to give numeric
+			// locale as a set of ISO-639 codes.
+			QLocale::setDefault(localeByName);
+			qputenv("LANG", QLocale().name().toUtf8());
+		}
+	}
+	removeMacosTabBar();
 #endif
 
 #if defined(Q_OS_WIN)
-    // Windows can use Direct3D or OpenGL
+	// Windows can use Direct3D or OpenGL
 #elif defined(Q_OS_MAC)
-    QQuickWindow::setGraphicsApi(QSGRendererInterface::Metal);
-    QCoreApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
+	QQuickWindow::setGraphicsApi(QSGRendererInterface::Metal);
+	QCoreApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
 #else
-    QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);
-    QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
-    QCoreApplication::setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
+	QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);
+	QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
+	QCoreApplication::setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
 #endif
 
-    Application a(argc, argv);
-    int result = EXIT_SUCCESS;
+	Application a(argc, argv);
+	int         result = EXIT_SUCCESS;
 #ifdef Q_OS_WIN
-    if (::qEnvironmentVariableIsSet("QSG_RHI_BACKEND")) {
+	if (::qEnvironmentVariableIsSet("QSG_RHI_BACKEND")) {
 #endif
-        QSplashScreen splash(QPixmap(":/icons/shotcut-logo-320x320.png"));
+		QSplashScreen splash(QPixmap(":/icons/shotcut-logo-320x320.png"));
 
-        // Log some basic info.
-        LOG_INFO() << "Starting Shotcut version" << SHOTCUT_VERSION;
+		// Log some basic info.
+		LOG_INFO() << "Starting Shotcut version" << SHOTCUT_VERSION;
 #if defined(Q_OS_WIN)
-        LOG_INFO() << "Windows version" << QSysInfo::productVersion();
+		LOG_INFO() << "Windows version" << QSysInfo::productVersion();
 #elif defined(Q_OS_MAC)
-    LOG_INFO() << "macOS version" << QSysInfo::productVersion();
+	LOG_INFO() << "macOS version" << QSysInfo::productVersion();
 #else
-    LOG_INFO() << "Linux version" << QSysInfo::productVersion();
-    ;
+	LOG_INFO() << "Linux version" << QSysInfo::productVersion();
+	;
 #endif
-        LOG_INFO() << "number of logical cores =" << QThread::idealThreadCount();
-        LOG_INFO() << "locale =" << QLocale();
-        LOG_INFO() << "install dir =" << a.applicationDirPath();
-        Settings.log();
+		LOG_INFO() << "number of logical cores =" << QThread::idealThreadCount();
+		LOG_INFO() << "locale =" << QLocale();
+		LOG_INFO() << "install dir =" << a.applicationDirPath();
+		Settings.log();
 
-        // Expire old items from the qmlcache
-        splash.showMessage(QCoreApplication::translate("main", "Expiring cache..."),
-                           Qt::AlignRight | Qt::AlignVCenter);
-        splash.show();
-        a.processEvents();
-        auto dir = QDir(
-            QStandardPaths::standardLocations(QStandardPaths::CacheLocation).constFirst());
-        if (dir.exists() && dir.cd("qmlcache")) {
-            auto ls = dir.entryList(QDir::Files | QDir::Readable | QDir::NoDotAndDotDot, QDir::Time);
-            if (qMax(0, ls.size() - kMaxCacheCount) > 0) {
-                LOG_INFO() << "removing" << qMax(0, ls.size() - kMaxCacheCount) << "from"
-                           << dir.path();
-            }
-            for (int i = kMaxCacheCount; i < ls.size(); i++) {
-                QString filePath = dir.filePath(ls[i]);
-                if (!QFile::remove(filePath)) {
-                    LOG_WARNING() << "failed to delete" << filePath;
-                }
-                if (i % 1000 == 0) {
-                    a.processEvents();
-                }
-            }
-        }
+		// Expire old items from the qmlcache
+		splash.showMessage(QCoreApplication::translate("main", "Expiring cache..."), Qt::AlignRight | Qt::AlignVCenter);
+		splash.show();
+		a.processEvents();
+		auto dir = QDir(QStandardPaths::standardLocations(QStandardPaths::CacheLocation).constFirst());
+		if (dir.exists() && dir.cd("qmlcache")) {
+			auto ls = dir.entryList(QDir::Files | QDir::Readable | QDir::NoDotAndDotDot, QDir::Time);
+			if (qMax(0, ls.size() - kMaxCacheCount) > 0) {
+				LOG_INFO() << "removing" << qMax(0, ls.size() - kMaxCacheCount) << "from" << dir.path();
+			}
+			for (int i = kMaxCacheCount; i < ls.size(); i++) {
+				QString filePath = dir.filePath(ls[i]);
+				if (!QFile::remove(filePath)) {
+					LOG_WARNING() << "failed to delete" << filePath;
+				}
+				if (i % 1000 == 0) {
+					a.processEvents();
+				}
+			}
+		}
 
-        splash.showMessage(QCoreApplication::translate("main", "Loading plugins..."),
-                           Qt::AlignRight | Qt::AlignVCenter);
-        a.processEvents();
+		splash.showMessage(QCoreApplication::translate("main", "Loading plugins..."),
+		                   Qt::AlignRight | Qt::AlignVCenter);
+		a.processEvents();
 
-        a.setProperty("system-style", a.style()->objectName());
-        MainWindow::changeTheme(Settings.theme());
-        QQuickStyle::setStyle("Fusion");
+		a.setProperty("system-style", a.style()->objectName());
+		MainWindow::changeTheme(Settings.theme());
+		QQuickStyle::setStyle("Fusion");
 
-        a.mainWindow = &MAIN;
-        if (!a.appDirArg.isEmpty())
-            a.mainWindow->hideSetDataDirectory();
+		a.mainWindow = &MAIN;
+		if (!a.appDirArg.isEmpty())
+			a.mainWindow->hideSetDataDirectory();
 #if defined(Q_OS_WIN) || defined(Q_OS_MAC)
-        a.mainWindow->setProperty("windowOpacity", 0.0);
+		a.mainWindow->setProperty("windowOpacity", 0.0);
 #endif
-        a.mainWindow->show();
-        a.processEvents();
-        a.mainWindow->setFullScreen(a.isFullScreen);
-        splash.finish(a.mainWindow);
+		a.mainWindow->show();
+		a.processEvents();
+		a.mainWindow->setFullScreen(a.isFullScreen);
+		splash.finish(a.mainWindow);
 
-        if (!a.resourceArg.isEmpty()) {
-            QStringList ls;
-            for (auto &s : a.resourceArg)
-                ls << QFileInfo(QDir::currentPath(), s).filePath();
-            a.mainWindow->openMultiple(ls);
-        } else {
-            a.mainWindow->open(a.mainWindow->untitledFileName());
-        }
+		if (!a.resourceArg.isEmpty()) {
+			QStringList ls;
+			for (auto& s : a.resourceArg)
+				ls << QFileInfo(QDir::currentPath(), s).filePath();
+			a.mainWindow->openMultiple(ls);
+		} else {
+			a.mainWindow->open(a.mainWindow->untitledFileName());
+		}
 
-        result = a.exec();
+		result = a.exec();
 
-        if (EXIT_RESTART == result || EXIT_RESET == result) {
-            LOG_DEBUG() << "restarting app";
-            ::qunsetenv("QT_QUICK_CONTROLS_CONF"); // See MainWindow::changeTheme()
+		if (EXIT_RESTART == result || EXIT_RESET == result) {
+			LOG_DEBUG() << "restarting app";
+			::qunsetenv("QT_QUICK_CONTROLS_CONF"); // See MainWindow::changeTheme()
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
-            ::qputenv("LIBGL_ALWAYS_SOFTWARE",
-                      Settings.drawMethod() == Qt::AA_UseSoftwareOpenGL && !Settings.playerGPU()
-                          ? "1"
-                          : "0");
+			::qputenv("LIBGL_ALWAYS_SOFTWARE",
+			          Settings.drawMethod() == Qt::AA_UseSoftwareOpenGL && !Settings.playerGPU() ? "1" : "0");
 #endif
-            QProcess *restart = new QProcess;
-            QStringList args = a.arguments();
-            if (!args.isEmpty())
-                args.removeFirst();
-            restart->start(a.applicationFilePath(), args, QIODevice::NotOpen);
-            result = EXIT_SUCCESS;
-        }
+			QProcess*   restart = new QProcess;
+			QStringList args    = a.arguments();
+			if (!args.isEmpty())
+				args.removeFirst();
+			restart->start(a.applicationFilePath(), args, QIODevice::NotOpen);
+			result = EXIT_SUCCESS;
+		}
 
 #ifdef Q_OS_WIN
-    } else { // if (::qEnvironmentVariableIsSet("QSG_RHI_BACKEND"))
-        // Run as a parent process to check if the child crashes on startup
-        QProcess *child = new QProcess;
-        QStringList args = a.arguments();
-        if (!args.isEmpty())
-            args.removeFirst();
-        ::qputenv("QSG_RHI_BACKEND", "d3d11");
-        child->start(a.applicationFilePath(), args, QIODevice::NotOpen);
-        child->waitForFinished();
-        if (QProcess::CrashExit == child->exitStatus() || child->exitCode()) {
-            LOG_WARNING() << "child process failed, restarting in OpenGL mode";
-            ::qputenv("QSG_RHI_BACKEND", "opengl");
-            child->start(a.applicationFilePath(), args, QIODevice::NotOpen);
-        }
-    }
+	} else { // if (::qEnvironmentVariableIsSet("QSG_RHI_BACKEND"))
+		// Run as a parent process to check if the child crashes on startup
+		QProcess*   child = new QProcess;
+		QStringList args  = a.arguments();
+		if (!args.isEmpty())
+			args.removeFirst();
+		::qputenv("QSG_RHI_BACKEND", "d3d11");
+		child->start(a.applicationFilePath(), args, QIODevice::NotOpen);
+		child->waitForFinished();
+		if (QProcess::CrashExit == child->exitStatus() || child->exitCode()) {
+			LOG_WARNING() << "child process failed, restarting in OpenGL mode";
+			::qputenv("QSG_RHI_BACKEND", "opengl");
+			child->start(a.applicationFilePath(), args, QIODevice::NotOpen);
+		}
+	}
 #endif
 
-    return result;
+	return result;
 }

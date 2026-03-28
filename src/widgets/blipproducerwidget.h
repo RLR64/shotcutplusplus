@@ -26,30 +26,29 @@ namespace Ui {
 class BlipProducerWidget;
 }
 
-class BlipProducerWidget : public QWidget, public AbstractProducerWidget
-{
-    Q_OBJECT
+class BlipProducerWidget : public QWidget, public AbstractProducerWidget {
+	Q_OBJECT
 
-public:
-    explicit BlipProducerWidget(QWidget *parent = 0);
-    ~BlipProducerWidget();
+  public:
+	explicit BlipProducerWidget(QWidget* parent = 0);
+	~BlipProducerWidget();
 
-    // AbstractProducerWidget overrides
-    Mlt::Producer *newProducer(Mlt::Profile &);
-    Mlt::Properties getPreset() const;
-    void loadPreset(Mlt::Properties &);
+	// AbstractProducerWidget overrides
+	Mlt::Producer*  newProducer(Mlt::Profile&);
+	Mlt::Properties getPreset() const;
+	void            loadPreset(Mlt::Properties&);
 
-signals:
-    void producerChanged(Mlt::Producer *);
+  signals:
+	void producerChanged(Mlt::Producer*);
 
-private slots:
-    void on_periodSpinBox_valueChanged(int);
-    void on_preset_selected(void *p);
-    void on_preset_saveClicked();
+  private slots:
+	void on_periodSpinBox_valueChanged(int);
+	void on_preset_selected(void* p);
+	void on_preset_saveClicked();
 
-private:
-    QString detail() const;
-    Ui::BlipProducerWidget *ui;
+  private:
+	QString                 detail() const;
+	Ui::BlipProducerWidget* ui;
 };
 
 #endif // BLIPPRODUCERWIDGET_H

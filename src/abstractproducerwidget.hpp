@@ -23,24 +23,29 @@
 
 class QWidget;
 
-class AbstractProducerWidget
-{
-public:
-    AbstractProducerWidget();
-    virtual ~AbstractProducerWidget();
-    virtual Mlt::Producer *newProducer(Mlt::Profile &) = 0;
-    virtual void setProducer(Mlt::Producer *);
-    virtual Mlt::Properties getPreset() const
-    {
-        Mlt::Properties p;
-        return p;
-    }
-    virtual void loadPreset(Mlt::Properties &) {}
-    Mlt::Producer *producer() const { return m_producer.data(); }
-    static bool isDevice(const QWidget *widget);
+class AbstractProducerWidget {
+  public:
+	AbstractProducerWidget();
+	virtual ~AbstractProducerWidget();
+	virtual Mlt::Producer* newProducer(Mlt::Profile&) = 0;
+	virtual void           setProducer(Mlt::Producer*);
 
-protected:
-    QScopedPointer<Mlt::Producer> m_producer;
+	virtual Mlt::Properties getPreset() const {
+		Mlt::Properties p;
+		return p;
+	}
+
+	virtual void loadPreset(Mlt::Properties&) {
+	}
+
+	Mlt::Producer* producer() const {
+		return m_producer.data();
+	}
+
+	static bool isDevice(const QWidget* widget);
+
+  protected:
+	QScopedPointer<Mlt::Producer> m_producer;
 };
 
 #endif // ABSTRACTPRODUCERWIDGET_HPP

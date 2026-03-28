@@ -15,41 +15,39 @@
 #define FILEAPPENDER_HPP
 
 // Logger
-#include "CuteLogger_global.hpp"
 #include "AbstractStringAppender.hpp"
+#include "CuteLogger_global.hpp"
 
 // Qt
 #include <QFile>
 #include <QTextStream>
 
-
-class CUTELOGGERSHARED_EXPORT FileAppender : public AbstractStringAppender
-{
+class CUTELOGGERSHARED_EXPORT FileAppender : public AbstractStringAppender {
   public:
-    FileAppender(const QString& fileName = QString());
-    ~FileAppender();
+	FileAppender(const QString& fileName = QString());
+	~FileAppender();
 
-    QString fileName() const;
-    void setFileName(const QString&);
+	QString fileName() const;
+	void    setFileName(const QString&);
 
-    bool flushOnWrite() const;
-    void setFlushOnWrite(bool);
+	bool flushOnWrite() const;
+	void setFlushOnWrite(bool);
 
-    bool flush();
+	bool flush();
 
-    bool reopenFile();
+	bool reopenFile();
 
   protected:
-    virtual void append(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file, int line,
-                        const char* function, const QString& category, const QString& message);
-    bool openFile();
-    void closeFile();
+	virtual void append(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file, int line,
+	                    const char* function, const QString& category, const QString& message);
+	bool         openFile();
+	void         closeFile();
 
   private:
-    QFile m_logFile;
-    bool m_flushOnWrite;
-    QTextStream m_logStream;
-    mutable QMutex m_logFileMutex;
+	QFile          m_logFile;
+	bool           m_flushOnWrite;
+	QTextStream    m_logStream;
+	mutable QMutex m_logFileMutex;
 };
 
 #endif // FILEAPPENDER_HPP

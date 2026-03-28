@@ -16,8 +16,9 @@
  */
 
 #include "textviewerdialog.hpp"
-#include "ui_textviewerdialog.h"
+
 #include "settings.hpp"
+#include "ui_textviewerdialog.h"
 #include "util.hpp"
 
 #include <QClipboard>
@@ -25,65 +26,52 @@
 #include <QPushButton>
 #include <QScrollBar>
 
-TextViewerDialog::TextViewerDialog(QWidget *parent, bool forMltXml)
-    : QDialog(parent)
-    , ui(new Ui::TextViewerDialog)
-    , m_forMltXml(forMltXml)
-{
-    ui->setupUi(this);
-    auto button = ui->buttonBox->addButton(tr("Copy"), QDialogButtonBox::ActionRole);
-    connect(button, &QAbstractButton::clicked, this, [&]() {
-        QGuiApplication::clipboard()->setText(ui->plainTextEdit->toPlainText());
-    });
+TextViewerDialog::TextViewerDialog(QWidget* parent, bool forMltXml)
+    : QDialog(parent), ui(new Ui::TextViewerDialog), m_forMltXml(forMltXml) {
+	ui->setupUi(this);
+	auto button = ui->buttonBox->addButton(tr("Copy"), QDialogButtonBox::ActionRole);
+	connect(button, &QAbstractButton::clicked, this,
+	        [&]() { QGuiApplication::clipboard()->setText(ui->plainTextEdit->toPlainText()); });
 }
 
-TextViewerDialog::~TextViewerDialog()
-{
-    delete ui;
+TextViewerDialog::~TextViewerDialog() {
+	delete ui;
 }
 
-void TextViewerDialog::setText(const QString &s, bool scroll)
-{
-    if (s != ui->plainTextEdit->toPlainText()) {
-        ui->plainTextEdit->setPlainText(s);
-        if (scroll)
-            ui->plainTextEdit->verticalScrollBar()->setValue(
-                ui->plainTextEdit->verticalScrollBar()->maximum());
-    }
+void TextViewerDialog::setText(const QString& s, bool scroll) {
+	if (s != ui->plainTextEdit->toPlainText()) {
+		ui->plainTextEdit->setPlainText(s);
+		if (scroll)
+			ui->plainTextEdit->verticalScrollBar()->setValue(ui->plainTextEdit->verticalScrollBar()->maximum());
+	}
 }
 
-QDialogButtonBox *TextViewerDialog::buttonBox() const
-{
-    return ui->buttonBox;
+QDialogButtonBox* TextViewerDialog::buttonBox() const {
+	return ui->buttonBox;
 }
 
-void TextViewerDialog::on_buttonBox_accepted()
-{
-    QString path = Settings.savePath();
-    QString caption = tr("Save Text");
-    QString nameFilter = tr("Text Documents (*.txt);;All Files (*)");
-    if (m_forMltXml) {
-        nameFilter = tr("MLT XML (*.mlt);;All Files (*)");
-    }
-    QString filename = QFileDialog::getSaveFileName(this,
-                                                    caption,
-                                                    path,
-                                                    nameFilter,
-                                                    nullptr,
-                                                    Util::getFileDialogOptions());
-    if (!filename.isEmpty()) {
-        QFileInfo fi(filename);
-        if (fi.suffix().isEmpty()) {
-            if (m_forMltXml)
-                filename += ".mlt";
-            else
-                filename += ".txt";
-        }
-        if (Util::warnIfNotWritable(filename, this, caption))
-            return;
-        QFile f(filename);
-        f.open(QIODevice::WriteOnly | QIODevice::Text);
-        f.write(ui->plainTextEdit->toPlainText().toUtf8());
-        f.close();
-    }
+void TextViewerDialog::on_buttonBox_accepted() {
+	QString path       = Settings.savePath();
+	QString caption    = tr("Save Text");
+	QString nameFilter = tr("Text Documents (*.txt);;All Files (*)");
+	if (m_forMltXml) {
+		nameFilter = tr("MLT XML (*.mlt);;All Files (*)");
+	}
+	QString filename =
+	    QFileDialog::getSaveFileName(this, caption, path, nameFilter, nullptr, Util::getFileDialogOptions());
+	if (!filename.isEmpty()) {
+		QFileInfo fi(filename);
+		if (fi.suffix().isEmpty()) {
+			if (m_forMltXml)
+				filename += ".mlt";
+			else
+				filename += ".txt";
+		}
+		if (Util::warnIfNotWritable(filename, this, caption))
+			return;
+		QFile f(filename);
+		f.open(QIODevice::WriteOnly | QIODevice::Text);
+		f.write(ui->plainTextEdit->toPlainText().toUtf8());
+		f.close();
+	}
 }

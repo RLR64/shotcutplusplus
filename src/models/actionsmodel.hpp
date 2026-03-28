@@ -22,44 +22,43 @@
 
 class QAction;
 
-class ActionsModel : public QAbstractItemModel
-{
-    Q_OBJECT
+class ActionsModel : public QAbstractItemModel {
+	Q_OBJECT
 
-public:
-    enum Columns {
+  public:
+	enum Columns {
 
-        COLUMN_ACTION = 0,
-        COLUMN_SEQUENCE1,
-        COLUMN_SEQUENCE2,
-        COLUMN_COUNT
-    };
-    enum {
-        HardKeyRole = Qt::UserRole,
-        DefaultKeyRole,
-    };
-    explicit ActionsModel(QObject *parent = 0);
-    QAction *action(const QModelIndex &index) const;
+		COLUMN_ACTION = 0,
+		COLUMN_SEQUENCE1,
+		COLUMN_SEQUENCE2,
+		COLUMN_COUNT
+	};
 
-signals:
-    void editError(const QString &error);
+	enum {
+		HardKeyRole = Qt::UserRole,
+		DefaultKeyRole,
+	};
 
-protected:
-    // Implement QAbstractItemModel
-    int rowCount(const QModelIndex &parent) const override;
-    int columnCount(const QModelIndex &parent) const override;
-    QVariant data(const QModelIndex &index, int role) const override;
-    bool setData(const QModelIndex &index, const QVariant &value, int role) override;
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
-    QModelIndex index(int row,
-                      int column = 0,
-                      const QModelIndex &parent = QModelIndex()) const override;
-    QModelIndex parent(const QModelIndex &index) const override;
-    Qt::ItemFlags flags(const QModelIndex &index) const override;
-    QHash<int, QByteArray> roleNames() const override;
+	explicit ActionsModel(QObject* parent = 0);
+	QAction* action(const QModelIndex& index) const;
 
-private:
-    QList<QAction *> m_actions;
+  signals:
+	void editError(const QString& error);
+
+  protected:
+	// Implement QAbstractItemModel
+	int                    rowCount(const QModelIndex& parent) const override;
+	int                    columnCount(const QModelIndex& parent) const override;
+	QVariant               data(const QModelIndex& index, int role) const override;
+	bool                   setData(const QModelIndex& index, const QVariant& value, int role) override;
+	QVariant               headerData(int section, Qt::Orientation orientation, int role) const override;
+	QModelIndex            index(int row, int column = 0, const QModelIndex& parent = QModelIndex()) const override;
+	QModelIndex            parent(const QModelIndex& index) const override;
+	Qt::ItemFlags          flags(const QModelIndex& index) const override;
+	QHash<int, QByteArray> roleNames() const override;
+
+  private:
+	QList<QAction*> m_actions;
 };
 
 #endif // ACTIONSMODEL_HPP

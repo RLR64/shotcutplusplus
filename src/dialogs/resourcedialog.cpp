@@ -16,6 +16,7 @@
  */
 
 #include "resourcedialog.hpp"
+
 #include "Logger.hpp"
 #include "mltcontroller.hpp"
 #include "qmltypes/qmlapplication.hpp"
@@ -28,93 +29,80 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
-ResourceDialog::ResourceDialog(QWidget *parent)
-    : QDialog(parent)
-{
-    setWindowTitle(tr("Resources"));
-    setSizeGripEnabled(true);
+ResourceDialog::ResourceDialog(QWidget* parent) : QDialog(parent) {
+	setWindowTitle(tr("Resources"));
+	setSizeGripEnabled(true);
 
-    QVBoxLayout *vlayout = new QVBoxLayout();
-    m_resourceWidget = new ResourceWidget(this);
-    vlayout->addWidget(m_resourceWidget);
+	QVBoxLayout* vlayout = new QVBoxLayout();
+	m_resourceWidget     = new ResourceWidget(this);
+	vlayout->addWidget(m_resourceWidget);
 
-    // Button Box
-    QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Close);
-    buttonBox->button(QDialogButtonBox::Close)->setAutoDefault(false);
-    connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
-    // Convert button
-    QPushButton *convertButton = buttonBox->addButton(tr("Convert Selected"),
-                                                      QDialogButtonBox::ActionRole);
-    connect(convertButton, SIGNAL(pressed()), this, SLOT(convert()));
-    vlayout->addWidget(buttonBox);
+	// Button Box
+	QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Close);
+	buttonBox->button(QDialogButtonBox::Close)->setAutoDefault(false);
+	connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
+	// Convert button
+	QPushButton* convertButton = buttonBox->addButton(tr("Convert Selected"), QDialogButtonBox::ActionRole);
+	connect(convertButton, SIGNAL(pressed()), this, SLOT(convert()));
+	vlayout->addWidget(buttonBox);
 
-    setLayout(vlayout);
+	setLayout(vlayout);
 }
 
-void ResourceDialog::search(Mlt::Producer *producer)
-{
-    m_resourceWidget->search(producer);
+void ResourceDialog::search(Mlt::Producer* producer) {
+	m_resourceWidget->search(producer);
 }
 
-void ResourceDialog::add(Mlt::Producer *producer)
-{
-    m_resourceWidget->add(producer);
+void ResourceDialog::add(Mlt::Producer* producer) {
+	m_resourceWidget->add(producer);
 }
 
-void ResourceDialog::selectTroubleClips()
-{
-    m_resourceWidget->selectTroubleClips();
+void ResourceDialog::selectTroubleClips() {
+	m_resourceWidget->selectTroubleClips();
 }
 
-bool ResourceDialog::hasTroubleClips()
-{
-    return m_resourceWidget->hasTroubleClips();
+bool ResourceDialog::hasTroubleClips() {
+	return m_resourceWidget->hasTroubleClips();
 }
 
-int ResourceDialog::producerCount()
-{
-    return m_resourceWidget->producerCount();
+int ResourceDialog::producerCount() {
+	return m_resourceWidget->producerCount();
 }
 
-Mlt::Producer ResourceDialog::producer(int index)
-{
-    return m_resourceWidget->producer(index);
+Mlt::Producer ResourceDialog::producer(int index) {
+	return m_resourceWidget->producer(index);
 }
 
-void ResourceDialog::convert()
-{
-    QList<Mlt::Producer> producers(m_resourceWidget->getSelected());
+void ResourceDialog::convert() {
+	QList<Mlt::Producer> producers(m_resourceWidget->getSelected());
 
-    // Only convert avformat producers
-    QMutableListIterator<Mlt::Producer> i(producers);
-    while (i.hasNext()) {
-        Mlt::Producer producer = i.next();
-        if (!QString(producer.get("mlt_service")).startsWith("avformat"))
-            i.remove();
-    }
+	// Only convert avformat producers
+	QMutableListIterator<Mlt::Producer> i(producers);
+	while (i.hasNext()) {
+		Mlt::Producer producer = i.next();
+		if (!QString(producer.get("mlt_service")).startsWith("avformat"))
+			i.remove();
+	}
 
-    if (producers.length() < 1) {
-        QMessageBox::warning(this, windowTitle(), tr("No resources to convert"));
-        return;
-    }
+	if (producers.length() < 1) {
+		QMessageBox::warning(this, windowTitle(), tr("No resources to convert"));
+		return;
+	}
 
-    TranscodeDialog
-        dialog(tr("Choose an edit-friendly format below and then click OK to choose a file name. "
-                  "After choosing a file name, a job is created. "
-                  "When it is done, double-click the job to open it.\n"),
-               MLT.profile().progressive(),
-               this);
-    dialog.setWindowTitle(tr("Convert..."));
-    dialog.setWindowModality(QmlApplication::dialogModality());
-    Transcoder transcoder;
-    transcoder.setProducers(producers);
-    transcoder.convert(dialog);
-    accept();
+	TranscodeDialog dialog(tr("Choose an edit-friendly format below and then click OK to choose a file name. "
+	                          "After choosing a file name, a job is created. "
+	                          "When it is done, double-click the job to open it.\n"),
+	                       MLT.profile().progressive(), this);
+	dialog.setWindowTitle(tr("Convert..."));
+	dialog.setWindowModality(QmlApplication::dialogModality());
+	Transcoder transcoder;
+	transcoder.setProducers(producers);
+	transcoder.convert(dialog);
+	accept();
 }
 
-void ResourceDialog::showEvent(QShowEvent *event)
-{
-    m_resourceWidget->updateSize();
-    resize(m_resourceWidget->width() + 4, m_resourceWidget->height());
-    QDialog::showEvent(event);
+void ResourceDialog::showEvent(QShowEvent* event) {
+	m_resourceWidget->updateSize();
+	resize(m_resourceWidget->width() + 4, m_resourceWidget->height());
+	QDialog::showEvent(event);
 }

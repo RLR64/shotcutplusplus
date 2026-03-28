@@ -20,22 +20,18 @@
 
 #include "meltjob.hpp"
 
-class VideoQualityJob : public MeltJob
-{
-    Q_OBJECT
-public:
-    VideoQualityJob(const QString &name,
-                    const QString &xml,
-                    const QString &reportPath,
-                    int frameRateNum,
-                    int frameRateDen);
+class VideoQualityJob : public MeltJob {
+	Q_OBJECT
+  public:
+	VideoQualityJob(const QString& name, const QString& xml, const QString& reportPath, int frameRateNum,
+	                int frameRateDen);
 
-private slots:
-    void onOpenTiggered();
-    void onViewReportTriggered();
+  private slots:
+	void onOpenTiggered();
+	void onViewReportTriggered();
 
-private:
-    QString m_reportPath;
+  private:
+	QString m_reportPath;
 };
 
 #endif // VIDEOQUALITYJOB_HPP

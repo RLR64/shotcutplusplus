@@ -335,7 +335,7 @@ if(WIN32)
   install(DIRECTORY ${CMAKE_SOURCE_DIR}/filter-sets DESTINATION ${CMAKE_INSTALL_PREFIX}/share/shotcut/)
   install(DIRECTORY ${CMAKE_SOURCE_DIR}/voices DESTINATION ${CMAKE_INSTALL_PREFIX}/share/shotcut/)
 else()
-    target_sources(shotcut PRIVATE widgets/openglvideowidget.h widgets/openglvideowidget.cpp)
+    target_sources(shotcut PRIVATE widgets/openglvideowidget.cpp widgets/openglvideowidget.h)
 endif()
 
 if(APPLE)

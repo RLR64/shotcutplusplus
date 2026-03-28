@@ -20,12 +20,11 @@
 
 #include <QTreeView>
 
-class ExportPresetsTreeView : public QTreeView
-{
-public:
-    ExportPresetsTreeView(QWidget *parent = nullptr);
-protected slots:
-    void currentChanged(const QModelIndex &current, const QModelIndex &previous);
+class ExportPresetsTreeView : public QTreeView {
+  public:
+	ExportPresetsTreeView(QWidget* parent = nullptr);
+  protected slots:
+	void currentChanged(const QModelIndex& current, const QModelIndex& previous);
 };
 
 #endif // EXPORTPRESETSTREEVIEW_H

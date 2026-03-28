@@ -18,6 +18,7 @@
  */
 
 #include "colorpickeritem.hpp"
+
 #include "Logger.hpp"
 
 #include <QApplication>
@@ -26,6 +27,7 @@
 #include <QScreen>
 #include <QTimer>
 
+// clang-format off
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
 #include <QDBusConnection>
 #include <QDBusMessage>
@@ -35,118 +37,106 @@
 #include <QDBusPendingCallWatcher>
 #include <QDBusPendingReply>
 #endif
+// clang-format on
 
-ColorPickerItem::ColorPickerItem(QObject *parent)
-    : QObject(parent)
-{
+ColorPickerItem::ColorPickerItem(QObject* parent) : QObject(parent) {
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
-    qDBusRegisterMetaType<QColor>();
+	qDBusRegisterMetaType<QColor>();
 #endif
 
-    connect(this, &ColorPickerItem::pickColor, &m_selector, &ScreenSelector::startSelection);
-    connect(&m_selector, &ScreenSelector::screenSelected, this, &ColorPickerItem::screenSelected);
-    connect(&m_selector, &ScreenSelector::cancelled, this, &ColorPickerItem::cancelled);
+	connect(this, &ColorPickerItem::pickColor, &m_selector, &ScreenSelector::startSelection);
+	connect(&m_selector, &ScreenSelector::screenSelected, this, &ColorPickerItem::screenSelected);
+	connect(&m_selector, &ScreenSelector::cancelled, this, &ColorPickerItem::cancelled);
 }
 
-void ColorPickerItem::screenSelected(const QRect &rect)
-{
-    m_selectedRect = rect;
+void ColorPickerItem::screenSelected(const QRect& rect) {
+	m_selectedRect = rect;
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
-    if (m_selector.useDBus())
-        QTimer::singleShot(0, this, &ColorPickerItem::grabColorDBus);
-    else
+	if (m_selector.useDBus())
+		QTimer::singleShot(0, this, &ColorPickerItem::grabColorDBus);
+	else
 #endif
-        // Give the frame buffer time to clear the selector window before
-        // grabbing the color.
-        QTimer::singleShot(200, this, &ColorPickerItem::grabColor);
+		// Give the frame buffer time to clear the selector window before
+		// grabbing the color.
+		QTimer::singleShot(200, this, &ColorPickerItem::grabColor);
 }
 
-void ColorPickerItem::grabColor()
-{
-    QScreen *screen = QGuiApplication::screenAt(m_selectedRect.topLeft());
-    QPixmap screenGrab = screen->grabWindow(0,
-                                            m_selectedRect.x() - screen->geometry().x(),
-                                            m_selectedRect.y() - screen->geometry().y(),
-                                            m_selectedRect.width(),
-                                            m_selectedRect.height());
-    QImage image = screenGrab.toImage();
-    int numPixel = qMax(image.width() * image.height(), 1);
-    int sumR = 0;
-    int sumG = 0;
-    int sumB = 0;
+void ColorPickerItem::grabColor() {
+	QScreen* screen = QGuiApplication::screenAt(m_selectedRect.topLeft());
+	QPixmap  screenGrab =
+	    screen->grabWindow(0, m_selectedRect.x() - screen->geometry().x(), m_selectedRect.y() - screen->geometry().y(),
+	                       m_selectedRect.width(), m_selectedRect.height());
+	QImage image    = screenGrab.toImage();
+	int    numPixel = qMax(image.width() * image.height(), 1);
+	int    sumR     = 0;
+	int    sumG     = 0;
+	int    sumB     = 0;
 
-    for (int x = 0; x < image.width(); ++x) {
-        for (int y = 0; y < image.height(); ++y) {
-            QColor color = image.pixel(x, y);
-            sumR += color.red();
-            sumG += color.green();
-            sumB += color.blue();
-        }
-    }
+	for (int x = 0; x < image.width(); ++x) {
+		for (int y = 0; y < image.height(); ++y) {
+			QColor color = image.pixel(x, y);
+			sumR += color.red();
+			sumG += color.green();
+			sumB += color.blue();
+		}
+	}
 
-    QColor avgColor(sumR / numPixel, sumG / numPixel, sumB / numPixel);
-    emit colorPicked(avgColor);
+	QColor avgColor(sumR / numPixel, sumG / numPixel, sumB / numPixel);
+	emit   colorPicked(avgColor);
 }
 
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
 
-QDBusArgument &operator<<(QDBusArgument &arg, const QColor &color)
-{
-    arg.beginStructure();
-    arg << color.redF() << color.greenF() << color.blueF();
-    arg.endStructure();
-    return arg;
+QDBusArgument& operator<<(QDBusArgument& arg, const QColor& color) {
+	arg.beginStructure();
+	arg << color.redF() << color.greenF() << color.blueF();
+	arg.endStructure();
+	return arg;
 }
 
-const QDBusArgument &operator>>(const QDBusArgument &arg, QColor &color)
-{
-    double red, green, blue;
-    arg.beginStructure();
-    arg >> red >> green >> blue;
-    color.setRedF(red);
-    color.setGreenF(green);
-    color.setBlueF(blue);
-    arg.endStructure();
+const QDBusArgument& operator>>(const QDBusArgument& arg, QColor& color) {
+	double red, green, blue;
+	arg.beginStructure();
+	arg >> red >> green >> blue;
+	color.setRedF(red);
+	color.setGreenF(green);
+	color.setBlueF(blue);
+	arg.endStructure();
 
-    return arg;
+	return arg;
 }
 
-void ColorPickerItem::grabColorDBus()
-{
-    QDBusMessage message
-        = QDBusMessage::createMethodCall(QLatin1String("org.freedesktop.portal.Desktop"),
-                                         QLatin1String("/org/freedesktop/portal/desktop"),
-                                         QLatin1String("org.freedesktop.portal.Screenshot"),
-                                         QLatin1String("PickColor"));
-    message << QLatin1String("x11:") << QVariantMap{};
-    QDBusPendingCall pendingCall = QDBusConnection::sessionBus().asyncCall(message);
-    QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(pendingCall);
-    connect(watcher, &QDBusPendingCallWatcher::finished, [=](QDBusPendingCallWatcher *watcher) {
-        QDBusPendingReply<QDBusObjectPath> reply = *watcher;
-        if (reply.isError()) {
-            LOG_WARNING() << "Unable to get DBus reply: " << reply.error().message();
-        } else {
-            QDBusConnection::sessionBus().connect(QString(),
-                                                  reply.value().path(),
-                                                  QLatin1String("org.freedesktop.portal.Request"),
-                                                  QLatin1String("Response"),
-                                                  this,
-                                                  SLOT(gotColorResponse(uint, QVariantMap)));
-        }
-    });
+void ColorPickerItem::grabColorDBus() {
+	QDBusMessage message =
+	    QDBusMessage::createMethodCall(QLatin1String("org.freedesktop.portal.Desktop"),
+	                                   QLatin1String("/org/freedesktop/portal/desktop"),
+	                                   QLatin1String("org.freedesktop.portal.Screenshot"), QLatin1String("PickColor"));
+	message << QLatin1String("x11:") << QVariantMap{};
+	QDBusPendingCall         pendingCall = QDBusConnection::sessionBus().asyncCall(message);
+	QDBusPendingCallWatcher* watcher     = new QDBusPendingCallWatcher(pendingCall);
+	connect(watcher, &QDBusPendingCallWatcher::finished, [=](QDBusPendingCallWatcher* watcher) {
+		QDBusPendingReply<QDBusObjectPath> reply = *watcher;
+		if (reply.isError()) {
+			LOG_WARNING() << "Unable to get DBus reply: " << reply.error().message();
+		} else {
+			QDBusConnection::sessionBus().connect(QString(), reply.value().path(),
+			                                      QLatin1String("org.freedesktop.portal.Request"),
+			                                      QLatin1String("Response"), this,
+			                                      SLOT(gotColorResponse(uint, QVariantMap)));
+		}
+	});
 }
 
-void ColorPickerItem::gotColorResponse(uint response, const QVariantMap &results)
-{
-    if (!response) {
-        if (results.contains(QLatin1String("color"))) {
-            const QColor color = qdbus_cast<QColor>(results.value(QLatin1String("color")));
-            LOG_DEBUG() << "picked" << color;
-            emit colorPicked(color);
-        }
-    } else {
-        LOG_WARNING() << "Failed to grab screen" << response << results;
-    }
+void ColorPickerItem::gotColorResponse(uint response, const QVariantMap& results) {
+	if (!response) {
+		if (results.contains(QLatin1String("color"))) {
+			const QColor color = qdbus_cast<QColor>(results.value(QLatin1String("color")));
+			LOG_DEBUG() << "picked" << color;
+			emit colorPicked(color);
+		}
+	} else {
+		LOG_WARNING() << "Failed to grab screen" << response << results;
+	}
 }
 
 #endif

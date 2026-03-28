@@ -26,32 +26,31 @@
 class QAction;
 class QMenu;
 
-class ShotcutActions : public QObject
-{
-    Q_OBJECT
+class ShotcutActions : public QObject {
+	Q_OBJECT
 
-public:
-    static const char *hardKeyProperty;
-    static const char *displayProperty;
-    static const char *defaultKey1Property;
-    static const char *defaultKey2Property;
-    static const char *defaultToolTipProperty;
+  public:
+	static const char* hardKeyProperty;
+	static const char* displayProperty;
+	static const char* defaultKey1Property;
+	static const char* defaultKey2Property;
+	static const char* defaultToolTipProperty;
 
-    static ShotcutActions &singleton();
-    explicit ShotcutActions()
-        : QObject()
-    {}
+	static ShotcutActions& singleton();
 
-    void add(const QString &name, QAction *action, QString group = "");
-    void loadFromMenu(QMenu *menu, const QString group = "");
-    QAction *operator[](const QString &key);
-    QList<QString> keys();
-    void overrideShortcuts(const QString &key, QList<QKeySequence> shortcuts);
-    void initializeShortcuts();
+	explicit ShotcutActions() : QObject() {
+	}
 
-private:
-    void addShortcutToToolTip(QAction *action);
-    QHash<QString, QAction *> m_actions;
+	void           add(const QString& name, QAction* action, QString group = "");
+	void           loadFromMenu(QMenu* menu, const QString group = "");
+	QAction*       operator[](const QString& key);
+	QList<QString> keys();
+	void           overrideShortcuts(const QString& key, QList<QKeySequence> shortcuts);
+	void           initializeShortcuts();
+
+  private:
+	void                     addShortcutToToolTip(QAction* action);
+	QHash<QString, QAction*> m_actions;
 };
 
 #endif // ACTIONS_HPP

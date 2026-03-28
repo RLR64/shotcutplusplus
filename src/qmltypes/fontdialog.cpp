@@ -19,29 +19,26 @@
 
 #include <QFontDialog>
 
-FontDialog::FontDialog(QObject *parent)
-    : QObject{parent}
-{}
-
-void FontDialog::open()
-{
-    QFontDialog dialog(m_font);
-    dialog.setModal(true);
-#if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
-    dialog.setOption(QFontDialog::DontUseNativeDialog);
-#endif
-    if (dialog.exec() == QDialog::Accepted) {
-        setSelectedFont(dialog.currentFont());
-        emit accepted();
-    } else {
-        emit rejected();
-    }
+FontDialog::FontDialog(QObject* parent) : QObject{parent} {
 }
 
-void FontDialog::setSelectedFont(const QFont &font)
-{
-    if (font != m_font) {
-        m_font = font;
-        emit selectedFontChanged(font);
-    }
+void FontDialog::open() {
+	QFontDialog dialog(m_font);
+	dialog.setModal(true);
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
+	dialog.setOption(QFontDialog::DontUseNativeDialog);
+#endif
+	if (dialog.exec() == QDialog::Accepted) {
+		setSelectedFont(dialog.currentFont());
+		emit accepted();
+	} else {
+		emit rejected();
+	}
+}
+
+void FontDialog::setSelectedFont(const QFont& font) {
+	if (font != m_font) {
+		m_font = font;
+		emit selectedFontChanged(font);
+	}
 }

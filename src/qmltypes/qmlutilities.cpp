@@ -15,11 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "qmltypes/qmlutilities.hpp"
+
 #include "models/keyframesmodel.hpp"
 #include "models/metadatamodel.hpp"
 #include "models/subtitlesmodel.hpp"
 #include "models/subtitlesselectionmodel.hpp"
-#include "qmltypes/qmlutilities.hpp"
 #include "qmltypes/colordialog.hpp"
 #include "qmltypes/colorpickeritem.hpp"
 #include "qmltypes/colorwheelitem.hpp"
@@ -46,75 +47,63 @@
 #include <QSysInfo>
 #include <QtQml>
 
-QmlUtilities::QmlUtilities(QObject *parent)
-    : QObject(parent)
-{}
-
-void QmlUtilities::registerCommonTypes()
-{
-    qmlRegisterType<QmlExtension>("org.shotcut.qml", 1, 0, "Extension");
-    qmlRegisterType<QmlExtensionFile>("org.shotcut.qml", 1, 0, "ExtensionFile");
-    qmlRegisterType<QmlFile>("org.shotcut.qml", 1, 0, "File");
-    qmlRegisterType<QmlFilter>("org.shotcut.qml", 1, 0, "Filter");
-    qmlRegisterType<QmlMetadata>("org.shotcut.qml", 1, 0, "Metadata");
-    qmlRegisterAnonymousType<QmlKeyframesMetadata>("org.shotcut.qml", 1);
-    qmlRegisterType<QmlKeyframesParameter>("org.shotcut.qml", 1, 0, "Parameter");
-    qmlRegisterType<QmlRichText>("org.shotcut.qml", 1, 0, "RichText");
-    qmlRegisterType<KeyframesModel>("org.shotcut.qml", 1, 0, "KeyframesModel");
-    qmlRegisterType<SubtitlesModel>("org.shotcut.qml", 1, 0, "SubtitlesModel");
-    qmlRegisterType<SubtitlesSelectionModel>("org.shotcut.qml", 1, 0, "SubtitlesSelectionModel");
-    qmlRegisterType<QmlUtilities>("org.shotcut.qml", 1, 0, "Utilities");
-    // MetadataModel is registered to access its MetadataFilter enum.
-    qmlRegisterUncreatableType<MetadataModel>("org.shotcut.qml",
-                                              1,
-                                              0,
-                                              "MetadataModel",
-                                              "You cannot create a MetadataModel from QML.");
-    qmlRegisterUncreatableType<ShotcutSettings>("org.shotcut.qml",
-                                                1,
-                                                0,
-                                                "Settings",
-                                                "You cannot create a Settings from QML.");
-    qmlRegisterType<ColorPickerItem>("Shotcut.Controls", 1, 0, "ColorPickerItem");
-    qmlRegisterType<ColorWheelItem>("Shotcut.Controls", 1, 0, "ColorWheelItem");
-    qmlRegisterType<QmlMarkerMenu>("Shotcut.Controls", 1, 0, "MarkerMenu");
-    qmlRegisterType<QmlEditMenu>("Shotcut.Controls", 1, 0, "EditContextMenu");
-    qmlRegisterType<QmlRichTextMenu>("Shotcut.Controls", 1, 0, "RichTextMenu");
-    qmlRegisterType<ColorDialog>("Shotcut.Controls", 1, 0, "ColorDialog");
-    qmlRegisterType<FontDialog>("Shotcut.Controls", 1, 0, "FontDialog");
-    qmlRegisterType<MessageDialog>("Shotcut.Controls", 1, 0, "MessageDialog");
-    qmlRegisterType<FileDialog>("Shotcut.Controls", 1, 0, "FileDialog");
-    registerTimelineItems();
+QmlUtilities::QmlUtilities(QObject* parent) : QObject(parent) {
 }
 
-void QmlUtilities::setCommonProperties(QQmlContext *context)
-{
-    context->setContextProperty("settings", &ShotcutSettings::singleton());
-    context->setContextProperty("application", &QmlApplication::singleton());
-    context->setContextProperty("profile", &QmlProfile::singleton());
+void QmlUtilities::registerCommonTypes() {
+	qmlRegisterType<QmlExtension>("org.shotcut.qml", 1, 0, "Extension");
+	qmlRegisterType<QmlExtensionFile>("org.shotcut.qml", 1, 0, "ExtensionFile");
+	qmlRegisterType<QmlFile>("org.shotcut.qml", 1, 0, "File");
+	qmlRegisterType<QmlFilter>("org.shotcut.qml", 1, 0, "Filter");
+	qmlRegisterType<QmlMetadata>("org.shotcut.qml", 1, 0, "Metadata");
+	qmlRegisterAnonymousType<QmlKeyframesMetadata>("org.shotcut.qml", 1);
+	qmlRegisterType<QmlKeyframesParameter>("org.shotcut.qml", 1, 0, "Parameter");
+	qmlRegisterType<QmlRichText>("org.shotcut.qml", 1, 0, "RichText");
+	qmlRegisterType<KeyframesModel>("org.shotcut.qml", 1, 0, "KeyframesModel");
+	qmlRegisterType<SubtitlesModel>("org.shotcut.qml", 1, 0, "SubtitlesModel");
+	qmlRegisterType<SubtitlesSelectionModel>("org.shotcut.qml", 1, 0, "SubtitlesSelectionModel");
+	qmlRegisterType<QmlUtilities>("org.shotcut.qml", 1, 0, "Utilities");
+	// MetadataModel is registered to access its MetadataFilter enum.
+	qmlRegisterUncreatableType<MetadataModel>("org.shotcut.qml", 1, 0, "MetadataModel",
+	                                          "You cannot create a MetadataModel from QML.");
+	qmlRegisterUncreatableType<ShotcutSettings>("org.shotcut.qml", 1, 0, "Settings",
+	                                            "You cannot create a Settings from QML.");
+	qmlRegisterType<ColorPickerItem>("Shotcut.Controls", 1, 0, "ColorPickerItem");
+	qmlRegisterType<ColorWheelItem>("Shotcut.Controls", 1, 0, "ColorWheelItem");
+	qmlRegisterType<QmlMarkerMenu>("Shotcut.Controls", 1, 0, "MarkerMenu");
+	qmlRegisterType<QmlEditMenu>("Shotcut.Controls", 1, 0, "EditContextMenu");
+	qmlRegisterType<QmlRichTextMenu>("Shotcut.Controls", 1, 0, "RichTextMenu");
+	qmlRegisterType<ColorDialog>("Shotcut.Controls", 1, 0, "ColorDialog");
+	qmlRegisterType<FontDialog>("Shotcut.Controls", 1, 0, "FontDialog");
+	qmlRegisterType<MessageDialog>("Shotcut.Controls", 1, 0, "MessageDialog");
+	qmlRegisterType<FileDialog>("Shotcut.Controls", 1, 0, "FileDialog");
+	registerTimelineItems();
 }
 
-QDir QmlUtilities::qmlDir()
-{
-    QDir dir = QmlApplication::dataDir();
-    dir.cd("shotcut");
-    dir.cd("qml");
-    return dir;
+void QmlUtilities::setCommonProperties(QQmlContext* context) {
+	context->setContextProperty("settings", &ShotcutSettings::singleton());
+	context->setContextProperty("application", &QmlApplication::singleton());
+	context->setContextProperty("profile", &QmlProfile::singleton());
 }
 
-QQmlEngine *QmlUtilities::sharedEngine()
-{
-    static QQmlEngine *s_engine = 0;
-    if (!s_engine)
-        s_engine = new QQmlEngine;
-    return s_engine;
+QDir QmlUtilities::qmlDir() {
+	QDir dir = QmlApplication::dataDir();
+	dir.cd("shotcut");
+	dir.cd("qml");
+	return dir;
 }
 
-QUrl QmlUtilities::blankVui()
-{
-    QDir dir = qmlDir();
-    dir.cd("modules");
-    dir.cd("Shotcut");
-    dir.cd("Controls");
-    return QUrl::fromLocalFile(dir.absoluteFilePath("VuiBase.qml"));
+QQmlEngine* QmlUtilities::sharedEngine() {
+	static QQmlEngine* s_engine = 0;
+	if (!s_engine)
+		s_engine = new QQmlEngine;
+	return s_engine;
+}
+
+QUrl QmlUtilities::blankVui() {
+	QDir dir = qmlDir();
+	dir.cd("modules");
+	dir.cd("Shotcut");
+	dir.cd("Controls");
+	return QUrl::fromLocalFile(dir.absoluteFilePath("VuiBase.qml"));
 }

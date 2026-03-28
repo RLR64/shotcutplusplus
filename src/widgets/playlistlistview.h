@@ -22,16 +22,15 @@
 
 class QDropEvent;
 
-class PlaylistListView : public QListView
-{
-    Q_OBJECT
-public:
-    PlaylistListView(QWidget *parent = 0);
-    void dropEvent(QDropEvent *event) Q_DECL_OVERRIDE;
-    void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
+class PlaylistListView : public QListView {
+	Q_OBJECT
+  public:
+	PlaylistListView(QWidget* parent = 0);
+	void dropEvent(QDropEvent* event) Q_DECL_OVERRIDE;
+	void keyPressEvent(QKeyEvent* event) Q_DECL_OVERRIDE;
 
-signals:
-    void movedToEnd();
+  signals:
+	void movedToEnd();
 };
 
 #endif // PLAYLISTLISTVIEW_H

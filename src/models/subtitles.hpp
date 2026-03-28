@@ -24,20 +24,19 @@
 
 namespace Subtitles {
 
-struct SubtitleItem
-{
-    int64_t start;
-    int64_t end;
-    std::string text;
+struct SubtitleItem {
+	int64_t     start;
+	int64_t     end;
+	std::string text;
 };
 
 typedef std::vector<Subtitles::SubtitleItem> SubtitleVector;
 
-SubtitleVector readFromSrtFile(const std::string &path);
-bool writeToSrtFile(const std::string &path, const SubtitleVector &items);
-SubtitleVector readFromSrtString(const std::string &text);
-bool writeToSrtString(std::string &text, const SubtitleVector &items);
-int indexForTime(const SubtitleVector &items, int64_t msTime, int searchStart, int msMargin);
+SubtitleVector readFromSrtFile(const std::string& path);
+bool           writeToSrtFile(const std::string& path, const SubtitleVector& items);
+SubtitleVector readFromSrtString(const std::string& text);
+bool           writeToSrtString(std::string& text, const SubtitleVector& items);
+int            indexForTime(const SubtitleVector& items, int64_t msTime, int searchStart, int msMargin);
 } // namespace Subtitles
 
 #endif // SUBTITLES_HPP

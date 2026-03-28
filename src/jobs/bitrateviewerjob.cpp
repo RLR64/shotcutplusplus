@@ -16,6 +16,7 @@
  */
 
 #include "bitrateviewerjob.hpp"
+
 #include "Logger.hpp"
 #include "dialogs/bitratedialog.hpp"
 #include "mainwindow.hpp"
@@ -25,41 +26,37 @@
 #include <QJsonObject>
 #include <QString>
 
-BitrateViewerJob::BitrateViewerJob(const QString &name, const QStringList &args, double fps)
-    : FfprobeJob(name, args)
-    , m_resource(args.last())
-    , m_fps(fps)
-{
-    QAction *action = new QAction(tr("Open"), this);
-    action->setData("Open");
-    connect(action, &QAction::triggered, this, &BitrateViewerJob::onOpenTriggered);
-    m_successActions << action;
+BitrateViewerJob::BitrateViewerJob(const QString& name, const QStringList& args, double fps)
+    : FfprobeJob(name, args), m_resource(args.last()), m_fps(fps) {
+	QAction* action = new QAction(tr("Open"), this);
+	action->setData("Open");
+	connect(action, &QAction::triggered, this, &BitrateViewerJob::onOpenTriggered);
+	m_successActions << action;
 }
 
-BitrateViewerJob::~BitrateViewerJob() {}
-
-void BitrateViewerJob::onFinished(int exitCode, ExitStatus exitStatus)
-{
-    AbstractJob::onFinished(exitCode, exitStatus);
-    if (exitStatus == QProcess::NormalExit && exitCode == 0) {
-        QJsonParseError error;
-        auto s = log();
-        s = s.left(s.lastIndexOf('}') + 1);
-        auto doc = QJsonDocument::fromJson(s.toUtf8(), &error);
-        if (QJsonParseError::NoError == error.error && doc.isObject()) {
-            auto v = doc.object().value("packets");
-            if (v.isArray()) {
-                m_data = v.toArray();
-                onOpenTriggered();
-            }
-        } else {
-            LOG_ERROR() << "JSON parsing error:" << error.errorString();
-        }
-    }
+BitrateViewerJob::~BitrateViewerJob() {
 }
 
-void BitrateViewerJob::onOpenTriggered()
-{
-    BitrateDialog dialog(Util::baseName(m_resource), m_fps, m_data, &MAIN);
-    dialog.exec();
+void BitrateViewerJob::onFinished(int exitCode, ExitStatus exitStatus) {
+	AbstractJob::onFinished(exitCode, exitStatus);
+	if (exitStatus == QProcess::NormalExit && exitCode == 0) {
+		QJsonParseError error;
+		auto            s = log();
+		s                 = s.left(s.lastIndexOf('}') + 1);
+		auto doc          = QJsonDocument::fromJson(s.toUtf8(), &error);
+		if (QJsonParseError::NoError == error.error && doc.isObject()) {
+			auto v = doc.object().value("packets");
+			if (v.isArray()) {
+				m_data = v.toArray();
+				onOpenTriggered();
+			}
+		} else {
+			LOG_ERROR() << "JSON parsing error:" << error.errorString();
+		}
+	}
+}
+
+void BitrateViewerJob::onOpenTriggered() {
+	BitrateDialog dialog(Util::baseName(m_resource), m_fps, m_data, &MAIN);
+	dialog.exec();
 }

@@ -16,6 +16,7 @@
  */
 
 #include "postjobaction.hpp"
+
 #include "Logger.hpp"
 #include "docks/playlistdock.h"
 #include "docks/subtitlesdock.hpp"
@@ -28,98 +29,91 @@
 #include <sys/stat.h>
 #include <utime.h>
 
-void FilePropertiesPostJobAction::doAction()
-{
-    // TODO: When QT 5.10 is available, use QFileDevice functions
+void FilePropertiesPostJobAction::doAction() {
+	// TODO: When QT 5.10 is available, use QFileDevice functions
 #ifdef Q_OS_WIN
-    struct _stat srcTime;
-    struct _utimbuf dstTime;
-    _stat(m_srcFile.toUtf8().constData(), &srcTime);
-    dstTime.actime = srcTime.st_atime;
-    dstTime.modtime = srcTime.st_mtime;
-    _utime(m_dstFile.toUtf8().constData(), &dstTime);
+	struct _stat    srcTime;
+	struct _utimbuf dstTime;
+	_stat(m_srcFile.toUtf8().constData(), &srcTime);
+	dstTime.actime  = srcTime.st_atime;
+	dstTime.modtime = srcTime.st_mtime;
+	_utime(m_dstFile.toUtf8().constData(), &dstTime);
 #else
-    struct stat srcTime;
-    struct utimbuf dstTime;
-    stat(m_srcFile.toUtf8().constData(), &srcTime);
-    dstTime.actime = srcTime.st_atime;
-    dstTime.modtime = srcTime.st_mtime;
-    utime(m_dstFile.toUtf8().constData(), &dstTime);
+	struct stat    srcTime;
+	struct utimbuf dstTime;
+	stat(m_srcFile.toUtf8().constData(), &srcTime);
+	dstTime.actime  = srcTime.st_atime;
+	dstTime.modtime = srcTime.st_mtime;
+	utime(m_dstFile.toUtf8().constData(), &dstTime);
 #endif
 }
 
-void OpenPostJobAction::doAction()
-{
-    FilePropertiesPostJobAction::doAction();
-    if (!m_fileNameToRemove.isEmpty()) {
-        QFile::remove(m_fileNameToRemove);
-    }
-    MAIN.open(m_dstFile);
-    MAIN.playlistDock()->onAppendCutActionTriggered();
+void OpenPostJobAction::doAction() {
+	FilePropertiesPostJobAction::doAction();
+	if (!m_fileNameToRemove.isEmpty()) {
+		QFile::remove(m_fileNameToRemove);
+	}
+	MAIN.open(m_dstFile);
+	MAIN.playlistDock()->onAppendCutActionTriggered();
 }
 
-void ReplaceOnePostJobAction::doAction()
-{
-    FilePropertiesPostJobAction::doAction();
-    if (!m_fileNameToRemove.isEmpty()) {
-        QFile::remove(m_fileNameToRemove);
-    }
-    Mlt::Producer newProducer(MLT.profile(), m_dstFile.toUtf8().constData());
-    if (newProducer.is_valid()) {
-        Mlt::Producer *producer = MLT.setupNewProducer(&newProducer);
-        producer->set_in_and_out(m_in, -1);
-        MAIN.replaceInTimeline(m_uuid, *producer);
-        delete producer;
-    }
+void ReplaceOnePostJobAction::doAction() {
+	FilePropertiesPostJobAction::doAction();
+	if (!m_fileNameToRemove.isEmpty()) {
+		QFile::remove(m_fileNameToRemove);
+	}
+	Mlt::Producer newProducer(MLT.profile(), m_dstFile.toUtf8().constData());
+	if (newProducer.is_valid()) {
+		Mlt::Producer* producer = MLT.setupNewProducer(&newProducer);
+		producer->set_in_and_out(m_in, -1);
+		MAIN.replaceInTimeline(m_uuid, *producer);
+		delete producer;
+	}
 }
 
-void ReplaceAllPostJobAction::doAction()
-{
-    FilePropertiesPostJobAction::doAction();
-    Mlt::Producer newProducer(MLT.profile(), m_dstFile.toUtf8().constData());
-    if (newProducer.is_valid()) {
-        Mlt::Producer *producer = MLT.setupNewProducer(&newProducer);
-        MAIN.replaceAllByHash(m_hash, *producer);
-        delete producer;
-    }
+void ReplaceAllPostJobAction::doAction() {
+	FilePropertiesPostJobAction::doAction();
+	Mlt::Producer newProducer(MLT.profile(), m_dstFile.toUtf8().constData());
+	if (newProducer.is_valid()) {
+		Mlt::Producer* producer = MLT.setupNewProducer(&newProducer);
+		MAIN.replaceAllByHash(m_hash, *producer);
+		delete producer;
+	}
 }
 
-void ProxyReplacePostJobAction::doAction()
-{
-    FilePropertiesPostJobAction::doAction();
-    QFileInfo info(m_dstFile);
-    QString newFileName = info.path() + "/" + info.baseName() + "." + info.suffix();
-    QFile::remove(newFileName);
-    if (QFile::rename(m_dstFile, newFileName)) {
-        Mlt::Producer newProducer(MLT.profile(), newFileName.toUtf8().constData());
-        if (newProducer.is_valid()) {
-            Mlt::Producer *producer = MLT.setupNewProducer(&newProducer);
-            producer->set(kIsProxyProperty, 1);
-            producer->set(kOriginalResourceProperty, m_srcFile.toUtf8().constData());
-            MAIN.replaceAllByHash(m_hash, *producer, true);
-            delete producer;
-        } else {
-            LOG_WARNING() << "proxy file is invalid" << newFileName;
-            QFile::remove(m_dstFile);
-        }
-    } else {
-        LOG_WARNING() << "failed to rename" << m_dstFile << "as" << newFileName;
-        QFile::remove(m_dstFile);
-    }
+void ProxyReplacePostJobAction::doAction() {
+	FilePropertiesPostJobAction::doAction();
+	QFileInfo info(m_dstFile);
+	QString   newFileName = info.path() + "/" + info.baseName() + "." + info.suffix();
+	QFile::remove(newFileName);
+	if (QFile::rename(m_dstFile, newFileName)) {
+		Mlt::Producer newProducer(MLT.profile(), newFileName.toUtf8().constData());
+		if (newProducer.is_valid()) {
+			Mlt::Producer* producer = MLT.setupNewProducer(&newProducer);
+			producer->set(kIsProxyProperty, 1);
+			producer->set(kOriginalResourceProperty, m_srcFile.toUtf8().constData());
+			MAIN.replaceAllByHash(m_hash, *producer, true);
+			delete producer;
+		} else {
+			LOG_WARNING() << "proxy file is invalid" << newFileName;
+			QFile::remove(m_dstFile);
+		}
+	} else {
+		LOG_WARNING() << "failed to rename" << m_dstFile << "as" << newFileName;
+		QFile::remove(m_dstFile);
+	}
 }
 
-void ProxyFinalizePostJobAction::doAction()
-{
-    FilePropertiesPostJobAction::doAction();
-    QFileInfo info(m_dstFile);
-    QString newFileName = info.path() + "/" + info.baseName() + "." + info.suffix();
-    if (!QFile::rename(m_dstFile, newFileName)) {
-        LOG_WARNING() << "failed to rename" << m_dstFile << "as" << newFileName;
-        QFile::remove(m_dstFile);
-    }
+void ProxyFinalizePostJobAction::doAction() {
+	FilePropertiesPostJobAction::doAction();
+	QFileInfo info(m_dstFile);
+	QString   newFileName = info.path() + "/" + info.baseName() + "." + info.suffix();
+	if (!QFile::rename(m_dstFile, newFileName)) {
+		LOG_WARNING() << "failed to rename" << m_dstFile << "as" << newFileName;
+		QFile::remove(m_dstFile);
+	}
 }
 
-void ImportSrtPostJobAction::doAction()
-{
-    m_dock->importSrtFromFile(m_srtFile, m_trackName, m_lang, m_includeNonspoken);
+void ImportSrtPostJobAction::doAction() {
+	m_dock->importSrtFromFile(m_srtFile, m_trackName, m_lang, m_includeNonspoken);
 }

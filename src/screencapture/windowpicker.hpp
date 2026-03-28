@@ -22,38 +22,36 @@
 #include <QRect>
 #include <QWidget>
 
-class WindowPicker : public QWidget
-{
-    Q_OBJECT
+class WindowPicker : public QWidget {
+	Q_OBJECT
 
-public:
-    explicit WindowPicker(QWidget *parent = nullptr);
-    ~WindowPicker();
+  public:
+	explicit WindowPicker(QWidget* parent = nullptr);
+	~WindowPicker();
 
-signals:
-    void windowSelected(const QRect &rect);
+  signals:
+	void windowSelected(const QRect& rect);
 
-protected:
-    void paintEvent(QPaintEvent *event) override;
-    void mouseMoveEvent(QMouseEvent *event) override;
-    void mousePressEvent(QMouseEvent *event) override;
+  protected:
+	void paintEvent(QPaintEvent* event) override;
+	void mouseMoveEvent(QMouseEvent* event) override;
+	void mousePressEvent(QMouseEvent* event) override;
 
-private:
-    struct WindowInfo
-    {
-        QRect geometry;         // Logical coordinates for Qt display
-        QRect physicalGeometry; // Physical coordinates from X11
-        QString title;
-        unsigned long windowId;
-    };
+  private:
+	struct WindowInfo {
+		QRect         geometry;         // Logical coordinates for Qt display
+		QRect         physicalGeometry; // Physical coordinates from X11
+		QString       title;
+		unsigned long windowId;
+	};
 
-    void detectWindows();
-    int findWindowAtPosition(const QPoint &pos);
-    QRect getWindowGeometry(unsigned long windowId);
-    QList<WindowInfo> getX11Windows();
+	void              detectWindows();
+	int               findWindowAtPosition(const QPoint& pos);
+	QRect             getWindowGeometry(unsigned long windowId);
+	QList<WindowInfo> getX11Windows();
 
-    QList<WindowInfo> m_windows;
-    int m_highlightedWindow;
+	QList<WindowInfo> m_windows;
+	int               m_highlightedWindow;
 };
 
 #endif // WINDOWPICKER_HPP

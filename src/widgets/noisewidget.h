@@ -27,19 +27,18 @@ namespace Ui {
 class NoiseWidget;
 }
 
-class NoiseWidget : public QWidget, public AbstractProducerWidget
-{
-    Q_OBJECT
+class NoiseWidget : public QWidget, public AbstractProducerWidget {
+	Q_OBJECT
 
-public:
-    explicit NoiseWidget(QWidget *parent = 0);
-    ~NoiseWidget();
+  public:
+	explicit NoiseWidget(QWidget* parent = 0);
+	~NoiseWidget();
 
-    // AbstractProducerWidget overrides
-    Mlt::Producer *newProducer(Mlt::Profile &);
+	// AbstractProducerWidget overrides
+	Mlt::Producer* newProducer(Mlt::Profile&);
 
-private:
-    Ui::NoiseWidget *ui;
+  private:
+	Ui::NoiseWidget* ui;
 };
 
 #endif // NOISEWIDGET_H

@@ -23,28 +23,27 @@
 #include <QColor>
 #include <QObject>
 
-class ColorPickerItem : public QObject
-{
-    Q_OBJECT
-public:
-    explicit ColorPickerItem(QObject *parent = 0);
+class ColorPickerItem : public QObject {
+	Q_OBJECT
+  public:
+	explicit ColorPickerItem(QObject* parent = 0);
 
-signals:
-    void pickColor(QPoint initialPos = QPoint(-1, -1));
-    void colorPicked(const QColor &color);
-    void cancelled();
+  signals:
+	void pickColor(QPoint initialPos = QPoint(-1, -1));
+	void colorPicked(const QColor& color);
+	void cancelled();
 
-private slots:
-    void screenSelected(const QRect &rect);
-    void grabColor();
+  private slots:
+	void screenSelected(const QRect& rect);
+	void grabColor();
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
-    void grabColorDBus();
-    void gotColorResponse(uint response, const QVariantMap &results);
+	void grabColorDBus();
+	void gotColorResponse(uint response, const QVariantMap& results);
 #endif
 
-private:
-    ScreenSelector m_selector;
-    QRect m_selectedRect;
+  private:
+	ScreenSelector m_selector;
+	QRect          m_selectedRect;
 };
 
 #endif // COLORPICKERITEM_HPP

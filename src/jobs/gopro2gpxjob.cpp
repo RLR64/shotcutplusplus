@@ -16,6 +16,7 @@
  */
 
 #include "gopro2gpxjob.hpp"
+
 #include "Logger.hpp"
 #include "dialogs/textviewerdialog.hpp"
 #include "mainwindow.hpp"
@@ -26,18 +27,15 @@
 #include <QDir>
 #include <QFileInfo>
 
-GoPro2GpxJob::GoPro2GpxJob(const QString &name, const QStringList &args)
-    : AbstractJob(name)
-{
-    m_args.append(args);
-    setLabel(QStringLiteral("%1 %2").arg(tr("Export GPX"), Util::baseName(name)));
+GoPro2GpxJob::GoPro2GpxJob(const QString& name, const QStringList& args) : AbstractJob(name) {
+	m_args.append(args);
+	setLabel(QStringLiteral("%1 %2").arg(tr("Export GPX"), Util::baseName(name)));
 }
 
-void GoPro2GpxJob::start()
-{
-    QString shotcutPath = qApp->applicationDirPath();
-    QFileInfo gopro2gpxPath(shotcutPath, "gopro2gpx");
-    setReadChannel(QProcess::StandardOutput);
-    LOG_DEBUG() << gopro2gpxPath.absoluteFilePath() + " " + m_args.join(' ');
-    AbstractJob::start(gopro2gpxPath.absoluteFilePath(), m_args);
+void GoPro2GpxJob::start() {
+	QString   shotcutPath = qApp->applicationDirPath();
+	QFileInfo gopro2gpxPath(shotcutPath, "gopro2gpx");
+	setReadChannel(QProcess::StandardOutput);
+	LOG_DEBUG() << gopro2gpxPath.absoluteFilePath() + " " + m_args.join(' ');
+	AbstractJob::start(gopro2gpxPath.absoluteFilePath(), m_args);
 }

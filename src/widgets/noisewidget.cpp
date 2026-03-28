@@ -17,27 +17,23 @@
  */
 
 #include "noisewidget.h"
-#include "ui_noisewidget.h"
+
 #include "shotcut_mlt_properties.hpp"
+#include "ui_noisewidget.h"
 #include "util.hpp"
 
-NoiseWidget::NoiseWidget(QWidget *parent)
-    : QWidget(parent)
-    , ui(new Ui::NoiseWidget)
-{
-    ui->setupUi(this);
-    Util::setColorsToHighlight(ui->nameLabel);
+NoiseWidget::NoiseWidget(QWidget* parent) : QWidget(parent), ui(new Ui::NoiseWidget) {
+	ui->setupUi(this);
+	Util::setColorsToHighlight(ui->nameLabel);
 }
 
-NoiseWidget::~NoiseWidget()
-{
-    delete ui;
+NoiseWidget::~NoiseWidget() {
+	delete ui;
 }
 
-Mlt::Producer *NoiseWidget::newProducer(Mlt::Profile &profile)
-{
-    Mlt::Producer *p = new Mlt::Producer(profile, "noise:");
-    p->set(kShotcutCaptionProperty, ui->nameLabel->text().toUtf8().constData());
-    p->set(kShotcutDetailProperty, ui->nameLabel->text().toUtf8().constData());
-    return p;
+Mlt::Producer* NoiseWidget::newProducer(Mlt::Profile& profile) {
+	Mlt::Producer* p = new Mlt::Producer(profile, "noise:");
+	p->set(kShotcutCaptionProperty, ui->nameLabel->text().toUtf8().constData());
+	p->set(kShotcutDetailProperty, ui->nameLabel->text().toUtf8().constData());
+	return p;
 }

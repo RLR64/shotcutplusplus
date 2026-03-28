@@ -22,34 +22,43 @@
 #include <QString>
 #include <QStringList>
 
-struct AppEntry
-{
-    QString appId;
-    QString branch; // e.g., "stable"
+struct AppEntry {
+	QString appId;
+	QString branch; // e.g., "stable"
 };
 
-class FlatpakWrapperGenerator
-{
-public:
-    void setOutputDir(const QString &dir) { m_outputDir = dir; }
-    void setForce(bool v) { m_force = v; }
-    void setDryRun(bool v) { m_dryRun = v; }
-    void setPrefix(const QString &p) { m_prefix = p; }
+class FlatpakWrapperGenerator {
+  public:
+	void setOutputDir(const QString& dir) {
+		m_outputDir = dir;
+	}
 
-    bool generateAllInstalled();
-    bool generateFor(const QStringList &appIds);
+	void setForce(bool v) {
+		m_force = v;
+	}
 
-private:
-    bool ensureOutputDir() const;
-    QList<AppEntry> listInstalledApps() const;
-    QString getBranchForAppId(const QString &appId) const;
-    bool writeWrapper(const AppEntry &app) const;
-    QString buildWrapperScript(const AppEntry &app) const;
+	void setDryRun(bool v) {
+		m_dryRun = v;
+	}
 
-    QString m_outputDir;
-    bool m_force = false;
-    bool m_dryRun = false;
-    QString m_prefix;
+	void setPrefix(const QString& p) {
+		m_prefix = p;
+	}
+
+	bool generateAllInstalled();
+	bool generateFor(const QStringList& appIds);
+
+  private:
+	bool            ensureOutputDir() const;
+	QList<AppEntry> listInstalledApps() const;
+	QString         getBranchForAppId(const QString& appId) const;
+	bool            writeWrapper(const AppEntry& app) const;
+	QString         buildWrapperScript(const AppEntry& app) const;
+
+	QString m_outputDir;
+	bool    m_force  = false;
+	bool    m_dryRun = false;
+	QString m_prefix;
 };
 
 #endif // FLATPAKWRAPPERGENERATOR_HPP

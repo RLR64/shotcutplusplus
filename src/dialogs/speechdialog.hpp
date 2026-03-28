@@ -29,25 +29,33 @@ namespace Mlt {
 class Consumer;
 }
 
-class SpeechDialog : public QDialog
-{
-public:
-    explicit SpeechDialog(QWidget *parent);
-    QString outputFile() const { return m_outputFile ? m_outputFile->text().trimmed() : QString(); }
-    QString languageCode() const
-    {
-        return m_language ? m_language->currentData().toString() : QString();
-    }
-    QString voiceCode() const { return m_voice ? m_voice->currentData().toString() : QString(); }
-    double speed() const { return m_speed ? m_speed->value() : 1.0; }
+class SpeechDialog : public QDialog {
+  public:
+	explicit SpeechDialog(QWidget* parent);
 
-private:
-    QComboBox *m_language = nullptr;
-    QComboBox *m_voice = nullptr;
-    QDoubleSpinBox *m_speed = nullptr;
-    QLineEdit *m_outputFile = nullptr;
-    std::unique_ptr<Mlt::Consumer> m_consumer;
-    void populateVoices(const QString &langCode);
+	QString outputFile() const {
+		return m_outputFile ? m_outputFile->text().trimmed() : QString();
+	}
+
+	QString languageCode() const {
+		return m_language ? m_language->currentData().toString() : QString();
+	}
+
+	QString voiceCode() const {
+		return m_voice ? m_voice->currentData().toString() : QString();
+	}
+
+	double speed() const {
+		return m_speed ? m_speed->value() : 1.0;
+	}
+
+  private:
+	QComboBox*                     m_language   = nullptr;
+	QComboBox*                     m_voice      = nullptr;
+	QDoubleSpinBox*                m_speed      = nullptr;
+	QLineEdit*                     m_outputFile = nullptr;
+	std::unique_ptr<Mlt::Consumer> m_consumer;
+	void                           populateVoices(const QString& langCode);
 };
 
 #endif // SPEECHDIALOG_HPP

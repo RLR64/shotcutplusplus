@@ -26,34 +26,33 @@ namespace Ui {
 class IsingWidget;
 }
 
-class IsingWidget : public QWidget, public AbstractProducerWidget
-{
-    Q_OBJECT
+class IsingWidget : public QWidget, public AbstractProducerWidget {
+	Q_OBJECT
 
-public:
-    explicit IsingWidget(QWidget *parent = 0);
-    ~IsingWidget();
+  public:
+	explicit IsingWidget(QWidget* parent = 0);
+	~IsingWidget();
 
-    // AbstractProducerWidget overrides
-    Mlt::Producer *newProducer(Mlt::Profile &);
-    Mlt::Properties getPreset() const;
-    void loadPreset(Mlt::Properties &);
+	// AbstractProducerWidget overrides
+	Mlt::Producer*  newProducer(Mlt::Profile&);
+	Mlt::Properties getPreset() const;
+	void            loadPreset(Mlt::Properties&);
 
-signals:
-    void producerChanged(Mlt::Producer *);
+  signals:
+	void producerChanged(Mlt::Producer*);
 
-private slots:
-    void on_tempDial_valueChanged(int value);
-    void on_tempSpinner_valueChanged(double arg1);
-    void on_borderGrowthDial_valueChanged(int value);
-    void on_borderGrowthSpinner_valueChanged(double arg1);
-    void on_spontGrowthDial_valueChanged(int value);
-    void on_spontGrowthSpinner_valueChanged(double arg1);
-    void on_preset_selected(void *p);
-    void on_preset_saveClicked();
+  private slots:
+	void on_tempDial_valueChanged(int value);
+	void on_tempSpinner_valueChanged(double arg1);
+	void on_borderGrowthDial_valueChanged(int value);
+	void on_borderGrowthSpinner_valueChanged(double arg1);
+	void on_spontGrowthDial_valueChanged(int value);
+	void on_spontGrowthSpinner_valueChanged(double arg1);
+	void on_preset_selected(void* p);
+	void on_preset_saveClicked();
 
-private:
-    Ui::IsingWidget *ui;
+  private:
+	Ui::IsingWidget* ui;
 };
 
 #endif // ISINGWIDGET_H

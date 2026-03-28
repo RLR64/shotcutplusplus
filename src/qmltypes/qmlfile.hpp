@@ -21,38 +21,36 @@
 #include <QFileSystemWatcher>
 #include <QObject>
 #include <QUrl>
-
 #include <memory>
 
-class QmlFile : public QObject
-{
-    Q_OBJECT
-    Q_PROPERTY(QString url READ getUrl WRITE setUrl NOTIFY urlChanged)
-    Q_PROPERTY(QString fileName READ getFileName)
-    Q_PROPERTY(QString path READ getPath)
-    Q_PROPERTY(QString filePath READ getFilePath)
+class QmlFile : public QObject {
+	Q_OBJECT
+	Q_PROPERTY(QString url READ getUrl WRITE setUrl NOTIFY urlChanged)
+	Q_PROPERTY(QString fileName READ getFileName)
+	Q_PROPERTY(QString path READ getPath)
+	Q_PROPERTY(QString filePath READ getFilePath)
 
-public:
-    explicit QmlFile(QObject *parent = 0);
-    QString getUrl();
-    void setUrl(QString text);
-    QString getFileName();
-    QString getPath();
-    QString getFilePath();
-    Q_INVOKABLE void copyFromFile(QString source);
-    Q_INVOKABLE bool exists();
-    Q_INVOKABLE QString suffix();
+  public:
+	explicit QmlFile(QObject* parent = 0);
+	QString             getUrl();
+	void                setUrl(QString text);
+	QString             getFileName();
+	QString             getPath();
+	QString             getFilePath();
+	Q_INVOKABLE void    copyFromFile(QString source);
+	Q_INVOKABLE bool    exists();
+	Q_INVOKABLE QString suffix();
 
-public slots:
-    void watch();
+  public slots:
+	void watch();
 
-signals:
-    void urlChanged(const QUrl &url);
-    void fileChanged(const QString &path);
+  signals:
+	void urlChanged(const QUrl& url);
+	void fileChanged(const QString& path);
 
-private:
-    QUrl m_url;
-    std::unique_ptr<QFileSystemWatcher> m_watcher;
+  private:
+	QUrl                                m_url;
+	std::unique_ptr<QFileSystemWatcher> m_watcher;
 };
 
 #endif // QMLFILE_HPP

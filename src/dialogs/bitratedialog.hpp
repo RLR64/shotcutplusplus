@@ -22,14 +22,10 @@
 #include <QJsonArray>
 #include <QString>
 
-class BitrateDialog : public QDialog
-{
-    Q_OBJECT
-public:
-    explicit BitrateDialog(const QString &resource,
-                           double fps,
-                           const QJsonArray &data,
-                           QWidget *parent = nullptr);
+class BitrateDialog : public QDialog {
+	Q_OBJECT
+  public:
+	explicit BitrateDialog(const QString& resource, double fps, const QJsonArray& data, QWidget* parent = nullptr);
 };
 
 #endif // BITRATEDIALOG_HPP

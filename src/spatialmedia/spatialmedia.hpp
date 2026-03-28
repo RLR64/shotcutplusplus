@@ -22,13 +22,12 @@
 
 #include <string>
 
-class SpatialMedia
-{
-private:
-    SpatialMedia() {};
+class SpatialMedia {
+  private:
+	SpatialMedia() {};
 
-public:
-    static bool injectSpherical(const std::string& inFile, const std::string& outFile);
+  public:
+	static bool injectSpherical(const std::string& inFile, const std::string& outFile);
 };
 
 #endif // SPATIALMEDIA_HPP

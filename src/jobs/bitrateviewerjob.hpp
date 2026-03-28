@@ -22,21 +22,20 @@
 
 #include <QJsonArray>
 
-class BitrateViewerJob : public FfprobeJob
-{
-    Q_OBJECT
-public:
-    BitrateViewerJob(const QString &name, const QStringList &args, double fps);
-    virtual ~BitrateViewerJob();
+class BitrateViewerJob : public FfprobeJob {
+	Q_OBJECT
+  public:
+	BitrateViewerJob(const QString& name, const QStringList& args, double fps);
+	virtual ~BitrateViewerJob();
 
-private slots:
-    void onFinished(int exitCode, QProcess::ExitStatus exitStatus) override;
-    void onOpenTriggered();
+  private slots:
+	void onFinished(int exitCode, QProcess::ExitStatus exitStatus) override;
+	void onOpenTriggered();
 
-private:
-    QString m_resource;
-    double m_fps{0.0};
-    QJsonArray m_data;
+  private:
+	QString    m_resource;
+	double     m_fps{0.0};
+	QJsonArray m_data;
 };
 
 #endif // BITRATEVIEWERJOB_HPP

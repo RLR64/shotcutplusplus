@@ -27,27 +27,26 @@ namespace Ui {
 class NetworkProducerWidget;
 }
 
-class NetworkProducerWidget : public QWidget, public AbstractProducerWidget
-{
-    Q_OBJECT
+class NetworkProducerWidget : public QWidget, public AbstractProducerWidget {
+	Q_OBJECT
 
-public:
-    explicit NetworkProducerWidget(QWidget *parent = 0);
-    ~NetworkProducerWidget();
+  public:
+	explicit NetworkProducerWidget(QWidget* parent = 0);
+	~NetworkProducerWidget();
 
-    // AbstractProducerWidget overrides
-    Mlt::Producer *newProducer(Mlt::Profile &);
-    Mlt::Properties getPreset() const;
-    void loadPreset(Mlt::Properties &);
-    void setProducer(Mlt::Producer *);
+	// AbstractProducerWidget overrides
+	Mlt::Producer*  newProducer(Mlt::Profile&);
+	Mlt::Properties getPreset() const;
+	void            loadPreset(Mlt::Properties&);
+	void            setProducer(Mlt::Producer*);
 
-private slots:
-    void on_preset_selected(void *p);
-    void on_preset_saveClicked();
+  private slots:
+	void on_preset_selected(void* p);
+	void on_preset_saveClicked();
 
-private:
-    Ui::NetworkProducerWidget *ui;
-    void on_applyButton_clicked();
+  private:
+	Ui::NetworkProducerWidget* ui;
+	void                       on_applyButton_clicked();
 };
 
 #endif // NETWORKPRODUCERWIDGET_H

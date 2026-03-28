@@ -19,6 +19,7 @@
  */
 
 #include "autosavefile.hpp"
+
 #include "settings.hpp"
 
 #include <QtCore/QCryptographicHash>
@@ -27,68 +28,58 @@
 static const QLatin1String subdir("/autosave");
 static const QLatin1String extension(".mlt");
 
-static QString hashName(const QString &name)
-{
-    return QString::fromLatin1(
-        QCryptographicHash::hash(name.toUtf8(), QCryptographicHash::Md5).toHex());
+static QString hashName(const QString& name) {
+	return QString::fromLatin1(QCryptographicHash::hash(name.toUtf8(), QCryptographicHash::Md5).toHex());
 }
 
-AutoSaveFile::AutoSaveFile(const QString &filename, QObject *parent)
-    : QFile(parent)
-    , m_managedFileNameChanged(false)
-{
-    changeManagedFile(filename);
+AutoSaveFile::AutoSaveFile(const QString& filename, QObject* parent) : QFile(parent), m_managedFileNameChanged(false) {
+	changeManagedFile(filename);
 }
 
-AutoSaveFile::~AutoSaveFile()
-{
-    if (!fileName().isEmpty())
-        remove();
+AutoSaveFile::~AutoSaveFile() {
+	if (!fileName().isEmpty())
+		remove();
 }
 
-void AutoSaveFile::changeManagedFile(const QString &filename)
-{
-    if (!fileName().isEmpty())
-        remove();
-    m_managedFile = filename;
-    m_managedFileNameChanged = true;
+void AutoSaveFile::changeManagedFile(const QString& filename) {
+	if (!fileName().isEmpty())
+		remove();
+	m_managedFile            = filename;
+	m_managedFileNameChanged = true;
 }
 
-bool AutoSaveFile::open(OpenMode openmode)
-{
-    QString tempFile;
+bool AutoSaveFile::open(OpenMode openmode) {
+	QString tempFile;
 
-    if (m_managedFileNameChanged) {
-        QString staleFilesDir = path();
-        if (!QDir().mkpath(staleFilesDir)) {
-            return false;
-        }
-        tempFile = staleFilesDir + QChar::fromLatin1('/') + hashName(m_managedFile) + extension;
-    } else {
-        tempFile = fileName();
-    }
-    m_managedFileNameChanged = false;
-    setFileName(tempFile);
+	if (m_managedFileNameChanged) {
+		QString staleFilesDir = path();
+		if (!QDir().mkpath(staleFilesDir)) {
+			return false;
+		}
+		tempFile = staleFilesDir + QChar::fromLatin1('/') + hashName(m_managedFile) + extension;
+	} else {
+		tempFile = fileName();
+	}
+	m_managedFileNameChanged = false;
+	setFileName(tempFile);
 
-    return QFile::open(openmode);
+	return QFile::open(openmode);
 }
 
-AutoSaveFile *AutoSaveFile::getFile(const QString &filename)
-{
-    AutoSaveFile *result = 0;
-    QDir appDir(path());
-    QFileInfo info(appDir.absolutePath(), hashName(filename) + extension);
+AutoSaveFile* AutoSaveFile::getFile(const QString& filename) {
+	AutoSaveFile* result = 0;
+	QDir          appDir(path());
+	QFileInfo     info(appDir.absolutePath(), hashName(filename) + extension);
 
-    if (info.exists()) {
-        result = new AutoSaveFile(filename);
-        result->setFileName(info.filePath());
-        result->m_managedFileNameChanged = false;
-    }
+	if (info.exists()) {
+		result = new AutoSaveFile(filename);
+		result->setFileName(info.filePath());
+		result->m_managedFileNameChanged = false;
+	}
 
-    return result;
+	return result;
 }
 
-QString AutoSaveFile::path()
-{
-    return Settings.appDataLocation() + subdir;
+QString AutoSaveFile::path() {
+	return Settings.appDataLocation() + subdir;
 }

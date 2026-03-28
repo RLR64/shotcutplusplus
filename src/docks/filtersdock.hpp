@@ -32,44 +32,42 @@ class AttachedFiltersModel;
 class MotionTrackerModel;
 class SubtitlesModel;
 
-class FiltersDock : public QDockWidget
-{
-    Q_OBJECT
+class FiltersDock : public QDockWidget {
+	Q_OBJECT
 
-public:
-    explicit FiltersDock(MetadataModel *metadataModel,
-                         AttachedFiltersModel *attachedModel,
-                         MotionTrackerModel *motionTrackerModel,
-                         SubtitlesModel *subtitlesModel,
-                         QWidget *parent = 0);
+  public:
+	explicit FiltersDock(MetadataModel* metadataModel, AttachedFiltersModel* attachedModel,
+	                     MotionTrackerModel* motionTrackerModel, SubtitlesModel* subtitlesModel, QWidget* parent = 0);
 
-    QmlProducer *qmlProducer() { return &m_producer; }
+	QmlProducer* qmlProducer() {
+		return &m_producer;
+	}
 
-signals:
-    void currentFilterRequested(int attachedIndex);
-    void changed(); /// Notifies when a filter parameter changes.
-    void seeked(int);
-    void producerInChanged(int delta);
-    void producerOutChanged(int delta);
+  signals:
+	void currentFilterRequested(int attachedIndex);
+	void changed(); /// Notifies when a filter parameter changes.
+	void seeked(int);
+	void producerInChanged(int delta);
+	void producerOutChanged(int delta);
 
-public slots:
-    void setCurrentFilter(QmlFilter *filter, QmlMetadata *meta, int index);
-    void onSeeked(int position);
-    void onShowFrame(const SharedFrame &frame);
-    void openFilterMenu() const;
-    void showCopyFilterMenu();
-    void onServiceInChanged(int delta, Mlt::Service *service);
-    void load();
+  public slots:
+	void setCurrentFilter(QmlFilter* filter, QmlMetadata* meta, int index);
+	void onSeeked(int position);
+	void onShowFrame(const SharedFrame& frame);
+	void openFilterMenu() const;
+	void showCopyFilterMenu();
+	void onServiceInChanged(int delta, Mlt::Service* service);
+	void load();
 
-protected:
-    bool event(QEvent *event);
-    void keyPressEvent(QKeyEvent *event);
+  protected:
+	bool event(QEvent* event);
+	void keyPressEvent(QKeyEvent* event);
 
-private:
-    void setupActions();
-    QQuickWidget m_qview;
-    QmlProducer m_producer;
-    unsigned loadTries{0};
+  private:
+	void         setupActions();
+	QQuickWidget m_qview;
+	QmlProducer  m_producer;
+	unsigned     loadTries{0};
 };
 
 #endif // FILTERSDOCK_HPP

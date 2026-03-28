@@ -39,73 +39,71 @@ class QSortFilterProxyModel;
 class LineEditClear;
 class QLabel;
 
-class FilesDock : public QDockWidget
-{
-    Q_OBJECT
+class FilesDock : public QDockWidget {
+	Q_OBJECT
 
-public:
-    explicit FilesDock(QWidget *parent = 0);
-    ~FilesDock();
+  public:
+	explicit FilesDock(QWidget* parent = 0);
+	~FilesDock();
 
-    struct CacheItem
-    {
-        int mediaType{-1}; // -1 = unknown
-    };
+	struct CacheItem {
+		int mediaType{-1}; // -1 = unknown
+	};
 
-    int getCacheMediaType(const QString &key);
-    void setCacheMediaType(const QString &key, int mediaType);
+	int  getCacheMediaType(const QString& key);
+	void setCacheMediaType(const QString& key, int mediaType);
 
-signals:
-    void selectionChanged();
+  signals:
+	void selectionChanged();
 
-public slots:
-    void onOpenActionTriggered();
-    void changeDirectory(const QString &path, bool updateLocation = true);
-    void changeFilesDirectory(const QModelIndex &index);
+  public slots:
+	void onOpenActionTriggered();
+	void changeDirectory(const QString& path, bool updateLocation = true);
+	void changeFilesDirectory(const QModelIndex& index);
 
-private slots:
-    void viewCustomContextMenuRequested(const QPoint &pos);
-    void onMediaTypeClicked();
-    void onOpenOtherAdd();
-    void onOpenOtherRemove();
-    void clearStatus();
-    void updateStatus();
-    void onLocationsEditingFinished();
+  private slots:
+	void viewCustomContextMenuRequested(const QPoint& pos);
+	void onMediaTypeClicked();
+	void onOpenOtherAdd();
+	void onOpenOtherRemove();
+	void clearStatus();
+	void updateStatus();
+	void onLocationsEditingFinished();
 
-    void on_locationsCombo_activated(int index);
+	void on_locationsCombo_activated(int index);
 
-    void on_addLocationButton_clicked();
+	void on_addLocationButton_clicked();
 
-    void on_removeLocationButton_clicked();
+	void on_removeLocationButton_clicked();
 
-protected:
-    void keyPressEvent(QKeyEvent *event);
-    void keyReleaseEvent(QKeyEvent *event);
+  protected:
+	void keyPressEvent(QKeyEvent* event);
+	void keyReleaseEvent(QKeyEvent* event);
 
-private:
-    void setupActions();
-    void emitDataChanged(const QVector<int> &roles);
-    void updateViewMode();
-    void onUpdateThumbnailsActionTriggered();
-    void onSelectAllActionTriggered();
-    void incrementIndex(int step);
-    void addOpenWithMenu(QMenu *menu);
-    QString firstSelectedFilePath();
-    QString firstSelectedMediaType();
-    void openClip(const QString &filePath);
+  private:
+	void    setupActions();
+	void    emitDataChanged(const QVector<int>& roles);
+	void    updateViewMode();
+	void    onUpdateThumbnailsActionTriggered();
+	void    onSelectAllActionTriggered();
+	void    incrementIndex(int step);
+	void    addOpenWithMenu(QMenu* menu);
+	QString firstSelectedFilePath();
+	QString firstSelectedMediaType();
+	void    openClip(const QString& filePath);
 
-    Ui::FilesDock *ui;
-    QAbstractItemView *m_view;
-    PlaylistIconView *m_iconsView;
-    std::unique_ptr<QFileSystemModel> m_dirsModel;
-    FilesModel *m_filesModel;
-    QItemSelectionModel *m_selectionModel;
-    QMenu *m_mainMenu;
-    FilesProxyModel *m_filesProxyModel;
-    QHash<QString, CacheItem> m_cache;
-    QMutex m_cacheMutex;
-    LineEditClear *m_searchField;
-    QLabel *m_label;
+	Ui::FilesDock*                    ui;
+	QAbstractItemView*                m_view;
+	PlaylistIconView*                 m_iconsView;
+	std::unique_ptr<QFileSystemModel> m_dirsModel;
+	FilesModel*                       m_filesModel;
+	QItemSelectionModel*              m_selectionModel;
+	QMenu*                            m_mainMenu;
+	FilesProxyModel*                  m_filesProxyModel;
+	QHash<QString, CacheItem>         m_cache;
+	QMutex                            m_cacheMutex;
+	LineEditClear*                    m_searchField;
+	QLabel*                           m_label;
 };
 
 #endif // FILESDOCK_HPP

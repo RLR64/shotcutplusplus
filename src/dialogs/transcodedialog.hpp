@@ -24,40 +24,47 @@ namespace Ui {
 class TranscodeDialog;
 }
 
-class TranscodeDialog : public QDialog
-{
-    Q_OBJECT
+class TranscodeDialog : public QDialog {
+	Q_OBJECT
 
-public:
-    explicit TranscodeDialog(const QString &message, bool isProgressive, QWidget *parent = nullptr);
-    ~TranscodeDialog();
-    int format() const { return m_format; }
-    void showCheckBox();
-    bool isCheckBoxChecked() const { return m_isChecked; }
-    bool deinterlace() const;
-    bool fpsOverride() const;
-    double fps() const;
-    QString frc() const;
-    bool get709Convert();
-    void set709Convert(bool enable);
-    QString sampleRate() const;
-    void showSubClipCheckBox();
-    bool isSubClip() const;
-    void setSubClipChecked(bool checked);
-    void setFrameRate(double fps);
+  public:
+	explicit TranscodeDialog(const QString& message, bool isProgressive, QWidget* parent = nullptr);
+	~TranscodeDialog();
 
-private slots:
-    void on_horizontalSlider_valueChanged(int position);
+	int format() const {
+		return m_format;
+	}
 
-    void on_checkBox_clicked(bool checked);
+	void showCheckBox();
 
-    void on_advancedCheckBox_clicked(bool checked);
+	bool isCheckBoxChecked() const {
+		return m_isChecked;
+	}
 
-private:
-    Ui::TranscodeDialog *ui;
-    int m_format;
-    bool m_isChecked;
-    bool m_isProgressive;
+	bool    deinterlace() const;
+	bool    fpsOverride() const;
+	double  fps() const;
+	QString frc() const;
+	bool    get709Convert();
+	void    set709Convert(bool enable);
+	QString sampleRate() const;
+	void    showSubClipCheckBox();
+	bool    isSubClip() const;
+	void    setSubClipChecked(bool checked);
+	void    setFrameRate(double fps);
+
+  private slots:
+	void on_horizontalSlider_valueChanged(int position);
+
+	void on_checkBox_clicked(bool checked);
+
+	void on_advancedCheckBox_clicked(bool checked);
+
+  private:
+	Ui::TranscodeDialog* ui;
+	int                  m_format;
+	bool                 m_isChecked;
+	bool                 m_isProgressive;
 };
 
 #endif // TRANSCODEDIALOG_HPP

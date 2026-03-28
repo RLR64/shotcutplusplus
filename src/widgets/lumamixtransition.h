@@ -27,48 +27,47 @@ class LumaMixTransition;
 }
 class ProducerPreviewWidget;
 
-class LumaMixTransition : public QWidget
-{
-    Q_OBJECT
+class LumaMixTransition : public QWidget {
+	Q_OBJECT
 
-public:
-    explicit LumaMixTransition(Mlt::Producer &transition, QWidget *parent = 0);
-    ~LumaMixTransition();
+  public:
+	explicit LumaMixTransition(Mlt::Producer& transition, QWidget* parent = 0);
+	~LumaMixTransition();
 
-public slots:
-    void onPlaying();
+  public slots:
+	void onPlaying();
 
-signals:
-    void modified();
+  signals:
+	void modified();
 
-private slots:
-    void on_invertCheckBox_clicked(bool checked);
+  private slots:
+	void on_invertCheckBox_clicked(bool checked);
 
-    void on_softnessSlider_valueChanged(int value);
+	void on_softnessSlider_valueChanged(int value);
 
-    void on_crossfadeRadioButton_clicked();
+	void on_crossfadeRadioButton_clicked();
 
-    void on_mixRadioButton_clicked();
+	void on_mixRadioButton_clicked();
 
-    void on_mixSlider_valueChanged(int value);
+	void on_mixSlider_valueChanged(int value);
 
-    void on_lumaCombo_currentRowChanged(int index);
+	void on_lumaCombo_currentRowChanged(int index);
 
-    void startPreview();
+	void startPreview();
 
-    void on_previewCheckBox_clicked(bool checked);
+	void on_previewCheckBox_clicked(bool checked);
 
-    void on_favoriteButton_clicked();
+	void on_favoriteButton_clicked();
 
-private:
-    Ui::LumaMixTransition *ui;
-    Mlt::Producer m_producer;
-    int m_maxStockIndex;
-    ProducerPreviewWidget *m_preview;
-    Mlt::Producer m_previewProducer;
+  private:
+	Ui::LumaMixTransition* ui;
+	Mlt::Producer          m_producer;
+	int                    m_maxStockIndex;
+	ProducerPreviewWidget* m_preview;
+	Mlt::Producer          m_previewProducer;
 
-    Mlt::Transition *getTransition(const QString &name);
-    void updateCustomLumaLabel(Mlt::Transition &transition);
+	Mlt::Transition* getTransition(const QString& name);
+	void             updateCustomLumaLabel(Mlt::Transition& transition);
 };
 
 #endif // LUMAMIXTRANSITION_H

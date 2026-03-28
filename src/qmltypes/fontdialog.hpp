@@ -21,26 +21,28 @@
 #include <QFont>
 #include <QObject>
 
-class FontDialog : public QObject
-{
-    Q_OBJECT
-    Q_PROPERTY(QFont selectedFont READ selectedFont WRITE setSelectedFont NOTIFY selectedFontChanged)
+class FontDialog : public QObject {
+	Q_OBJECT
+	Q_PROPERTY(QFont selectedFont READ selectedFont WRITE setSelectedFont NOTIFY selectedFontChanged)
 
-public:
-    FontDialog(QObject *parent = nullptr);
+  public:
+	FontDialog(QObject* parent = nullptr);
 
-    Q_INVOKABLE void open();
+	Q_INVOKABLE void open();
 
-signals:
-    void accepted();
-    void rejected();
-    void selectedFontChanged(const QFont &font);
+  signals:
+	void accepted();
+	void rejected();
+	void selectedFontChanged(const QFont& font);
 
-private:
-    QFont m_font;
+  private:
+	QFont m_font;
 
-    QFont selectedFont() const { return m_font; }
-    void setSelectedFont(const QFont &font);
+	QFont selectedFont() const {
+		return m_font;
+	}
+
+	void setSelectedFont(const QFont& font);
 };
 
 #endif // FONTDIALOG_HPP

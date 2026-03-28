@@ -21,29 +21,27 @@
 // Qt
 #include <QMutex>
 
-
-class CUTELOGGERSHARED_EXPORT AbstractAppender
-{
+class CUTELOGGERSHARED_EXPORT AbstractAppender {
   public:
-    AbstractAppender();
-    virtual ~AbstractAppender();
+	AbstractAppender();
+	virtual ~AbstractAppender();
 
-    Logger::LogLevel detailsLevel() const;
-    void setDetailsLevel(Logger::LogLevel level);
-    void setDetailsLevel(const QString& level);
+	Logger::LogLevel detailsLevel() const;
+	void             setDetailsLevel(Logger::LogLevel level);
+	void             setDetailsLevel(const QString& level);
 
-    void write(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file, int line, const char* function,
-               const QString& category, const QString& message);
+	void write(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file, int line, const char* function,
+	           const QString& category, const QString& message);
 
   protected:
-    virtual void append(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file, int line,
-                        const char* function, const QString& category, const QString& message) = 0;
+	virtual void append(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file, int line,
+	                    const char* function, const QString& category, const QString& message) = 0;
 
   private:
-    QMutex m_writeMutex;
+	QMutex m_writeMutex;
 
-    Logger::LogLevel m_detailsLevel;
-    mutable QMutex m_detailsLevelMutex;
+	Logger::LogLevel m_detailsLevel;
+	mutable QMutex   m_detailsLevelMutex;
 };
 
 #endif // ABSTRACTAPPENDER_HPP

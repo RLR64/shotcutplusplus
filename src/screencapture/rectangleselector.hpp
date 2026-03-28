@@ -22,31 +22,30 @@
 #include <QRect>
 #include <QWidget>
 
-class RectangleSelector : public QWidget
-{
-    Q_OBJECT
+class RectangleSelector : public QWidget {
+	Q_OBJECT
 
-public:
-    explicit RectangleSelector(QWidget *parent = nullptr);
-    ~RectangleSelector();
+  public:
+	explicit RectangleSelector(QWidget* parent = nullptr);
+	~RectangleSelector();
 
-signals:
-    void rectangleSelected(const QRect &rect);
-    void canceled();
+  signals:
+	void rectangleSelected(const QRect& rect);
+	void canceled();
 
-protected:
-    void paintEvent(QPaintEvent *event) override;
-    void mousePressEvent(QMouseEvent *event) override;
-    void mouseMoveEvent(QMouseEvent *event) override;
-    void mouseReleaseEvent(QMouseEvent *event) override;
-    void keyPressEvent(QKeyEvent *event) override;
+  protected:
+	void paintEvent(QPaintEvent* event) override;
+	void mousePressEvent(QMouseEvent* event) override;
+	void mouseMoveEvent(QMouseEvent* event) override;
+	void mouseReleaseEvent(QMouseEvent* event) override;
+	void keyPressEvent(QKeyEvent* event) override;
 
-private:
-    QRect getSelectionRect() const;
+  private:
+	QRect getSelectionRect() const;
 
-    QPoint m_startPoint;
-    QPoint m_currentPoint;
-    bool m_selecting;
+	QPoint m_startPoint;
+	QPoint m_currentPoint;
+	bool   m_selecting;
 };
 
 #endif // RECTANGLESELECTOR_HPP

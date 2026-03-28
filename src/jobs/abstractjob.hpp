@@ -30,71 +30,100 @@
 class QAction;
 class QStandardItem;
 
-class AbstractJob : public QProcess
-{
-    Q_OBJECT
-public:
-    explicit AbstractJob(const QString &name, QThread::Priority priority = Settings.jobPriority());
-    virtual ~AbstractJob() {}
+class AbstractJob : public QProcess {
+	Q_OBJECT
+  public:
+	explicit AbstractJob(const QString& name, QThread::Priority priority = Settings.jobPriority());
 
-    void setStandardItem(QStandardItem *item);
-    QStandardItem *standardItem();
-    bool ran() const;
-    bool stopped() const;
-    bool isFinished() const { return (ran() && state() != QProcess::Running); }
-    void appendToLog(const QString &);
-    QString log() const;
-    QString label() const { return m_label; }
-    void setLabel(const QString &label);
-    QList<QAction *> standardActions() const { return m_standardActions; }
-    QList<QAction *> successActions() const { return m_successActions; }
-    QTime estimateRemaining(int percent);
-    QElapsedTimer time() const { return m_totalTime; }
-    void setPostJobAction(PostJobAction *action);
-    bool paused() const;
-    void setTarget(const QString &target) { m_target = target; }
-    QString target() { return m_target; }
-    bool hasPostJobAction() const { return !m_postJobAction.isNull(); }
+	virtual ~AbstractJob() {
+	}
 
-public slots:
-    void start(const QString &program, const QStringList &arguments);
-    virtual void start();
-    virtual void stop();
-    void pause();
-    void resume();
+	void           setStandardItem(QStandardItem* item);
+	QStandardItem* standardItem();
+	bool           ran() const;
+	bool           stopped() const;
 
-signals:
-    void progressUpdated(QStandardItem *item, int percent);
-    void finished(AbstractJob *job, bool isSuccess, QString failureTime = QString());
+	bool isFinished() const {
+		return (ran() && state() != QProcess::Running);
+	}
 
-protected:
-    void setKilled(bool = true);
-    QList<QAction *> m_standardActions;
-    QList<QAction *> m_successActions;
-    QStandardItem *m_item;
+	void    appendToLog(const QString&);
+	QString log() const;
 
-protected slots:
-    virtual void onFinished(int exitCode, QProcess::ExitStatus exitStatus = QProcess::NormalExit);
-    virtual void onReadyRead();
-    virtual void onStarted();
+	QString label() const {
+		return m_label;
+	}
 
-private slots:
-    void onProgressUpdated(QStandardItem *, int percent);
+	void setLabel(const QString& label);
 
-private:
-    bool m_ran;
-    bool m_killed;
-    QString m_log;
-    QString m_label;
-    QElapsedTimer m_estimateTime;
-    int m_startingPercent;
-    QElapsedTimer m_totalTime;
-    QScopedPointer<PostJobAction> m_postJobAction;
-    QThread::Priority m_priority;
-    QAction *m_actionPause;
-    QAction *m_actionResume;
-    bool m_isPaused;
-    QString m_target;
+	QList<QAction*> standardActions() const {
+		return m_standardActions;
+	}
+
+	QList<QAction*> successActions() const {
+		return m_successActions;
+	}
+
+	QTime estimateRemaining(int percent);
+
+	QElapsedTimer time() const {
+		return m_totalTime;
+	}
+
+	void setPostJobAction(PostJobAction* action);
+	bool paused() const;
+
+	void setTarget(const QString& target) {
+		m_target = target;
+	}
+
+	QString target() {
+		return m_target;
+	}
+
+	bool hasPostJobAction() const {
+		return !m_postJobAction.isNull();
+	}
+
+  public slots:
+	void         start(const QString& program, const QStringList& arguments);
+	virtual void start();
+	virtual void stop();
+	void         pause();
+	void         resume();
+
+  signals:
+	void progressUpdated(QStandardItem* item, int percent);
+	void finished(AbstractJob* job, bool isSuccess, QString failureTime = QString());
+
+  protected:
+	void            setKilled(bool = true);
+	QList<QAction*> m_standardActions;
+	QList<QAction*> m_successActions;
+	QStandardItem*  m_item;
+
+  protected slots:
+	virtual void onFinished(int exitCode, QProcess::ExitStatus exitStatus = QProcess::NormalExit);
+	virtual void onReadyRead();
+	virtual void onStarted();
+
+  private slots:
+	void onProgressUpdated(QStandardItem*, int percent);
+
+  private:
+	bool                          m_ran;
+	bool                          m_killed;
+	QString                       m_log;
+	QString                       m_label;
+	QElapsedTimer                 m_estimateTime;
+	int                           m_startingPercent;
+	QElapsedTimer                 m_totalTime;
+	QScopedPointer<PostJobAction> m_postJobAction;
+	QThread::Priority             m_priority;
+	QAction*                      m_actionPause;
+	QAction*                      m_actionResume;
+	bool                          m_isPaused;
+	QString                       m_target;
 };
 
 #endif // ABSTRACTJOB_HPP

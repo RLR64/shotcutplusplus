@@ -16,97 +16,84 @@
  */
 
 #include "subtitlesselectionmodel.hpp"
+
 #include "Logger.hpp"
 #include "models/subtitlesmodel.hpp"
 
-SubtitlesSelectionModel::SubtitlesSelectionModel(QAbstractItemModel *model)
-    : QItemSelectionModel(model)
-    , m_selectedTrackIndex(-1)
-{
-    connect(this,
-            &QItemSelectionModel::selectionChanged,
-            this,
-            [&](const QItemSelection &selected, const QItemSelection &deselected) {
-                QVariantList result;
-                foreach (auto modelIndex, selectedRows()) {
-                    result << modelIndex.row();
-                }
-                m_selectedItems = result;
-                if (selectedRows().size() == 1) {
-                    m_lastSingleSelection = selectedRows()[0].row();
-                }
-                emit selectedItemsChanged();
-            });
+SubtitlesSelectionModel::SubtitlesSelectionModel(QAbstractItemModel* model)
+    : QItemSelectionModel(model), m_selectedTrackIndex(-1) {
+	connect(this, &QItemSelectionModel::selectionChanged, this,
+	        [&](const QItemSelection& selected, const QItemSelection& deselected) {
+		        QVariantList result;
+		        foreach (auto modelIndex, selectedRows()) {
+			        result << modelIndex.row();
+		        }
+		        m_selectedItems = result;
+		        if (selectedRows().size() == 1) {
+			        m_lastSingleSelection = selectedRows()[0].row();
+		        }
+		        emit selectedItemsChanged();
+	        });
 }
 
-QModelIndex SubtitlesSelectionModel::selectedTrackModelIndex()
-{
-    SubtitlesModel *smodel = dynamic_cast<SubtitlesModel *>(model());
-    return smodel->trackModelIndex(m_selectedTrackIndex);
+QModelIndex SubtitlesSelectionModel::selectedTrackModelIndex() {
+	SubtitlesModel* smodel = dynamic_cast<SubtitlesModel*>(model());
+	return smodel->trackModelIndex(m_selectedTrackIndex);
 }
 
-int SubtitlesSelectionModel::selectedTrack()
-{
-    return m_selectedTrackIndex;
+int SubtitlesSelectionModel::selectedTrack() {
+	return m_selectedTrackIndex;
 }
 
-void SubtitlesSelectionModel::setSelectedTrack(int trackIndex)
-{
-    if (m_selectedTrackIndex != trackIndex) {
-        m_selectedTrackIndex = trackIndex;
-        clearSelection();
-        m_lastSingleSelection = -1;
-        emit selectedTrackModelIndexChanged(selectedTrackModelIndex());
-    }
+void SubtitlesSelectionModel::setSelectedTrack(int trackIndex) {
+	if (m_selectedTrackIndex != trackIndex) {
+		m_selectedTrackIndex = trackIndex;
+		clearSelection();
+		m_lastSingleSelection = -1;
+		emit selectedTrackModelIndexChanged(selectedTrackModelIndex());
+	}
 }
 
-QVariantList SubtitlesSelectionModel::selectedItems()
-{
-    return m_selectedItems;
+QVariantList SubtitlesSelectionModel::selectedItems() {
+	return m_selectedItems;
 }
 
-bool SubtitlesSelectionModel::isItemSelected(int itemIndex)
-{
-    if (m_selectedItems.contains(QVariant(itemIndex))) {
-        return true;
-    }
-    return false;
+bool SubtitlesSelectionModel::isItemSelected(int itemIndex) {
+	if (m_selectedItems.contains(QVariant(itemIndex))) {
+		return true;
+	}
+	return false;
 }
 
-void SubtitlesSelectionModel::selectItem(int itemIndex)
-{
-    QModelIndexList selected = selectedIndexes();
-    if (selected.size() == 1 && selected[0].row() == itemIndex) {
-        // This item is already selected
-        return;
-    }
-    SubtitlesModel *smodel = dynamic_cast<SubtitlesModel *>(model());
-    QModelIndex itemModelIndex = smodel->itemModelIndex(m_selectedTrackIndex, itemIndex);
-    if (itemModelIndex.isValid()) {
-        select(itemModelIndex, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
-        setCurrentIndex(itemModelIndex, QItemSelectionModel::NoUpdate);
-    }
+void SubtitlesSelectionModel::selectItem(int itemIndex) {
+	QModelIndexList selected = selectedIndexes();
+	if (selected.size() == 1 && selected[0].row() == itemIndex) {
+		// This item is already selected
+		return;
+	}
+	SubtitlesModel* smodel         = dynamic_cast<SubtitlesModel*>(model());
+	QModelIndex     itemModelIndex = smodel->itemModelIndex(m_selectedTrackIndex, itemIndex);
+	if (itemModelIndex.isValid()) {
+		select(itemModelIndex, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+		setCurrentIndex(itemModelIndex, QItemSelectionModel::NoUpdate);
+	}
 }
 
-void SubtitlesSelectionModel::selectRange(int itemIndex)
-{
-    SubtitlesModel *smodel = dynamic_cast<SubtitlesModel *>(model());
-    QModelIndex itemModelIndex = smodel->itemModelIndex(m_selectedTrackIndex, itemIndex);
-    if (!itemModelIndex.isValid()) {
-        return;
-    }
-    LOG_DEBUG() << m_lastSingleSelection << itemIndex;
-    if (m_lastSingleSelection == -1) {
-        select(itemModelIndex,
-               QItemSelectionModel::ClearAndSelect | QItemSelectionModel::SelectCurrent
-                   | QItemSelectionModel::Rows);
-    } else {
-        QModelIndex firstItemModelIndex = smodel->itemModelIndex(m_selectedTrackIndex,
-                                                                 m_lastSingleSelection);
-        QItemSelection newSelection(firstItemModelIndex, itemModelIndex);
-        select(newSelection,
-               QItemSelectionModel::ClearAndSelect | QItemSelectionModel::SelectCurrent
-                   | QItemSelectionModel::Rows);
-    }
-    setCurrentIndex(itemModelIndex, QItemSelectionModel::NoUpdate);
+void SubtitlesSelectionModel::selectRange(int itemIndex) {
+	SubtitlesModel* smodel         = dynamic_cast<SubtitlesModel*>(model());
+	QModelIndex     itemModelIndex = smodel->itemModelIndex(m_selectedTrackIndex, itemIndex);
+	if (!itemModelIndex.isValid()) {
+		return;
+	}
+	LOG_DEBUG() << m_lastSingleSelection << itemIndex;
+	if (m_lastSingleSelection == -1) {
+		select(itemModelIndex,
+		       QItemSelectionModel::ClearAndSelect | QItemSelectionModel::SelectCurrent | QItemSelectionModel::Rows);
+	} else {
+		QModelIndex    firstItemModelIndex = smodel->itemModelIndex(m_selectedTrackIndex, m_lastSingleSelection);
+		QItemSelection newSelection(firstItemModelIndex, itemModelIndex);
+		select(newSelection,
+		       QItemSelectionModel::ClearAndSelect | QItemSelectionModel::SelectCurrent | QItemSelectionModel::Rows);
+	}
+	setCurrentIndex(itemModelIndex, QItemSelectionModel::NoUpdate);
 }

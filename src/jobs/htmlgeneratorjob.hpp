@@ -24,35 +24,31 @@
 #include <QDir>
 #include <QTemporaryDir>
 
-class HtmlGeneratorJob : public AbstractJob
-{
-    Q_OBJECT
-public:
-    HtmlGeneratorJob(const QString &name,
-                     const QString &html,
-                     const QString &outputPath,
-                     int duration,
-                     QThread::Priority priority = QThread::HighPriority);
-    void start() override;
+class HtmlGeneratorJob : public AbstractJob {
+	Q_OBJECT
+  public:
+	HtmlGeneratorJob(const QString& name, const QString& html, const QString& outputPath, int duration,
+	                 QThread::Priority priority = QThread::HighPriority);
+	void start() override;
 
-protected slots:
-    void onFinished(int exitCode, QProcess::ExitStatus exitStatus) override;
-    void onReadyRead() override;
+  protected slots:
+	void onFinished(int exitCode, QProcess::ExitStatus exitStatus) override;
+	void onReadyRead() override;
 
-private slots:
-    void onAnimationFramesReady();
-    void onHtmlGeneratorProgress(float progress);
-    void onOpenTriggered();
+  private slots:
+	void onAnimationFramesReady();
+	void onHtmlGeneratorProgress(float progress);
+	void onOpenTriggered();
 
-private:
-    QString m_html;
-    QString m_outputPath;
-    int m_duration;
-    HtmlGenerator *m_generator; // owned via parent QObject
-    std::unique_ptr<QTemporaryDir> m_tempDir;
-    QString m_htmlFilePath;
-    bool m_isGeneratingFrames;
-    int m_previousPercent;
+  private:
+	QString                        m_html;
+	QString                        m_outputPath;
+	int                            m_duration;
+	HtmlGenerator*                 m_generator; // owned via parent QObject
+	std::unique_ptr<QTemporaryDir> m_tempDir;
+	QString                        m_htmlFilePath;
+	bool                           m_isGeneratingFrames;
+	int                            m_previousPercent;
 };
 
 #endif // HTMLGENERATORJOB_HPP

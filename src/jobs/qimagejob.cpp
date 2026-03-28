@@ -16,6 +16,7 @@
  */
 
 #include "qimagejob.hpp"
+
 #include "util.hpp"
 
 #include <QImage>
@@ -23,46 +24,39 @@
 #include <QRunnable>
 #include <QtConcurrent/QtConcurrent>
 
-QImageJob::QImageJob(const QString &destFilePath, const QString &srcFilePath, const int height)
-    : AbstractJob(srcFilePath)
-    , m_srcFilePath(srcFilePath)
-    , m_destFilePath(destFilePath)
-    , m_height(height)
-{
-    setTarget(destFilePath);
-    setLabel(tr("Make proxy for %1").arg(Util::baseName(srcFilePath)));
+QImageJob::QImageJob(const QString& destFilePath, const QString& srcFilePath, const int height)
+    : AbstractJob(srcFilePath), m_srcFilePath(srcFilePath), m_destFilePath(destFilePath), m_height(height) {
+	setTarget(destFilePath);
+	setLabel(tr("Make proxy for %1").arg(Util::baseName(srcFilePath)));
 }
 
-QImageJob::~QImageJob()
-{
-    if (m_destFilePath.contains("proxies") && m_destFilePath.contains(".pending.")) {
-        QFile::remove(m_destFilePath);
-    }
+QImageJob::~QImageJob() {
+	if (m_destFilePath.contains("proxies") && m_destFilePath.contains(".pending.")) {
+		QFile::remove(m_destFilePath);
+	}
 }
 
-void QImageJob::start()
-{
-    AbstractJob::start();
-    auto result = QtConcurrent::run([=]() {
-        appendToLog(QStringLiteral("Reading source image \"%1\"\n").arg(m_srcFilePath));
-        QImageReader reader;
-        reader.setAutoTransform(true);
-        reader.setDecideFormatFromContent(true);
-        reader.setFileName(m_srcFilePath);
-        QImage image(reader.read());
-        if (!image.isNull()) {
-            image = image.scaledToHeight(m_height, Qt::SmoothTransformation);
-            if (image.save(m_destFilePath)) {
-                appendToLog(
-                    QStringLiteral("Successfully saved image as \"%1\"\n").arg(m_destFilePath));
-                QMetaObject::invokeMethod(this, "onFinished", Qt::QueuedConnection, Q_ARG(int, 0));
-            } else {
-                appendToLog(QStringLiteral("Failed to save image as \"%1\"\n").arg(m_destFilePath));
-                QMetaObject::invokeMethod(this, "onFinished", Qt::QueuedConnection, Q_ARG(int, 1));
-            }
-        } else {
-            appendToLog(QStringLiteral("Failed to read source image \"%1\"\n").arg(m_srcFilePath));
-            QMetaObject::invokeMethod(this, "onFinished", Qt::QueuedConnection, Q_ARG(int, 1));
-        }
-    });
+void QImageJob::start() {
+	AbstractJob::start();
+	auto result = QtConcurrent::run([=]() {
+		appendToLog(QStringLiteral("Reading source image \"%1\"\n").arg(m_srcFilePath));
+		QImageReader reader;
+		reader.setAutoTransform(true);
+		reader.setDecideFormatFromContent(true);
+		reader.setFileName(m_srcFilePath);
+		QImage image(reader.read());
+		if (!image.isNull()) {
+			image = image.scaledToHeight(m_height, Qt::SmoothTransformation);
+			if (image.save(m_destFilePath)) {
+				appendToLog(QStringLiteral("Successfully saved image as \"%1\"\n").arg(m_destFilePath));
+				QMetaObject::invokeMethod(this, "onFinished", Qt::QueuedConnection, Q_ARG(int, 0));
+			} else {
+				appendToLog(QStringLiteral("Failed to save image as \"%1\"\n").arg(m_destFilePath));
+				QMetaObject::invokeMethod(this, "onFinished", Qt::QueuedConnection, Q_ARG(int, 1));
+			}
+		} else {
+			appendToLog(QStringLiteral("Failed to read source image \"%1\"\n").arg(m_srcFilePath));
+			QMetaObject::invokeMethod(this, "onFinished", Qt::QueuedConnection, Q_ARG(int, 1));
+		}
+	});
 }

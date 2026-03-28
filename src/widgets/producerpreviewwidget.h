@@ -28,47 +28,47 @@
 class QLabel;
 class ScrubBar;
 
-class ProducerPreviewWidget : public QWidget
-{
-    Q_OBJECT
+class ProducerPreviewWidget : public QWidget {
+	Q_OBJECT
 
-public:
-    explicit ProducerPreviewWidget(double dar, int width = 320);
-    virtual ~ProducerPreviewWidget();
+  public:
+	explicit ProducerPreviewWidget(double dar, int width = 320);
+	virtual ~ProducerPreviewWidget();
 
-    void start(const Mlt::Producer &producer);
-    void stop(bool releaseProducer = true);
-    void showText(QString text);
-    void setLooping(bool enabled);
+	void start(const Mlt::Producer& producer);
+	void stop(bool releaseProducer = true);
+	void showText(QString text);
+	void setLooping(bool enabled);
 
-public slots:
-    void restart();
+  public slots:
+	void restart();
 
-private slots:
-    void seeked(int);
+  private slots:
+	void seeked(int);
 
-private:
-    void timerEvent(QTimerEvent *) override;
-    void frameGeneratorThread();
-    void generateFrame();
+  private:
+	void timerEvent(QTimerEvent*) override;
+	void frameGeneratorThread();
+	void generateFrame();
 
-    QSize m_previewSize;
-    QLabel *m_imageLabel;
-    ScrubBar *m_scrubber;
-    QLabel *m_posLabel;
-    int m_seekTo;
-    int m_timerId;
-    Mlt::Producer m_producer;
-    struct QueueItem
-    {
-        QPixmap pixmap;
-        int position;
-        QString positionText;
-    };
-    DataQueue<QueueItem> m_queue;
-    QFuture<void> m_future;
-    bool m_generateFrames;
-    bool m_isLooping;
+	QSize         m_previewSize;
+	QLabel*       m_imageLabel;
+	ScrubBar*     m_scrubber;
+	QLabel*       m_posLabel;
+	int           m_seekTo;
+	int           m_timerId;
+	Mlt::Producer m_producer;
+
+	struct QueueItem {
+		QPixmap pixmap;
+		int     position;
+		QString positionText;
+	};
+
+	DataQueue<QueueItem> m_queue;
+	QFuture<void>        m_future;
+	bool                 m_generateFrames;
+	bool                 m_isLooping;
 };
 
 #endif // PRODUCERPREVIEWWIDGET_H

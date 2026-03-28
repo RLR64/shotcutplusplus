@@ -22,29 +22,26 @@
 
 #include <QStringList>
 
-class FfmpegJob : public AbstractJob
-{
-    Q_OBJECT
-public:
-    FfmpegJob(const QString &name,
-              const QStringList &args,
-              bool isOpenLog = true,
-              QThread::Priority priority = Settings.jobPriority());
-    virtual ~FfmpegJob();
-    void start();
+class FfmpegJob : public AbstractJob {
+	Q_OBJECT
+  public:
+	FfmpegJob(const QString& name, const QStringList& args, bool isOpenLog = true,
+	          QThread::Priority priority = Settings.jobPriority());
+	virtual ~FfmpegJob();
+	void start();
 
-public slots:
-    virtual void stop();
+  public slots:
+	virtual void stop();
 
-private slots:
-    void onOpenTriggered();
-    void onReadyRead();
+  private slots:
+	void onOpenTriggered();
+	void onReadyRead();
 
-private:
-    QStringList m_args;
-    double m_duration;
-    int m_previousPercent;
-    bool m_isOpenLog;
+  private:
+	QStringList m_args;
+	double      m_duration;
+	int         m_previousPercent;
+	bool        m_isOpenLog;
 };
 
 #endif // FFMPEGJOB_HPP

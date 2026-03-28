@@ -31,44 +31,43 @@ class QListWidget;
 class QSpinBox;
 class QTreeView;
 
-class TranscribeAudioDialog : public QDialog
-{
-    Q_OBJECT
+class TranscribeAudioDialog : public QDialog {
+	Q_OBJECT
 
-public:
-    explicit TranscribeAudioDialog(const QString &trackName, QWidget *parent);
-    QString name();
-    QString language();
-    QList<int> tracks();
-    bool translate();
-    int maxLineLength();
-    bool includeNonspoken();
+  public:
+	explicit TranscribeAudioDialog(const QString& trackName, QWidget* parent);
+	QString    name();
+	QString    language();
+	QList<int> tracks();
+	bool       translate();
+	int        maxLineLength();
+	bool       includeNonspoken();
 
-protected:
-    virtual void showEvent(QShowEvent *event) override;
+  protected:
+	virtual void showEvent(QShowEvent* event) override;
 
-private slots:
-    void onButtonClicked(QAbstractButton *button);
-    void onModelRowClicked(const QModelIndex &index);
+  private slots:
+	void onButtonClicked(QAbstractButton* button);
+	void onModelRowClicked(const QModelIndex& index);
 
-private:
-    void refreshModels(bool report = true);
-    void downloadModel(int index);
-    void setCurrentModel(int index);
-    void updateWhisperStatus();
-    void showModelContextMenu(QPoint p);
-    ExtensionModel m_model;
-    QLineEdit *m_name;
-    QComboBox *m_lang;
-    QCheckBox *m_translate;
-    QSpinBox *m_maxLength;
-    QCheckBox *m_nonspoken;
-    QListWidget *m_trackList;
-    QWidget *m_configWidget;
-    QLineEdit *m_exeLabel;
-    QLineEdit *m_modelLabel;
-    QDialogButtonBox *m_buttonBox;
-    QTreeView *m_table;
+  private:
+	void              refreshModels(bool report = true);
+	void              downloadModel(int index);
+	void              setCurrentModel(int index);
+	void              updateWhisperStatus();
+	void              showModelContextMenu(QPoint p);
+	ExtensionModel    m_model;
+	QLineEdit*        m_name;
+	QComboBox*        m_lang;
+	QCheckBox*        m_translate;
+	QSpinBox*         m_maxLength;
+	QCheckBox*        m_nonspoken;
+	QListWidget*      m_trackList;
+	QWidget*          m_configWidget;
+	QLineEdit*        m_exeLabel;
+	QLineEdit*        m_modelLabel;
+	QDialogButtonBox* m_buttonBox;
+	QTreeView*        m_table;
 };
 
 #endif // TRANSCRIBEAUDIODIALOG_HPP

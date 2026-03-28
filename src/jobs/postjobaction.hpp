@@ -21,132 +21,116 @@
 #include <QString>
 #include <QUuid>
 
-class PostJobAction
-{
-public:
-    virtual ~PostJobAction() {}
-    virtual void doAction() = 0;
+class PostJobAction {
+  public:
+	virtual ~PostJobAction() {
+	}
+
+	virtual void doAction() = 0;
 };
 
-class FilePropertiesPostJobAction : public PostJobAction
-{
-public:
-    FilePropertiesPostJobAction(const QString &srcFile, const QString &dstFile)
-        : m_srcFile(srcFile)
-        , m_dstFile(dstFile)
-    {}
-    virtual ~FilePropertiesPostJobAction() {}
-    virtual void doAction();
+class FilePropertiesPostJobAction : public PostJobAction {
+  public:
+	FilePropertiesPostJobAction(const QString& srcFile, const QString& dstFile)
+	    : m_srcFile(srcFile), m_dstFile(dstFile) {
+	}
 
-protected:
-    QString m_srcFile;
-    QString m_dstFile;
+	virtual ~FilePropertiesPostJobAction() {
+	}
+
+	virtual void doAction();
+
+  protected:
+	QString m_srcFile;
+	QString m_dstFile;
 };
 
-class OpenPostJobAction : public FilePropertiesPostJobAction
-{
-public:
-    OpenPostJobAction(const QString &srcFile,
-                      const QString &dstFile,
-                      const QString &fileNameToRemove)
-        : FilePropertiesPostJobAction(srcFile, dstFile)
-        , m_fileNameToRemove(fileNameToRemove)
-    {}
-    void doAction();
+class OpenPostJobAction : public FilePropertiesPostJobAction {
+  public:
+	OpenPostJobAction(const QString& srcFile, const QString& dstFile, const QString& fileNameToRemove)
+	    : FilePropertiesPostJobAction(srcFile, dstFile), m_fileNameToRemove(fileNameToRemove) {
+	}
 
-private:
-    QString m_fileNameToRemove;
+	void doAction();
+
+  private:
+	QString m_fileNameToRemove;
 };
 
-class ReplaceOnePostJobAction : public FilePropertiesPostJobAction
-{
-public:
-    ReplaceOnePostJobAction(const QString &srcFile,
-                            const QString &dstFile,
-                            const QString &fileNameToRemove,
-                            const QUuid &srcUuid,
-                            int in)
-        : FilePropertiesPostJobAction(srcFile, dstFile)
-        , m_fileNameToRemove(fileNameToRemove)
-        , m_uuid(srcUuid)
-        , m_in(in)
-    {}
-    void doAction();
+class ReplaceOnePostJobAction : public FilePropertiesPostJobAction {
+  public:
+	ReplaceOnePostJobAction(const QString& srcFile, const QString& dstFile, const QString& fileNameToRemove,
+	                        const QUuid& srcUuid, int in)
+	    : FilePropertiesPostJobAction(srcFile, dstFile), m_fileNameToRemove(fileNameToRemove), m_uuid(srcUuid),
+	      m_in(in) {
+	}
 
-private:
-    QString m_fileNameToRemove;
-    QUuid m_uuid;
-    int m_in;
+	void doAction();
+
+  private:
+	QString m_fileNameToRemove;
+	QUuid   m_uuid;
+	int     m_in;
 };
 
-class ReplaceAllPostJobAction : public FilePropertiesPostJobAction
-{
-public:
-    ReplaceAllPostJobAction(const QString &srcFile, const QString &dstFile, const QString &srcHash)
-        : FilePropertiesPostJobAction(srcFile, dstFile)
-        , m_hash(srcHash)
-    {}
-    void doAction();
+class ReplaceAllPostJobAction : public FilePropertiesPostJobAction {
+  public:
+	ReplaceAllPostJobAction(const QString& srcFile, const QString& dstFile, const QString& srcHash)
+	    : FilePropertiesPostJobAction(srcFile, dstFile), m_hash(srcHash) {
+	}
 
-private:
-    QString m_hash;
+	void doAction();
+
+  private:
+	QString m_hash;
 };
 
-class ProxyReplacePostJobAction : public FilePropertiesPostJobAction
-{
-public:
-    ProxyReplacePostJobAction(const QString &srcFile, const QString &dstFile, const QString &srcHash)
-        : FilePropertiesPostJobAction(srcFile, dstFile)
-        , m_srcFile(srcFile)
-        , m_dstFile(dstFile)
-        , m_hash(srcHash)
-    {}
-    void doAction();
+class ProxyReplacePostJobAction : public FilePropertiesPostJobAction {
+  public:
+	ProxyReplacePostJobAction(const QString& srcFile, const QString& dstFile, const QString& srcHash)
+	    : FilePropertiesPostJobAction(srcFile, dstFile), m_srcFile(srcFile), m_dstFile(dstFile), m_hash(srcHash) {
+	}
 
-private:
-    QString m_srcFile;
-    QString m_dstFile;
-    QString m_hash;
+	void doAction();
+
+  private:
+	QString m_srcFile;
+	QString m_dstFile;
+	QString m_hash;
 };
 
-class ProxyFinalizePostJobAction : public FilePropertiesPostJobAction
-{
-public:
-    ProxyFinalizePostJobAction(const QString &srcFile, const QString &dstFile)
-        : FilePropertiesPostJobAction(srcFile, dstFile)
-        , m_dstFile(dstFile)
-    {}
-    void doAction();
+class ProxyFinalizePostJobAction : public FilePropertiesPostJobAction {
+  public:
+	ProxyFinalizePostJobAction(const QString& srcFile, const QString& dstFile)
+	    : FilePropertiesPostJobAction(srcFile, dstFile), m_dstFile(dstFile) {
+	}
 
-private:
-    QString m_dstFile;
+	void doAction();
+
+  private:
+	QString m_dstFile;
 };
 
 class SubtitlesDock;
 
-class ImportSrtPostJobAction : public PostJobAction
-{
-public:
-    ImportSrtPostJobAction(const QString &srtFile,
-                           const QString &trackName,
-                           const QString &lang,
-                           bool includeNonspoken,
-                           SubtitlesDock *dock)
-        : m_srtFile(srtFile)
-        , m_trackName(trackName)
-        , m_lang(lang)
-        , m_includeNonspoken(includeNonspoken)
-        , m_dock(dock)
-    {}
-    virtual ~ImportSrtPostJobAction() {}
-    void doAction();
+class ImportSrtPostJobAction : public PostJobAction {
+  public:
+	ImportSrtPostJobAction(const QString& srtFile, const QString& trackName, const QString& lang, bool includeNonspoken,
+	                       SubtitlesDock* dock)
+	    : m_srtFile(srtFile), m_trackName(trackName), m_lang(lang), m_includeNonspoken(includeNonspoken), m_dock(dock) {
+	}
 
-protected:
-    const QString m_srtFile;
-    const QString m_trackName;
-    const QString m_lang;
-    const bool m_includeNonspoken;
-    SubtitlesDock *m_dock;
+	virtual ~ImportSrtPostJobAction() {
+	}
+
+	void doAction();
+
+  protected:
+	const QString  m_srtFile;
+	const QString  m_trackName;
+	const QString  m_lang;
+	const bool     m_includeNonspoken;
+	SubtitlesDock* m_dock;
 };
 
 #endif // POSTJOBACTION_HPP

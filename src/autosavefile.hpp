@@ -24,24 +24,26 @@
 #include <QtCore/QFile>
 #include <QtCore/QString>
 
-class AutoSaveFile : public QFile
-{
-    Q_OBJECT
-public:
-    explicit AutoSaveFile(const QString &filename, QObject *parent = 0);
-    ~AutoSaveFile();
+class AutoSaveFile : public QFile {
+	Q_OBJECT
+  public:
+	explicit AutoSaveFile(const QString& filename, QObject* parent = 0);
+	~AutoSaveFile();
 
-    QString managedFileName() const { return m_managedFile; }
-    void changeManagedFile(const QString &filename);
+	QString managedFileName() const {
+		return m_managedFile;
+	}
 
-    virtual bool open(OpenMode openmode);
-    static AutoSaveFile *getFile(const QString &filename);
-    static QString path();
+	void changeManagedFile(const QString& filename);
 
-private:
-    Q_DISABLE_COPY(AutoSaveFile)
-    QString m_managedFile;
-    bool m_managedFileNameChanged;
+	virtual bool         open(OpenMode openmode);
+	static AutoSaveFile* getFile(const QString& filename);
+	static QString       path();
+
+  private:
+	Q_DISABLE_COPY(AutoSaveFile)
+	QString m_managedFile;
+	bool    m_managedFileNameChanged;
 };
 
 #endif // AUTOSAVEFILE_HPP

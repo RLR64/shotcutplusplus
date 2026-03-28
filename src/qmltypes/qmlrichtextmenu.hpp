@@ -20,27 +20,26 @@
 
 #include <QObject>
 
-class QmlRichTextMenu : public QObject
-{
-    Q_OBJECT
+class QmlRichTextMenu : public QObject {
+	Q_OBJECT
 
-public:
-    explicit QmlRichTextMenu(QObject *parent = 0);
+  public:
+	explicit QmlRichTextMenu(QObject* parent = 0);
 
-signals:
-    void openTriggered();
-    void saveAsTriggered();
-    void undoTriggered();
-    void redoTriggered();
-    void cutTriggered();
-    void copyTriggered();
-    void pasteTriggered();
-    void pastePlainTriggered();
-    void selectAllTriggered();
-    void insertTableTriggered();
+  signals:
+	void openTriggered();
+	void saveAsTriggered();
+	void undoTriggered();
+	void redoTriggered();
+	void cutTriggered();
+	void copyTriggered();
+	void pasteTriggered();
+	void pastePlainTriggered();
+	void selectAllTriggered();
+	void insertTableTriggered();
 
-public slots:
-    void popup();
+  public slots:
+	void popup();
 };
 
 #endif // QMLRICHTEXTMENU_HPP

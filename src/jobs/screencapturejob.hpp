@@ -26,41 +26,38 @@
 #include <QDBusConnection>
 #endif
 
-class ScreenCaptureJob : public AbstractJob
-{
-    Q_OBJECT
-public:
-    ScreenCaptureJob(const QString &name,
-                     const QString &filename,
-                     const QRect &captureRect,
-                     bool recordAudio = true);
-    virtual ~ScreenCaptureJob();
-    void start() override;
-    void stop() override;
+class ScreenCaptureJob : public AbstractJob {
+	Q_OBJECT
+  public:
+	ScreenCaptureJob(const QString& name, const QString& filename, const QRect& captureRect, bool recordAudio = true);
+	virtual ~ScreenCaptureJob();
+	void start() override;
+	void stop() override;
 
-private slots:
-    void onOpenTriggered();
-    void onFinished(int exitCode, QProcess::ExitStatus exitStatus) override;
+  private slots:
+	void onOpenTriggered();
+	void onFinished(int exitCode, QProcess::ExitStatus exitStatus) override;
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
-    void onDBusRecordingTaken(const QString &fileName);
-    void onDBusRecordingFailed();
+	void onDBusRecordingTaken(const QString& fileName);
+	void onDBusRecordingFailed();
 #endif
 
-private:
+  private:
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
-    enum DBusService { None, GNOME, KDE };
-    bool startWaylandRecording();
-    bool startGnomeScreencast();
-    bool startKdeSpectacle();
+	enum DBusService { None, GNOME, KDE };
+
+	bool startWaylandRecording();
+	bool startGnomeScreencast();
+	bool startKdeSpectacle();
 #endif
-    QString m_filename;
-    QString m_actualFilename;
-    QRect m_rect;
-    bool m_isAutoOpen;
-    bool m_recordAudio;
-    QTimer m_progressTimer;
+	QString m_filename;
+	QString m_actualFilename;
+	QRect   m_rect;
+	bool    m_isAutoOpen;
+	bool    m_recordAudio;
+	QTimer  m_progressTimer;
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
-    DBusService m_dbusService = DBusService::None;
+	DBusService m_dbusService = DBusService::None;
 #endif
 };
 

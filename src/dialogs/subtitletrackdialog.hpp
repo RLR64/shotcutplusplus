@@ -23,21 +23,20 @@
 class QLineEdit;
 class QComboBox;
 
-class SubtitleTrackDialog : public QDialog
-{
-    Q_OBJECT
+class SubtitleTrackDialog : public QDialog {
+	Q_OBJECT
 
-public:
-    explicit SubtitleTrackDialog(const QString &name, const QString &lang, QWidget *parent);
-    QString getName();
-    QString getLanguage();
+  public:
+	explicit SubtitleTrackDialog(const QString& name, const QString& lang, QWidget* parent);
+	QString getName();
+	QString getLanguage();
 
-private slots:
-    void accept();
+  private slots:
+	void accept();
 
-private:
-    QLineEdit *m_name;
-    QComboBox *m_lang;
+  private:
+	QLineEdit* m_name;
+	QComboBox* m_lang;
 };
 
 #endif // SUBTITLETRACKDIALOG_HPP

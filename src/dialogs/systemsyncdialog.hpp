@@ -24,32 +24,31 @@ namespace Ui {
 class SystemSyncDialog;
 }
 
-class SystemSyncDialog : public QDialog
-{
-    Q_OBJECT
+class SystemSyncDialog : public QDialog {
+	Q_OBJECT
 
-public:
-    explicit SystemSyncDialog(QWidget *parent = nullptr);
-    ~SystemSyncDialog();
+  public:
+	explicit SystemSyncDialog(QWidget* parent = nullptr);
+	~SystemSyncDialog();
 
-private slots:
-    void on_syncSlider_sliderReleased();
+  private slots:
+	void on_syncSlider_sliderReleased();
 
-    void on_syncSpinBox_editingFinished();
+	void on_syncSpinBox_editingFinished();
 
-    void on_buttonBox_rejected();
+	void on_buttonBox_rejected();
 
-    void on_undoButton_clicked();
+	void on_undoButton_clicked();
 
-    void on_syncSpinBox_valueChanged(int arg1);
+	void on_syncSpinBox_valueChanged(int arg1);
 
-    void on_applyButton_clicked();
+	void on_applyButton_clicked();
 
-private:
-    Ui::SystemSyncDialog *ui;
-    int m_oldValue;
+  private:
+	Ui::SystemSyncDialog* ui;
+	int                   m_oldValue;
 
-    void setDelay(int delay);
+	void setDelay(int delay);
 };
 
 #endif // SYSTEMSYNCDIALOG_HPP

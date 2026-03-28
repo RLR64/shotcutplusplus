@@ -16,62 +16,58 @@
  */
 
 #include "dockerpulljob.hpp"
+
 #include "Logger.hpp"
 #include "settings.hpp"
 
 #include <QRegularExpression>
 
-DockerPullJob::DockerPullJob(const QString &imageRef, QThread::Priority priority)
-    : AbstractJob(QObject::tr("docker pull %1").arg(imageRef), priority)
-    , m_imageRef(imageRef)
-{
-    setTarget(imageRef);
+DockerPullJob::DockerPullJob(const QString& imageRef, QThread::Priority priority)
+    : AbstractJob(QObject::tr("docker pull %1").arg(imageRef), priority), m_imageRef(imageRef) {
+	setTarget(imageRef);
 
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
-    auto env = QProcessEnvironment::systemEnvironment();
-    env.remove("LD_LIBRARY_PATH");
-    setProcessEnvironment(env);
+	auto env = QProcessEnvironment::systemEnvironment();
+	env.remove("LD_LIBRARY_PATH");
+	setProcessEnvironment(env);
 #endif
 }
 
-DockerPullJob::~DockerPullJob()
-{
-    LOG_DEBUG() << "DockerPullJob destroyed";
+DockerPullJob::~DockerPullJob() {
+	LOG_DEBUG() << "DockerPullJob destroyed";
 }
 
-void DockerPullJob::start()
-{
-    QString docker = Settings.dockerPath();
-    QStringList args{QStringLiteral("pull"), m_imageRef};
-    setProcessChannelMode(QProcess::MergedChannels);
-    LOG_DEBUG() << docker + " " + args.join(' ');
-    AbstractJob::start(docker, args);
-    emit progressUpdated(m_item, 0);
+void DockerPullJob::start() {
+	QString     docker = Settings.dockerPath();
+	QStringList args{QStringLiteral("pull"), m_imageRef};
+	setProcessChannelMode(QProcess::MergedChannels);
+	LOG_DEBUG() << docker + " " + args.join(' ');
+	AbstractJob::start(docker, args);
+	emit progressUpdated(m_item, 0);
 }
 
-void DockerPullJob::onReadyRead()
-{
-    QString msg;
-    do {
-        msg = readLine();
-        if (!msg.isEmpty()) {
-            appendToLog(msg);
-            // Typical docker pull progress lines contain something like:
-            // Digest: sha256:...
-            // Status: Downloaded newer image for repository:tag
-            // or layer progress lines: <id>: Pull complete
-            // There's no simple percentage, so we approximate by counting 'Pull complete'.
-            static int totalComplete = 0;
-            if (msg.contains("Pull complete")) {
-                ++totalComplete;
-                int percent = qMin(99, totalComplete * 5); // heuristic
-                if (percent != m_previousPercent) {
-                    emit progressUpdated(m_item, percent);
-                    m_previousPercent = percent;
-                }
-            } else if (msg.startsWith("Status: ")) {
-                emit progressUpdated(m_item, 100);
-            }
-        }
-    } while (!msg.isEmpty());
+void DockerPullJob::onReadyRead() {
+	QString msg;
+	do {
+		msg = readLine();
+		if (!msg.isEmpty()) {
+			appendToLog(msg);
+			// Typical docker pull progress lines contain something like:
+			// Digest: sha256:...
+			// Status: Downloaded newer image for repository:tag
+			// or layer progress lines: <id>: Pull complete
+			// There's no simple percentage, so we approximate by counting 'Pull complete'.
+			static int totalComplete = 0;
+			if (msg.contains("Pull complete")) {
+				++totalComplete;
+				int percent = qMin(99, totalComplete * 5); // heuristic
+				if (percent != m_previousPercent) {
+					emit progressUpdated(m_item, percent);
+					m_previousPercent = percent;
+				}
+			} else if (msg.startsWith("Status: ")) {
+				emit progressUpdated(m_item, 100);
+			}
+		}
+	} while (!msg.isEmpty());
 }

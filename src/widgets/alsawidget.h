@@ -26,27 +26,26 @@ namespace Ui {
 class AlsaWidget;
 }
 
-class AlsaWidget : public QWidget, public AbstractProducerWidget
-{
-    Q_OBJECT
+class AlsaWidget : public QWidget, public AbstractProducerWidget {
+	Q_OBJECT
 
-public:
-    explicit AlsaWidget(QWidget *parent = 0);
-    ~AlsaWidget();
+  public:
+	explicit AlsaWidget(QWidget* parent = 0);
+	~AlsaWidget();
 
-    // AbstractProducerWidget overrides
-    Mlt::Producer *newProducer(Mlt::Profile &profile);
-    Mlt::Properties getPreset() const;
-    void loadPreset(Mlt::Properties &);
-    void setProducer(Mlt::Producer *);
+	// AbstractProducerWidget overrides
+	Mlt::Producer*  newProducer(Mlt::Profile& profile);
+	Mlt::Properties getPreset() const;
+	void            loadPreset(Mlt::Properties&);
+	void            setProducer(Mlt::Producer*);
 
-private slots:
-    void on_preset_selected(void *p);
-    void on_preset_saveClicked();
-    void on_applyButton_clicked();
+  private slots:
+	void on_preset_selected(void* p);
+	void on_preset_saveClicked();
+	void on_applyButton_clicked();
 
-private:
-    Ui::AlsaWidget *ui;
+  private:
+	Ui::AlsaWidget* ui;
 };
 
 #endif // ALSAWIDGET_H

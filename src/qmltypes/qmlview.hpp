@@ -23,16 +23,15 @@
 
 class QWidget;
 
-class QmlView : public QObject
-{
-    Q_OBJECT
+class QmlView : public QObject {
+	Q_OBJECT
 
-public:
-    explicit QmlView(QWidget *qview);
-    Q_INVOKABLE QPoint pos();
+  public:
+	explicit QmlView(QWidget* qview);
+	Q_INVOKABLE QPoint pos();
 
-private:
-    QWidget *m_qview;
+  private:
+	QWidget* m_qview;
 };
 
 #endif // QMLVIEW_HPP

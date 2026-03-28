@@ -24,23 +24,22 @@
 
 #define DB Database::singleton()
 
-class Database : public QObject
-{
-    Q_OBJECT
-    explicit Database(QObject *parent = 0);
+class Database : public QObject {
+	Q_OBJECT
+	explicit Database(QObject* parent = 0);
 
-public:
-    static Database &singleton(QObject *parent = 0);
+  public:
+	static Database& singleton(QObject* parent = 0);
 
-    bool putThumbnail(const QString &hash, const QImage &image);
-    QImage getThumbnail(const QString &hash);
+	bool   putThumbnail(const QString& hash, const QImage& image);
+	QImage getThumbnail(const QString& hash);
 
-private:
-    QDir thumbnailsDir();
-    QTimer m_deleteTimer;
+  private:
+	QDir   thumbnailsDir();
+	QTimer m_deleteTimer;
 
-private slots:
-    void deleteOldThumbnails();
+  private slots:
+	void deleteOldThumbnails();
 };
 
 #endif // DATABASE_HPP

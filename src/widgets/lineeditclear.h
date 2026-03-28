@@ -15,22 +15,21 @@
 
 class QToolButton;
 
-class LineEditClear : public QLineEdit
-{
-    Q_OBJECT
+class LineEditClear : public QLineEdit {
+	Q_OBJECT
 
-public:
-    LineEditClear(QWidget *parent = 0);
+  public:
+	LineEditClear(QWidget* parent = 0);
 
-protected:
-    void resizeEvent(QResizeEvent *) override;
-    bool eventFilter(QObject *target, QEvent *event) override;
+  protected:
+	void resizeEvent(QResizeEvent*) override;
+	bool eventFilter(QObject* target, QEvent* event) override;
 
-private slots:
-    void updateCloseButton(const QString &text);
+  private slots:
+	void updateCloseButton(const QString& text);
 
-private:
-    QToolButton *clearButton;
+  private:
+	QToolButton* clearButton;
 };
 
 #endif // LIENEDIT_H

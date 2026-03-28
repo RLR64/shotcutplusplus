@@ -26,66 +26,55 @@
 #include <QSet>
 #include <QString>
 
-class UndoHelper
-{
-public:
-    enum OptimizationHints { NoHints, SkipXML, RestoreTracks };
-    UndoHelper(MultitrackModel &model);
+class UndoHelper {
+  public:
+	enum OptimizationHints { NoHints, SkipXML, RestoreTracks };
 
-    void recordBeforeState();
-    void recordAfterState();
-    void undoChanges();
-    void setHints(OptimizationHints hints);
-    QSet<int> affectedTracks() const { return m_affectedTracks; }
+	UndoHelper(MultitrackModel& Model);
 
-private:
-    void debugPrintState(const QString &title);
-    void restoreAffectedTracks();
-    void fixTransitions(Mlt::Playlist playlist, int clipIndex, Mlt::Producer clip);
+	void RecordBeforeState();
+	void RecordAfterState();
+	void UndoChanges();
+	void SetHints(OptimizationHints Hints);
 
-    enum ChangeFlags {
-        NoChange = 0x0,
-        ClipInfoModified = 0x1,
-        XMLModified = 0x2,
-        Moved = 0x4,
-        Removed = 0x8
-    };
+	QSet<int> AffectedTracks() const {
+		return m_affectedTracks;
+	}
 
-    struct Info
-    {
-        int oldTrackIndex;
-        int oldClipIndex;
-        int newTrackIndex;
-        int newClipIndex;
-        bool isBlank;
-        QString xml;
-        int frame_in;
-        int frame_out;
-        int in_delta;
-        int out_delta;
-        int group;
+  private:
+	void DebugPrintState(const QString& Title);
+	void RestoreAffectedTracks();
+	void FixTransitions(Mlt::Playlist Playlist, int ClipIndex, Mlt::Producer Clip);
 
-        int changes;
-        Info()
-            : oldTrackIndex(-1)
-            , oldClipIndex(-1)
-            , newTrackIndex(-1)
-            , newClipIndex(-1)
-            , isBlank(false)
-            , frame_in(-1)
-            , frame_out(-1)
-            , in_delta(0)
-            , out_delta(0)
-            , changes(NoChange)
-            , group(-1)
-        {}
-    };
-    QMap<QUuid, Info> m_state;
-    QList<QUuid> m_clipsAdded;
-    QList<QUuid> m_insertedOrder;
-    QSet<int> m_affectedTracks;
-    MultitrackModel &m_model;
-    OptimizationHints m_hints;
+	enum ChangeFlags { NoChange = 0x0, ClipInfoModified = 0x1, XMLModified = 0x2, Moved = 0x4, Removed = 0x8 };
+
+	struct Info {
+		int     oldTrackIndex{-1};
+		int     oldClipIndex{-1};
+		int     newTrackIndex{-1};
+		int     newClipIndex{-1};
+		bool    isBlank{false};
+		QString m_xml{};
+		int     frame_in{-1};
+		int     frame_out{-1};
+		int     in_delta{0};
+		int     out_delta{0};
+		int     group{-1};
+
+		int changes{NoChange};
+
+		Info()
+
+		{
+		}
+	};
+
+	QMap<QUuid, Info> m_state;
+	QList<QUuid>      m_clipsAdded;
+	QList<QUuid>      m_insertedOrder;
+	QSet<int>         m_affectedTracks;
+	MultitrackModel&  m_model;
+	OptimizationHints m_hints;
 };
 
 #endif // UNDOHELPER_HPP

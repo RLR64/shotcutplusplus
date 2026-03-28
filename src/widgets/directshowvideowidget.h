@@ -27,27 +27,26 @@ namespace Ui {
 class DirectShowVideoWidget;
 }
 
-class DirectShowVideoWidget : public QWidget, public AbstractProducerWidget
-{
-    Q_OBJECT
+class DirectShowVideoWidget : public QWidget, public AbstractProducerWidget {
+	Q_OBJECT
 
-public:
-    explicit DirectShowVideoWidget(QWidget *parent = 0);
-    ~DirectShowVideoWidget();
+  public:
+	explicit DirectShowVideoWidget(QWidget* parent = 0);
+	~DirectShowVideoWidget();
 
-    // AbstractProducerWidget overrides
-    Mlt::Producer *newProducer(Mlt::Profile &profile);
-    void setProducer(Mlt::Producer *producer);
+	// AbstractProducerWidget overrides
+	Mlt::Producer* newProducer(Mlt::Profile& profile);
+	void           setProducer(Mlt::Producer* producer);
 
-signals:
-    void producerChanged(Mlt::Producer *);
+  signals:
+	void producerChanged(Mlt::Producer*);
 
-private slots:
-    void on_videoCombo_activated(int index);
-    void on_audioCombo_activated(int index);
+  private slots:
+	void on_videoCombo_activated(int index);
+	void on_audioCombo_activated(int index);
 
-private:
-    Ui::DirectShowVideoWidget *ui;
+  private:
+	Ui::DirectShowVideoWidget* ui;
 };
 
 #endif // DIRECTSHOWVIDEOWIDGET_H

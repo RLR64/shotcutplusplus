@@ -16,6 +16,7 @@
  */
 
 #include "subtitles.hpp"
+
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -25,202 +26,180 @@
 #ifdef _WIN32
 #include <windows.h>
 
-static wchar_t *utf8ToWide(const char *strUtf8)
-{
-    wchar_t *strWide = nullptr;
-    int n = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, strUtf8, -1, NULL, 0);
-    if (n > 0) {
-        strWide = (wchar_t *) calloc(n, sizeof(wchar_t));
-        if (strWide) {
-            MultiByteToWideChar(CP_UTF8, 0, strUtf8, -1, strWide, n);
-        }
-    }
-    return strWide;
+static wchar_t* utf8ToWide(const char* strUtf8) {
+	wchar_t* strWide = nullptr;
+	int      n       = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, strUtf8, -1, NULL, 0);
+	if (n > 0) {
+		strWide = (wchar_t*)calloc(n, sizeof(wchar_t));
+		if (strWide) {
+			MultiByteToWideChar(CP_UTF8, 0, strUtf8, -1, strWide, n);
+		}
+	}
+	return strWide;
 }
 #endif /* ifdef _WIN32 */
 
-static Subtitles::SubtitleVector readFromSrtStream(std::istream &stream)
-{
-    enum {
-        STATE_SEEKING_NUM,
-        STATE_READING_TIME,
-        STATE_READING_TEXT,
-    };
+static Subtitles::SubtitleVector readFromSrtStream(std::istream& stream) {
+	enum {
+		STATE_SEEKING_NUM,
+		STATE_READING_TIME,
+		STATE_READING_TEXT,
+	};
 
-    std::string line;
-    std::string text;
-    int state = STATE_SEEKING_NUM;
-    Subtitles::SubtitleItem item;
-    Subtitles::SubtitleVector ret;
+	std::string               line;
+	std::string               text;
+	int                       state = STATE_SEEKING_NUM;
+	Subtitles::SubtitleItem   item;
+	Subtitles::SubtitleVector ret;
 
-    while (std::getline(stream, line)) {
-        switch (state) {
-        case STATE_SEEKING_NUM: {
-            state = STATE_READING_TIME;
-            for (char &c : line) {
-                if (!std::isdigit(c)) {
-                    // Bad line. Keep seeking
-                    state = STATE_SEEKING_NUM;
-                    break;
-                }
-            }
-            break;
-        }
+	while (std::getline(stream, line)) {
+		switch (state) {
+		case STATE_SEEKING_NUM: {
+			state = STATE_READING_TIME;
+			for (char& c : line) {
+				if (!std::isdigit(c)) {
+					// Bad line. Keep seeking
+					state = STATE_SEEKING_NUM;
+					break;
+				}
+			}
+			break;
+		}
 
-        case STATE_READING_TIME: {
-            int sHours, sMinutes, sSeconds, sMiliseconds, eHours, eMinutes, eSeconds, eMiliseconds;
-            const int ret = std::sscanf(line.c_str(),
-                                        "%d:%d:%d,%d --> %d:%d:%d,%d",
-                                        &sHours,
-                                        &sMinutes,
-                                        &sSeconds,
-                                        &sMiliseconds,
-                                        &eHours,
-                                        &eMinutes,
-                                        &eSeconds,
-                                        &eMiliseconds);
-            if (ret != 8) {
-                state = STATE_SEEKING_NUM;
-                break;
-            }
-            item.start = (((((sHours * 60) + sMinutes) * 60) + sSeconds) * 1000) + sMiliseconds;
-            item.end = (((((eHours * 60) + eMinutes) * 60) + eSeconds) * 1000) + eMiliseconds;
-            item.text.clear();
-            state = STATE_READING_TEXT;
-            break;
-        }
+		case STATE_READING_TIME: {
+			int       sHours, sMinutes, sSeconds, sMiliseconds, eHours, eMinutes, eSeconds, eMiliseconds;
+			const int ret = std::sscanf(line.c_str(), "%d:%d:%d,%d --> %d:%d:%d,%d", &sHours, &sMinutes, &sSeconds,
+			                            &sMiliseconds, &eHours, &eMinutes, &eSeconds, &eMiliseconds);
+			if (ret != 8) {
+				state = STATE_SEEKING_NUM;
+				break;
+			}
+			item.start = (((((sHours * 60) + sMinutes) * 60) + sSeconds) * 1000) + sMiliseconds;
+			item.end   = (((((eHours * 60) + eMinutes) * 60) + eSeconds) * 1000) + eMiliseconds;
+			item.text.clear();
+			state = STATE_READING_TEXT;
+			break;
+		}
 
-        case STATE_READING_TEXT: {
-            if (!line.empty()) {
-                if (!item.text.empty()) {
-                    item.text += "\n";
-                }
-                item.text += line;
-            } else {
-                ret.push_back(item);
-                state = STATE_SEEKING_NUM;
-            }
-            break;
-        }
-        }
-    }
+		case STATE_READING_TEXT: {
+			if (!line.empty()) {
+				if (!item.text.empty()) {
+					item.text += "\n";
+				}
+				item.text += line;
+			} else {
+				ret.push_back(item);
+				state = STATE_SEEKING_NUM;
+			}
+			break;
+		}
+		}
+	}
 
-    if (state == STATE_READING_TEXT) {
-        ret.push_back(item);
-    }
+	if (state == STATE_READING_TEXT) {
+		ret.push_back(item);
+	}
 
-    return ret;
+	return ret;
 }
 
-static std::string msToSrtTime(int64_t ms)
-{
-    int hours = std::floor(ms / 1000.0 / 60.0 / 60.0);
-    int minutes = std::floor((ms - (hours * 60 * 60 * 1000)) / 1000.0 / 60.0);
-    int seconds = std::floor((ms - ((hours * 60 + minutes) * 60 * 1000)) / 1000.0);
-    int miliseconds = ms - (((hours * 60 + minutes) * 60 + seconds) * 1000);
-    char buff[13];
-    std::snprintf(buff, sizeof(buff), "%02d:%02d:%02d,%03d", hours, minutes, seconds, miliseconds);
-    return std::string(buff);
+static std::string msToSrtTime(int64_t ms) {
+	int  hours       = std::floor(ms / 1000.0 / 60.0 / 60.0);
+	int  minutes     = std::floor((ms - (hours * 60 * 60 * 1000)) / 1000.0 / 60.0);
+	int  seconds     = std::floor((ms - ((hours * 60 + minutes) * 60 * 1000)) / 1000.0);
+	int  miliseconds = ms - (((hours * 60 + minutes) * 60 + seconds) * 1000);
+	char buff[13];
+	std::snprintf(buff, sizeof(buff), "%02d:%02d:%02d,%03d", hours, minutes, seconds, miliseconds);
+	return std::string(buff);
 }
 
-static bool writeToSrtStream(std::ostream &stream, const Subtitles::SubtitleVector &items)
-{
-    if (items.size() == 0) {
-        return true;
-    }
-    int i = 1;
-    for (auto item : items) {
-        stream << i << "\n";
-        stream << msToSrtTime(item.start) << " --> " << msToSrtTime(item.end) << "\n";
-        stream << item.text;
-        if (!item.text.empty() && item.text.back() != '\n') {
-            stream << "\n";
-        }
-        stream << "\n";
-        i++;
-    }
-    return true;
+static bool writeToSrtStream(std::ostream& stream, const Subtitles::SubtitleVector& items) {
+	if (items.size() == 0) {
+		return true;
+	}
+	int i = 1;
+	for (auto item : items) {
+		stream << i << "\n";
+		stream << msToSrtTime(item.start) << " --> " << msToSrtTime(item.end) << "\n";
+		stream << item.text;
+		if (!item.text.empty() && item.text.back() != '\n') {
+			stream << "\n";
+		}
+		stream << "\n";
+		i++;
+	}
+	return true;
 }
 
-Subtitles::SubtitleVector Subtitles::readFromSrtFile(const std::string &path)
-{
+Subtitles::SubtitleVector Subtitles::readFromSrtFile(const std::string& path) {
 #ifdef _WIN32
-    wchar_t *wpath = utf8ToWide(path.c_str());
-    std::ifstream fileStream(wpath);
-    free(wpath);
+	wchar_t*      wpath = utf8ToWide(path.c_str());
+	std::ifstream fileStream(wpath);
+	free(wpath);
 #else
-    std::ifstream fileStream(path);
+	std::ifstream fileStream(path);
 #endif
-    return readFromSrtStream(fileStream);
+	return readFromSrtStream(fileStream);
 }
 
-bool Subtitles::writeToSrtFile(const std::string &path, const SubtitleVector &items)
-{
+bool Subtitles::writeToSrtFile(const std::string& path, const SubtitleVector& items) {
 #ifdef _WIN32
-    wchar_t *wpath = utf8ToWide(path.c_str());
-    std::ofstream fileStream(wpath, std::ios::out | std::ios::trunc);
-    free(wpath);
+	wchar_t*      wpath = utf8ToWide(path.c_str());
+	std::ofstream fileStream(wpath, std::ios::out | std::ios::trunc);
+	free(wpath);
 #else
-    std::ofstream fileStream(path.c_str(), std::ios::out | std::ios::trunc);
+	std::ofstream fileStream(path.c_str(), std::ios::out | std::ios::trunc);
 #endif
-    if (!fileStream.is_open()) {
-        return false;
-    }
-    return writeToSrtStream(fileStream, items);
+	if (!fileStream.is_open()) {
+		return false;
+	}
+	return writeToSrtStream(fileStream, items);
 }
 
-Subtitles::SubtitleVector Subtitles::readFromSrtString(const std::string &text)
-{
-    std::istringstream textStream(text);
-    return readFromSrtStream(textStream);
+Subtitles::SubtitleVector Subtitles::readFromSrtString(const std::string& text) {
+	std::istringstream textStream(text);
+	return readFromSrtStream(textStream);
 }
 
-bool Subtitles::writeToSrtString(std::string &text, const Subtitles::SubtitleVector &items)
-{
-    std::ostringstream textStream;
-    bool result = writeToSrtStream(textStream, items);
-    text = textStream.str();
-    return result;
+bool Subtitles::writeToSrtString(std::string& text, const Subtitles::SubtitleVector& items) {
+	std::ostringstream textStream;
+	bool               result = writeToSrtStream(textStream, items);
+	text                      = textStream.str();
+	return result;
 }
 
-int Subtitles::indexForTime(const Subtitles::SubtitleVector &items,
-                            int64_t msTime,
-                            int searchStart,
-                            int msMargin)
-{
-    // Return -1 if there is no subtitle for the time.
-    int index = -1;
-    int count = (int) items.size();
-    if (count == 0) {
-        // Nothing to search
-    } else if (count > 0 && (items[0].start - msMargin) > msTime) {
-        // No text if before the first item;
-    } else if (count > 1 && items[count - 1].end < msTime) {
-        // No text if after the last item;
-    } else if (searchStart > -1 && searchStart < count
-               && (items[searchStart].start - msMargin) <= msTime
-               && items[searchStart].end >= msTime) {
-        // First see if this is the same as the last subtitle
-        index = searchStart;
-    } else if (searchStart > -1 && (searchStart + 1) < count && items[searchStart].end < msTime
-               && (items[searchStart + 1].start - msMargin) > msTime) {
-        // No text if between the previous and next subtitle
-    } else if (searchStart > -1 && (searchStart + 1) < count
-               && (items[searchStart + 1].start - msMargin) <= msTime
-               && items[searchStart + 1].end >= msTime) {
-        // See if this is the next subtitle
-        index = searchStart + 1;
-    } else {
-        // Perform a full search from the beginning
-        int i = 0;
-        for (i = 0; i < count; i++) {
-            if ((items[i].start - msMargin) <= msTime && items[i].end >= msTime) {
-                index = i;
-                break;
-            } else if (items[i].end > msTime) {
-                break;
-            }
-        }
-    }
-    return index;
+int Subtitles::indexForTime(const Subtitles::SubtitleVector& items, int64_t msTime, int searchStart, int msMargin) {
+	// Return -1 if there is no subtitle for the time.
+	int index = -1;
+	int count = (int)items.size();
+	if (count == 0) {
+		// Nothing to search
+	} else if (count > 0 && (items[0].start - msMargin) > msTime) {
+		// No text if before the first item;
+	} else if (count > 1 && items[count - 1].end < msTime) {
+		// No text if after the last item;
+	} else if (searchStart > -1 && searchStart < count && (items[searchStart].start - msMargin) <= msTime &&
+	           items[searchStart].end >= msTime) {
+		// First see if this is the same as the last subtitle
+		index = searchStart;
+	} else if (searchStart > -1 && (searchStart + 1) < count && items[searchStart].end < msTime &&
+	           (items[searchStart + 1].start - msMargin) > msTime) {
+		// No text if between the previous and next subtitle
+	} else if (searchStart > -1 && (searchStart + 1) < count && (items[searchStart + 1].start - msMargin) <= msTime &&
+	           items[searchStart + 1].end >= msTime) {
+		// See if this is the next subtitle
+		index = searchStart + 1;
+	} else {
+		// Perform a full search from the beginning
+		int i = 0;
+		for (i = 0; i < count; i++) {
+			if ((items[i].start - msMargin) <= msTime && items[i].end >= msTime) {
+				index = i;
+				break;
+			} else if (items[i].end > msTime) {
+				break;
+			}
+		}
+	}
+	return index;
 }

@@ -25,20 +25,19 @@ class SlideshowGeneratorWidget;
 class QAbstractButton;
 class QDialogButtonBox;
 
-class SlideshowGeneratorDialog : public QDialog
-{
-    Q_OBJECT
+class SlideshowGeneratorDialog : public QDialog {
+	Q_OBJECT
 
-public:
-    explicit SlideshowGeneratorDialog(QWidget *parent, Mlt::Playlist &clips);
-    Mlt::Playlist *getSlideshow();
+  public:
+	explicit SlideshowGeneratorDialog(QWidget* parent, Mlt::Playlist& clips);
+	Mlt::Playlist* getSlideshow();
 
-private slots:
-    void clicked(QAbstractButton *button);
+  private slots:
+	void clicked(QAbstractButton* button);
 
-private:
-    SlideshowGeneratorWidget *m_sWidget;
-    QDialogButtonBox *m_buttonBox;
+  private:
+	SlideshowGeneratorWidget* m_sWidget;
+	QDialogButtonBox*         m_buttonBox;
 };
 
 #endif // SLIDESHOWGENERATORDIALOG_HPP

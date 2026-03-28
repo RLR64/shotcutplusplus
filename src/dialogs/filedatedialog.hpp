@@ -22,27 +22,27 @@
 
 class QComboBox;
 class QDateTimeEdit;
+
 namespace Mlt {
 class Producer;
 }
 
-class FileDateDialog : public QDialog
-{
-    Q_OBJECT
+class FileDateDialog : public QDialog {
+	Q_OBJECT
 
-public:
-    explicit FileDateDialog(QString title, Mlt::Producer *producer, QWidget *parent = 0);
+  public:
+	explicit FileDateDialog(QString title, Mlt::Producer* producer, QWidget* parent = 0);
 
-private slots:
-    void accept();
-    void dateSelected(int index);
+  private slots:
+	void accept();
+	void dateSelected(int index);
 
-private:
-    void populateDateOptions(Mlt::Producer *producer);
+  private:
+	void populateDateOptions(Mlt::Producer* producer);
 
-    Mlt::Producer *m_producer;
-    QComboBox *m_dtCombo;
-    QDateTimeEdit *m_dtEdit;
+	Mlt::Producer* m_producer;
+	QComboBox*     m_dtCombo;
+	QDateTimeEdit* m_dtEdit;
 };
 
 #endif // FILEDATEDIALOG_HPP

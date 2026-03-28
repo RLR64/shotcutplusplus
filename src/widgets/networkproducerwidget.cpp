@@ -16,67 +16,57 @@
  */
 
 #include "networkproducerwidget.h"
-#include "ui_networkproducerwidget.h"
+
 #include "mltcontroller.hpp"
+#include "ui_networkproducerwidget.h"
 #include "util.hpp"
 
-NetworkProducerWidget::NetworkProducerWidget(QWidget *parent)
-    : QWidget(parent)
-    , ui(new Ui::NetworkProducerWidget)
-{
-    ui->setupUi(this);
-    Util::setColorsToHighlight(ui->label_2);
-    ui->applyButton->hide();
-    ui->preset->saveDefaultPreset(getPreset());
-    ui->preset->loadPresets();
+NetworkProducerWidget::NetworkProducerWidget(QWidget* parent) : QWidget(parent), ui(new Ui::NetworkProducerWidget) {
+	ui->setupUi(this);
+	Util::setColorsToHighlight(ui->label_2);
+	ui->applyButton->hide();
+	ui->preset->saveDefaultPreset(getPreset());
+	ui->preset->loadPresets();
 }
 
-NetworkProducerWidget::~NetworkProducerWidget()
-{
-    delete ui;
+NetworkProducerWidget::~NetworkProducerWidget() {
+	delete ui;
 }
 
-Mlt::Producer *NetworkProducerWidget::newProducer(Mlt::Profile &profile)
-{
-    Mlt::Producer *p = new Mlt::Producer(profile, ui->urlLineEdit->text().toUtf8().constData());
-    return p;
+Mlt::Producer* NetworkProducerWidget::newProducer(Mlt::Profile& profile) {
+	Mlt::Producer* p = new Mlt::Producer(profile, ui->urlLineEdit->text().toUtf8().constData());
+	return p;
 }
 
-Mlt::Properties NetworkProducerWidget::getPreset() const
-{
-    Mlt::Properties p;
-    p.set("resource", ui->urlLineEdit->text().toUtf8().constData());
-    return p;
+Mlt::Properties NetworkProducerWidget::getPreset() const {
+	Mlt::Properties p;
+	p.set("resource", ui->urlLineEdit->text().toUtf8().constData());
+	return p;
 }
 
-void NetworkProducerWidget::loadPreset(Mlt::Properties &p)
-{
-    const char *resource = p.get("resource");
-    if (qstrcmp(resource, "<tractor>") && qstrcmp(resource, "<playlist>"))
-        ui->urlLineEdit->setText(resource);
+void NetworkProducerWidget::loadPreset(Mlt::Properties& p) {
+	const char* resource = p.get("resource");
+	if (qstrcmp(resource, "<tractor>") && qstrcmp(resource, "<playlist>"))
+		ui->urlLineEdit->setText(resource);
 }
 
-void NetworkProducerWidget::on_preset_selected(void *p)
-{
-    Mlt::Properties *properties = (Mlt::Properties *) p;
-    loadPreset(*properties);
-    delete properties;
+void NetworkProducerWidget::on_preset_selected(void* p) {
+	Mlt::Properties* properties = (Mlt::Properties*)p;
+	loadPreset(*properties);
+	delete properties;
 }
 
-void NetworkProducerWidget::on_preset_saveClicked()
-{
-    ui->preset->savePreset(getPreset());
+void NetworkProducerWidget::on_preset_saveClicked() {
+	ui->preset->savePreset(getPreset());
 }
 
-void NetworkProducerWidget::setProducer(Mlt::Producer *producer)
-{
-    ui->applyButton->show();
-    if (producer)
-        loadPreset(*producer);
+void NetworkProducerWidget::setProducer(Mlt::Producer* producer) {
+	ui->applyButton->show();
+	if (producer)
+		loadPreset(*producer);
 }
 
-void NetworkProducerWidget::on_applyButton_clicked()
-{
-    MLT.setProducer(newProducer(MLT.profile()));
-    MLT.play();
+void NetworkProducerWidget::on_applyButton_clicked() {
+	MLT.setProducer(newProducer(MLT.profile()));
+	MLT.play();
 }

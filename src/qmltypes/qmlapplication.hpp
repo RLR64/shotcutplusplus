@@ -28,56 +28,55 @@ namespace Mlt {
 class Producer;
 }
 
-class QmlApplication : public QObject
-{
-    Q_OBJECT
-    Q_PROPERTY(Qt::WindowModality dialogModality READ dialogModality CONSTANT);
-    Q_PROPERTY(QPoint mousePos READ mousePos);
-    Q_PROPERTY(QColor toolTipBaseColor READ toolTipBaseColor NOTIFY paletteChanged)
-    Q_PROPERTY(QColor toolTipTextColor READ toolTipTextColor NOTIFY paletteChanged)
-    Q_PROPERTY(QString OS READ OS CONSTANT)
-    Q_PROPERTY(QRect mainWinRect READ mainWinRect);
-    Q_PROPERTY(bool hasFiltersOnClipboard READ hasFiltersOnClipboard NOTIFY filtersCopied)
-    Q_PROPERTY(qreal devicePixelRatio READ devicePixelRatio CONSTANT)
-    Q_PROPERTY(int maxTextureSize READ maxTextureSize CONSTANT)
-    Q_PROPERTY(QStringList wipes READ wipes CONSTANT)
+class QmlApplication : public QObject {
+	Q_OBJECT
+	Q_PROPERTY(Qt::WindowModality dialogModality READ dialogModality CONSTANT);
+	Q_PROPERTY(QPoint mousePos READ mousePos);
+	Q_PROPERTY(QColor toolTipBaseColor READ toolTipBaseColor NOTIFY paletteChanged)
+	Q_PROPERTY(QColor toolTipTextColor READ toolTipTextColor NOTIFY paletteChanged)
+	Q_PROPERTY(QString OS READ OS CONSTANT)
+	Q_PROPERTY(QRect mainWinRect READ mainWinRect);
+	Q_PROPERTY(bool hasFiltersOnClipboard READ hasFiltersOnClipboard NOTIFY filtersCopied)
+	Q_PROPERTY(qreal devicePixelRatio READ devicePixelRatio CONSTANT)
+	Q_PROPERTY(int maxTextureSize READ maxTextureSize CONSTANT)
+	Q_PROPERTY(QStringList wipes READ wipes CONSTANT)
 
-public:
-    static QmlApplication &singleton();
-    static Qt::WindowModality dialogModality();
-    static QPoint mousePos();
-    static QColor toolTipBaseColor();
-    static QColor toolTipTextColor();
-    static QString OS();
-    static QRect mainWinRect();
-    static bool hasFiltersOnClipboard();
-    Q_INVOKABLE static void copyAllFilters();
-    Q_INVOKABLE static void copyEnabledFilters();
-    Q_INVOKABLE static void copyCurrentFilter();
-    Q_INVOKABLE static QString clockFromFrames(int frames);
-    Q_INVOKABLE static QString timeFromFrames(int frames);
-    Q_INVOKABLE static int audioChannels();
-    Q_INVOKABLE static QString getNextProjectFile(const QString &filename);
-    Q_INVOKABLE static bool isProjectFolder();
-    static qreal devicePixelRatio();
-    Q_INVOKABLE void showStatusMessage(const QString &message, int timeoutSeconds = 15);
-    static int maxTextureSize();
-    Q_INVOKABLE static bool confirmOutputFilter();
-    static QDir dataDir();
-    Q_INVOKABLE static QColor contrastingColor(QString color);
-    static QStringList wipes();
-    Q_INVOKABLE static bool addWipe(const QString &filePath);
-    Q_INVOKABLE static bool intersects(const QRectF &a, const QRectF &b);
+  public:
+	static QmlApplication&     singleton();
+	static Qt::WindowModality  dialogModality();
+	static QPoint              mousePos();
+	static QColor              toolTipBaseColor();
+	static QColor              toolTipTextColor();
+	static QString             OS();
+	static QRect               mainWinRect();
+	static bool                hasFiltersOnClipboard();
+	Q_INVOKABLE static void    copyAllFilters();
+	Q_INVOKABLE static void    copyEnabledFilters();
+	Q_INVOKABLE static void    copyCurrentFilter();
+	Q_INVOKABLE static QString clockFromFrames(int frames);
+	Q_INVOKABLE static QString timeFromFrames(int frames);
+	Q_INVOKABLE static int     audioChannels();
+	Q_INVOKABLE static QString getNextProjectFile(const QString& filename);
+	Q_INVOKABLE static bool    isProjectFolder();
+	static qreal               devicePixelRatio();
+	Q_INVOKABLE void           showStatusMessage(const QString& message, int timeoutSeconds = 15);
+	static int                 maxTextureSize();
+	Q_INVOKABLE static bool    confirmOutputFilter();
+	static QDir                dataDir();
+	Q_INVOKABLE static QColor  contrastingColor(QString color);
+	static QStringList         wipes();
+	Q_INVOKABLE static bool    addWipe(const QString& filePath);
+	Q_INVOKABLE static bool    intersects(const QRectF& a, const QRectF& b);
 
-signals:
-    void paletteChanged();
-    void filtersCopied();
-    void filtersPasted(Mlt::Producer *);
+  signals:
+	void paletteChanged();
+	void filtersCopied();
+	void filtersPasted(Mlt::Producer*);
 
-private:
-    explicit QmlApplication();
-    QmlApplication(QmlApplication const &);
-    void operator=(QmlApplication const &);
+  private:
+	explicit QmlApplication();
+	QmlApplication(QmlApplication const&);
+	void operator=(QmlApplication const&);
 };
 
 #endif // QMLAPPLICATION_HPP

@@ -28,26 +28,25 @@ class QSortFilterProxyModel;
 class StatusLabelWidget;
 class QKeySequenceEdit;
 
-class ActionsDialog : public QDialog
-{
-    Q_OBJECT
-public:
-    explicit ActionsDialog(QWidget *parent = 0);
-    void saveCurrentEditor();
+class ActionsDialog : public QDialog {
+	Q_OBJECT
+  public:
+	explicit ActionsDialog(QWidget* parent = 0);
+	void saveCurrentEditor();
 
-public slots:
-    void focusSearchResults();
+  public slots:
+	void focusSearchResults();
 
-protected:
-    void hideEvent(QHideEvent *event);
-    void showEvent(QShowEvent *event);
+  protected:
+	void hideEvent(QHideEvent* event);
+	void showEvent(QShowEvent* event);
 
-private:
-    QLineEdit *m_searchField;
-    ActionsModel m_model;
-    PrivateTreeView *m_table;
-    QSortFilterProxyModel *m_proxyModel;
-    StatusLabelWidget *m_status;
+  private:
+	QLineEdit*             m_searchField;
+	ActionsModel           m_model;
+	PrivateTreeView*       m_table;
+	QSortFilterProxyModel* m_proxyModel;
+	StatusLabelWidget*     m_status;
 };
 
 #endif // ACTIONSDIALOG_HPP

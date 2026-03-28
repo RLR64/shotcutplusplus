@@ -20,43 +20,45 @@
 
 #include <QFrame>
 
-class ScreenSelector : public QFrame
-{
-    Q_OBJECT
-public:
-    ScreenSelector(QWidget *parent = 0);
-    void setFixedSize(const QSize &size);
-    void setBoundingRect(const QRect &rect);
-    void setSelectedRect(const QRect &rect);
-    bool useDBus() const { return m_useDBus; }
+class ScreenSelector : public QFrame {
+	Q_OBJECT
+  public:
+	ScreenSelector(QWidget* parent = 0);
+	void setFixedSize(const QSize& size);
+	void setBoundingRect(const QRect& rect);
+	void setSelectedRect(const QRect& rect);
 
-public slots:
-    void startSelection(QPoint initialPos = QPoint(-1, -1));
+	bool useDBus() const {
+		return m_useDBus;
+	}
 
-signals:
-    void screenSelected(const QRect &);
-    void pointSelected(const QPoint &);
-    void cancelled();
+  public slots:
+	void startSelection(QPoint initialPos = QPoint(-1, -1));
 
-public:
-    bool onMousePressEvent(QMouseEvent *event);
-    bool onMouseMoveEvent(QMouseEvent *event);
-    bool onMouseReleaseEvent(QMouseEvent *event);
-    bool onKeyPressEvent(QKeyEvent *event);
+  signals:
+	void screenSelected(const QRect&);
+	void pointSelected(const QPoint&);
+	void cancelled();
 
-protected:
-    bool eventFilter(QObject *, QEvent *event);
+  public:
+	bool onMousePressEvent(QMouseEvent* event);
+	bool onMouseMoveEvent(QMouseEvent* event);
+	bool onMouseReleaseEvent(QMouseEvent* event);
+	bool onKeyPressEvent(QKeyEvent* event);
 
-private:
-    void lockGeometry(const QRect &rect);
-    void release();
+  protected:
+	bool eventFilter(QObject*, QEvent* event);
 
-    bool m_selectionInProgress;
-    QRect m_selectionRect;
-    QPoint m_selectionPoint;
-    QSize m_fixedSize;
-    QRect m_boundingRect;
-    bool m_useDBus;
+  private:
+	void lockGeometry(const QRect& rect);
+	void release();
+
+	bool   m_selectionInProgress;
+	QRect  m_selectionRect;
+	QPoint m_selectionPoint;
+	QSize  m_fixedSize;
+	QRect  m_boundingRect;
+	bool   m_useDBus;
 };
 
 #endif // SCREENSELECTOR_H

@@ -26,31 +26,30 @@ namespace Ui {
 class ToneProducerWidget;
 }
 
-class ToneProducerWidget : public QWidget, public AbstractProducerWidget
-{
-    Q_OBJECT
+class ToneProducerWidget : public QWidget, public AbstractProducerWidget {
+	Q_OBJECT
 
-public:
-    explicit ToneProducerWidget(QWidget *parent = 0);
-    ~ToneProducerWidget();
+  public:
+	explicit ToneProducerWidget(QWidget* parent = 0);
+	~ToneProducerWidget();
 
-    // AbstractProducerWidget overrides
-    Mlt::Producer *newProducer(Mlt::Profile &);
-    Mlt::Properties getPreset() const;
-    void loadPreset(Mlt::Properties &);
+	// AbstractProducerWidget overrides
+	Mlt::Producer*  newProducer(Mlt::Profile&);
+	Mlt::Properties getPreset() const;
+	void            loadPreset(Mlt::Properties&);
 
-signals:
-    void modified();
+  signals:
+	void modified();
 
-private slots:
-    void on_frequencySpinBox_valueChanged(int);
-    void on_levelSpinBox_valueChanged(int);
-    void on_preset_selected(void *p);
-    void on_preset_saveClicked();
+  private slots:
+	void on_frequencySpinBox_valueChanged(int);
+	void on_levelSpinBox_valueChanged(int);
+	void on_preset_selected(void* p);
+	void on_preset_saveClicked();
 
-private:
-    QString detail() const;
-    Ui::ToneProducerWidget *ui;
+  private:
+	QString                 detail() const;
+	Ui::ToneProducerWidget* ui;
 };
 
 #endif // TONEPRODUCERWIDGET_H

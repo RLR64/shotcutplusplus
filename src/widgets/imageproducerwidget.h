@@ -27,80 +27,79 @@ class ImageProducerWidget;
 }
 class QFileSystemWatcher;
 
-class ImageProducerWidget : public QWidget, public AbstractProducerWidget
-{
-    Q_OBJECT
+class ImageProducerWidget : public QWidget, public AbstractProducerWidget {
+	Q_OBJECT
 
-public:
-    explicit ImageProducerWidget(QWidget *parent = 0);
-    ~ImageProducerWidget();
+  public:
+	explicit ImageProducerWidget(QWidget* parent = 0);
+	~ImageProducerWidget();
 
-    // AbstractProducerWidget overrides
-    Mlt::Producer *newProducer(Mlt::Profile &);
-    virtual void setProducer(Mlt::Producer *);
+	// AbstractProducerWidget overrides
+	Mlt::Producer* newProducer(Mlt::Profile&);
+	virtual void   setProducer(Mlt::Producer*);
 
-signals:
-    void producerChanged(Mlt::Producer *);
-    void producerReopened(bool play);
-    void modified();
-    void showInFiles(QString);
+  signals:
+	void producerChanged(Mlt::Producer*);
+	void producerReopened(bool play);
+	void modified();
+	void showInFiles(QString);
 
-public slots:
-    void updateDuration();
-    void rename();
+  public slots:
+	void updateDuration();
+	void rename();
 
-private slots:
-    void on_reloadButton_clicked();
+  private slots:
+	void on_reloadButton_clicked();
 
-    void on_aspectNumSpinBox_valueChanged(int);
+	void on_aspectNumSpinBox_valueChanged(int);
 
-    void on_aspectDenSpinBox_valueChanged(int);
+	void on_aspectDenSpinBox_valueChanged(int);
 
-    void on_durationSpinBox_editingFinished();
+	void on_durationSpinBox_editingFinished();
 
-    void on_sequenceCheckBox_clicked(bool checked);
+	void on_sequenceCheckBox_clicked(bool checked);
 
-    void on_repeatSpinBox_editingFinished();
+	void on_repeatSpinBox_editingFinished();
 
-    void on_defaultDurationButton_clicked();
+	void on_defaultDurationButton_clicked();
 
-    void on_notesTextEdit_textChanged();
+	void on_notesTextEdit_textChanged();
 
-    void on_menuButton_clicked();
+	void on_menuButton_clicked();
 
-    void on_actionCopyFullFilePath_triggered();
+	void on_actionCopyFullFilePath_triggered();
 
-    void on_actionOpenFolder_triggered();
+	void on_actionOpenFolder_triggered();
 
-    void on_actionSetFileDate_triggered();
+	void on_actionSetFileDate_triggered();
 
-    void on_filenameLabel_editingFinished();
+	void on_filenameLabel_editingFinished();
 
-    void on_actionDisableProxy_triggered(bool checked);
+	void on_actionDisableProxy_triggered(bool checked);
 
-    void on_actionMakeProxy_triggered();
+	void on_actionMakeProxy_triggered();
 
-    void on_actionDeleteProxy_triggered();
+	void on_actionDeleteProxy_triggered();
 
-    void on_actionCopyHashCode_triggered();
+	void on_actionCopyHashCode_triggered();
 
-    void on_proxyButton_clicked();
+	void on_proxyButton_clicked();
 
-    void on_actionShowInFiles_triggered();
+	void on_actionShowInFiles_triggered();
 
-    void on_openWithButton_clicked();
+	void on_openWithButton_clicked();
 
-    void on_actionReset_triggered();
+	void on_actionReset_triggered();
 
-private:
-    Ui::ImageProducerWidget *ui;
-    int m_defaultDuration;
-    std::unique_ptr<QFileSystemWatcher> m_watcher;
+  private:
+	Ui::ImageProducerWidget*            ui;
+	int                                 m_defaultDuration;
+	std::unique_ptr<QFileSystemWatcher> m_watcher;
 
-    void reopen(Mlt::Producer *p);
-    void recreateProducer();
-    void onOpenOtherAdd();
-    void onOpenOtherRemove();
+	void reopen(Mlt::Producer* p);
+	void recreateProducer();
+	void onOpenOtherAdd();
+	void onOpenOtherRemove();
 };
 
 #endif // IMAGEPRODUCERWIDGET_H

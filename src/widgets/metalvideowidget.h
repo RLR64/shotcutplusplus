@@ -22,19 +22,18 @@
 
 class MetalVideoRenderer;
 
-class MetalVideoWidget : public Mlt::VideoWidget
-{
-    Q_OBJECT
-public:
-    explicit MetalVideoWidget(QObject *parent);
-    virtual ~MetalVideoWidget();
+class MetalVideoWidget : public Mlt::VideoWidget {
+	Q_OBJECT
+  public:
+	explicit MetalVideoWidget(QObject* parent);
+	virtual ~MetalVideoWidget();
 
-public slots:
-    virtual void initialize();
-    virtual void renderVideo();
+  public slots:
+	virtual void initialize();
+	virtual void renderVideo();
 
-private:
-    std::unique_ptr<MetalVideoRenderer> m_renderer;
+  private:
+	std::unique_ptr<MetalVideoRenderer> m_renderer;
 };
 
 #endif // METALVIDEOWIDGET_H

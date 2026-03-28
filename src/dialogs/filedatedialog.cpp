@@ -16,6 +16,7 @@
  */
 
 #include "filedatedialog.hpp"
+
 #include "Logger.hpp"
 #include "mltcontroller.hpp"
 #include "proxymanager.hpp"
@@ -29,104 +30,93 @@
 #include <QFileInfo>
 #include <QVBoxLayout>
 
-void addDateToCombo(QComboBox *combo, const QString &description, const QDateTime &date)
-{
-    QDateTime local = date.toLocalTime();
-    QString text = local.toString("yyyy-MM-dd HH:mm:ss") + " [" + description + "]";
-    combo->addItem(text, local);
+void addDateToCombo(QComboBox* combo, const QString& description, const QDateTime& date) {
+	QDateTime local = date.toLocalTime();
+	QString   text  = local.toString("yyyy-MM-dd HH:mm:ss") + " [" + description + "]";
+	combo->addItem(text, local);
 }
 
-FileDateDialog::FileDateDialog(QString title, Mlt::Producer *producer, QWidget *parent)
-    : QDialog(parent)
-    , m_producer(producer)
-    , m_dtCombo(new QComboBox())
-    , m_dtEdit(new QDateTimeEdit())
-{
-    setWindowTitle(tr("%1 File Date").arg(title));
-    int64_t milliseconds = producer->get_creation_time();
-    QDateTime creation_time;
-    if (!milliseconds) {
-        creation_time = QDateTime::currentDateTime();
-    } else {
-        // Set the date to the current producer date.
-        creation_time = QDateTime::fromMSecsSinceEpoch(milliseconds);
-    }
+FileDateDialog::FileDateDialog(QString title, Mlt::Producer* producer, QWidget* parent)
+    : QDialog(parent), m_producer(producer), m_dtCombo(new QComboBox()), m_dtEdit(new QDateTimeEdit()) {
+	setWindowTitle(tr("%1 File Date").arg(title));
+	int64_t   milliseconds = producer->get_creation_time();
+	QDateTime creation_time;
+	if (!milliseconds) {
+		creation_time = QDateTime::currentDateTime();
+	} else {
+		// Set the date to the current producer date.
+		creation_time = QDateTime::fromMSecsSinceEpoch(milliseconds);
+	}
 
-    QVBoxLayout *VLayout = new QVBoxLayout(this);
+	QVBoxLayout* VLayout = new QVBoxLayout(this);
 
-    populateDateOptions(producer);
-    m_dtCombo->setCurrentIndex(-1);
-    VLayout->addWidget(m_dtCombo);
-    connect(m_dtCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(dateSelected(int)));
+	populateDateOptions(producer);
+	m_dtCombo->setCurrentIndex(-1);
+	VLayout->addWidget(m_dtCombo);
+	connect(m_dtCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(dateSelected(int)));
 
-    m_dtEdit->setDisplayFormat("yyyy-MM-dd HH:mm:ss");
-    m_dtEdit->setCalendarPopup(true);
-    m_dtEdit->setTimeZone(QTimeZone::systemTimeZone());
-    m_dtEdit->setDateTime(creation_time);
-    VLayout->addWidget(m_dtEdit);
+	m_dtEdit->setDisplayFormat("yyyy-MM-dd HH:mm:ss");
+	m_dtEdit->setCalendarPopup(true);
+	m_dtEdit->setTimeZone(QTimeZone::systemTimeZone());
+	m_dtEdit->setDateTime(creation_time);
+	VLayout->addWidget(m_dtEdit);
 
-    QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok
-                                                       | QDialogButtonBox::Cancel);
-    VLayout->addWidget(buttonBox);
-    connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
-    connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
+	QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+	VLayout->addWidget(buttonBox);
+	connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
+	connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
 
-    this->setLayout(VLayout);
-    this->setModal(true);
+	this->setLayout(VLayout);
+	this->setModal(true);
 }
 
-void FileDateDialog::accept()
-{
-    m_producer->set_creation_time(
-        (int64_t) m_dtEdit->dateTime().toTimeZone(QTimeZone::systemTimeZone()).toMSecsSinceEpoch());
-    QDialog::accept();
+void FileDateDialog::accept() {
+	m_producer->set_creation_time(
+	    (int64_t)m_dtEdit->dateTime().toTimeZone(QTimeZone::systemTimeZone()).toMSecsSinceEpoch());
+	QDialog::accept();
 }
 
-void FileDateDialog::dateSelected(int index)
-{
-    LOG_DEBUG() << index;
-    if (index > -1) {
-        m_dtEdit->setDateTime(m_dtCombo->itemData(index).toDateTime());
-    }
+void FileDateDialog::dateSelected(int index) {
+	LOG_DEBUG() << index;
+	if (index > -1) {
+		m_dtEdit->setDateTime(m_dtCombo->itemData(index).toDateTime());
+	}
 }
 
-void FileDateDialog::populateDateOptions(Mlt::Producer *producer)
-{
-    QDateTime dateTime;
+void FileDateDialog::populateDateOptions(Mlt::Producer* producer) {
+	QDateTime dateTime;
 
-    // Add current value
-    int64_t milliseconds = producer->get_creation_time();
-    if (milliseconds) {
-        dateTime = QDateTime::fromMSecsSinceEpoch(milliseconds);
-        addDateToCombo(m_dtCombo, tr("Current Value"), dateTime);
-    }
+	// Add current value
+	int64_t milliseconds = producer->get_creation_time();
+	if (milliseconds) {
+		dateTime = QDateTime::fromMSecsSinceEpoch(milliseconds);
+		addDateToCombo(m_dtCombo, tr("Current Value"), dateTime);
+	}
 
-    // Add now time
-    addDateToCombo(m_dtCombo, tr("Now"), QDateTime::currentDateTime());
+	// Add now time
+	addDateToCombo(m_dtCombo, tr("Now"), QDateTime::currentDateTime());
 
-    // Add system info for the file.
-    QString resource = ProxyManager::resource(*producer);
-    QFileInfo fileInfo(resource);
-    if (fileInfo.exists()) {
-        addDateToCombo(m_dtCombo, tr("System - Modified"), fileInfo.lastModified());
-        addDateToCombo(m_dtCombo, tr("System - Created"), fileInfo.birthTime());
-    }
+	// Add system info for the file.
+	QString   resource = ProxyManager::resource(*producer);
+	QFileInfo fileInfo(resource);
+	if (fileInfo.exists()) {
+		addDateToCombo(m_dtCombo, tr("System - Modified"), fileInfo.lastModified());
+		addDateToCombo(m_dtCombo, tr("System - Created"), fileInfo.birthTime());
+	}
 
-    // Add metadata dates
-    Mlt::Producer tmpProducer(MLT.profile(), "avformat", resource.toUtf8().constData());
-    if (tmpProducer.is_valid()) {
-        // Standard FFMpeg creation_time
-        dateTime = QDateTime::fromString(tmpProducer.get("meta.attr.creation_time.markup"),
-                                         Qt::ISODateWithMs);
-        if (dateTime.isValid()) {
-            addDateToCombo(m_dtCombo, tr("Metadata - Creation Time"), dateTime);
-        }
-        // Quicktime create date
-        dateTime = QDateTime::fromString(tmpProducer.get(
-                                             "meta.attr.com.apple.quicktime.creationdate.markup"),
-                                         Qt::ISODateWithMs);
-        if (dateTime.isValid()) {
-            addDateToCombo(m_dtCombo, tr("Metadata - QuickTime date"), dateTime);
-        }
-    }
+	// Add metadata dates
+	Mlt::Producer tmpProducer(MLT.profile(), "avformat", resource.toUtf8().constData());
+	if (tmpProducer.is_valid()) {
+		// Standard FFMpeg creation_time
+		dateTime = QDateTime::fromString(tmpProducer.get("meta.attr.creation_time.markup"), Qt::ISODateWithMs);
+		if (dateTime.isValid()) {
+			addDateToCombo(m_dtCombo, tr("Metadata - Creation Time"), dateTime);
+		}
+		// Quicktime create date
+		dateTime = QDateTime::fromString(tmpProducer.get("meta.attr.com.apple.quicktime.creationdate.markup"),
+		                                 Qt::ISODateWithMs);
+		if (dateTime.isValid()) {
+			addDateToCombo(m_dtCombo, tr("Metadata - QuickTime date"), dateTime);
+		}
+	}
 }

@@ -22,41 +22,41 @@
 
 #include <QAbstractItemModel>
 
-class ExtensionModel : public QAbstractItemModel
-{
-    Q_OBJECT
+class ExtensionModel : public QAbstractItemModel {
+	Q_OBJECT
 
-public:
-    enum Columns {
-        COLUMN_STATUS = 0,
-        COLUMN_NAME,
-        COLUMN_SIZE,
-        COLUMN_COUNT,
-    };
-    explicit ExtensionModel(QObject *parent = 0);
-    virtual ~ExtensionModel();
-    void load(const QString &id);
-    int count();
-    QString getName(int row) const;
-    QString getFormattedDataSize(int row) const;
-    QString localPath(int row) const;
-    QString url(int row) const;
-    bool downloaded(int row) const;
-    void deleteFile(int row);
-    int getStandardIndex() const;
-    QModelIndex getIndexForPath(QString path);
+  public:
+	enum Columns {
+		COLUMN_STATUS = 0,
+		COLUMN_NAME,
+		COLUMN_SIZE,
+		COLUMN_COUNT,
+	};
 
-protected:
-    // Implement QAbstractItemModel
-    int rowCount(const QModelIndex &parent) const;
-    int columnCount(const QModelIndex &parent) const;
-    QVariant data(const QModelIndex &index, int role) const;
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
-    QModelIndex index(int row, int column = 0, const QModelIndex &parent = QModelIndex()) const;
-    QModelIndex parent(const QModelIndex &index) const;
+	explicit ExtensionModel(QObject* parent = 0);
+	virtual ~ExtensionModel();
+	void        load(const QString& id);
+	int         count();
+	QString     getName(int row) const;
+	QString     getFormattedDataSize(int row) const;
+	QString     localPath(int row) const;
+	QString     url(int row) const;
+	bool        downloaded(int row) const;
+	void        deleteFile(int row);
+	int         getStandardIndex() const;
+	QModelIndex getIndexForPath(QString path);
 
-private:
-    QmlExtension *m_ext;
+  protected:
+	// Implement QAbstractItemModel
+	int         rowCount(const QModelIndex& parent) const;
+	int         columnCount(const QModelIndex& parent) const;
+	QVariant    data(const QModelIndex& index, int role) const;
+	QVariant    headerData(int section, Qt::Orientation orientation, int role) const;
+	QModelIndex index(int row, int column = 0, const QModelIndex& parent = QModelIndex()) const;
+	QModelIndex parent(const QModelIndex& index) const;
+
+  private:
+	QmlExtension* m_ext;
 };
 
 #endif // EXTENSIONMODEL_HPP

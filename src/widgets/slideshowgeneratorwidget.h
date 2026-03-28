@@ -27,6 +27,7 @@ class QComboBox;
 class QDoubleSpinBox;
 class QSlider;
 class QSpinBox;
+
 namespace Mlt {
 class Filter;
 class Playlist;
@@ -34,53 +35,51 @@ class Transition;
 } // namespace Mlt
 class ProducerPreviewWidget;
 
-class SlideshowGeneratorWidget : public QWidget
-{
-    Q_OBJECT
+class SlideshowGeneratorWidget : public QWidget {
+	Q_OBJECT
 
-public:
-    SlideshowGeneratorWidget(Mlt::Playlist *clips, QWidget *parent = 0);
-    virtual ~SlideshowGeneratorWidget();
+  public:
+	SlideshowGeneratorWidget(Mlt::Playlist* clips, QWidget* parent = 0);
+	virtual ~SlideshowGeneratorWidget();
 
-    Mlt::Playlist *getSlideshow();
+	Mlt::Playlist* getSlideshow();
 
-private slots:
-    void on_parameterChanged();
+  private slots:
+	void on_parameterChanged();
 
-private:
-    struct SlideshowConfig
-    {
-        double imageDuration;
-        double audioVideoDuration;
-        int aspectConversion;
-        int zoomPercent;
-        double transitionDuration;
-        int transitionStyle;
-        int transitionSoftness;
-    };
+  private:
+	struct SlideshowConfig {
+		double imageDuration;
+		double audioVideoDuration;
+		int    aspectConversion;
+		int    zoomPercent;
+		double transitionDuration;
+		int    transitionStyle;
+		int    transitionSoftness;
+	};
 
-    void attachAffineFilter(SlideshowConfig &config, Mlt::Producer *producer, int endPosition);
-    void attachBlurFilter(SlideshowConfig &config, Mlt::Producer *producer);
-    void applyLumaTransitionProperties(Mlt::Transition *luma, SlideshowConfig &config);
-    void generatePreviewSlideshow();
-    Q_INVOKABLE void startPreview();
+	void             attachAffineFilter(SlideshowConfig& config, Mlt::Producer* producer, int endPosition);
+	void             attachBlurFilter(SlideshowConfig& config, Mlt::Producer* producer);
+	void             applyLumaTransitionProperties(Mlt::Transition* luma, SlideshowConfig& config);
+	void             generatePreviewSlideshow();
+	Q_INVOKABLE void startPreview();
 
-    QDoubleSpinBox *m_imageDurationSpinner;
-    QDoubleSpinBox *m_audioVideoDurationSpinner;
-    QComboBox *m_aspectConversionCombo;
-    QSpinBox *m_zoomPercentSpinner;
-    QDoubleSpinBox *m_transitionDurationSpinner;
-    QComboBox *m_transitionStyleCombo;
-    QSpinBox *m_softnessSpinner;
-    ProducerPreviewWidget *m_preview;
-    Mlt::Playlist *m_clips;
+	QDoubleSpinBox*        m_imageDurationSpinner;
+	QDoubleSpinBox*        m_audioVideoDurationSpinner;
+	QComboBox*             m_aspectConversionCombo;
+	QSpinBox*              m_zoomPercentSpinner;
+	QDoubleSpinBox*        m_transitionDurationSpinner;
+	QComboBox*             m_transitionStyleCombo;
+	QSpinBox*              m_softnessSpinner;
+	ProducerPreviewWidget* m_preview;
+	Mlt::Playlist*         m_clips;
 
-    // Mutext Protected Members
-    QFuture<void> m_future;
-    QMutex m_mutex;
-    bool m_refreshPreview;
-    SlideshowConfig m_config;
-    Mlt::Producer m_previewProducer;
+	// Mutext Protected Members
+	QFuture<void>   m_future;
+	QMutex          m_mutex;
+	bool            m_refreshPreview;
+	SlideshowConfig m_config;
+	Mlt::Producer   m_previewProducer;
 };
 
 #endif // SLIDESHOWGENERATORWIDGET_H

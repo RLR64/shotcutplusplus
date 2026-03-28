@@ -27,36 +27,35 @@ namespace Ui {
 class JobsDock;
 }
 
-class JobsDock : public QDockWidget
-{
-    Q_OBJECT
+class JobsDock : public QDockWidget {
+	Q_OBJECT
 
-public:
-    explicit JobsDock(QWidget *parent = 0);
-    ~JobsDock();
-    AbstractJob *currentJob() const;
+  public:
+	explicit JobsDock(QWidget* parent = 0);
+	~JobsDock();
+	AbstractJob* currentJob() const;
 
-public slots:
-    void onJobAdded();
-    void onProgressUpdated(QStandardItem *item, int percent);
+  public slots:
+	void onJobAdded();
+	void onProgressUpdated(QStandardItem* item, int percent);
 
-protected:
-    void resizeEvent(QResizeEvent *event);
+  protected:
+	void resizeEvent(QResizeEvent* event);
 
-private:
-    Ui::JobsDock *ui;
+  private:
+	Ui::JobsDock* ui;
 
-private slots:
-    void on_treeView_customContextMenuRequested(const QPoint &pos);
-    void on_actionStopJob_triggered();
-    void on_actionViewLog_triggered();
-    void on_pauseButton_toggled(bool checked);
-    void on_actionRun_triggered();
-    void on_menuButton_clicked();
-    void on_treeView_doubleClicked(const QModelIndex &index);
-    void on_actionRemove_triggered();
-    void on_actionRemoveFinished_triggered();
-    void on_JobsDock_visibilityChanged(bool visible);
+  private slots:
+	void on_treeView_customContextMenuRequested(const QPoint& pos);
+	void on_actionStopJob_triggered();
+	void on_actionViewLog_triggered();
+	void on_pauseButton_toggled(bool checked);
+	void on_actionRun_triggered();
+	void on_menuButton_clicked();
+	void on_treeView_doubleClicked(const QModelIndex& index);
+	void on_actionRemove_triggered();
+	void on_actionRemoveFinished_triggered();
+	void on_JobsDock_visibilityChanged(bool visible);
 };
 
 #endif // JOBSDOCK_HPP

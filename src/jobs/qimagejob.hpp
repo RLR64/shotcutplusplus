@@ -22,19 +22,18 @@
 
 #include <QSize>
 
-class QImageJob : public AbstractJob
-{
-    Q_OBJECT
-public:
-    QImageJob(const QString &destFilePath, const QString &srcFilePath, const int height);
-    virtual ~QImageJob();
-    void start();
-    void execute();
+class QImageJob : public AbstractJob {
+	Q_OBJECT
+  public:
+	QImageJob(const QString& destFilePath, const QString& srcFilePath, const int height);
+	virtual ~QImageJob();
+	void start();
+	void execute();
 
-private:
-    QString m_srcFilePath;
-    QString m_destFilePath;
-    int m_height;
+  private:
+	QString m_srcFilePath;
+	QString m_destFilePath;
+	int     m_height;
 };
 
 #endif // QIMAGEJOB_HPP

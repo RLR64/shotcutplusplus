@@ -16,40 +16,38 @@
  */
 
 #include "playlisttable.h"
+
 #include "Logger.hpp"
 
 #include <QKeyEvent>
 
-PlaylistTable::PlaylistTable(QWidget *parent)
-    : QTableView(parent)
-{}
-
-void PlaylistTable::keyPressEvent(QKeyEvent *event)
-{
-    if (event->key() == Qt::Key_Left || event->key() == Qt::Key_Right) {
-        /* make sure we ignore left/right keypresses here so it can bubble its way up to the top
-         * level where it's handled as a global keyboard shortcut. There's seemingly no way to keep
-         * QTableView from using left/right for moving between cells, so this is a slight hack to
-         * prevent that behavior. */
-        event->ignore();
-        return;
-    }
-    // Ignore select all
-    if (event->key() == Qt::Key_A && event->modifiers() == Qt::ControlModifier) {
-        event->ignore();
-        return;
-    }
-    QTableView::keyPressEvent(event);
-    event->ignore();
+PlaylistTable::PlaylistTable(QWidget* parent) : QTableView(parent) {
 }
 
-void PlaylistTable::dropEvent(QDropEvent *event)
-{
-    QModelIndex index = indexAt(event->position().toPoint());
-    if (event->dropAction() == Qt::MoveAction && index.row() == -1) {
-        event->acceptProposedAction();
-        emit movedToEnd();
-    } else {
-        QTableView::dropEvent(event);
-    }
+void PlaylistTable::keyPressEvent(QKeyEvent* event) {
+	if (event->key() == Qt::Key_Left || event->key() == Qt::Key_Right) {
+		/* make sure we ignore left/right keypresses here so it can bubble its way up to the top
+		 * level where it's handled as a global keyboard shortcut. There's seemingly no way to keep
+		 * QTableView from using left/right for moving between cells, so this is a slight hack to
+		 * prevent that behavior. */
+		event->ignore();
+		return;
+	}
+	// Ignore select all
+	if (event->key() == Qt::Key_A && event->modifiers() == Qt::ControlModifier) {
+		event->ignore();
+		return;
+	}
+	QTableView::keyPressEvent(event);
+	event->ignore();
+}
+
+void PlaylistTable::dropEvent(QDropEvent* event) {
+	QModelIndex index = indexAt(event->position().toPoint());
+	if (event->dropAction() == Qt::MoveAction && index.row() == -1) {
+		event->acceptProposedAction();
+		emit movedToEnd();
+	} else {
+		QTableView::dropEvent(event);
+	}
 }

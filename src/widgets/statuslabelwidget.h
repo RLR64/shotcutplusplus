@@ -25,30 +25,27 @@ class QHBoxLayout;
 class QPropertyAnimation;
 class QPushButton;
 
-class StatusLabelWidget : public QWidget
-{
-    Q_OBJECT
+class StatusLabelWidget : public QWidget {
+	Q_OBJECT
 
-public:
-    StatusLabelWidget(QWidget *parent = nullptr);
-    virtual ~StatusLabelWidget();
-    void setWidth(int width);
-    void showText(const QString &text,
-                  int timeoutSeconds = -1,
-                  QAction *action = nullptr,
-                  QPalette::ColorRole role = QPalette::ToolTipBase);
+  public:
+	StatusLabelWidget(QWidget* parent = nullptr);
+	virtual ~StatusLabelWidget();
+	void setWidth(int width);
+	void showText(const QString& text, int timeoutSeconds = -1, QAction* action = nullptr,
+	              QPalette::ColorRole role = QPalette::ToolTipBase);
 
-signals:
-    void statusCleared();
+  signals:
+	void statusCleared();
 
-private:
-    void onFadeOutFinished();
-    QHBoxLayout *m_layout;
-    QPushButton *m_label;
-    QPropertyAnimation *m_fadeIn;
-    QPropertyAnimation *m_fadeOut;
-    QTimer m_timer;
-    int m_width;
+  private:
+	void                onFadeOutFinished();
+	QHBoxLayout*        m_layout;
+	QPushButton*        m_label;
+	QPropertyAnimation* m_fadeIn;
+	QPropertyAnimation* m_fadeOut;
+	QTimer              m_timer;
+	int                 m_width;
 };
 
 #endif // STATUSLABELWIDGET_H

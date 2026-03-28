@@ -24,18 +24,17 @@ namespace Ui {
 class DurationDialog;
 }
 
-class DurationDialog : public QDialog
-{
-    Q_OBJECT
+class DurationDialog : public QDialog {
+	Q_OBJECT
 
-public:
-    explicit DurationDialog(QWidget *parent = 0);
-    ~DurationDialog();
-    void setDuration(int);
-    int duration() const;
+  public:
+	explicit DurationDialog(QWidget* parent = 0);
+	~DurationDialog();
+	void setDuration(int);
+	int  duration() const;
 
-private:
-    Ui::DurationDialog *ui;
+  private:
+	Ui::DurationDialog* ui;
 };
 
 #endif // DURATIONDIALOG_HPP

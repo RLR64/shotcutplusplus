@@ -26,27 +26,26 @@ namespace Mlt {
 class Producer;
 }
 
-class ResourceDialog : public QDialog
-{
-    Q_OBJECT
-public:
-    explicit ResourceDialog(QWidget *parent = 0);
+class ResourceDialog : public QDialog {
+	Q_OBJECT
+  public:
+	explicit ResourceDialog(QWidget* parent = 0);
 
-    void search(Mlt::Producer *producer);
-    void add(Mlt::Producer *producer);
-    void selectTroubleClips();
-    bool hasTroubleClips();
-    int producerCount();
-    Mlt::Producer producer(int index);
+	void          search(Mlt::Producer* producer);
+	void          add(Mlt::Producer* producer);
+	void          selectTroubleClips();
+	bool          hasTroubleClips();
+	int           producerCount();
+	Mlt::Producer producer(int index);
 
-private slots:
-    void convert();
+  private slots:
+	void convert();
 
-protected:
-    virtual void showEvent(QShowEvent *event) override;
+  protected:
+	virtual void showEvent(QShowEvent* event) override;
 
-private:
-    ResourceWidget *m_resourceWidget;
+  private:
+	ResourceWidget* m_resourceWidget;
 };
 
 #endif // RESOURCEDIALOG_HPP

@@ -25,28 +25,27 @@
 
 class QLabel;
 
-class MltClipProducerWidget : public QWidget, public AbstractProducerWidget
-{
-    Q_OBJECT
+class MltClipProducerWidget : public QWidget, public AbstractProducerWidget {
+	Q_OBJECT
 
-public:
-    explicit MltClipProducerWidget(QWidget *parent = 0);
-    ~MltClipProducerWidget();
+  public:
+	explicit MltClipProducerWidget(QWidget* parent = 0);
+	~MltClipProducerWidget();
 
-    // AbstractProducerWidget overrides
-    Mlt::Producer *newProducer(Mlt::Profile &);
-    void setProducer(Mlt::Producer *);
+	// AbstractProducerWidget overrides
+	Mlt::Producer* newProducer(Mlt::Profile&);
+	void           setProducer(Mlt::Producer*);
 
-private:
-    QLabel *m_nameLabel;
-    QLabel *m_resolutionLabel;
-    QLabel *m_aspectRatioLabel;
-    QLabel *m_frameRateLabel;
-    QLabel *m_scanModeLabel;
-    QLabel *m_colorspaceLabel;
-    QLabel *m_durationLabel;
-    QLabel *m_errorIcon;
-    QLabel *m_errorText;
+  private:
+	QLabel* m_nameLabel;
+	QLabel* m_resolutionLabel;
+	QLabel* m_aspectRatioLabel;
+	QLabel* m_frameRateLabel;
+	QLabel* m_scanModeLabel;
+	QLabel* m_colorspaceLabel;
+	QLabel* m_durationLabel;
+	QLabel* m_errorIcon;
+	QLabel* m_errorText;
 };
 
-#endif //MLTCLIPPRODUCERWIDGET_H
+#endif // MLTCLIPPRODUCERWIDGET_H

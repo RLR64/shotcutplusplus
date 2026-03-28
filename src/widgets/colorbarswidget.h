@@ -26,27 +26,26 @@ namespace Ui {
 class ColorBarsWidget;
 }
 
-class ColorBarsWidget : public QWidget, public AbstractProducerWidget
-{
-    Q_OBJECT
+class ColorBarsWidget : public QWidget, public AbstractProducerWidget {
+	Q_OBJECT
 
-public:
-    explicit ColorBarsWidget(QWidget *parent = 0);
-    ~ColorBarsWidget();
+  public:
+	explicit ColorBarsWidget(QWidget* parent = 0);
+	~ColorBarsWidget();
 
-    // AbstractProducerWidget overrides
-    Mlt::Producer *newProducer(Mlt::Profile &);
-    Mlt::Properties getPreset() const;
-    void loadPreset(Mlt::Properties &);
+	// AbstractProducerWidget overrides
+	Mlt::Producer*  newProducer(Mlt::Profile&);
+	Mlt::Properties getPreset() const;
+	void            loadPreset(Mlt::Properties&);
 
-signals:
-    void producerChanged(Mlt::Producer *);
+  signals:
+	void producerChanged(Mlt::Producer*);
 
-private slots:
-    void on_comboBox_activated(int index);
+  private slots:
+	void on_comboBox_activated(int index);
 
-private:
-    Ui::ColorBarsWidget *ui;
+  private:
+	Ui::ColorBarsWidget* ui;
 };
 
 #endif // COLORBARSWIDGET_H

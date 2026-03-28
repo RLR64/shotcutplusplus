@@ -4,18 +4,15 @@
 // Local
 #include <AbstractStringAppender.h>
 
-
-class AndroidAppender : public AbstractStringAppender
-{
+class AndroidAppender : public AbstractStringAppender {
   public:
-    AndroidAppender();
+	AndroidAppender();
 
-    static int androidLogPriority(Logger::LogLevel);
+	static int androidLogPriority(Logger::LogLevel);
 
   protected:
-    void append(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file, int line,
-                const char* function, const QString& category, const QString& message);
-
+	void append(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file, int line, const char* function,
+	            const QString& category, const QString& message);
 };
 
 #endif // ANDROIDAPPENDER_H

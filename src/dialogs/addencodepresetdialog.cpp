@@ -16,35 +16,29 @@
  */
 
 #include "addencodepresetdialog.hpp"
+
 #include "ui_addencodepresetdialog.h"
 
-AddEncodePresetDialog::AddEncodePresetDialog(QWidget *parent)
-    : QDialog(parent)
-    , ui(new Ui::AddEncodePresetDialog)
-{
-    ui->setupUi(this);
+AddEncodePresetDialog::AddEncodePresetDialog(QWidget* parent) : QDialog(parent), ui(new Ui::AddEncodePresetDialog) {
+	ui->setupUi(this);
 }
 
-AddEncodePresetDialog::~AddEncodePresetDialog()
-{
-    delete ui;
+AddEncodePresetDialog::~AddEncodePresetDialog() {
+	delete ui;
 }
 
-void AddEncodePresetDialog::setProperties(const QString &properties)
-{
-    ui->propertiesEdit->setPlainText(properties);
+void AddEncodePresetDialog::setProperties(const QString& properties) {
+	ui->propertiesEdit->setPlainText(properties);
 }
 
-QString AddEncodePresetDialog::presetName() const
-{
-    return ui->nameEdit->text();
+QString AddEncodePresetDialog::presetName() const {
+	return ui->nameEdit->text();
 }
 
-QString AddEncodePresetDialog::properties() const
-{
-    const auto &extension = ui->extensionEdit->text();
-    if (!extension.isEmpty()) {
-        return ui->propertiesEdit->toPlainText() + "\nmeta.preset.extension=" + extension;
-    }
-    return ui->propertiesEdit->toPlainText();
+QString AddEncodePresetDialog::properties() const {
+	const auto& extension = ui->extensionEdit->text();
+	if (!extension.isEmpty()) {
+		return ui->propertiesEdit->toPlainText() + "\nmeta.preset.extension=" + extension;
+	}
+	return ui->propertiesEdit->toPlainText();
 }

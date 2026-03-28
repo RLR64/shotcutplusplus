@@ -16,6 +16,7 @@
  */
 
 #include "qmlmarkermenu.hpp"
+
 #include "actions.hpp"
 #include "docks/timelinedock.hpp"
 #include "qmltypes/colordialog.hpp"
@@ -26,91 +27,84 @@
 #include <QToolButton>
 #include <QWidgetAction>
 
-QmlMarkerMenu::QmlMarkerMenu(QObject *parent)
-    : QObject(parent)
-    , m_timeline(nullptr)
-    , m_index(-1)
-{}
-
-QObject *QmlMarkerMenu::target()
-{
-    return m_timeline;
+QmlMarkerMenu::QmlMarkerMenu(QObject* parent) : QObject(parent), m_timeline(nullptr), m_index(-1) {
 }
 
-void QmlMarkerMenu::setTarget(QObject *target)
-{
-    m_timeline = dynamic_cast<TimelineDock *>(target);
+QObject* QmlMarkerMenu::target() {
+	return m_timeline;
 }
 
-int QmlMarkerMenu::index()
-{
-    return m_index;
-}
-void QmlMarkerMenu::setIndex(int index)
-{
-    m_index = index;
+void QmlMarkerMenu::setTarget(QObject* target) {
+	m_timeline = dynamic_cast<TimelineDock*>(target);
 }
 
-void QmlMarkerMenu::popup()
-{
-    if (!m_timeline || m_index < 0)
-        return;
+int QmlMarkerMenu::index() {
+	return m_index;
+}
 
-    QMenu menu;
+void QmlMarkerMenu::setIndex(int index) {
+	m_index = index;
+}
 
-    QAction editAction(tr("Edit..."));
-    editAction.setShortcut(Actions["timelineMarkerAction"]->shortcut());
-    connect(&editAction, &QAction::triggered, this, [&]() { m_timeline->editMarker(m_index); });
-    menu.addAction(&editAction);
+void QmlMarkerMenu::popup() {
+	if (!m_timeline || m_index < 0)
+		return;
 
-    QAction deleteAction(tr("Delete"));
-    deleteAction.setShortcut(Actions["timelineDeleteMarkerAction"]->shortcut());
-    connect(&deleteAction, &QAction::triggered, this, [&]() { m_timeline->deleteMarker(m_index); });
-    menu.addAction(&deleteAction);
+	QMenu menu;
 
-    QAction colorAction(tr("Choose Color..."));
-    connect(&colorAction, &QAction::triggered, this, [&]() {
-        QColor markerColor = m_timeline->markersModel()->getMarker(m_index).color;
-        auto newColor = ColorDialog::getColor(markerColor, nullptr, QString(), false);
-        if (newColor.isValid()) {
-            m_timeline->markersModel()->setColor(m_index, newColor);
-        }
-    });
-    menu.addAction(&colorAction);
+	QAction editAction(tr("Edit..."));
+	editAction.setShortcut(Actions["timelineMarkerAction"]->shortcut());
+	connect(&editAction, &QAction::triggered, this, [&]() { m_timeline->editMarker(m_index); });
+	menu.addAction(&editAction);
 
-    QMenu *recentColorMenu = menu.addMenu(tr("Choose Recent Color"));
-    QStringList colors = m_timeline->markersModel()->recentColors();
-    QString highlightColor = QApplication::palette().highlight().color().name();
-    for (int c = 0; c < colors.size(); c++) {
-        QWidgetAction *widgetAction = new QWidgetAction(recentColorMenu);
-        QToolButton *colorButton = new QToolButton();
-        colorButton->setText(colors[c]);
-        QString textColor = QmlApplication::contrastingColor(colors[c]).name();
-        QString styleSheet = QString("QToolButton {"
-                                     "    background-color: %1;"
-                                     "    border-style: solid;"
-                                     "    border-width: 3px;"
-                                     "    border-color: %1;"
-                                     "    color: %2"
-                                     "}"
-                                     "QToolButton:hover {"
-                                     "    background-color: %1;"
-                                     "    border-style: solid;"
-                                     "    border-width: 3px;"
-                                     "    border-color: %3;"
-                                     "    color: %2"
-                                     "}")
-                                 .arg(colors[c])
-                                 .arg(textColor)
-                                 .arg(highlightColor);
-        colorButton->setStyleSheet(styleSheet);
-        connect(colorButton, &QToolButton::clicked, this, [&, colorButton]() {
-            m_timeline->markersModel()->setColor(m_index, colorButton->text());
-            menu.close();
-        });
-        widgetAction->setDefaultWidget(colorButton);
-        recentColorMenu->addAction(widgetAction);
-    }
+	QAction deleteAction(tr("Delete"));
+	deleteAction.setShortcut(Actions["timelineDeleteMarkerAction"]->shortcut());
+	connect(&deleteAction, &QAction::triggered, this, [&]() { m_timeline->deleteMarker(m_index); });
+	menu.addAction(&deleteAction);
 
-    menu.exec(QCursor::pos());
+	QAction colorAction(tr("Choose Color..."));
+	connect(&colorAction, &QAction::triggered, this, [&]() {
+		QColor markerColor = m_timeline->markersModel()->getMarker(m_index).color;
+		auto   newColor    = ColorDialog::getColor(markerColor, nullptr, QString(), false);
+		if (newColor.isValid()) {
+			m_timeline->markersModel()->setColor(m_index, newColor);
+		}
+	});
+	menu.addAction(&colorAction);
+
+	QMenu*      recentColorMenu = menu.addMenu(tr("Choose Recent Color"));
+	QStringList colors          = m_timeline->markersModel()->recentColors();
+	QString     highlightColor  = QApplication::palette().highlight().color().name();
+	for (int c = 0; c < colors.size(); c++) {
+		QWidgetAction* widgetAction = new QWidgetAction(recentColorMenu);
+		QToolButton*   colorButton  = new QToolButton();
+		colorButton->setText(colors[c]);
+		QString textColor  = QmlApplication::contrastingColor(colors[c]).name();
+		QString styleSheet = QString("QToolButton {"
+		                             "    background-color: %1;"
+		                             "    border-style: solid;"
+		                             "    border-width: 3px;"
+		                             "    border-color: %1;"
+		                             "    color: %2"
+		                             "}"
+		                             "QToolButton:hover {"
+		                             "    background-color: %1;"
+		                             "    border-style: solid;"
+		                             "    border-width: 3px;"
+		                             "    border-color: %3;"
+		                             "    color: %2"
+		                             "}")
+		                         .arg(colors[c])
+		                         .arg(textColor)
+		                         .arg(highlightColor);
+		colorButton->setStyleSheet(styleSheet);
+		connect(colorButton, &QToolButton::clicked, this, [&, colorButton]() {
+			m_timeline->markersModel()->setColor(m_index, colorButton->text());
+			menu.close();
+		});
+		widgetAction->setDefaultWidget(colorButton);
+		recentColorMenu->addAction(widgetAction);
+	}
+
+	menu.exec(QCursor::pos());
 }

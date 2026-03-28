@@ -17,7 +17,6 @@
 // Qt
 #include <QMutexLocker>
 
-
 /**
  * \class AbstractAppender
  *
@@ -45,17 +44,13 @@
  * \sa Logger::registerAppender()
  */
 
-
 //! Constructs a AbstractAppender object.
-AbstractAppender::AbstractAppender()
-  : m_detailsLevel(Logger::Debug)
-{}
-
+AbstractAppender::AbstractAppender() : m_detailsLevel(Logger::Debug) {
+}
 
 //! Destructs the AbstractAppender object.
-AbstractAppender::~AbstractAppender()
-{}
-
+AbstractAppender::~AbstractAppender() {
+}
 
 //! Returns the current details level of appender.
 /**
@@ -70,12 +65,10 @@ AbstractAppender::~AbstractAppender()
  * \sa setDetailsLevel()
  * \sa Logger::LogLevel
  */
-Logger::LogLevel AbstractAppender::detailsLevel() const
-{
-  QMutexLocker locker(&m_detailsLevelMutex);
-  return m_detailsLevel;
+Logger::LogLevel AbstractAppender::detailsLevel() const {
+	QMutexLocker locker(&m_detailsLevelMutex);
+	return m_detailsLevel;
 }
-
 
 //! Sets the current details level of appender.
 /**
@@ -86,13 +79,10 @@ Logger::LogLevel AbstractAppender::detailsLevel() const
  * \sa detailsLevel()
  * \sa Logger::LogLevel
  */
-void AbstractAppender::setDetailsLevel(Logger::LogLevel level)
-{
-  QMutexLocker locker(&m_detailsLevelMutex);
-  m_detailsLevel = level;
+void AbstractAppender::setDetailsLevel(Logger::LogLevel level) {
+	QMutexLocker locker(&m_detailsLevelMutex);
+	m_detailsLevel = level;
 }
-
-
 
 //! Sets the current details level of appender
 /**
@@ -101,11 +91,9 @@ void AbstractAppender::setDetailsLevel(Logger::LogLevel level)
  * \sa detailsLevel()
  * \sa Logger::LogLevel
  */
-void AbstractAppender::setDetailsLevel(const QString& level)
-{
-  setDetailsLevel(Logger::levelFromString(level));
+void AbstractAppender::setDetailsLevel(const QString& level) {
+	setDetailsLevel(Logger::LevelFromString(level));
 }
-
 
 //! Tries to write the log record to this logger
 /**
@@ -117,15 +105,12 @@ void AbstractAppender::setDetailsLevel(const QString& level)
  * \sa detailsLevel()
  */
 void AbstractAppender::write(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file, int line,
-                             const char* function, const QString& category, const QString& message)
-{
-  if (logLevel >= detailsLevel())
-  {
-    QMutexLocker locker(&m_writeMutex);
-    append(timeStamp, logLevel, file, line, function, category, message);
-  }
+                             const char* function, const QString& category, const QString& message) {
+	if (logLevel >= detailsLevel()) {
+		QMutexLocker locker(&m_writeMutex);
+		append(timeStamp, logLevel, file, line, function, category, message);
+	}
 }
-
 
 /**
  * \fn virtual void AbstractAppender::append(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file,
@@ -144,4 +129,3 @@ void AbstractAppender::write(const QDateTime& timeStamp, Logger::LogLevel logLev
  *
  * \sa Logger::write()
  */
-

@@ -23,25 +23,24 @@
 #include <QImage>
 #include <QMutex>
 
-class VideoWaveformScopeWidget Q_DECL_FINAL : public ScopeWidget
-{
-    Q_OBJECT
+class VideoWaveformScopeWidget Q_DECL_FINAL : public ScopeWidget {
+	Q_OBJECT
 
-public:
-    explicit VideoWaveformScopeWidget();
-    QString getTitle() Q_DECL_OVERRIDE;
+  public:
+	explicit VideoWaveformScopeWidget();
+	QString getTitle() Q_DECL_OVERRIDE;
 
-private:
-    void refreshScope(const QSize &size, bool full) Q_DECL_OVERRIDE;
-    void paintEvent(QPaintEvent *) Q_DECL_OVERRIDE;
-    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+  private:
+	void refreshScope(const QSize& size, bool full) Q_DECL_OVERRIDE;
+	void paintEvent(QPaintEvent*) Q_DECL_OVERRIDE;
+	void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
 
-    SharedFrame m_frame;
-    QImage m_renderImg;
+	SharedFrame m_frame;
+	QImage      m_renderImg;
 
-    // Variables accessed from multiple threads (mutex protected)
-    QMutex m_mutex;
-    QImage m_displayImg;
+	// Variables accessed from multiple threads (mutex protected)
+	QMutex m_mutex;
+	QImage m_displayImg;
 };
 
 #endif // VIDEOWAVEFORMSCOPEWIDGET_H

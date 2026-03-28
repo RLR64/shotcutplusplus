@@ -22,30 +22,29 @@
 
 class TimelineDock;
 
-class QmlMarkerMenu : public QObject
-{
-    Q_OBJECT
+class QmlMarkerMenu : public QObject {
+	Q_OBJECT
 
-    Q_PROPERTY(QObject *target READ target WRITE setTarget NOTIFY targetChanged)
-    Q_PROPERTY(int index READ index WRITE setIndex NOTIFY indexChanged)
+	Q_PROPERTY(QObject* target READ target WRITE setTarget NOTIFY targetChanged)
+	Q_PROPERTY(int index READ index WRITE setIndex NOTIFY indexChanged)
 
-public:
-    explicit QmlMarkerMenu(QObject *parent = 0);
-    QObject *target();
-    void setTarget(QObject *timeline);
-    int index();
-    void setIndex(int index);
+  public:
+	explicit QmlMarkerMenu(QObject* parent = 0);
+	QObject* target();
+	void     setTarget(QObject* timeline);
+	int      index();
+	void     setIndex(int index);
 
-signals:
-    void targetChanged();
-    void indexChanged();
+  signals:
+	void targetChanged();
+	void indexChanged();
 
-public slots:
-    void popup();
+  public slots:
+	void popup();
 
-private:
-    TimelineDock *m_timeline;
-    int m_index;
+  private:
+	TimelineDock* m_timeline;
+	int           m_index;
 };
 
 #endif // QMLMARKERMENU_HPP

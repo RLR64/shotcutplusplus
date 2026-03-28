@@ -23,57 +23,55 @@
 #include <QImage>
 #include <QMutex>
 
-class VideoVectorScopeWidget Q_DECL_FINAL : public ScopeWidget
-{
-    Q_OBJECT
+class VideoVectorScopeWidget Q_DECL_FINAL : public ScopeWidget {
+	Q_OBJECT
 
-public:
-    explicit VideoVectorScopeWidget();
-    virtual ~VideoVectorScopeWidget();
-    QString getTitle() Q_DECL_OVERRIDE;
+  public:
+	explicit VideoVectorScopeWidget();
+	virtual ~VideoVectorScopeWidget();
+	QString getTitle() Q_DECL_OVERRIDE;
 
-private:
-    enum {
-        BLUE_75 = 0,
-        CYAN_75,
-        GREEN_75,
-        YELLOW_75,
-        RED_75,
-        MAGENTA_75,
-        BLUE_100,
-        CYAN_100,
-        GREEN_100,
-        YELLOW_100,
-        RED_100,
-        MAGENTA_100,
-        COLOR_POINT_COUNT,
-    };
+  private:
+	enum {
+		BLUE_75 = 0,
+		CYAN_75,
+		GREEN_75,
+		YELLOW_75,
+		RED_75,
+		MAGENTA_75,
+		BLUE_100,
+		CYAN_100,
+		GREEN_100,
+		YELLOW_100,
+		RED_100,
+		MAGENTA_100,
+		COLOR_POINT_COUNT,
+	};
 
-    // Called in scope thread
-    void refreshScope(const QSize &size, bool full) Q_DECL_OVERRIDE;
-    void drawGraticuleLines(QPainter &p, qreal lineWidth);
-    void drawSkinToneLine(QPainter &p, qreal lineWidth);
-    void drawGraticuleMark(
-        QPainter &p, const QPoint &point, QColor color, qreal lineWidth, qreal LineLength);
+	// Called in scope thread
+	void refreshScope(const QSize& size, bool full) Q_DECL_OVERRIDE;
+	void drawGraticuleLines(QPainter& p, qreal lineWidth);
+	void drawSkinToneLine(QPainter& p, qreal lineWidth);
+	void drawGraticuleMark(QPainter& p, const QPoint& point, QColor color, qreal lineWidth, qreal LineLength);
 
-    // Called in UI thread
-    void paintEvent(QPaintEvent *) Q_DECL_OVERRIDE;
-    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    QRect getCenteredSquare();
+	// Called in UI thread
+	void  paintEvent(QPaintEvent*) Q_DECL_OVERRIDE;
+	void  mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
+	QRect getCenteredSquare();
 
-    // Only accessed by the scope thread
-    SharedFrame m_frame;
-    QImage m_renderImg;
-    QImage m_graticuleImg;
+	// Only accessed by the scope thread
+	SharedFrame m_frame;
+	QImage      m_renderImg;
+	QImage      m_graticuleImg;
 
-    // Variables accessed from multiple threads (mutex protected)
-    QMutex m_mutex;
-    QImage m_displayImg;
-    QPoint m_points[COLOR_POINT_COUNT];
-    bool m_profileChanged;
+	// Variables accessed from multiple threads (mutex protected)
+	QMutex m_mutex;
+	QImage m_displayImg;
+	QPoint m_points[COLOR_POINT_COUNT];
+	bool   m_profileChanged;
 
-private slots:
-    void profileChanged();
+  private slots:
+	void profileChanged();
 };
 
 #endif // VIDEOVECTORSCOPEWIDGET_H

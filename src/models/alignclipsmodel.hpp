@@ -19,52 +19,51 @@
 #define ALIGNCLIPSMODEL_HPP
 
 #include <QAbstractItemModel>
-
 #include <limits>
 
-class AlignClipsModel : public QAbstractItemModel
-{
-    Q_OBJECT
+class AlignClipsModel : public QAbstractItemModel {
+	Q_OBJECT
 
-public:
-    enum Columns {
-        COLUMN_ERROR = 0,
-        COLUMN_NAME,
-        COLUMN_OFFSET,
-        COLUMN_SPEED,
-        COLUMN_COUNT,
-    };
-    static const int INVALID_OFFSET = std::numeric_limits<int>::max();
+  public:
+	enum Columns {
+		COLUMN_ERROR = 0,
+		COLUMN_NAME,
+		COLUMN_OFFSET,
+		COLUMN_SPEED,
+		COLUMN_COUNT,
+	};
 
-    explicit AlignClipsModel(QObject *parent = 0);
-    virtual ~AlignClipsModel();
-    void clear();
-    void addClip(const QString &name, int offset, int speed, const QString &error);
-    void updateProgress(int row, int percent);
-    int getProgress(int row) const;
-    void updateOffsetAndSpeed(int row, int offset, double speed, const QString &error);
-    int getOffset(int row);
-    double getSpeed(int row);
+	static const int INVALID_OFFSET = std::numeric_limits<int>::max();
 
-protected:
-    // Implement QAbstractItemModel
-    int rowCount(const QModelIndex &parent) const;
-    int columnCount(const QModelIndex &parent) const;
-    QVariant data(const QModelIndex &index, int role) const;
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
-    QModelIndex index(int row, int column = 0, const QModelIndex &parent = QModelIndex()) const;
-    QModelIndex parent(const QModelIndex &index) const;
+	explicit AlignClipsModel(QObject* parent = 0);
+	virtual ~AlignClipsModel();
+	void   clear();
+	void   addClip(const QString& name, int offset, int speed, const QString& error);
+	void   updateProgress(int row, int percent);
+	int    getProgress(int row) const;
+	void   updateOffsetAndSpeed(int row, int offset, double speed, const QString& error);
+	int    getOffset(int row);
+	double getSpeed(int row);
 
-private:
-    typedef struct
-    {
-        QString name;
-        int offset;
-        double speed;
-        QString error;
-        int progress;
-    } ClipAlignment;
-    QList<ClipAlignment> m_clips;
+  protected:
+	// Implement QAbstractItemModel
+	int         rowCount(const QModelIndex& parent) const;
+	int         columnCount(const QModelIndex& parent) const;
+	QVariant    data(const QModelIndex& index, int role) const;
+	QVariant    headerData(int section, Qt::Orientation orientation, int role) const;
+	QModelIndex index(int row, int column = 0, const QModelIndex& parent = QModelIndex()) const;
+	QModelIndex parent(const QModelIndex& index) const;
+
+  private:
+	typedef struct {
+		QString name;
+		int     offset;
+		double  speed;
+		QString error;
+		int     progress;
+	} ClipAlignment;
+
+	QList<ClipAlignment> m_clips;
 };
 
 #endif // ALIGNCLIPSMODEL_HPP

@@ -23,33 +23,32 @@
 #include <QImage>
 #include <QMutex>
 
-class AudioSurroundScopeWidget Q_DECL_FINAL : public ScopeWidget
-{
-    Q_OBJECT
+class AudioSurroundScopeWidget Q_DECL_FINAL : public ScopeWidget {
+	Q_OBJECT
 
-public:
-    explicit AudioSurroundScopeWidget();
-    virtual ~AudioSurroundScopeWidget();
-    QString getTitle() Q_DECL_OVERRIDE;
+  public:
+	explicit AudioSurroundScopeWidget();
+	virtual ~AudioSurroundScopeWidget();
+	QString getTitle() Q_DECL_OVERRIDE;
 
-private:
-    // Called in scope thread
-    void refreshScope(const QSize &size, bool full) Q_DECL_OVERRIDE;
-    void drawGraticule(QPainter &p, qreal lineWidth);
+  private:
+	// Called in scope thread
+	void refreshScope(const QSize& size, bool full) Q_DECL_OVERRIDE;
+	void drawGraticule(QPainter& p, qreal lineWidth);
 
-    // Called in UI thread
-    void paintEvent(QPaintEvent *) Q_DECL_OVERRIDE;
+	// Called in UI thread
+	void paintEvent(QPaintEvent*) Q_DECL_OVERRIDE;
 
-    // Only accessed by the scope thread
-    SharedFrame m_frame;
-    QImage m_renderImg;
-    QImage m_graticuleImg;
+	// Only accessed by the scope thread
+	SharedFrame m_frame;
+	QImage      m_renderImg;
+	QImage      m_graticuleImg;
 
-    // Variables accessed from multiple threads (mutex protected)
-    QMutex m_mutex;
-    QImage m_displayImg;
-    bool m_channelsChanged;
-    int m_channels;
+	// Variables accessed from multiple threads (mutex protected)
+	QMutex m_mutex;
+	QImage m_displayImg;
+	bool   m_channelsChanged;
+	int    m_channels;
 };
 
 #endif // AUDIOSURROUNDSCOPEWIDGET_H

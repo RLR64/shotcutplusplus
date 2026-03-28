@@ -23,47 +23,46 @@
 #include <d3d11.h>
 #include <directxmath.h>
 
-class D3DVideoWidget : public Mlt::VideoWidget
-{
-    Q_OBJECT
-public:
-    explicit D3DVideoWidget(QObject *parent = nullptr);
-    virtual ~D3DVideoWidget();
+class D3DVideoWidget : public Mlt::VideoWidget {
+	Q_OBJECT
+  public:
+	explicit D3DVideoWidget(QObject* parent = nullptr);
+	virtual ~D3DVideoWidget();
 
-public slots:
-    virtual void initialize();
-    virtual void beforeRendering();
-    virtual void renderVideo();
+  public slots:
+	virtual void initialize();
+	virtual void beforeRendering();
+	virtual void renderVideo();
 
-private:
-    enum Stage { VertexStage, FragmentStage };
-    void prepareShader(Stage stage);
-    QByteArray compileShader(Stage stage, const QByteArray &source, const QByteArray &entryPoint);
-    ID3D11ShaderResourceView *initTexture(const void *p, int width, int height);
+  private:
+	enum Stage { VertexStage, FragmentStage };
 
-    ID3D11Device *m_device = nullptr;
-    ID3D11DeviceContext *m_context = nullptr;
-    QByteArray m_vert;
-    QByteArray m_vertEntryPoint;
-    QByteArray m_frag;
-    QByteArray m_fragEntryPoint;
+	void                      prepareShader(Stage stage);
+	QByteArray                compileShader(Stage stage, const QByteArray& source, const QByteArray& entryPoint);
+	ID3D11ShaderResourceView* initTexture(const void* p, int width, int height);
 
-    bool m_initialized = false;
-    ID3D11Buffer *m_vbuf = nullptr;
-    ID3D11Buffer *m_cbuf = nullptr;
-    ID3D11VertexShader *m_vs = nullptr;
-    ID3D11PixelShader *m_ps = nullptr;
-    ID3D11InputLayout *m_inputLayout = nullptr;
-    ID3D11RasterizerState *m_rastState = nullptr;
-    ID3D11DepthStencilState *m_dsState = nullptr;
-    ID3D11ShaderResourceView *m_texture[3] = {nullptr, nullptr, nullptr};
+	ID3D11Device*        m_device  = nullptr;
+	ID3D11DeviceContext* m_context = nullptr;
+	QByteArray           m_vert;
+	QByteArray           m_vertEntryPoint;
+	QByteArray           m_frag;
+	QByteArray           m_fragEntryPoint;
 
-    struct ConstantBuffer
-    {
-        int32_t colorspace;
-    };
+	bool                      m_initialized = false;
+	ID3D11Buffer*             m_vbuf        = nullptr;
+	ID3D11Buffer*             m_cbuf        = nullptr;
+	ID3D11VertexShader*       m_vs          = nullptr;
+	ID3D11PixelShader*        m_ps          = nullptr;
+	ID3D11InputLayout*        m_inputLayout = nullptr;
+	ID3D11RasterizerState*    m_rastState   = nullptr;
+	ID3D11DepthStencilState*  m_dsState     = nullptr;
+	ID3D11ShaderResourceView* m_texture[3]  = {nullptr, nullptr, nullptr};
 
-    ConstantBuffer m_constants;
+	struct ConstantBuffer {
+		int32_t colorspace;
+	};
+
+	ConstantBuffer m_constants;
 };
 
 #endif // D3DVIDEOWIDGET_H

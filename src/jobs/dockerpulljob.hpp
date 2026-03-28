@@ -22,22 +22,21 @@
 
 #include <QString>
 
-class DockerPullJob : public AbstractJob
-{
-    Q_OBJECT
-public:
-    DockerPullJob(const QString &imageRef, QThread::Priority priority = Settings.jobPriority());
-    virtual ~DockerPullJob();
+class DockerPullJob : public AbstractJob {
+	Q_OBJECT
+  public:
+	DockerPullJob(const QString& imageRef, QThread::Priority priority = Settings.jobPriority());
+	virtual ~DockerPullJob();
 
-public slots:
-    void start() override;
+  public slots:
+	void start() override;
 
-protected slots:
-    void onReadyRead() override;
+  protected slots:
+	void onReadyRead() override;
 
-private:
-    QString m_imageRef;
-    int m_previousPercent{-1};
+  private:
+	QString m_imageRef;
+	int     m_previousPercent{-1};
 };
 
 #endif // DOCKERPULLJOB_HPP

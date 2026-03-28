@@ -24,24 +24,23 @@ class EditMarkerWidget;
 class QAbstractButton;
 class QDialogButtonBox;
 
-class EditMarkerDialog : public QDialog
-{
-    Q_OBJECT
+class EditMarkerDialog : public QDialog {
+	Q_OBJECT
 
-public:
-    explicit EditMarkerDialog(
-        QWidget *parent, const QString &text, const QColor &color, int start, int end, int maxEnd);
-    QString getText();
-    QColor getColor();
-    int getStart();
-    int getEnd();
+  public:
+	explicit EditMarkerDialog(QWidget* parent, const QString& text, const QColor& color, int start, int end,
+	                          int maxEnd);
+	QString getText();
+	QColor  getColor();
+	int     getStart();
+	int     getEnd();
 
-private slots:
-    void clicked(QAbstractButton *button);
+  private slots:
+	void clicked(QAbstractButton* button);
 
-private:
-    EditMarkerWidget *m_sWidget;
-    QDialogButtonBox *m_buttonBox;
+  private:
+	EditMarkerWidget* m_sWidget;
+	QDialogButtonBox* m_buttonBox;
 };
 
 #endif // EDITMARKERDIALOG_HPP

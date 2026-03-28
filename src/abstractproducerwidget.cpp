@@ -19,26 +19,25 @@
 
 #include <QWidget>
 
-AbstractProducerWidget::AbstractProducerWidget() {}
-
-AbstractProducerWidget::~AbstractProducerWidget() {}
-
-void AbstractProducerWidget::setProducer(Mlt::Producer *producer)
-{
-    if (producer) {
-        loadPreset(*producer);
-        m_producer.reset(new Mlt::Producer(producer));
-    } else {
-        m_producer.reset();
-    }
+AbstractProducerWidget::AbstractProducerWidget() {
 }
 
-bool AbstractProducerWidget::isDevice(const QWidget *widget)
-{
-    auto name = widget->objectName();
-    return "AlsaWidget" == name || "alsaWidget" == name || "AvfoundationProducerWidget" == name
-           || "avfoundationWidget" == name || "DecklinkProducerWidget" == name
-           || "decklinkWidget" == name || "DirectShowVideoWidget" == name
-           || "dshowVideoWidget" == name || "PulseAudioWidget" == name || "pulseWidget" == name
-           || "Video4LinuxWidget" == name || "v4lWidget" == name;
+AbstractProducerWidget::~AbstractProducerWidget() {
+}
+
+void AbstractProducerWidget::setProducer(Mlt::Producer* producer) {
+	if (producer) {
+		loadPreset(*producer);
+		m_producer.reset(new Mlt::Producer(producer));
+	} else {
+		m_producer.reset();
+	}
+}
+
+bool AbstractProducerWidget::isDevice(const QWidget* widget) {
+	auto name = widget->objectName();
+	return "AlsaWidget" == name || "alsaWidget" == name || "AvfoundationProducerWidget" == name ||
+	       "avfoundationWidget" == name || "DecklinkProducerWidget" == name || "decklinkWidget" == name ||
+	       "DirectShowVideoWidget" == name || "dshowVideoWidget" == name || "PulseAudioWidget" == name ||
+	       "pulseWidget" == name || "Video4LinuxWidget" == name || "v4lWidget" == name;
 }

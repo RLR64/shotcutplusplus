@@ -24,22 +24,21 @@
 #include <QList>
 #include <QObject>
 
-class Transcoder : public QObject
-{
-    Q_OBJECT
+class Transcoder : public QObject {
+	Q_OBJECT
 
-public:
-    explicit Transcoder()
-        : QObject()
-    {}
-    void setProducers(QList<Mlt::Producer> &producers);
-    void addProducer(Mlt::Producer &producer);
-    void addProducer(Mlt::Producer *producer);
-    void convert(TranscodeDialog &dialog);
+  public:
+	explicit Transcoder() : QObject() {
+	}
 
-private:
-    void convertProducer(Mlt::Producer *producer, TranscodeDialog &dialog, QString filename);
-    QList<Mlt::Producer> m_producers;
+	void setProducers(QList<Mlt::Producer>& producers);
+	void addProducer(Mlt::Producer& producer);
+	void addProducer(Mlt::Producer* producer);
+	void convert(TranscodeDialog& dialog);
+
+  private:
+	void                 convertProducer(Mlt::Producer* producer, TranscodeDialog& dialog, QString filename);
+	QList<Mlt::Producer> m_producers;
 };
 
 #endif // TRANSCODER_HPP

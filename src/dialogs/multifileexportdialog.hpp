@@ -26,42 +26,38 @@ class QDialogButtonBox;
 class QLabel;
 class QListWidget;
 class QLineEdit;
+
 namespace Mlt {
 class Playlist;
 }
 
-class MultiFileExportDialog : public QDialog
-{
-    Q_OBJECT
-public:
-    explicit MultiFileExportDialog(QString title,
-                                   Mlt::Playlist *playlist,
-                                   const QString &directory,
-                                   const QString &prefix,
-                                   const QString &extension,
-                                   QWidget *parent = 0);
-    QStringList getExportFiles();
+class MultiFileExportDialog : public QDialog {
+	Q_OBJECT
+  public:
+	explicit MultiFileExportDialog(QString title, Mlt::Playlist* playlist, const QString& directory,
+	                               const QString& prefix, const QString& extension, QWidget* parent = 0);
+	QStringList getExportFiles();
 
-private slots:
-    void rebuildList();
-    void browse();
+  private slots:
+	void rebuildList();
+	void browse();
 
-private:
-    QString appendField(QString text, QComboBox *combo, int clipIndex);
-    void fillCombo(QComboBox *combo);
+  private:
+	QString appendField(QString text, QComboBox* combo, int clipIndex);
+	void    fillCombo(QComboBox* combo);
 
-    Mlt::Playlist *m_playlist;
-    QLineEdit *m_dir;
-    QLineEdit *m_prefix;
-    QComboBox *m_field1;
-    QComboBox *m_field2;
-    QComboBox *m_field3;
-    QLineEdit *m_ext;
-    QLabel *m_errorIcon;
-    QLabel *m_errorText;
-    QListWidget *m_list;
-    QDialogButtonBox *m_buttonBox;
-    QStringList m_stringList;
+	Mlt::Playlist*    m_playlist;
+	QLineEdit*        m_dir;
+	QLineEdit*        m_prefix;
+	QComboBox*        m_field1;
+	QComboBox*        m_field2;
+	QComboBox*        m_field3;
+	QLineEdit*        m_ext;
+	QLabel*           m_errorIcon;
+	QLabel*           m_errorText;
+	QListWidget*      m_list;
+	QDialogButtonBox* m_buttonBox;
+	QStringList       m_stringList;
 };
 
 #endif // MULTIFILEEXPORTDIALOG_HPP
