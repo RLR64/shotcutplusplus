@@ -48,7 +48,7 @@ class TimelineDock : public QDockWidget {
 	Q_PROPERTY(int loopEnd READ loopEnd NOTIFY loopChanged)
 
   public:
-	explicit TimelineDock(QWidget* parent = 0);
+	explicit TimelineDock(QWidget* parent = nullptr);
 	~TimelineDock();
 
 	enum TrimLocation { TrimInPoint, TrimOutPoint };

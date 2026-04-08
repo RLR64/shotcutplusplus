@@ -1,5 +1,4 @@
 # .clang-format
-# Place this file at the root of your project
 
 BasedOnStyle: LLVM
 

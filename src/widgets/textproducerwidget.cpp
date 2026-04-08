@@ -30,7 +30,7 @@ static const QString kTransparent          = QObject::tr("transparent", "Open Ot
 static const char*   kSimpleFilterName     = "dynamicText";
 static const char*   kRichFilterName       = "richText";
 static const char*   kTypewriterFilterName = "typewriter";
-static const int     kPointSize            = {60};
+static constexpr int     kPointSize            = {60};
 
 static QString colorToString(const QColor& color) {
 	return (color == QColor(0, 0, 0, 0))

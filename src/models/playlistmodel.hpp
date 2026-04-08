@@ -63,10 +63,10 @@ class PlaylistModel : public QAbstractTableModel {
 		FIELD_BIN
 	};
 
-	static const int THUMBNAIL_WIDTH  = 80;
-	static const int THUMBNAIL_HEIGHT = 45;
+	static constexpr int THUMBNAIL_WIDTH  = {80};
+	static constexpr int THUMBNAIL_HEIGHT = {45};
 
-	explicit PlaylistModel(QObject* parent = 0);
+	explicit PlaylistModel(QObject* parent = nullptr);
 	~PlaylistModel();
 	int             rowCount(const QModelIndex& parent = QModelIndex()) const;
 	int             columnCount(const QModelIndex& parent = QModelIndex()) const;

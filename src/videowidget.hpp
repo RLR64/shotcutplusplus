@@ -51,7 +51,7 @@ class VideoWidget : public QQuickWidget, public Controller {
 	Q_PROPERTY(QPoint offset READ offset NOTIFY offsetChanged)
 
   public:
-	VideoWidget(QObject* parent = 0);
+	VideoWidget(QObject* parent = nullptr);
 	virtual ~VideoWidget();
 
 	int  setProducer(Mlt::Producer*, bool isMulti = false) override;

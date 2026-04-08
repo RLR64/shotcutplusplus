@@ -24,8 +24,8 @@
 #include <QPainterPath>
 #include <QToolTip>
 
-const qreal IRE0   = {16};
-const qreal IRE100 = {235};
+constexpr qreal IRE0   = {16};
+constexpr qreal IRE100 = {235};
 
 VideoHistogramScopeWidget::VideoHistogramScopeWidget()
     : ScopeWidget("VideoHistogram"), m_frame(), m_mutex(), m_yBins(), m_rBins(), m_gBins(), m_bBins() {

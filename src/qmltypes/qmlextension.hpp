@@ -33,7 +33,7 @@ class QmlExtensionFile : public QObject {
 	Q_PROPERTY(bool standard MEMBER m_standard NOTIFY changed)
 
   public:
-	explicit QmlExtensionFile(QObject* parent = 0);
+	explicit QmlExtensionFile(QObject* parent = nullptr);
 
 	QString name() const {
 		return m_name;
@@ -85,7 +85,7 @@ class QmlExtension : public QObject {
 	static QDir          appDir(const QString& id);
 	static const QString WHISPER_ID;
 
-	explicit QmlExtension(QObject* parent = 0);
+	explicit QmlExtension(QObject* parent = nullptr);
 
 	QString id() const {
 		return m_id;

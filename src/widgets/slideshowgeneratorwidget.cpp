@@ -40,11 +40,11 @@ enum {
 	ASPECT_CONVERSION_PAD_BLUR,
 };
 
-static const int minTransitionFrames = {2};
+static constexpr int minTransitionFrames = {2};
 
-static const int randomIndex   = {0};
-static const int cutIndex      = {1};
-static const int dissolveIndex = {2};
+static constexpr int randomIndex   = {0};
+static constexpr int cutIndex      = {1};
+static constexpr int dissolveIndex = {2};
 
 SlideshowGeneratorWidget::SlideshowGeneratorWidget(Mlt::Playlist* clips, QWidget* parent)
     : QWidget(parent), m_clips(clips), m_refreshPreview(false) {

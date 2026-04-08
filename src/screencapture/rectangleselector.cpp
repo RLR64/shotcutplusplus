@@ -68,7 +68,7 @@ void RectangleSelector::paintEvent(QPaintEvent* event) {
 		painter.drawRect(selection);
 
 		// Draw corner handles
-		const int handleSize = 8;
+		constexpr int handleSize = 8;
 		painter.setBrush(QColor(100, 150, 255));
 		painter.drawRect(selection.topLeft().x() - handleSize / 2, selection.topLeft().y() - handleSize / 2, handleSize,
 		                 handleSize);

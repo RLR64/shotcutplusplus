@@ -22,6 +22,7 @@
 #include <QtEndian>
 #include <cstdint>
 #include <string>
+
 #if defined(Q_OS_WIN) || defined(Q_OS_MAC)
 #define htobe16(x) qToBigEndian(x)
 #define htole16(x) qToLittleEndian(x)

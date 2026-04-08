@@ -62,7 +62,7 @@ class MetadataModel : public QSortFilterProxyModel {
 		reverseMaskBit         = 1 << 8,
 	};
 
-	explicit MetadataModel(QObject* parent = 0);
+	explicit MetadataModel(QObject* parent = nullptr);
 
 	Q_INVOKABLE int          rowCount(const QModelIndex& parent = QModelIndex()) const;
 	int                      sourceRowCount(const QModelIndex& parent = QModelIndex()) const;

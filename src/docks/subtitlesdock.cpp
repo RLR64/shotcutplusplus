@@ -59,7 +59,7 @@
 #include <QVBoxLayout>
 #include <QtWidgets/QScrollArea>
 
-#define DEFAULT_ITEM_DURATION (2 * 1000)
+constexpr auto DEFAULT_ITEM_DURATION = (2 * 1000);
 
 static int64_t positionToMs(mlt_position position) {
 	auto seconds = position / MLT.profile().fps();

@@ -211,7 +211,7 @@ class UndoModifyKeyframeCommand : public UndoParameterCommand {
 	}
 
 	bool mergeWith(const QUndoCommand* Other) {
-		auto* That = dynamic_cast<const UndoModifyKeyframeCommand*>(Other);
+		const auto* That = dynamic_cast<const UndoModifyKeyframeCommand*>(Other);
 		if (!That || m_paramIndex != That->m_paramIndex || m_keyframeIndex != That->m_keyframeIndex) {
 			return false;
 		}

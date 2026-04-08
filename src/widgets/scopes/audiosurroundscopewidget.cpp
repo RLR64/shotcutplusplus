@@ -25,7 +25,7 @@
 #include <QPen>
 #include <cmath>
 
-static const int TEXT_MARGIN = {3};
+static constexpr int TEXT_MARGIN = {3};
 
 QPointF vectorToPoint(qreal direction, qreal magnitude) {
 	QPointF result;

@@ -36,7 +36,7 @@
 #include <QTimer>
 #include <qmath.h>
 
-static const quintptr NO_PARENT_ID              = quintptr(-1);
+static constexpr quintptr NO_PARENT_ID              = quintptr(-1);
 static const char*    kShotcutDefaultTransition = "lumaMix";
 
 MultitrackModel::MultitrackModel(QObject* parent)

@@ -37,7 +37,7 @@ FileAppender::~FileAppender() {
  * \sa setFileName()
  */
 QString FileAppender::fileName() const {
-	QMutexLocker locker(&m_logFileMutex);
+	QMutexLocker const locker(&m_logFileMutex);
 	return m_logFile.fileName();
 }
 
@@ -49,7 +49,7 @@ void FileAppender::setFileName(const QString& s) {
 	if (s.isEmpty())
 		std::cerr << "<FileAppender::FileAppender> File name is empty. The appender will do nothing" << std::endl;
 
-	QMutexLocker locker(&m_logFileMutex);
+	QMutexLocker const locker(&m_logFileMutex);
 	if (m_logFile.isOpen())
 		m_logFile.close();
 
@@ -74,7 +74,7 @@ void FileAppender::setFlushOnWrite(bool flush) {
 
 //! Force-flush any remaining buffers to file system. Returns true if successful, otherwise returns false.
 bool FileAppender::flush() {
-	QMutexLocker locker(&m_logFileMutex);
+	QMutexLocker const locker(&m_logFileMutex);
 	if (m_logFile.isOpen())
 		return m_logFile.flush();
 	else
@@ -109,7 +109,7 @@ bool FileAppender::openFile() {
  */
 void FileAppender::append(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file, int line,
                           const char* function, const QString& category, const QString& message) {
-	QMutexLocker locker(&m_logFileMutex);
+	QMutexLocker const locker(&m_logFileMutex);
 
 	if (openFile()) {
 		m_logStream << formattedString(timeStamp, logLevel, file, line, function, category, message);
@@ -120,6 +120,6 @@ void FileAppender::append(const QDateTime& timeStamp, Logger::LogLevel logLevel,
 }
 
 void FileAppender::closeFile() {
-	QMutexLocker locker(&m_logFileMutex);
+	QMutexLocker const locker(&m_logFileMutex);
 	m_logFile.close();
 }

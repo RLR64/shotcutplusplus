@@ -26,7 +26,7 @@
 #include <QtAlgorithms>
 #include <cmath>
 
-static const int WINDOW_SIZE = {8000}; // 6 Hz FFT bins at 48kHz
+static constexpr int WINDOW_SIZE = {8000}; // 6 Hz FFT bins at 48kHz
 
 struct band {
 	float       low;    // Low frequency
@@ -84,9 +84,9 @@ static const band BAND_TAB[] = {
     {17936.00, 20000.00, 22421.00, "20k"}, // 43 - Last in audible range
 };
 
-static const int FIRST_AUDIBLE_BAND_INDEX = 12;
-static const int LAST_AUDIBLE_BAND_INDEX  = 42;
-static const int AUDIBLE_BAND_COUNT       = LAST_AUDIBLE_BAND_INDEX - FIRST_AUDIBLE_BAND_INDEX + 1;
+static constexpr int FIRST_AUDIBLE_BAND_INDEX = {12};
+static constexpr int LAST_AUDIBLE_BAND_INDEX  = {42};
+static constexpr int AUDIBLE_BAND_COUNT       = {LAST_AUDIBLE_BAND_INDEX - FIRST_AUDIBLE_BAND_INDEX + 1};
 
 AudioSpectrumScopeWidget::AudioSpectrumScopeWidget() : ScopeWidget("AudioSpectrum"), m_audioMeter(0) {
 	LOG_DEBUG() << "begin";

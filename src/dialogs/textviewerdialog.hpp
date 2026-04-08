@@ -30,7 +30,7 @@ class TextViewerDialog : public QDialog {
 	Q_OBJECT
 
   public:
-	explicit TextViewerDialog(QWidget* parent = 0, bool forMltXml = false);
+	explicit TextViewerDialog(QWidget* parent = nullptr, bool forMltXml = false);
 	~TextViewerDialog();
 	void              setText(const QString& s, bool scroll = false);
 	QDialogButtonBox* buttonBox() const;

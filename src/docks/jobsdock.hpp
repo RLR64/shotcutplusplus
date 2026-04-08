@@ -31,7 +31,7 @@ class JobsDock : public QDockWidget {
 	Q_OBJECT
 
   public:
-	explicit JobsDock(QWidget* parent = 0);
+	explicit JobsDock(QWidget* parent = nullptr);
 	~JobsDock();
 	AbstractJob* currentJob() const;
 

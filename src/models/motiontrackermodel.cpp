@@ -26,7 +26,7 @@
 #include <QUuid>
 
 // This is hard-coded for now (minimum viable product).
-static const int KEYFRAME_INTERVAL_FRAMES = {5};
+static constexpr int KEYFRAME_INTERVAL_FRAMES = {5};
 
 class FindTrackersParser : public Mlt::Parser {
   private:

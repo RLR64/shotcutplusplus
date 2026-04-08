@@ -44,7 +44,7 @@ class QmlKeyframesParameter : public QObject {
 		ClipLength,
 	};
 	Q_ENUM(RangeType)
-	explicit QmlKeyframesParameter(QObject* parent = 0);
+	explicit QmlKeyframesParameter(QObject* parent = nullptr);
 
 	QString name() const {
 		return m_name;
@@ -120,7 +120,7 @@ class QmlKeyframesMetadata : public QObject {
 	Q_PROPERTY(bool allowOvershoot MEMBER m_allowOvershoot NOTIFY changed)
 
   public:
-	explicit QmlKeyframesMetadata(QObject* parent = 0);
+	explicit QmlKeyframesMetadata(QObject* parent = nullptr);
 
 	bool allowTrim() const {
 		return m_allowTrim;
@@ -210,7 +210,7 @@ class QmlMetadata : public QObject {
 	Q_ENUM(PluginType)
 	unsigned filterMask;
 
-	explicit QmlMetadata(QObject* parent = 0);
+	explicit QmlMetadata(QObject* parent = nullptr);
 	void loadSettings();
 
 	PluginType type() const {

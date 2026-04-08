@@ -30,7 +30,7 @@ class UnlinkedFilesDialog : public QDialog {
 	Q_OBJECT
 
   public:
-	explicit UnlinkedFilesDialog(QWidget* parent = 0);
+	explicit UnlinkedFilesDialog(QWidget* parent = nullptr);
 	~UnlinkedFilesDialog();
 
 	void setModel(QStandardItemModel& model);

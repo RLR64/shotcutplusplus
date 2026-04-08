@@ -29,7 +29,7 @@ class Producer;
 class ResourceDialog : public QDialog {
 	Q_OBJECT
   public:
-	explicit ResourceDialog(QWidget* parent = 0);
+	explicit ResourceDialog(QWidget* parent = nullptr);
 
 	void          search(Mlt::Producer* producer);
 	void          add(Mlt::Producer* producer);

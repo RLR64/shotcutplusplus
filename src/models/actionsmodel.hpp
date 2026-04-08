@@ -39,7 +39,7 @@ class ActionsModel : public QAbstractItemModel {
 		DefaultKeyRole,
 	};
 
-	explicit ActionsModel(QObject* parent = 0);
+	explicit ActionsModel(QObject* parent = nullptr);
 	QAction* action(const QModelIndex& index) const;
 
   signals:

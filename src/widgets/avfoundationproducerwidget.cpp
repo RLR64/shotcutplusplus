@@ -30,7 +30,7 @@
 #include <QMediaDevices>
 #include <QString>
 
-#define ENABLE_SCREEN_CAPTURE (0)
+constexpr auto ENABLE_SCREEN_CAPTURE = {0};
 
 AvfoundationProducerWidget::AvfoundationProducerWidget(QWidget* parent)
     : QWidget(parent), ui(new Ui::AvfoundationProducerWidget) {

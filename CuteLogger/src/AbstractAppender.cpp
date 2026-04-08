@@ -49,8 +49,7 @@ AbstractAppender::AbstractAppender() : m_detailsLevel(Logger::Debug) {
 }
 
 //! Destructs the AbstractAppender object.
-AbstractAppender::~AbstractAppender() {
-}
+AbstractAppender::~AbstractAppender() = default;
 
 //! Returns the current details level of appender.
 /**
@@ -66,7 +65,7 @@ AbstractAppender::~AbstractAppender() {
  * \sa Logger::LogLevel
  */
 Logger::LogLevel AbstractAppender::detailsLevel() const {
-	QMutexLocker locker(&m_detailsLevelMutex);
+	QMutexLocker const locker(&m_detailsLevelMutex);
 	return m_detailsLevel;
 }
 
@@ -80,7 +79,7 @@ Logger::LogLevel AbstractAppender::detailsLevel() const {
  * \sa Logger::LogLevel
  */
 void AbstractAppender::setDetailsLevel(Logger::LogLevel level) {
-	QMutexLocker locker(&m_detailsLevelMutex);
+	QMutexLocker const locker(&m_detailsLevelMutex);
 	m_detailsLevel = level;
 }
 
@@ -107,7 +106,7 @@ void AbstractAppender::setDetailsLevel(const QString& level) {
 void AbstractAppender::write(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file, int line,
                              const char* function, const QString& category, const QString& message) {
 	if (logLevel >= detailsLevel()) {
-		QMutexLocker locker(&m_writeMutex);
+		QMutexLocker const locker(&m_writeMutex);
 		append(timeStamp, logLevel, file, line, function, category, message);
 	}
 }

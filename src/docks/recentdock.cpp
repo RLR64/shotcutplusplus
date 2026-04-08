@@ -27,7 +27,7 @@
 #include <QKeyEvent>
 #include <QMenu>
 
-static const int MaxItems = 200;
+static constexpr int MaxItems = {200};
 
 RecentDock::RecentDock(QWidget* parent) : QDockWidget(parent), ui(new Ui::RecentDock) {
 	LOG_DEBUG() << "begin";

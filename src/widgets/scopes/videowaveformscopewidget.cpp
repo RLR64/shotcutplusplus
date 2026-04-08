@@ -23,9 +23,9 @@
 #include <QPainter>
 #include <QToolTip>
 
-static const qreal  IRE0       = {16};
-static const qreal  IRE100     = {235};
-static const QColor TEXT_COLOR = {255, 255, 255, 127};
+static constexpr qreal  IRE0       = {16};
+static constexpr qreal  IRE100     = {235};
+static constexpr QColor TEXT_COLOR = {255, 255, 255, 127};
 
 VideoWaveformScopeWidget::VideoWaveformScopeWidget()
     : ScopeWidget("VideoWaveform"), m_frame(), m_renderImg(), m_mutex(), m_displayImg() {

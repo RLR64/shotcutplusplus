@@ -24,7 +24,7 @@
 #include <QToolTip>
 #include <QtAlgorithms>
 
-static const int TEXT_PAD = {2};
+static constexpr int TEXT_PAD = {2};
 
 AudioMeterWidget::AudioMeterWidget(QWidget* parent) : QWidget(parent) {
 	const QFont& font     = QWidget::font();

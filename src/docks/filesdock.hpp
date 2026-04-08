@@ -43,7 +43,7 @@ class FilesDock : public QDockWidget {
 	Q_OBJECT
 
   public:
-	explicit FilesDock(QWidget* parent = 0);
+	explicit FilesDock(QWidget* parent = nullptr);
 	~FilesDock();
 
 	struct CacheItem {

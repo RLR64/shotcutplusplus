@@ -47,7 +47,7 @@ class MarkersModel : public QAbstractItemModel {
 		ColorRole,
 	};
 
-	explicit MarkersModel(QObject* parent = 0);
+	explicit MarkersModel(QObject* parent = nullptr);
 	virtual ~MarkersModel();
 
 	void                   load(Mlt::Producer* producer);

@@ -29,6 +29,6 @@
  */
 void OutputDebugAppender::append(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file, int line,
                                  const char* function, const QString& category, const QString& message) {
-	QString s = formattedString(timeStamp, logLevel, file, line, function, category, message);
+	QString const s = formattedString(timeStamp, logLevel, file, line, function, category, message);
 	OutputDebugStringW((LPCWSTR)s.utf16());
 }

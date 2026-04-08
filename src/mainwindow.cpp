@@ -1805,7 +1805,7 @@ void MainWindow::showIncompatibleProjectMessage(const QString& shotcutVersion) {
 }
 
 static void autosaveTask(MainWindow* p) {
-    LOG_DEBUG_TIME("");
+	LOG_DEBUG_TIME("");
 	p->doAutosave();
 }
 

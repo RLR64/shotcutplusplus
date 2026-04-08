@@ -67,7 +67,7 @@ int getUniqueGroupNumber(MultitrackModel& model) {
 			}
 		}
 	}
-	static const int MAX_GROUPS = 5000;
+	static constexpr int MAX_GROUPS = {5000};
 	for (int i = 0; i < MAX_GROUPS; i++) {
 		if (!groups.contains(i)) {
 			return i;

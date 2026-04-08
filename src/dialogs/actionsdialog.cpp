@@ -33,7 +33,7 @@
 #include <QTreeView>
 #include <QVBoxLayout>
 
-static const unsigned int editorWidth = {180};
+static constexpr unsigned int editorWidth = {180};
 
 class ShortcutEditor : public QWidget {
 	Q_OBJECT

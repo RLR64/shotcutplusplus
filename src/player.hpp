@@ -50,7 +50,7 @@ class Player : public QWidget {
   public:
 	typedef enum { SourceTabIndex = 0, ProjectTabIndex } TabIndex;
 
-	explicit Player(QWidget* parent = 0);
+	explicit Player(QWidget* parent = nullptr);
 	void  connectTransport(const TransportControllable*);
 	void  setIn(int);
 	void  setOut(int);

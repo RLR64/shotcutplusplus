@@ -32,7 +32,7 @@ class MarkersDock : public QDockWidget {
 	Q_OBJECT
 
   public:
-	explicit MarkersDock(QWidget* parent = 0);
+	explicit MarkersDock(QWidget* parent = nullptr);
 	~MarkersDock();
 	void setModel(MarkersModel* model);
 

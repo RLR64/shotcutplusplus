@@ -38,7 +38,8 @@ class LongUiTask;
 class AlignAudioDialog : public QDialog {
 	Q_OBJECT
   public:
-	explicit AlignAudioDialog(QString title, MultitrackModel* model, const QVector<QUuid>& uuids, QWidget* parent = 0);
+	explicit AlignAudioDialog(QString title, MultitrackModel* model, const QVector<QUuid>& uuids,
+	                          QWidget* parent = nullptr);
 	virtual ~AlignAudioDialog();
 
   private slots:

@@ -46,7 +46,7 @@ class SubtitlesModel : public QAbstractItemModel {
 		QString lang;
 	};
 
-	explicit SubtitlesModel(QObject* parent = 0);
+	explicit SubtitlesModel(QObject* parent = nullptr);
 	virtual ~SubtitlesModel();
 
 	void    load(Mlt::Producer* producer);

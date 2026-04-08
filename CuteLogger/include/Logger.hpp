@@ -1,15 +1,15 @@
 /*
   Copyright (c) 2012 Boris Moiseev (cyberbobs at gmail dot com)
 
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU Lesser General Public License version 2.1
-  as published by the Free Software Foundation and appearing in the file
-  LICENSE.LGPL included in the packaging of this file.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License version 2.1
+as published by the Free Software Foundation and appearing in the file
+LICENSE.LGPL included in the packaging of this file.
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU Lesser General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
 */
 #ifndef LOGGER_HPP
 #define LOGGER_HPP
@@ -191,8 +191,8 @@ class CUTELOGGERSHARED_EXPORT LoggerTimingHelper {
   public:
 	inline explicit LoggerTimingHelper(Logger* l, Logger::LogLevel logLevel, const char* file, int line,
 	                                   const char* function)
-		: m_logger(l), m_logLevel(logLevel), m_timingMode(Logger::TimingAuto), m_file(file), m_line(line),
-		  m_function(function) {
+	    : m_logger(l), m_logLevel(logLevel), m_timingMode(Logger::TimingAuto), m_file(file), m_line(line),
+	      m_function(function) {
 	}
 
 	void start(const char* msg, ...)

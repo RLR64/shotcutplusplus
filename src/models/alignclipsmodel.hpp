@@ -33,9 +33,9 @@ class AlignClipsModel : public QAbstractItemModel {
 		COLUMN_COUNT,
 	};
 
-	static const int INVALID_OFFSET = std::numeric_limits<int>::max();
+	static constexpr int INVALID_OFFSET = std::numeric_limits<int>::max();
 
-	explicit AlignClipsModel(QObject* parent = 0);
+	explicit AlignClipsModel(QObject* parent = nullptr);
 	virtual ~AlignClipsModel();
 	void   clear();
 	void   addClip(const QString& name, int offset, int speed, const QString& error);

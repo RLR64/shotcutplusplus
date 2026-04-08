@@ -27,7 +27,7 @@ class QmlEditMenu : public QObject {
 	Q_PROPERTY(bool readOnly MEMBER m_readOnly NOTIFY readOnlyChanged)
 
   public:
-	explicit QmlEditMenu(QObject* parent = 0);
+	explicit QmlEditMenu(QObject* parent = nullptr);
 
   signals:
 	void showPastePlainChanged();

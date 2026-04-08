@@ -67,7 +67,7 @@
 
 static const char* kFileUrlProtocol          = "file://";
 static const char* kFilesUrlDelimiter        = ",file://";
-static const int   kRecordingTimerIntervalMs = {1000};
+static constexpr int   kRecordingTimerIntervalMs = {1000};
 
 TimelineDock::TimelineDock(QWidget* parent)
     : QDockWidget(parent), m_quickView(QmlUtilities::sharedEngine(), this), m_subtitlesModel(),

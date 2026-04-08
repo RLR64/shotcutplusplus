@@ -78,7 +78,7 @@ class MultitrackModel : public QAbstractItemModel {
 		GainEnabledRole,   /// clip only
 	};
 
-	explicit MultitrackModel(QObject* parent = 0);
+	explicit MultitrackModel(QObject* parent = nullptr);
 	~MultitrackModel();
 
 	Mlt::Tractor* tractor() const {

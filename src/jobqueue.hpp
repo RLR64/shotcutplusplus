@@ -34,7 +34,7 @@ class JobQueue : public QStandardItemModel {
   public:
 	enum ColumnRole { COLUMN_ICON, COLUMN_OUTPUT, COLUMN_STATUS, COLUMN_COUNT };
 
-	static JobQueue& singleton(QObject* parent = 0);
+	static JobQueue& singleton(QObject* parent = nullptr);
 	void             cleanup();
 	AbstractJob*     add(AbstractJob* job);
 	AbstractJob*     jobFromIndex(const QModelIndex& index) const;

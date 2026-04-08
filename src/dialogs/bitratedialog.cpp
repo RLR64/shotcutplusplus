@@ -35,7 +35,7 @@
 #include <QtCharts/QStackedBarSeries>
 #include <QtCharts/QValueAxis>
 
-static const auto kSlidingWindowSize = 30;
+static constexpr auto kSlidingWindowSize = 30;
 
 BitrateDialog::BitrateDialog(const QString& resource, double fps, const QJsonArray& data, QWidget* parent)
     : QDialog(parent) {

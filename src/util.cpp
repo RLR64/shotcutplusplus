@@ -61,9 +61,9 @@
 #ifdef Q_OS_MAC
 static constexpr unsigned int kLowMemoryThresholdPercent = {10U};
 #else
-static const unsigned int kLowMemoryThresholdKB = {256U * 1024U};
+static constexpr unsigned int kLowMemoryThresholdKB = {256U * 1024U};
 #endif
-static const qint64 kFreeSpaceThesholdGB = {25LL * 1024 * 1024 * 1024};
+static constexpr qint64 kFreeSpaceThesholdGB = {25LL * 1024 * 1024 * 1024};
 
 QString Util::baseName(const QString& filePath, bool trimQuery) {
 	QString s = filePath;

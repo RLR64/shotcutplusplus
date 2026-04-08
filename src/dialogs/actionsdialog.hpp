@@ -31,7 +31,7 @@ class QKeySequenceEdit;
 class ActionsDialog : public QDialog {
 	Q_OBJECT
   public:
-	explicit ActionsDialog(QWidget* parent = 0);
+	explicit ActionsDialog(QWidget* parent = nullptr);
 	void saveCurrentEditor();
 
   public slots:

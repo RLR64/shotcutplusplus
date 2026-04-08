@@ -24,9 +24,9 @@
 #include <QPainter>
 #include <QToolTip>
 
-const int MIN_ZOOM     = {2};
-const int MAX_ZOOM     = {20};
-const int DEFAULT_ZOOM = {10};
+constexpr int MIN_ZOOM     = {2};
+constexpr int MAX_ZOOM     = {20};
+constexpr int DEFAULT_ZOOM = {10};
 
 QColor getHighContrastColor(const QColor& color) {
 	if (color.value() > 128) {

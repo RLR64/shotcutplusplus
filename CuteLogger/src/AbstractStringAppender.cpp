@@ -1,17 +1,17 @@
 /*
   Copyright (c) 2010 Boris Moiseev (cyberbobs at gmail dot com) Nikolay Matyunin (matyunin.n at gmail dot com)
 
-  Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
 
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU Lesser General Public License version 2.1
-  as published by the Free Software Foundation and appearing in the file
-  LICENSE.LGPL included in the packaging of this file.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License version 2.1
+as published by the Free Software Foundation and appearing in the file
+LICENSE.LGPL included in the packaging of this file.
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU Lesser General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
 */
 // Local
 #include "AbstractStringAppender.hpp"
@@ -57,7 +57,7 @@ AbstractStringAppender::AbstractStringAppender()
  * \sa setFormat(const QString&)
  */
 QString AbstractStringAppender::format() const {
-	QReadLocker locker(&m_formatLock);
+	QReadLocker const locker(&m_formatLock);
 	return m_format;
 }
 
@@ -108,7 +108,7 @@ QString AbstractStringAppender::format() const {
  * \sa Logger::LogLevel
  */
 void AbstractStringAppender::setFormat(const QString& format) {
-	QWriteLocker locker(&m_formatLock);
+	QWriteLocker const locker(&m_formatLock);
 	m_format = format;
 }
 
@@ -132,7 +132,7 @@ QByteArray AbstractStringAppender::qCleanupFuncinfo(const char* name) {
 	if (info.isEmpty())
 		return info;
 
-	int pos;
+	int pos = {};
 
 	// skip trailing [with XXX] for templates (gcc)
 	pos = info.size() - 1;
@@ -143,10 +143,10 @@ QByteArray AbstractStringAppender::qCleanupFuncinfo(const char* name) {
 		}
 	}
 
-	bool                    hasLambda = false;
-	QRegularExpression      lambdaRegex("::<lambda\\(.*?\\)>");
-	QRegularExpressionMatch match       = lambdaRegex.match(QString::fromLatin1(info));
-	int                     lambdaIndex = match.capturedStart();
+	bool                          hasLambda = false;
+	QRegularExpression const      lambdaRegex("::<lambda\\(.*?\\)>");
+	QRegularExpressionMatch const match       = lambdaRegex.match(QString::fromLatin1(info));
+	int const                     lambdaIndex = match.capturedStart();
 	if (lambdaIndex != -1) {
 		hasLambda = true;
 		info.remove(lambdaIndex, match.capturedLength());
@@ -225,7 +225,7 @@ QByteArray AbstractStringAppender::qCleanupFuncinfo(const char* name) {
 				--pos;
 			break;
 		case '=': {
-			int operatorLength = (int)strlen(operator_lessThanEqual);
+			const int operatorLength = (int)strlen(operator_lessThanEqual);
 			if (info.indexOf(operator_lessThanEqual) == pos - operatorLength + 1)
 				pos -= 2;
 			else if (info.indexOf(operator_greaterThanEqual) == pos - operatorLength + 1)
@@ -241,7 +241,7 @@ QByteArray AbstractStringAppender::qCleanupFuncinfo(const char* name) {
 		if (parencount < 0 || templatecount < 0)
 			return info;
 
-		char c = info.at(pos);
+		const char c = info.at(pos);
 		if (c == ')')
 			++parencount;
 		else if (c == '(')
@@ -268,11 +268,11 @@ QByteArray AbstractStringAppender::qCleanupFuncinfo(const char* name) {
 			break;
 
 		// find the matching close
-		int end       = pos;
+		const int end = pos;
 		templatecount = 1;
 		--pos;
 		while (pos && templatecount) {
-			char c = info.at(pos);
+			const char c = info.at(pos);
 			if (c == '>')
 				++templatecount;
 			else if (c == '<')
@@ -294,14 +294,14 @@ QByteArray AbstractStringAppender::qCleanupFuncinfo(const char* name) {
 QString AbstractStringAppender::formattedString(const QDateTime& timeStamp, Logger::LogLevel logLevel, const char* file,
                                                 int line, const char* function, const QString& category,
                                                 const QString& message) const {
-	QString   f    = format();
-	const int size = f.size();
+	QString const f    = format();
+	const int     size = f.size();
 
 	QString result;
 
 	int i = 0;
 	while (i < f.size()) {
-		QChar c = f.at(i);
+		QChar const c = f.at(i);
 
 		// We will silently ignore the broken % marker at the end of string
 		if (c != QLatin1Char(formattingMarker) || (i + 2) >= size) {

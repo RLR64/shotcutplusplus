@@ -35,7 +35,7 @@ class SubtitlesDock : public QDockWidget {
 	Q_OBJECT
 
   public:
-	explicit SubtitlesDock(QWidget* parent = 0);
+	explicit SubtitlesDock(QWidget* parent = nullptr);
 	~SubtitlesDock();
 	void setModel(SubtitlesModel* model, SubtitlesSelectionModel* selectionModel);
 	void importSrtFromFile(const QString& srtPath, const QString& trackName, const QString& lang,

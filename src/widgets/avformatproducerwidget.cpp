@@ -43,7 +43,7 @@
 #include <limits>
 #include <unistd.h>
 
-static const double kHandleSeconds      = 15.0;
+static constexpr double kHandleSeconds      = {15.0};
 static const auto kAbsoluteAudioIndex = "audio_index";
 static const auto kAudioMediaType     = QLatin1String("audio");
 static const auto kVideoMediaType     = QLatin1String("video");

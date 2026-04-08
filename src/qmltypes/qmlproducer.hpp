@@ -44,7 +44,7 @@ class QmlProducer : public QObject {
 	Q_PROPERTY(double displayAspectRatio READ displayAspectRatio NOTIFY producerChanged)
 
   public:
-	explicit QmlProducer(QObject* parent = 0);
+	explicit QmlProducer(QObject* parent = nullptr);
 
 	int    in();
 	int    out();

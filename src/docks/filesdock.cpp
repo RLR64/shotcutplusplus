@@ -55,8 +55,8 @@
 #include <QThreadPool>
 #include <QToolButton>
 
-static const int          kTilePaddingPx   = 10;
-static const int          kTreeViewWidthPx = 150;
+static constexpr int       kTilePaddingPx   = {10};
+static constexpr int       kTreeViewWidthPx = {150};
 static const auto          kDetailedMode    = QLatin1String("detailed");
 static const auto          kIconsMode       = QLatin1String("icons");
 static const auto          kTiledMode       = QLatin1String("tiled");

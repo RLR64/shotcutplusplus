@@ -172,7 +172,7 @@ void AudioLoudnessScopeWidget::setOrientation(Qt::Orientation orientation, bool 
 		if (orientation == Qt::Vertical) {
 			// Calculate the minimum width
 			int       x          = 0;
-			const int meterWidth = 54;
+			constexpr int meterWidth = 54;
 			if (Settings.loudnessScopeShowMeter("momentary"))
 				x += meterWidth;
 			if (Settings.loudnessScopeShowMeter("shortterm"))
@@ -191,7 +191,7 @@ void AudioLoudnessScopeWidget::setOrientation(Qt::Orientation orientation, bool 
 		} else {
 			// Calculate the minimum height
 			int       y           = 32;
-			const int meterHeight = 47;
+			constexpr int meterHeight = 47;
 			if (Settings.loudnessScopeShowMeter("momentary"))
 				y += meterHeight;
 			if (Settings.loudnessScopeShowMeter("shortterm"))

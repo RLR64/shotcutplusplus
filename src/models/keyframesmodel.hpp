@@ -86,7 +86,7 @@ class KeyframesModel : public QAbstractItemModel {
 		MaximumFrameRole             /// keyframe only
 	};
 
-	explicit KeyframesModel(QObject* parent = 0);
+	explicit KeyframesModel(QObject* parent = nullptr);
 	virtual ~KeyframesModel();
 
 	int                    rowCount(const QModelIndex& parent) const;

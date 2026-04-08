@@ -27,7 +27,7 @@
 #include <QTimer>
 #include <cmath>
 
-static const quintptr NO_PARENT_ID = quintptr(-1);
+static constexpr quintptr NO_PARENT_ID = quintptr(-1);
 
 enum Columns { COLUMN_TEXT = 0, COLUMN_START, COLUMN_END, COLUMN_DURATION, COLUMN_COUNT };
 

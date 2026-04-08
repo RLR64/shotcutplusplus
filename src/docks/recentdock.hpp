@@ -30,7 +30,7 @@ class RecentDock : public QDockWidget {
 	Q_OBJECT
 
   public:
-	explicit RecentDock(QWidget* parent = 0);
+	explicit RecentDock(QWidget* parent = nullptr);
 	~RecentDock();
 
   signals:

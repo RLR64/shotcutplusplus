@@ -26,7 +26,7 @@
 #include <QPropertyAnimation>
 #include <QPushButton>
 
-static const int STATUS_ANIMATION_MS = {350};
+static constexpr int STATUS_ANIMATION_MS = {350};
 
 StatusLabelWidget::StatusLabelWidget(QWidget* parent) : QWidget(parent), m_width(0) {
 	m_layout = new QHBoxLayout;

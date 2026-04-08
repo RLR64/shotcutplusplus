@@ -27,7 +27,7 @@
 #include <cstdio>
 #include <qmath.h>
 
-static const qreal WHEEL_SLIDER_RATIO = 10.0;
+static constexpr qreal WHEEL_SLIDER_RATIO = {10.0};
 
 ColorWheelItem::ColorWheelItem(QQuickItem* parent)
     : QQuickPaintedItem(parent), m_image(), m_isMouseDown(false), m_lastPoint(0, 0), m_size(0, 0), m_margin(5),

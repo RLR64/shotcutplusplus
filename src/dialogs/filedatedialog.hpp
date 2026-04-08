@@ -31,7 +31,7 @@ class FileDateDialog : public QDialog {
 	Q_OBJECT
 
   public:
-	explicit FileDateDialog(QString title, Mlt::Producer* producer, QWidget* parent = 0);
+	explicit FileDateDialog(QString title, Mlt::Producer* producer, QWidget* parent = nullptr);
 
   private slots:
 	void accept();

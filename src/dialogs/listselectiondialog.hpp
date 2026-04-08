@@ -30,7 +30,7 @@ class ListSelectionDialog : public QDialog {
 	Q_OBJECT
 
   public:
-	explicit ListSelectionDialog(const QStringList& list, QWidget* parent = 0);
+	explicit ListSelectionDialog(const QStringList& list, QWidget* parent = nullptr);
 	~ListSelectionDialog();
 	void              setColors(const QStringList& colors);
 	void              setSelection(const QStringList& selection);

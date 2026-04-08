@@ -25,7 +25,7 @@
 #include <QToolTip>
 #include <cmath>
 
-static const qreal MAX_AMPLITUDE = {32768.0};
+static constexpr qreal MAX_AMPLITUDE = {32768.0};
 
 static int graphHeight(const QSize& widgetSize, int maxChan, int padding) {
 	int totalPadding = padding + (padding * maxChan);

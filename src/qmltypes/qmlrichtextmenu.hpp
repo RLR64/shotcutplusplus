@@ -24,7 +24,7 @@ class QmlRichTextMenu : public QObject {
 	Q_OBJECT
 
   public:
-	explicit QmlRichTextMenu(QObject* parent = 0);
+	explicit QmlRichTextMenu(QObject* parent = nullptr);
 
   signals:
 	void openTriggered();

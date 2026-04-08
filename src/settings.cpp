@@ -36,7 +36,7 @@ static const QString                   SHOTCUT_INI_FILENAME("/shotcut.ini");
 static const QString                   RECENT_INI_FILENAME("recent.ini");
 static QScopedPointer<ShotcutSettings> instance;
 static QString                         appDataForSession;
-static const int                       kMaximumTrackHeight = 125;
+static constexpr int                   kMaximumTrackHeight = {125};
 static const QString                   kRecentKey("recent");
 static const QString                   kProjectsKey("projects");
 

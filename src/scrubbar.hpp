@@ -26,7 +26,7 @@ class ScrubBar : public QWidget {
 	enum controls { CONTROL_NONE, CONTROL_HEAD, CONTROL_IN, CONTROL_OUT };
 
   public:
-	explicit ScrubBar(QWidget* parent = 0);
+	explicit ScrubBar(QWidget* parent = nullptr);
 
 	virtual void mousePressEvent(QMouseEvent* event);
 	virtual void mouseReleaseEvent(QMouseEvent* event);

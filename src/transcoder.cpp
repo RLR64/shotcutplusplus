@@ -27,7 +27,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 
-#define kHandleSeconds 15.0
+#define kHandleSeconds (15.0)
 
 void Transcoder::setProducers(QList<Mlt::Producer>& producers) {
 	m_producers = producers;

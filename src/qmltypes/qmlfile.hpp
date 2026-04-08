@@ -31,7 +31,7 @@ class QmlFile : public QObject {
 	Q_PROPERTY(QString filePath READ getFilePath)
 
   public:
-	explicit QmlFile(QObject* parent = 0);
+	explicit QmlFile(QObject* parent = nullptr);
 	QString             getUrl();
 	void                setUrl(QString text);
 	QString             getFileName();

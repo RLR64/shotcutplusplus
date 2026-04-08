@@ -44,8 +44,8 @@
 // formulas to map absolute value ranges to percentages as int
 #define TO_ABSOLUTE(min, max, rel) qRound(float(min) + float((max) - (min)) * float(rel) / 100.0f)
 #define TO_RELATIVE(min, max, abs) qRound(100.0f * float((abs) - (min)) / float((max) - (min)))
-static const int kOpenCaptureFileDelayMs   = 1500;
-static const int kCustomPresetFileNameRole = Qt::UserRole + 1;
+static constexpr int kOpenCaptureFileDelayMs   = {1500};
+static constexpr int kCustomPresetFileNameRole = Qt::UserRole + 1;
 #ifdef Q_OS_WIN
 static const QString kNullTarget = "nul";
 #else

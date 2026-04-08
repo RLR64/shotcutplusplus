@@ -27,7 +27,7 @@
 #include <QVBoxLayout>
 #include <cmath>
 
-static const qreal MAX_AMPLITUDE = {32768.0};
+static constexpr qreal MAX_AMPLITUDE = {32768.0};
 
 AudioVectorScopeWidget::AudioVectorScopeWidget() : ScopeWidget("AudioVector"), m_mutex(), m_c1Index(0), m_c2Index(1) {
 	LOG_DEBUG() << "begin";

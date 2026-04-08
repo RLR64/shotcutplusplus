@@ -28,9 +28,9 @@
 #include <QFileDialog>
 #include <QFileInfo>
 
-static const int kLumaComboDissolveIndex = {0};
-static const int kLumaComboCutIndex      = {1};
-static const int kLumaComboCustomIndex   = {2};
+static constexpr int kLumaComboDissolveIndex = {0};
+static constexpr int kLumaComboCutIndex      = {1};
+static constexpr int kLumaComboCustomIndex   = {2};
 
 LumaMixTransition::LumaMixTransition(Mlt::Producer& producer, QWidget* parent)
     : QWidget(parent), ui(new Ui::LumaMixTransition), m_producer(producer) {

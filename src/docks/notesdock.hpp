@@ -27,7 +27,7 @@ class NotesDock : public QDockWidget {
 	Q_OBJECT
 
   public:
-	explicit NotesDock(QWidget* parent = 0);
+	explicit NotesDock(QWidget* parent = nullptr);
 	QString getText();
 	void    setText(const QString& text);
 

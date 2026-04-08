@@ -33,7 +33,7 @@ class ExtensionModel : public QAbstractItemModel {
 		COLUMN_COUNT,
 	};
 
-	explicit ExtensionModel(QObject* parent = 0);
+	explicit ExtensionModel(QObject* parent = nullptr);
 	virtual ~ExtensionModel();
 	void        load(const QString& id);
 	int         count();

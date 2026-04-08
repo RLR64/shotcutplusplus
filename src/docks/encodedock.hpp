@@ -51,7 +51,7 @@ class EncodeDock : public QDockWidget {
 	Q_OBJECT
 
   public:
-	explicit EncodeDock(QWidget* parent = 0);
+	explicit EncodeDock(QWidget* parent = nullptr);
 	~EncodeDock();
 
 	void loadPresetFromProperties(Mlt::Properties&);

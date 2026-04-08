@@ -29,7 +29,7 @@ class QmlMarkerMenu : public QObject {
 	Q_PROPERTY(int index READ index WRITE setIndex NOTIFY indexChanged)
 
   public:
-	explicit QmlMarkerMenu(QObject* parent = 0);
+	explicit QmlMarkerMenu(QObject* parent = nullptr);
 	QObject* target();
 	void     setTarget(QObject* timeline);
 	int      index();

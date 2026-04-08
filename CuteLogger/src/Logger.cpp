@@ -473,7 +473,7 @@ Logger*        LoggerPrivate::globalInstance = nullptr;
 QReadWriteLock LoggerPrivate::globalInstanceLock;
 
 static void cleanupLoggerGlobalInstance() {
-	QWriteLocker locker(&LoggerPrivate::globalInstanceLock);
+	QWriteLocker const locker(&LoggerPrivate::globalInstanceLock);
 
 	delete LoggerPrivate::globalInstance;
 	LoggerPrivate::globalInstance = nullptr;
@@ -615,23 +615,23 @@ QString Logger::LevelToString(Logger::LogLevel logLevel) {
  * \sa levelToString()
  */
 Logger::LogLevel Logger::LevelFromString(const QString& s) {
-	QString str = s.trimmed().toLower();
+	QString const str = s.trimmed().toLower();
 
 	LogLevel result = Debug;
 
-	if (str == QLatin1String("trace"))
+	if (str == QLatin1String("trace")) {
 		result = Trace;
-	else if (str == QLatin1String("debug"))
+	} else if (str == QLatin1String("debug")) {
 		result = Debug;
-	else if (str == QLatin1String("info"))
+	} else if (str == QLatin1String("info")) {
 		result = Info;
-	else if (str == QLatin1String("warning"))
+	} else if (str == QLatin1String("warning")) {
 		result = Warning;
-	else if (str == QLatin1String("error"))
+	} else if (str == QLatin1String("error")) {
 		result = Error;
-	else if (str == QLatin1String("fatal"))
+	} else if (str == QLatin1String("fatal")) {
 		result = Fatal;
-
+	}
 	return result;
 }
 
@@ -683,7 +683,7 @@ Logger* Logger::GlobalInstance() {
 void Logger::RegisterAppender(AbstractAppender* appender) {
 	Q_D(Logger);
 
-	QMutexLocker locker(&d->loggerMutex);
+	QMutexLocker const locker(&d->loggerMutex);
 
 	if (!d->appenders.contains(appender))
 		d->appenders.append(appender);
@@ -718,7 +718,7 @@ void Logger::RegisterAppender(AbstractAppender* appender) {
 void Logger::RegisterCategoryAppender(const QString& category, AbstractAppender* appender) {
 	Q_D(Logger);
 
-	QMutexLocker locker(&d->loggerMutex);
+	QMutexLocker const locker(&d->loggerMutex);
 
 	if (!d->categoryAppenders.values().contains(appender))
 		d->categoryAppenders.insert(category, appender);
@@ -738,7 +738,7 @@ void Logger::RegisterCategoryAppender(const QString& category, AbstractAppender*
 void Logger::RemoveAppender(AbstractAppender* appender) {
 	Q_D(Logger);
 
-	QMutexLocker locker(&d->loggerMutex);
+	QMutexLocker const locker(&d->loggerMutex);
 
 	d->appenders.removeAll(appender);
 	for (QMultiMap<QString, AbstractAppender*>::iterator it = d->categoryAppenders.begin();
@@ -771,7 +771,7 @@ void Logger::RemoveAppender(AbstractAppender* appender) {
 void Logger::SetDefaultCategory(const QString& category) {
 	Q_D(Logger);
 
-	QMutexLocker locker(&d->loggerMutex);
+	QMutexLocker const locker(&d->loggerMutex);
 
 	d->defaultCategory = category;
 }
@@ -804,7 +804,7 @@ void Logger::LogToGlobalInstance(const QString& category, bool logToGlobal) {
 	Q_D(Logger);
 
 	if (this == GlobalInstance()) {
-		QMutexLocker locker(&d->loggerMutex);
+		QMutexLocker const locker(&d->loggerMutex);
 		d->categories.insert(category, logToGlobal);
 	} else {
 		GlobalInstance()->LogToGlobalInstance(category, logToGlobal);
@@ -815,18 +815,18 @@ void Logger::write(const QDateTime& timeStamp, LogLevel logLevel, const char* fi
                    const char* category, const QString& message, bool fromLocalInstance) {
 	Q_D(Logger);
 
-	QMutexLocker locker(&d->loggerMutex);
+	QMutexLocker const locker(&d->loggerMutex);
 
 	QString logCategory = QString::fromLatin1(category);
 	if (logCategory.isNull() && !d->defaultCategory.isNull())
 		logCategory = d->defaultCategory;
 
-	bool wasWritten       = false;
-	bool isGlobalInstance = this == GlobalInstance();
-	bool linkedToGlobal   = isGlobalInstance && d->categories.value(logCategory, false);
+	bool       wasWritten       = false;
+	const bool isGlobalInstance = this == GlobalInstance();
+	const bool linkedToGlobal   = isGlobalInstance && d->categories.value(logCategory, false);
 
 	if (!logCategory.isNull()) {
-		QList<AbstractAppender*> appenders = d->categoryAppenders.values(logCategory);
+		QList<AbstractAppender*> const appenders = d->categoryAppenders.values(logCategory);
 		if (appenders.length() == 0) {
 			if (logCategory != d->defaultCategory && !linkedToGlobal && !fromLocalInstance &&
 			    !d->noAppendersCategories.contains(logCategory)) {
@@ -880,10 +880,10 @@ void Logger::write(const QDateTime& timeStamp, LogLevel logLevel, const char* fi
 		    QString(QLatin1String("<%2> %3")).arg(AbstractStringAppender::stripFunctionName(function)).arg(message);
 		__android_log_write(AndroidAppender::androidLogPriority(logLevel), "Logger", qPrintable(result));
 #else
-		QString result = QString(QLatin1String("[%1] <%2> %3"))
-							 .arg(LevelToString(logLevel), -7)
-		                     .arg(AbstractStringAppender::stripFunctionName(function))
-		                     .arg(message);
+		QString const result = QString(QLatin1String("[%1] <%2> %3"))
+		                           .arg(LevelToString(logLevel), -7)
+		                           .arg(AbstractStringAppender::stripFunctionName(function))
+		                           .arg(message);
 		std::cerr << qPrintable(result) << std::endl;
 #endif
 	}
@@ -957,7 +957,7 @@ Logger* cuteLoggerInstance() {
 }
 
 void LoggerTimingHelper::start(const char* msg, ...) {
-	va_list va;
+	va_list va = {};
 	va_start(va, msg);
 #if QT_VERSION >= 0x050500
 	m_block = QString().vasprintf(msg, va);
@@ -988,7 +988,7 @@ LoggerTimingHelper::~LoggerTimingHelper() {
 	else
 		message = QString(QLatin1String("\"%1\" finished in ")).arg(m_block);
 
-	qint64 elapsed = m_time.elapsed();
+	qint64 const elapsed = m_time.elapsed();
 	if (elapsed >= 10000 && m_timingMode == Logger::TimingAuto)
 		message += QString(QLatin1String("%1 s.")).arg(elapsed / 1000);
 	else
@@ -1002,7 +1002,7 @@ CuteMessageLogger::~CuteMessageLogger() {
 }
 
 void CuteMessageLogger::Write(const char* msg, ...) {
-	va_list va;
+	va_list va = {};
 	va_start(va, msg);
 	m_message = QString::vasprintf(msg, va);
 	va_end(va);

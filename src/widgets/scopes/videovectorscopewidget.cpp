@@ -26,7 +26,7 @@
 #include <QToolTip>
 #include <QtMath>
 
-static const QColor LINE_COLOR = {255, 255, 255, 127};
+static constexpr QColor LINE_COLOR = {255, 255, 255, 127};
 
 VideoVectorScopeWidget::VideoVectorScopeWidget()
     : ScopeWidget("VideoVector"), m_frame(), m_renderImg(), m_mutex(), m_displayImg(), m_profileChanged(false) {

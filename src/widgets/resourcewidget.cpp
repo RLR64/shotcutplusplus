@@ -100,7 +100,7 @@ QList<Mlt::Producer> ResourceWidget::getSelected() {
 }
 
 void ResourceWidget::updateSize() {
-	static const int MAX_COLUMN_WIDTH = 300;
+	static constexpr int MAX_COLUMN_WIDTH = 300;
 	int              tableWidth       = 38 + m_table->columnWidth(ResourceModel::COLUMN_INFO);
 	for (int i = ResourceModel::COLUMN_NAME; i < m_table->model()->columnCount(); i++) {
 		m_table->resizeColumnToContents(i);

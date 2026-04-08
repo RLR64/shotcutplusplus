@@ -36,11 +36,11 @@ class AttachedFiltersModel : public QAbstractListModel {
 		PluginTypeRole,
 	};
 
-	explicit AttachedFiltersModel(QObject* parent = 0);
+	explicit AttachedFiltersModel(QObject* parent = nullptr);
 
 	Mlt::Service* getService(int row) const;
 	QmlMetadata*  getMetadata(int row) const;
-	void          setProducer(Mlt::Producer* producer = 0);
+	void          setProducer(Mlt::Producer* producer = nullptr);
 	QString       producerTitle() const;
 	bool          isProducerSelected() const;
 	bool          isSourceClip() const;

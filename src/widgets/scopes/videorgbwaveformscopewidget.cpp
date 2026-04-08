@@ -21,7 +21,7 @@
 #include <QPainter>
 #include <QToolTip>
 
-static const QColor TEXT_COLOR = {255, 255, 255, 127};
+static constexpr QColor TEXT_COLOR = {255, 255, 255, 127};
 
 VideoRgbWaveformScopeWidget::VideoRgbWaveformScopeWidget()
     : ScopeWidget("RgbWaveform"), m_frame(), m_renderImg(), m_mutex(), m_displayImg() {

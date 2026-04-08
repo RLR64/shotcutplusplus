@@ -37,7 +37,7 @@
 
 namespace Mlt {
 
-const int            kMaxImageDurationSecs = 3600 * 4;
+constexpr int            kMaxImageDurationSecs = {3600 * 4};
 extern const QString XmlMimeType;
 
 class TransportControl : public TransportControllable {

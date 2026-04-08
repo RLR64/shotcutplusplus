@@ -34,7 +34,7 @@ class ResourceModel : public QAbstractItemModel {
 		COLUMN_COUNT,
 	};
 
-	explicit ResourceModel(QObject* parent = 0);
+	explicit ResourceModel(QObject* parent = nullptr);
 	virtual ~ResourceModel();
 	void                 search(Mlt::Producer* producer);
 	void                 add(Mlt::Producer* producer, const QString& location = QString());

@@ -36,7 +36,7 @@ class KeyframesDock : public QDockWidget {
 	Q_PROPERTY(double timeScale READ timeScale WRITE setTimeScale NOTIFY timeScaleChanged)
 
   public:
-	explicit KeyframesDock(QmlProducer* qmlProducer, QWidget* parent = 0);
+	explicit KeyframesDock(QmlProducer* qmlProducer, QWidget* parent = nullptr);
 
 	KeyframesModel& model() {
 		return m_model;

@@ -33,7 +33,7 @@ class ColorWheelItem : public QQuickPaintedItem {
 	Q_PROPERTY(qreal blueF READ blueF WRITE setBlueF)
 	Q_PROPERTY(qreal step READ step WRITE setStep)
   public:
-	explicit ColorWheelItem(QQuickItem* parent = 0);
+	explicit ColorWheelItem(QQuickItem* parent = nullptr);
 	QColor color();
 	void   setColor(const QColor& color);
 	int    red();

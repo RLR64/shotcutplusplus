@@ -8,9 +8,9 @@ if(NOT DEFINED SHOTCUT_VERSION)
   set(SHOTCUT_VERSION "26.2")
 endif()
 
-project(shotcut
+project(shotcutplusplus
   VERSION ${SHOTCUT_VERSION}
-  DESCRIPTION "Shotcut++ - Windows video editor, modernized C++ fork"
+  DESCRIPTION "Shotcutplusplus - Windows video editor, modernized C++ fork"
   HOMEPAGE_URL "https://github.com/RLR64/shotcutplusplus"
   LANGUAGES CXX
 )
@@ -26,7 +26,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 include(FeatureSummary)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_AUTOMOC ON)

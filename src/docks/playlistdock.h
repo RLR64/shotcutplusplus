@@ -65,7 +65,7 @@ class PlaylistDock : public QDockWidget {
 		SmartBinCount
 	};
 
-	explicit PlaylistDock(QWidget* parent = 0);
+	explicit PlaylistDock(QWidget* parent = nullptr);
 	~PlaylistDock();
 
 	PlaylistModel* model() {

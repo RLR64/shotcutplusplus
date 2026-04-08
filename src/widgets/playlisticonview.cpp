@@ -28,8 +28,8 @@
 #include <QSortFilterProxyModel>
 #include <QtMath>
 
-static const int kPaddingPx       = 10;
-static const float kFilesSizeFactor = 1.5f;
+static constexpr int kPaddingPx       = {10};
+static constexpr float kFilesSizeFactor = {1.5f};
 
 PlaylistIconView::PlaylistIconView(QWidget* parent)
     : QAbstractItemView(parent), m_gridSize(170, 100), m_draggingOverPos(QPoint()), m_itemsPerRow(3),

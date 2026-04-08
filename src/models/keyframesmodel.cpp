@@ -26,7 +26,7 @@
 #include <QRegularExpression>
 #include <QTimer>
 
-static const quintptr NO_PARENT_ID = quintptr(-1);
+static constexpr quintptr NO_PARENT_ID = quintptr(-1);
 
 KeyframesModel::KeyframesModel(QObject* parent) : QAbstractItemModel(parent) {
 }

@@ -26,7 +26,7 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 
-static const int PROGRESS_MAX = {1000};
+static constexpr int PROGRESS_MAX = {1000};
 
 FileDownloadDialog::FileDownloadDialog(const QString& title, QWidget* parent)
     : QProgressDialog(title, tr("Cancel"), 0, PROGRESS_MAX, parent ? parent : &MAIN) {
