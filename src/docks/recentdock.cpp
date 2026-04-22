@@ -15,24 +15,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "recentdock.hpp"
-
 #include "Logger.hpp"
 #include "settings.hpp"
 #include "ui_recentdock.h"
 #include "util.hpp"
 
+// Qt
 #include <QAction>
 #include <QDir>
 #include <QKeyEvent>
 #include <QMenu>
+#include <qabstractitemmodel.h>
+#include <qabstractitemview.h>
+#include <qdockwidget.h>
+#include <qforeach.h>
+#include <qicon.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qpoint.h>
+#include <qstandarditemmodel.h>
+#include <qtmetamacros.h>
 
-static constexpr int MaxItems = {200};
+static constexpr int MaxItems{200};
 
 RecentDock::RecentDock(QWidget* parent) : QDockWidget(parent), ui(new Ui::RecentDock) {
 	LOG_DEBUG() << "begin";
 	ui->setupUi(this);
-	QIcon icon =
+	QIcon const icon =
 	    QIcon::fromTheme("document-open-recent", QIcon(":/icons/oxygen/32x32/actions/document-open-recent.png"));
 	toggleViewAction()->setIcon(icon);
 	m_recent = Settings.recent();
@@ -57,8 +68,8 @@ RecentDock::RecentDock(QWidget* parent) : QDockWidget(parent), ui(new Ui::Recent
 
 	ui->listWidget->setDragEnabled(true);
 	ui->listWidget->setDragDropMode(QAbstractItemView::DragOnly);
-	foreach (QString s, m_recent) {
-		QStandardItem* item = new QStandardItem(Util::baseName(s));
+	foreach (QString const s, m_recent) {
+		auto* item = new QStandardItem(Util::baseName(s));
 		item->setToolTip(QDir::toNativeSeparators(s));
 		m_model.appendRow(item);
 	}
@@ -77,11 +88,11 @@ void RecentDock::add(const QString& s) {
 	if (s.size() > ShotcutSettings::MaxPath)
 		return;
 
-	QString filePath = QDir::fromNativeSeparators(s);
+	QString const filePath = QDir::fromNativeSeparators(s);
 	if (filePath.startsWith(QDir::tempPath()))
 		return;
-	QString        name = remove(s);
-	QStandardItem* item = new QStandardItem(name);
+	QString const  name = remove(s);
+	auto* item = new QStandardItem(name);
 	item->setToolTip(QDir::toNativeSeparators(s));
 	m_model.insertRow(0, item);
 	m_recent.prepend(filePath);
@@ -101,12 +112,12 @@ void RecentDock::on_listWidget_activated(const QModelIndex& i) {
 	emit itemActivated(m_proxyModel.itemData(i)[Qt::ToolTipRole].toString());
 }
 
-QString RecentDock::remove(const QString& s) {
-	QString filePath = QDir::fromNativeSeparators(s);
+auto RecentDock::remove(const QString& s) -> QString {
+	QString const filePath = QDir::fromNativeSeparators(s);
 	m_recent.removeOne(filePath);
 	Settings.setRecent(m_recent);
 
-	QString               name  = Util::baseName(filePath);
+	QString name = Util::baseName(filePath);
 	QList<QStandardItem*> items = m_model.findItems(name);
 	if (items.count() > 0)
 		m_model.removeRow(items.first()->row());

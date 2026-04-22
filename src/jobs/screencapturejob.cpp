@@ -15,21 +15,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
+#include "abstractjob.hpp"
 #include "screencapturejob.hpp"
-
 #include "Logger.hpp"
 #include "ffmpegjob.hpp"
 #include "jobqueue.hpp"
 #include "mainwindow.hpp"
+#include "mltcontroller.hpp"
 #include "postjobaction.hpp"
 #include "screencapture/screencapture.hpp"
 #include "settings.hpp"
 
+// Qt
 #include <QApplication>
 #include <QDir>
 #include <QFileInfo>
 #include <QStandardPaths>
 #include <QTimer>
+#include <qcontainerfwd.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qprocess.h>
+#include <qthread.h>
+#include <qtmetamacros.h>
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
 #include <QDBusConnection>
 #include <QDBusMessage>
@@ -38,11 +47,14 @@
 #include <QDBusPendingReply>
 #endif
 
+// Number constants
+constexpr int startProgressTimer{1000};
+
 ScreenCaptureJob::ScreenCaptureJob(const QString& name, const QString& filename, const QRect& captureRect,
                                    bool recordAudio)
     : AbstractJob(name, QThread::NormalPriority), m_filename(filename), m_rect(captureRect), m_isAutoOpen(true),
       m_recordAudio(recordAudio) {
-	QAction* action = new QAction(tr("Open"), this);
+	auto* action = new QAction(tr("Open"), this);
 	action->setToolTip(tr("Open the capture"));
 	action->setData("Open");
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(onOpenTriggered()));
@@ -50,18 +62,17 @@ ScreenCaptureJob::ScreenCaptureJob(const QString& name, const QString& filename,
 	m_standardActions.clear();
 }
 
-ScreenCaptureJob::~ScreenCaptureJob() {
-}
+ScreenCaptureJob::~ScreenCaptureJob() = default;
 
 void ScreenCaptureJob::start() {
 	LOG_DEBUG() << "starting screen capture job";
 
 	// Create and start progress timer
-	connect(&m_progressTimer, &QTimer::timeout, this, [=]() {
-		auto secs = time().elapsed() / 1000;
+	connect(&m_progressTimer, &QTimer::timeout, this, [this]() -> void {
+		auto secs = time().elapsed() / startProgressTimer;
 		emit progressUpdated(m_item, -secs);
 	});
-	m_progressTimer.start(1000); // Update every second
+	m_progressTimer.start(startProgressTimer); // Update every second
 
 	QStringList args;
 #ifdef Q_OS_MAC
@@ -181,8 +192,8 @@ void ScreenCaptureJob::start() {
 	args << "-colorspace"
 	     << "bt709";
 	args << "-y" << m_filename;
-	QString   shotcutPath = qApp->applicationDirPath();
-	QFileInfo ffmpegPath(shotcutPath, "ffmpeg");
+	QString const shotcutPath = qApp->applicationDirPath();
+	QFileInfo const ffmpegPath(shotcutPath, "ffmpeg");
 	setReadChannel(QProcess::StandardError);
 	LOG_DEBUG() << ffmpegPath.absoluteFilePath() + " " + args.join(' ');
 	AbstractJob::start(ffmpegPath.absoluteFilePath(), args);
@@ -217,7 +228,7 @@ void ScreenCaptureJob::stop() {
 #endif
 	// Try to terminate gracefully
 	write("q");
-	QTimer::singleShot(1000, this, [this]() {
+	QTimer::singleShot(startProgressTimer, this, [this]() -> void {
 		if (m_progressTimer.isActive())
 			AbstractJob::stop();
 	});
@@ -277,7 +288,7 @@ void ScreenCaptureJob::onFinished(int exitCode, QProcess::ExitStatus exitStatus)
 	if (m_isAutoOpen && exitCode == 0 && QFileInfo::exists(m_filename)) {
 		// Automatically open the captured file
 		m_isAutoOpen = false;
-		QTimer::singleShot(0, this, [this]() { MAIN.open(m_filename); });
+		QTimer::singleShot(0, this, [this]() -> void { MAIN.open(m_filename); });
 	}
 }
 

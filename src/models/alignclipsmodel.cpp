@@ -15,16 +15,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "alignclipsmodel.hpp"
-
 #include "Logger.hpp"
 #include "mltcontroller.hpp"
 #include "settings.hpp"
 
-AlignClipsModel::AlignClipsModel(QObject* parent) : QAbstractItemModel(parent) {
-}
+// Qt
+#include <qabstractitemmodel.h>
+#include <qhashfunctions.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
 
-AlignClipsModel::~AlignClipsModel() {
+AlignClipsModel::AlignClipsModel(QObject* parent) : QAbstractItemModel(parent) {
 }
 
 void AlignClipsModel::clear() {
@@ -46,7 +51,7 @@ void AlignClipsModel::addClip(const QString& name, int offset, int speed, const 
 }
 
 void AlignClipsModel::updateProgress(int row, int percent) {
-	QModelIndex modelIndex = index(row, COLUMN_NAME);
+	QModelIndex const modelIndex = index(row, COLUMN_NAME);
 	if (!modelIndex.isValid() || modelIndex.column() < 0 || modelIndex.column() >= COLUMN_COUNT ||
 	    modelIndex.row() < 0 || modelIndex.row() >= m_clips.size()) {
 		LOG_ERROR() << "Invalid Index: " << modelIndex.row() << modelIndex.column();
@@ -56,7 +61,7 @@ void AlignClipsModel::updateProgress(int row, int percent) {
 	emit dataChanged(modelIndex, modelIndex);
 }
 
-int AlignClipsModel::getProgress(int row) const {
+auto AlignClipsModel::getProgress(int row) const -> int {
 	if (row < 0 || row > m_clips.size()) {
 		LOG_ERROR() << "Invalid row: " << row;
 		return 0;
@@ -75,7 +80,7 @@ void AlignClipsModel::updateOffsetAndSpeed(int row, int offset, double speed, co
 	emit dataChanged(index(row, COLUMN_ERROR), index(row, COLUMN_COUNT - 1));
 }
 
-int AlignClipsModel::getOffset(int row) {
+auto AlignClipsModel::getOffset(int row) -> int {
 	int offset = 0;
 	if (row < 0 || row >= m_clips.size()) {
 		LOG_ERROR() << "Invalid Row: " << row;
@@ -85,7 +90,7 @@ int AlignClipsModel::getOffset(int row) {
 	return offset;
 }
 
-double AlignClipsModel::getSpeed(int row) {
+auto AlignClipsModel::getSpeed(int row) -> double {
 	double speed = 1.0;
 	if (row < 0 || row >= m_clips.size()) {
 		LOG_ERROR() << "Invalid Row: " << row;
@@ -95,17 +100,17 @@ double AlignClipsModel::getSpeed(int row) {
 	return speed;
 }
 
-int AlignClipsModel::rowCount(const QModelIndex& parent) const {
+auto AlignClipsModel::rowCount(const QModelIndex& parent) const -> int {
 	Q_UNUSED(parent)
 	return m_clips.size();
 }
 
-int AlignClipsModel::columnCount(const QModelIndex& parent) const {
+auto AlignClipsModel::columnCount(const QModelIndex& parent) const -> int {
 	Q_UNUSED(parent)
 	return COLUMN_COUNT;
 }
 
-QVariant AlignClipsModel::data(const QModelIndex& index, int role) const {
+auto AlignClipsModel::data(const QModelIndex& index, int role) const -> QVariant {
 	QVariant result;
 
 	switch (role) {
@@ -177,7 +182,7 @@ QVariant AlignClipsModel::data(const QModelIndex& index, int role) const {
 	return result;
 }
 
-QVariant AlignClipsModel::headerData(int section, Qt::Orientation orientation, int role) const {
+auto AlignClipsModel::headerData(int section, Qt::Orientation orientation, int role) const -> QVariant {
 	if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
 		switch (section) {
 		case COLUMN_ERROR:
@@ -195,14 +200,14 @@ QVariant AlignClipsModel::headerData(int section, Qt::Orientation orientation, i
 	return QVariant();
 }
 
-QModelIndex AlignClipsModel::index(int row, int column, const QModelIndex& parent) const {
+auto AlignClipsModel::index(int row, int column, const QModelIndex& parent) const -> QModelIndex {
 	Q_UNUSED(parent)
 	if (column < 0 || column >= COLUMN_COUNT || row < 0 || row >= m_clips.size())
 		return QModelIndex();
 	return createIndex(row, column, (int)0);
 }
 
-QModelIndex AlignClipsModel::parent(const QModelIndex& index) const {
+auto AlignClipsModel::parent(const QModelIndex& index) const -> QModelIndex {
 	Q_UNUSED(index)
 	return QModelIndex();
 }

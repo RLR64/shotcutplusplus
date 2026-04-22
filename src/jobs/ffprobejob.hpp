@@ -18,15 +18,21 @@
 #ifndef FFPROBEJOB_HPP
 #define FFPROBEJOB_HPP
 
+// Local
 #include "abstractjob.hpp"
+#include "jobs/postjobaction.hpp"
 
+// Qt
 #include <QStringList>
+#include <qcontainerfwd.h>
+#include <qprocess.h>
+#include <qtmetamacros.h>
 
 class FfprobeJob : public AbstractJob {
 	Q_OBJECT
   public:
 	FfprobeJob(const QString& name, const QStringList& args);
-	virtual ~FfprobeJob();
+	~FfprobeJob() override;
 	void start() override;
 
   protected slots:

@@ -15,8 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
+#include <MltProperties.h>
+#include <MltTractor.h>
+#include <framework/mlt_types.h>
 #include "subtitlesdock.hpp"
-
 #include "Logger.hpp"
 #include "actions.hpp"
 #include "dialogs/speechdialog.hpp"
@@ -25,8 +28,11 @@
 #include "jobqueue.hpp"
 #include "jobs/kokorodokijob.hpp"
 #include "jobs/meltjob.hpp"
+#include "jobs/postjobaction.hpp"
 #include "jobs/whisperjob.hpp"
 #include "mainwindow.hpp"
+#include "mltcontroller.hpp"
+#include "models/subtitles.hpp"
 #include "models/subtitlesmodel.hpp"
 #include "models/subtitlesselectionmodel.hpp"
 #include "qmltypes/qmlapplication.hpp"
@@ -35,6 +41,7 @@
 #include "util.hpp"
 #include "widgets/docktoolbar.h"
 
+// Qt
 #include <MltPlaylist.h>
 #include <QAction>
 #include <QApplication>
@@ -58,32 +65,53 @@
 #include <QTreeView>
 #include <QVBoxLayout>
 #include <QtWidgets/QScrollArea>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qdialog.h>
+#include <qdir.h>
+#include <qdockwidget.h>
+#include <qfiledialog.h>
+#include <qfontmetrics.h>
+#include <qforeach.h>
+#include <qframe.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qscopedpointer.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
-constexpr auto DEFAULT_ITEM_DURATION = (2 * 1000);
+// STL
+#include <cstdint>
+#include <memory>
 
-static int64_t positionToMs(mlt_position position) {
+// Numbr constants
+static constexpr auto DEFAULT_ITEM_DURATION{2 * 1000};
+
+static auto positionToMs(mlt_position position) -> int64_t {
 	auto seconds = position / MLT.profile().fps();
 	return 1000 * seconds;
 }
 
-static mlt_position msToPosition(int64_t ms) {
+static auto msToPosition(int64_t ms) -> mlt_position {
 	return ms * MLT.profile().frame_rate_num() / MLT.profile().frame_rate_den() / 1000;
 }
 
-static QList<Subtitles::SubtitleItem> readSrtFile(const QString& path, int64_t timeOffset, bool includeNonspoken) {
+static auto readSrtFile(const QString& path, int64_t timeOffset, bool includeNonspoken) -> QList<Subtitles::SubtitleItem> {
 	QList<Subtitles::SubtitleItem> items;
 
 	// Read the subtitles
-	Subtitles::SubtitleVector srtItems = Subtitles::readFromSrtFile(path.toUtf8().toStdString());
+	Subtitles::SubtitleVector const srtItems = Subtitles::readFromSrtFile(path.toUtf8().toStdString());
 	if (srtItems.size() == 0) {
 		return items;
 	}
 
 	// Convert the items to the return list
 	Subtitles::SubtitleItem item;
-	for (int i = 0; i < srtItems.size(); i++) {
+	for (auto & srtItem : srtItems) {
 		// Clean up the lines
-		QStringList lines = QString::fromStdString(srtItems[i].text).split('\n');
+		QStringList lines = QString::fromStdString(srtItem.text).split('\n');
 		QString     text;
 		for (int i = 0; i < lines.size(); i++) {
 			// Remove HTML
@@ -107,8 +135,8 @@ static QList<Subtitles::SubtitleItem> readSrtFile(const QString& path, int64_t t
 		text = text.trimmed();
 		if (!text.isEmpty()) {
 			// Shift the subtitles to the position
-			item.start = srtItems[i].start + timeOffset;
-			item.end   = srtItems[i].end + timeOffset;
+			item.start = srtItem.start + timeOffset;
+			item.end   = srtItem.end + timeOffset;
 			item.text  = text.toUtf8().toStdString();
 			items.append(item);
 		}
@@ -122,26 +150,26 @@ SubtitlesDock::SubtitlesDock(QWidget* parent)
 
 	setObjectName("SubtitlesDock");
 	QDockWidget::setWindowTitle(tr("Subtitles"));
-	QIcon icon = QIcon::fromTheme("subtitle", QIcon(":/icons/oxygen/32x32/actions/subtitle.png"));
+	QIcon const icon = QIcon::fromTheme("subtitle", QIcon(":/icons/oxygen/32x32/actions/subtitle.png"));
 	toggleViewAction()->setIcon(icon);
 	setWhatsThis("https://forum.shotcut.org/t/subtitles-panel/45312/1");
 
 	setupActions();
 
-	QScrollArea* scrollArea = new QScrollArea();
+	auto* scrollArea = new QScrollArea();
 	scrollArea->setFrameShape(QFrame::NoFrame);
 	scrollArea->setWidgetResizable(true);
 	QDockWidget::setWidget(scrollArea);
 
-	QVBoxLayout* vboxLayout = new QVBoxLayout();
+	auto* vboxLayout = new QVBoxLayout();
 	scrollArea->setLayout(vboxLayout);
 
 	m_addToTimelineLabel = new QLabel(tr("Add clips to the Timeline to begin editing subtitles."));
 	vboxLayout->addWidget(m_addToTimelineLabel);
 
-	QHBoxLayout* tracksLayout = new QHBoxLayout();
-	m_trackCombo              = new QComboBox();
-	connect(m_trackCombo, &QComboBox::currentIndexChanged, this, [&](int trackIndex) {
+	auto* tracksLayout = new QHBoxLayout();
+	m_trackCombo = new QComboBox();
+	connect(m_trackCombo, &QComboBox::currentIndexChanged, this, [&](int trackIndex) -> void {
 		if (m_selectionModel) {
 			m_selectionModel->setSelectedTrack(trackIndex);
 			selectItemForTime();
@@ -166,8 +194,8 @@ SubtitlesDock::SubtitlesDock(QWidget* parent)
 	m_treeView = new QTreeView();
 	vboxLayout->addWidget(m_treeView, 1);
 
-	QMenu* mainMenu  = new QMenu(tr("Subtitles"), this);
-	QMenu* trackMenu = new QMenu(tr("Tracks"), this);
+	auto* mainMenu  = new QMenu(tr("Subtitles"), this);
+	auto* trackMenu = new QMenu(tr("Tracks"), this);
 	trackMenu->addAction(Actions["subtitleAddTrackAction"]);
 	trackMenu->addAction(Actions["subtitleRemoveTrackAction"]);
 	trackMenu->addAction(Actions["subtitleEditTrackAction"]);
@@ -190,8 +218,8 @@ SubtitlesDock::SubtitlesDock(QWidget* parent)
 	mainMenu->addAction(Actions["subtitleShowPrevNextAction"]);
 
 	QAction* action;
-	QMenu*   columnsMenu = new QMenu(tr("Columns"), this);
-	action               = columnsMenu->addAction(tr("Start"), this, SLOT(onStartColumnToggled(bool)));
+	auto* columnsMenu = new QMenu(tr("Columns"), this);
+	action = columnsMenu->addAction(tr("Start"), this, SLOT(onStartColumnToggled(bool)));
 	action->setCheckable(true);
 	action->setChecked(Settings.subtitlesShowColumn("start"));
 	action = columnsMenu->addAction(tr("End"), this, SLOT(onEndColumnToggled(bool)));
@@ -203,7 +231,7 @@ SubtitlesDock::SubtitlesDock(QWidget* parent)
 	mainMenu->addMenu(columnsMenu);
 	Actions.loadFromMenu(mainMenu);
 
-	DockToolBar* toolbar = new DockToolBar(tr("Subtitle Controls"));
+	auto* toolbar = new DockToolBar(tr("Subtitle Controls"));
 	toolbar->setAreaHint(Qt::BottomToolBarArea);
 
 	auto button = new QToolButton;
@@ -263,15 +291,15 @@ SubtitlesDock::SubtitlesDock(QWidget* parent)
 
 	m_searchField = new QLineEdit(this);
 	m_searchField->setPlaceholderText(tr("search"));
-	connect(m_searchField, &QLineEdit::textChanged, this, [&]() { seekToText(m_searchField->text(), 0); });
-	connect(m_searchField, &QLineEdit::returnPressed, this, [&]() { seekToText(m_searchField->text(), 1); });
+	connect(m_searchField, &QLineEdit::textChanged, this, [&]() -> void { seekToText(m_searchField->text(), 0); });
+	connect(m_searchField, &QLineEdit::returnPressed, this, [&]() -> void { seekToText(m_searchField->text(), 1); });
 	toolbar->addWidget(m_searchField);
 
 	vboxLayout->addWidget(toolbar);
 
-	QFontMetrics fm(font());
-	int          textHeight = fm.lineSpacing() * 4 + 10;
-	QGridLayout* textLayout = new QGridLayout();
+	QFontMetrics const fm(font());
+	const int textHeight = fm.lineSpacing() * 4 + 10;
+	auto* textLayout = new QGridLayout();
 	m_prevLabel             = new QLabel(tr("Previous"));
 	textLayout->addWidget(m_prevLabel, 0, 0);
 	m_textLabel = new QLabel(tr("Current"));
@@ -302,8 +330,7 @@ SubtitlesDock::SubtitlesDock(QWidget* parent)
 	LOG_DEBUG() << "end";
 }
 
-SubtitlesDock::~SubtitlesDock() {
-}
+SubtitlesDock::~SubtitlesDock() = default;
 
 void SubtitlesDock::setupActions() {
 	QAction* action;
@@ -311,7 +338,7 @@ void SubtitlesDock::setupActions() {
 	action = new QAction(tr("Add Subtitle Track"), this);
 	action->setIcon(QIcon::fromTheme("list-add", QIcon(":/icons/oxygen/32x32/actions/list-add.png")));
 	action->setToolTip(tr("Add a subtitle track"));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		show();
 		raise();
 		addSubtitleTrack();
@@ -321,7 +348,7 @@ void SubtitlesDock::setupActions() {
 	action = new QAction(tr("Remove Subtitle Track"), this);
 	action->setIcon(QIcon::fromTheme("list-remove", QIcon(":/icons/oxygen/32x32/actions/list-remove.png")));
 	action->setToolTip(tr("Remove this subtitle track"));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		show();
 		raise();
 		removeSubtitleTrack();
@@ -331,7 +358,7 @@ void SubtitlesDock::setupActions() {
 	action = new QAction(tr("Edit Subtitle Track"), this);
 	action->setIcon(QIcon::fromTheme("document-edit", QIcon(":/icons/oxygen/32x32/actions/document-edit.png")));
 	action->setToolTip(tr("Edit this subtitle track"));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		show();
 		raise();
 		editSubtitleTrack();
@@ -341,7 +368,7 @@ void SubtitlesDock::setupActions() {
 	action = new QAction(tr("Import Subtitles From File"), this);
 	action->setIcon(QIcon::fromTheme("document-import", QIcon(":/icons/oxygen/32x32/actions/document-import.png")));
 	action->setToolTip(tr("Import subtitles from an srt file at the current position"));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		show();
 		raise();
 		importSubtitles();
@@ -351,7 +378,7 @@ void SubtitlesDock::setupActions() {
 	action = new QAction(tr("Export Subtitles To File"), this);
 	action->setIcon(QIcon::fromTheme("document-export", QIcon(":/icons/oxygen/32x32/actions/document-export.png")));
 	action->setToolTip(tr("Export the current subtitle track to an SRT file"));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		show();
 		raise();
 		exportSubtitles();
@@ -438,7 +465,7 @@ void SubtitlesDock::setupActions() {
 	action->setToolTip(tr("Show the previous and next subtitles"));
 	action->setCheckable(true);
 	action->setChecked(Settings.subtitlesShowPrevNext());
-	connect(action, &QAction::toggled, this, [&](bool checked) {
+	connect(action, &QAction::toggled, this, [&](bool checked) -> void {
 		Settings.setSubtitlesShowPrevNext(checked);
 		resizeTextWidgets();
 	});
@@ -458,15 +485,14 @@ void SubtitlesDock::setModel(SubtitlesModel* model, SubtitlesSelectionModel* sel
 	m_treeView->setColumnHidden(3, !Settings.subtitlesShowColumn("end"));
 	m_treeView->setColumnHidden(4, !Settings.subtitlesShowColumn("duration"));
 	connect(m_selectionModel, &QItemSelectionModel::currentChanged, this, &SubtitlesDock::refreshWidgets);
-	connect(m_selectionModel, &SubtitlesSelectionModel::selectedTrackModelIndexChanged, m_treeView,
-	        &QTreeView::setRootIndex);
+	connect(m_selectionModel, &SubtitlesSelectionModel::selectedTrackModelIndexChanged, m_treeView, &QTreeView::setRootIndex);
 	connect(m_treeView, &QTreeView::doubleClicked, this, &SubtitlesDock::onItemDoubleClicked);
 	connect(m_model, &QAbstractItemModel::modelReset, this, &SubtitlesDock::onModelReset);
 	connect(m_model, &SubtitlesModel::tracksChanged, this, &SubtitlesDock::refreshTracksCombo);
 	connect(m_model, &QAbstractItemModel::dataChanged, this, &SubtitlesDock::refreshWidgets);
 	connect(m_model, &QAbstractItemModel::rowsInserted, this, &SubtitlesDock::refreshWidgets);
 	connect(m_model, &QAbstractItemModel::rowsMoved, this, &SubtitlesDock::refreshWidgets);
-	connect(m_model, &QAbstractItemModel::rowsRemoved, this, [&](const QModelIndex& parent, int first, int last) {
+	connect(m_model, &QAbstractItemModel::rowsRemoved, this, [&](const QModelIndex& parent, int /*first*/, int /*last*/) -> void {
 		if (parent.isValid()) {
 			refreshWidgets();
 		}
@@ -493,12 +519,12 @@ void SubtitlesDock::importSrtFromFile(const QString& srtPath, const QString& tra
 }
 
 void SubtitlesDock::addSubtitleTrack() {
-	int newIndex = m_model->trackCount();
+	const int newIndex = m_model->trackCount();
 	if (!MAIN.isMultitrackValid()) {
 		MAIN.showStatusMessage(tr("Add a clip to the timeline to create subtitles."));
 		return;
 	}
-	QString             currentLangCode = QLocale::languageToCode(QLocale::system().language(), QLocale::ISO639Part2);
+	QString const       currentLangCode = QLocale::languageToCode(QLocale::system().language(), QLocale::ISO639Part2);
 	SubtitleTrackDialog dialog(availableTrackName(), currentLangCode, this);
 	if (dialog.exec() == QDialog::Accepted) {
 		SubtitlesModel::SubtitleTrack track;
@@ -519,7 +545,7 @@ void SubtitlesDock::removeSubtitleTrack() {
 		Mlt::Producer* multitrack = MAIN.multitrack();
 		if (multitrack && multitrack->is_valid()) {
 			for (int i = 0; i < multitrack->filter_count(); i++) {
-				QScopedPointer<Mlt::Filter> filter(multitrack->filter(i));
+				QScopedPointer<Mlt::Filter> const filter(multitrack->filter(i));
 				if (!filter || !filter->is_valid() || filter->get("mlt_service") != QStringLiteral("subtitle")) {
 					continue;
 				}
@@ -540,11 +566,11 @@ void SubtitlesDock::editSubtitleTrack() {
 		addSubtitleTrack();
 		return;
 	}
-	int                           currentIndex = m_selectionModel->selectedTrack();
+	const int                     currentIndex = m_selectionModel->selectedTrack();
 	SubtitlesModel::SubtitleTrack track        = m_model->getTrack(currentIndex);
 	SubtitleTrackDialog           dialog(track.name, track.lang, this);
 	if (dialog.exec() == QDialog::Accepted) {
-		QList<SubtitlesModel::SubtitleTrack> tracks = m_model->getTracks();
+		QList<SubtitlesModel::SubtitleTrack> const tracks = m_model->getTracks();
 		for (int t = 0; t < tracks.count(); t++) {
 			if (t == currentIndex) {
 				if (dialog.getName() == track.name && dialog.getLanguage() == track.lang) {
@@ -567,14 +593,14 @@ void SubtitlesDock::editSubtitleTrack() {
 
 void SubtitlesDock::importSubtitles() {
 	// Get the file name from the user.
-	QString subtitlePath =
+	QString const subtitlePath =
 	    QFileDialog::getOpenFileName(&MAIN, tr("Import Subtitle File"), Settings.openPath(),
 	                                 tr("Subtitle Files (*.srt *.SRT *.vtt *.VTT *.ass *.ASS *.ssa *.SSA)"), nullptr,
 	                                 Util::getFileDialogOptions());
 	if (subtitlePath.isEmpty()) {
 		return;
 	}
-	QFileInfo subtitleFi(subtitlePath);
+	QFileInfo const subtitleFi(subtitlePath);
 	if (!subtitleFi.exists()) {
 		MAIN.showStatusMessage(tr("Unable to find subtitle file."));
 		return;
@@ -583,16 +609,16 @@ void SubtitlesDock::importSubtitles() {
 	MAIN.showStatusMessage(QObject::tr("Importing subtitles..."));
 
 	// Convert the subtitles to SRT using FFMpeg
-	QString tmpLocation = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/";
-	QScopedPointer<QTemporaryFile> tmp(Util::writableTemporaryFile(tmpLocation, "XXXXXX.srt"));
+	QString const tmpLocation = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/";
+	QScopedPointer<QTemporaryFile> const tmp(Util::writableTemporaryFile(tmpLocation, "XXXXXX.srt"));
 	if (!tmp->open()) {
 		LOG_ERROR() << "Failed to create temporary file" << tmp->fileName();
 		return;
 	}
-	QString tmpFileName = tmp->fileName();
+	QString const tmpFileName = tmp->fileName();
 	tmp->close();
 	QProcess    proc;
-	QFileInfo   ffmpegPath(qApp->applicationDirPath(), "ffmpeg");
+	QFileInfo const ffmpegPath(qApp->applicationDirPath(), "ffmpeg");
 	QStringList args;
 	args << "-y"
 	     << "-hide_banner"
@@ -604,13 +630,13 @@ void SubtitlesDock::importSubtitles() {
 	proc.start(ffmpegPath.absoluteFilePath(), args, QIODevice::ReadOnly);
 	QCoreApplication::processEvents();
 	if (!proc.waitForFinished(8000) || proc.exitStatus() != QProcess::NormalExit || proc.exitCode()) {
-		QString output = proc.readAll();
+		QString const output = proc.readAll();
 		foreach (const QString& line, output.split(QRegularExpression("[\r\n]"), Qt::SkipEmptyParts))
 			LOG_INFO() << line;
 	}
 
 	// Read the subtitles
-	int64_t                        msTime = positionToMs(m_pos);
+	const int64_t                  msTime = positionToMs(m_pos);
 	QList<Subtitles::SubtitleItem> items  = readSrtFile(tmpFileName, msTime, true);
 	if (items.size() == 0) {
 		MAIN.showStatusMessage(QObject::tr("No subtitles found to import"));
@@ -623,8 +649,8 @@ void SubtitlesDock::importSubtitles() {
 
 void SubtitlesDock::exportSubtitles() {
 	auto    track         = m_model->getTrack(m_trackCombo->currentIndex());
-	QString suggestedPath = QStringLiteral("%1/%2.srt").arg(Settings.savePath()).arg(track.name);
-	QString srtPath =
+	QString const suggestedPath = QStringLiteral("%1/%2.srt").arg(Settings.savePath()).arg(track.name);
+	QString const srtPath =
 	    QFileDialog::getSaveFileName(&MAIN, tr("Export SRT File"), suggestedPath, tr("SRT Files (*.srt *.SRT)"),
 	                                 nullptr, Util::getFileDialogOptions());
 	if (srtPath.isEmpty()) {
@@ -647,7 +673,7 @@ void SubtitlesDock::onPositionChanged(int position) {
 
 void SubtitlesDock::refreshTracksCombo() {
 	if (m_model) {
-		QList<SubtitlesModel::SubtitleTrack> tracks = m_model->getTracks();
+		QList<SubtitlesModel::SubtitleTrack> const tracks = m_model->getTracks();
 		m_trackCombo->clear();
 		for (auto& track : tracks) {
 			m_trackCombo->addItem(QStringLiteral("%1 (%2)").arg(track.name).arg(track.lang), track.name);
@@ -666,9 +692,9 @@ void SubtitlesDock::refreshTracksCombo() {
 void SubtitlesDock::onCreateOrEditRequested() {
 	LOG_DEBUG();
 	ensureTrackExists();
-	int64_t msTime           = positionToMs(m_pos);
-	int     trackIndex       = m_trackCombo->currentIndex();
-	int     currentItemIndex = m_model->itemIndexAtTime(trackIndex, msTime);
+	const int64_t msTime           = positionToMs(m_pos);
+	const int     trackIndex       = m_trackCombo->currentIndex();
+	const int     currentItemIndex = m_model->itemIndexAtTime(trackIndex, msTime);
 	if (currentItemIndex >= 0) {
 		setCurrentItem(trackIndex, currentItemIndex);
 		m_text->setFocus();
@@ -681,14 +707,14 @@ void SubtitlesDock::onCreateOrEditRequested() {
 void SubtitlesDock::onAddRequested() {
 	LOG_DEBUG();
 	ensureTrackExists();
-	int64_t msTime     = positionToMs(m_pos);
-	int     trackIndex = m_trackCombo->currentIndex();
+	const int64_t msTime     = positionToMs(m_pos);
+	const int     trackIndex = m_trackCombo->currentIndex();
 	if (m_model->itemIndexAtTime(trackIndex, msTime) >= 0) {
 		MAIN.showStatusMessage(tr("A subtitle already exists at this time."));
 		return;
 	}
 	int64_t maxTime   = m_model->maxTime();
-	int     nextIndex = m_model->itemIndexAfterTime(trackIndex, msTime);
+	const int     nextIndex = m_model->itemIndexAfterTime(trackIndex, msTime);
 	if (nextIndex > -1) {
 		auto nextItem = m_model->getItem(trackIndex, nextIndex);
 		maxTime       = nextItem.start;
@@ -711,22 +737,22 @@ void SubtitlesDock::onAddRequested() {
 
 void SubtitlesDock::onRemoveRequested() {
 	LOG_DEBUG();
-	int             trackIndex   = m_trackCombo->currentIndex();
+	const int             trackIndex   = m_trackCombo->currentIndex();
 	QModelIndexList selectedRows = m_selectionModel->selectedRows();
 	if (selectedRows.size() > 0) {
-		int firstItemIndex = selectedRows[0].row();
-		int lastItemIndex  = selectedRows[selectedRows.size() - 1].row();
+		const int firstItemIndex = selectedRows[0].row();
+		const int lastItemIndex  = selectedRows[selectedRows.size() - 1].row();
 		m_model->removeItems(trackIndex, firstItemIndex, lastItemIndex);
 	}
 }
 
 void SubtitlesDock::onSetStartRequested() {
 	LOG_DEBUG();
-	int             trackIndex   = m_trackCombo->currentIndex();
+	const int             trackIndex   = m_trackCombo->currentIndex();
 	QModelIndexList selectedRows = m_selectionModel->selectedRows();
 	if (selectedRows.size() > 0) {
-		int     itemIndex   = selectedRows[0].row();
-		int64_t msTime      = positionToMs(m_pos);
+		const int     itemIndex   = selectedRows[0].row();
+		const int64_t msTime      = positionToMs(m_pos);
 		auto    currentItem = m_model->getItem(trackIndex, itemIndex);
 		if (msTime >= currentItem.end) {
 			MAIN.showStatusMessage(tr("Start time can not be after end time."));
@@ -745,17 +771,17 @@ void SubtitlesDock::onSetStartRequested() {
 
 void SubtitlesDock::onSetEndRequested() {
 	LOG_DEBUG();
-	int             trackIndex   = m_trackCombo->currentIndex();
+	const int             trackIndex   = m_trackCombo->currentIndex();
 	QModelIndexList selectedRows = m_selectionModel->selectedRows();
 	if (selectedRows.size() > 0) {
-		int     itemIndex   = selectedRows[0].row();
-		int64_t msTime      = positionToMs(m_pos);
+		const int     itemIndex   = selectedRows[0].row();
+		const int64_t msTime      = positionToMs(m_pos);
 		auto    currentItem = m_model->getItem(trackIndex, itemIndex);
 		if (msTime <= currentItem.start) {
 			MAIN.showStatusMessage(tr("End time can not be before start time."));
 			return;
 		}
-		int itemCount = m_model->itemCount(trackIndex);
+		const int itemCount = m_model->itemCount(trackIndex);
 		if (itemIndex < (itemCount - 1)) {
 			auto nextItem = m_model->getItem(trackIndex, itemIndex + 1);
 			if (msTime > nextItem.start) {
@@ -772,11 +798,11 @@ void SubtitlesDock::onMoveRequested() {
 	if (selectedRows.size() <= 0) {
 		return;
 	}
-	int64_t msTime = positionToMs(m_pos);
+	const int64_t msTime = positionToMs(m_pos);
 	if (m_model->validateMove(selectedRows, msTime)) {
-		int trackIndex     = selectedRows[0].parent().row();
-		int firstItemIndex = selectedRows[0].row();
-		int lastItemIndex  = selectedRows[selectedRows.size() - 1].row();
+		const int trackIndex     = selectedRows[0].parent().row();
+		const int firstItemIndex = selectedRows[0].row();
+		const int lastItemIndex  = selectedRows[selectedRows.size() - 1].row();
 		m_model->moveItems(trackIndex, firstItemIndex, lastItemIndex, msTime);
 	} else {
 		// This existing item will cause a conflict.
@@ -786,7 +812,7 @@ void SubtitlesDock::onMoveRequested() {
 
 void SubtitlesDock::onTextEdited() {
 	LOG_DEBUG();
-	QModelIndex currentIndex = m_selectionModel->currentIndex();
+	QModelIndex const currentIndex = m_selectionModel->currentIndex();
 	if (currentIndex.isValid() && currentIndex.parent().isValid()) {
 		m_textEditInProgress = true;
 		m_model->setText(currentIndex.parent().row(), currentIndex.row(), m_text->toPlainText());
@@ -819,8 +845,8 @@ void SubtitlesDock::onDurationColumnToggled(bool checked) {
 void SubtitlesDock::onItemDoubleClicked(const QModelIndex& index) {
 	if (index.parent().isValid()) {
 		const Subtitles::SubtitleItem item     = m_model->getItem(index.parent().row(), index.row());
-		int64_t                       position = msToPosition(item.start);
-		emit                          seekRequested((int)position);
+		const int64_t position = msToPosition(item.start);
+		emit seekRequested((int)position);
 	}
 }
 
@@ -854,10 +880,10 @@ void SubtitlesDock::updateTextWidgets() {
 	const QSignalBlocker    blocker(m_text);
 
 	// First update based on current (selected) item.
-	QModelIndex currentIndex = m_selectionModel->currentIndex();
+	QModelIndex const currentIndex = m_selectionModel->currentIndex();
 	if (currentIndex.isValid() && currentIndex.parent().isValid()) {
-		int trackIndex = currentIndex.parent().row();
-		int itemIndex  = currentIndex.row();
+		const int trackIndex = currentIndex.parent().row();
+		const int itemIndex  = currentIndex.row();
 		if (trackIndex >= 0 && trackIndex < m_model->trackCount() && itemIndex >= 0 &&
 		    itemIndex < m_model->itemCount(trackIndex)) {
 			item = m_model->getItem(trackIndex, itemIndex);
@@ -882,9 +908,9 @@ void SubtitlesDock::updateTextWidgets() {
 	}
 	// If nothing selected, update based on position (but not editable)
 	m_text->setReadOnly(true);
-	int trackIndex = m_trackCombo->currentIndex();
+	const int trackIndex = m_trackCombo->currentIndex();
 	if (trackIndex >= 0 && m_pos >= 0) {
-		int64_t msTime    = positionToMs(m_pos);
+		const int64_t msTime    = positionToMs(m_pos);
 		int     itemIndex = m_model->itemIndexAtTime(trackIndex, msTime);
 		if (itemIndex >= 0) {
 			item = m_model->getItem(trackIndex, itemIndex);
@@ -1005,7 +1031,7 @@ void SubtitlesDock::refreshWidgets() {
 
 void SubtitlesDock::setCurrentItem(int trackIndex, int itemIndex) {
 	if (itemIndex >= 0) {
-		QModelIndex modelIndex = m_model->itemModelIndex(trackIndex, itemIndex);
+		QModelIndex const modelIndex = m_model->itemModelIndex(trackIndex, itemIndex);
 		if (modelIndex.isValid()) {
 			m_treeView->setCurrentIndex(modelIndex);
 			return;
@@ -1015,16 +1041,16 @@ void SubtitlesDock::setCurrentItem(int trackIndex, int itemIndex) {
 }
 
 void SubtitlesDock::selectItemForTime() {
-	int trackIndex = m_trackCombo->currentIndex();
+	const int trackIndex = m_trackCombo->currentIndex();
 	if (trackIndex >= 0) {
-		int64_t time      = positionToMs(m_pos);
-		int     itemIndex = m_model->itemIndexAtTime(trackIndex, time);
+		const int64_t time      = positionToMs(m_pos);
+		const int     itemIndex = m_model->itemIndexAtTime(trackIndex, time);
 		setCurrentItem(trackIndex, itemIndex);
 	}
 }
 
-QString SubtitlesDock::availableTrackName() {
-	int     i             = 1;
+auto SubtitlesDock::availableTrackName() -> QString {
+	int i = 1;
 	QString suggestedName = tr("Subtitle Track %1").arg(i);
 	while (trackNameExists(suggestedName)) {
 		suggestedName = tr("Subtitle Track %1").arg(i++);
@@ -1032,8 +1058,8 @@ QString SubtitlesDock::availableTrackName() {
 	return suggestedName;
 }
 
-bool SubtitlesDock::trackNameExists(const QString& name) {
-	QList<SubtitlesModel::SubtitleTrack> tracks = m_model->getTracks();
+auto SubtitlesDock::trackNameExists(const QString& name) -> bool {
+	QList<SubtitlesModel::SubtitleTrack> const tracks = m_model->getTracks();
 	for (auto& track : tracks) {
 		if (track.name == name) {
 			return true;
@@ -1052,7 +1078,7 @@ void SubtitlesDock::ensureTrackExists() {
 }
 
 void SubtitlesDock::burnInOnTimeline() {
-	int         trackIndex = m_trackCombo->currentIndex();
+	const int trackIndex = m_trackCombo->currentIndex();
 	auto        track      = m_model->getTrack(trackIndex);
 	Mlt::Filter filter(MLT.profile(), "subtitle");
 	filter.set(kShotcutFilterProperty, "subtitles");
@@ -1077,8 +1103,8 @@ void SubtitlesDock::burnInOnTimeline() {
 }
 
 void SubtitlesDock::generateTextOnTimeline() {
-	int trackIndex = m_trackCombo->currentIndex();
-	int itemCount  = m_model->itemCount(trackIndex);
+	const int trackIndex = m_trackCombo->currentIndex();
+	const int itemCount  = m_model->itemCount(trackIndex);
 	if (itemCount == 0) {
 		return;
 	}
@@ -1091,31 +1117,31 @@ void SubtitlesDock::generateTextOnTimeline() {
 	presets << tr("Default subtitle style");
 	QDir dir(Settings.appDataLocation());
 	if (dir.cd("presets") && dir.cd("dynamicText")) {
-		QStringList entries = dir.entryList(QDir::Files | QDir::Readable);
-		foreach (QString s, entries) {
+		QStringList const entries = dir.entryList(QDir::Files | QDir::Readable);
+		foreach (QString const s, entries) {
 			presets << QUrl::fromPercentEncoding(s.toUtf8());
 		}
 	}
 	dialog.setComboBoxItems(presets);
 	dialog.setWindowModality(QmlApplication::dialogModality());
-	int r = dialog.exec();
+	const int r = dialog.exec();
 	if (r != QDialog::Accepted) {
 		return;
 	}
-	QString         preset = dialog.textValue();
+	QString const preset = dialog.textValue();
 	Mlt::Properties filterProperties;
-	bool            isYaml = false;
+	const bool isYaml = false;
 	dir.setCurrent(Settings.appDataLocation());
 	dir.cd("presets");
 	dir.cd("dynamicText");
-	QString presetFilePath = dir.filePath(QUrl::toPercentEncoding(preset.toUtf8()));
+	QString const presetFilePath = dir.filePath(QUrl::toPercentEncoding(preset.toUtf8()));
 	QFile   presetFile(presetFilePath);
 	if (presetFile.open(QIODevice::ReadOnly)) {
-		bool isYaml = (presetFile.readLine(4) == "---");
+		const bool isYaml = (presetFile.readLine(4) == "---");
 		presetFile.close();
 		if (isYaml) {
 			// Load from YAML file.
-			Mlt::Properties* properties = Mlt::Properties::parse_yaml(presetFilePath.toUtf8().constData());
+			Mlt::Properties const* properties = Mlt::Properties::parse_yaml(presetFilePath.toUtf8().constData());
 			filterProperties            = *properties;
 			delete properties;
 		} else {
@@ -1149,8 +1175,8 @@ void SubtitlesDock::generateTextOnTimeline() {
 	int           lastItemFrameEnd = 0;
 	for (int itemIndex = 0; itemIndex < itemCount; itemIndex++) {
 		auto item       = m_model->getItem(trackIndex, itemIndex);
-		int  frameStart = msToPosition(item.start);
-		int  frameEnd   = msToPosition(item.end);
+		const int  frameStart = msToPosition(item.start);
+		const int  frameEnd   = msToPosition(item.end);
 		// Create a transparent color producer
 		Mlt::Producer producer(MLT.profile(), "color:");
 		producer.set("resource", "#00000000");
@@ -1182,11 +1208,11 @@ void SubtitlesDock::speechToText() {
 		return;
 	}
 
-	QString tmpLocation = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/";
+	QString const tmpLocation = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/";
 
 	// Make a copy of the timeline producer
-	QString                        xml = MLT.XML(MAIN.multitrack());
-	std::unique_ptr<Mlt::Producer> tempProducer(
+	QString const                        xml = MLT.XML(MAIN.multitrack());
+	std::unique_ptr<Mlt::Producer> const tempProducer(
 	    new Mlt::Producer(MLT.profile(), "xml-string", xml.toUtf8().constData()));
 
 	// Mute tracks as requested
@@ -1195,12 +1221,12 @@ void SubtitlesDock::speechToText() {
 		LOG_ERROR() << "Invalid tractor";
 		return;
 	}
-	int trackCount = tractor.count();
+	const int trackCount = tractor.count();
 	if (trackCount <= 0) {
 		LOG_ERROR() << "No tracks";
 		return;
 	}
-	QList<int> tracks = dialog.tracks();
+	QList<int> const tracks = dialog.tracks();
 	for (int trackIndex = 0; trackIndex < trackCount; trackIndex++) {
 		std::unique_ptr<Mlt::Producer> track(tractor.track(trackIndex));
 		if (track) {
@@ -1213,7 +1239,7 @@ void SubtitlesDock::speechToText() {
 	}
 
 	// Convert to XML
-	QString wavXml = MLT.XML(tempProducer.get());
+	QString const wavXml = MLT.XML(tempProducer.get());
 
 	// Create a temporary wav file
 	QTemporaryFile* tmpWav = Util::writableTemporaryFile(tmpLocation, "shotcut-XXXXXX.wav");
@@ -1230,7 +1256,7 @@ void SubtitlesDock::speechToText() {
 	     << "ar=16000"
 	     << "ac=1";
 	QString  jobName = tr("Extracting Audio");
-	MeltJob* wavJob =
+	auto* wavJob =
 	    new MeltJob(jobName, wavXml, args, MLT.profile().frame_rate_num(), MLT.profile().frame_rate_den());
 	tmpWav->setParent(wavJob);
 	JOBS.add(wavJob);
@@ -1245,11 +1271,11 @@ void SubtitlesDock::speechToText() {
 
 	// Run speech transcription on the wav file
 	jobName                = tr("Speech to Text");
-	WhisperJob* whisperJob = new WhisperJob(jobName, tmpWav->fileName(), tmpSrt->fileName(), dialog.language(),
+	auto* whisperJob = new WhisperJob(jobName, tmpWav->fileName(), tmpSrt->fileName(), dialog.language(),
 	                                        dialog.translate(), dialog.maxLineLength());
 	// Ensure the language code is 3 character (part 2)
 	QString           langCode = dialog.language();
-	QLocale::Language lang     = QLocale::codeToLanguage(langCode);
+	QLocale::Language const lang     = QLocale::codeToLanguage(langCode);
 	if (lang != QLocale::AnyLanguage) {
 		langCode = QLocale::languageToCode(lang, QLocale::ISO639Part2);
 	}
@@ -1263,7 +1289,7 @@ void SubtitlesDock::textToSpeech() {
 	if (!m_model || m_model->trackCount() == 0 || !KokorodokiJob::checkDockerImage(this)) {
 		return;
 	}
-	int trackIndex = m_trackCombo->currentIndex();
+	const int trackIndex = m_trackCombo->currentIndex();
 	if (trackIndex < 0) {
 		return;
 	}
@@ -1271,15 +1297,15 @@ void SubtitlesDock::textToSpeech() {
 		return;
 	}
 
-	m_speechDialog.reset(new SpeechDialog(this));
+	m_speechDialog = std::make_unique<SpeechDialog>(this);
 	if (m_speechDialog->exec() != QDialog::Accepted)
 		return;
 
-	KokorodokiJob::prepareAndRun(this, [=]() {
+	KokorodokiJob::prepareAndRun(this, [this, trackIndex]() -> void {
 		const auto outFile = m_speechDialog->outputFile();
 		if (outFile.isEmpty())
 			return;
-		QFileInfo outInfo(outFile);
+		QFileInfo const outInfo(outFile);
 		auto      srtFile = new QTemporaryFile(outInfo.dir().filePath("XXXXXX.srt"));
 		if (!srtFile->open()) {
 			LOG_ERROR() << "Failed to create temp srt file" << srtFile->fileName();
@@ -1302,7 +1328,7 @@ void SubtitlesDock::textToSpeech() {
 }
 
 void SubtitlesDock::seekToText(QString searchText, int step) {
-	int trackIndex = m_trackCombo->currentIndex();
+	const int trackIndex = m_trackCombo->currentIndex();
 	if (trackIndex < 0) {
 		return;
 	}
@@ -1319,7 +1345,7 @@ void SubtitlesDock::seekToText(QString searchText, int step) {
 		// Start from the beginning
 		start = m_model->itemModelIndex(0, trackIndex);
 	}
-	int startItemIndex = start.row();
+	const int startItemIndex = start.row();
 	if (startItemIndex < 0) {
 		return;
 	}
@@ -1340,9 +1366,9 @@ void SubtitlesDock::seekToText(QString searchText, int step) {
 			break;
 		}
 		auto    item = m_model->getItem(trackIndex, itemIndex);
-		QString text = QString::fromStdString(item.text).simplified().toLower();
+		QString const text = QString::fromStdString(item.text).simplified().toLower();
 		if (text.contains(searchText)) {
-			QModelIndex matchIndex = m_model->itemModelIndex(trackIndex, itemIndex);
+			QModelIndex const matchIndex = m_model->itemModelIndex(trackIndex, itemIndex);
 			m_treeView->setCurrentIndex(matchIndex);
 			m_treeView->scrollTo(matchIndex); // Make sure it's visible
 			break;

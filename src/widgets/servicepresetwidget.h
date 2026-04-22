@@ -18,8 +18,11 @@
 #ifndef SERVICEPRESETWIDGET_H
 #define SERVICEPRESETWIDGET_H
 
+// Qt
 #include <MltProperties.h>
 #include <QWidget>
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 namespace Ui {
 class ServicePresetWidget;
@@ -29,13 +32,13 @@ class ServicePresetWidget : public QWidget {
 	Q_OBJECT
 
   public:
-	explicit ServicePresetWidget(QWidget* parent = 0);
-	~ServicePresetWidget();
+	explicit ServicePresetWidget(QWidget* parent = nullptr);
+	~ServicePresetWidget() override;
 
 	void loadPresets();
 	void saveDefaultPreset(const Mlt::Properties&);
 	void savePreset(const Mlt::Properties&);
-	void savePreset(const Mlt::Properties& properties, QString name);
+	void savePreset(const Mlt::Properties& properties, const QString& name);
 	void setPreset(const QString& name);
 
   signals:
@@ -49,7 +52,7 @@ class ServicePresetWidget : public QWidget {
 
   private:
 	Ui::ServicePresetWidget* ui;
-	QString                  m_widgetName;
+	QString m_widgetName;
 };
 
 #endif // SERVICEPRESETWIDGET_H

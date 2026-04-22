@@ -15,14 +15,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "timelineitems.hpp"
-
 #include "Logger.hpp"
 #include "mltcontroller.hpp"
 #include "models/multitrackmodel.hpp"
 #include "qmltypes/qmlproducer.hpp"
 #include "settings.hpp"
 
+// Qt
+#include <MltPlaylist.h>
 #include <QLinearGradient>
 #include <QModelIndex>
 #include <QPainter>
@@ -31,6 +33,19 @@
 #include <QPointer>
 #include <QQmlContext>
 #include <QQuickPaintedItem>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qqml.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+
+// STL
+#include <memory>
 
 class TimelineTransition : public QQuickPaintedItem {
 	Q_OBJECT
@@ -43,7 +58,7 @@ class TimelineTransition : public QQuickPaintedItem {
 		connect(this, SIGNAL(propertyChanged()), this, SLOT(update()));
 	}
 
-	void paint(QPainter* painter) {
+	void paint(QPainter* painter) override {
 		QLinearGradient gradient(0, 0, 0, height());
 		gradient.setColorAt(0, m_colorA);
 		gradient.setColorAt(1, m_colorB);
@@ -66,12 +81,12 @@ class TimelineTransition : public QQuickPaintedItem {
 };
 
 class TimelinePlayhead : public QQuickPaintedItem {
-	void paint(QPainter* painter) {
+	void paint(QPainter* painter) override {
 		QPainterPath path;
 		path.moveTo(width(), 0);
 		path.lineTo(width() / 2.0, height());
 		path.lineTo(0, 0);
-		QPalette p;
+		QPalette const p;
 		painter->fillPath(path, p.color(QPalette::WindowText));
 	}
 };
@@ -82,7 +97,7 @@ class TimelineTriangle : public QQuickPaintedItem {
 		setAntialiasing(true);
 	}
 
-	void paint(QPainter* painter) {
+	void paint(QPainter* painter) override {
 		QPainterPath path;
 		path.moveTo(0, 0);
 		path.lineTo(width(), 0);
@@ -107,15 +122,15 @@ class TimelineWaveform : public QQuickPaintedItem {
 		setOpaquePainting(true);
 		if (Settings.timelineFramebufferWaveform())
 			setRenderTarget(QQuickPaintedItem::FramebufferObject);
-		connect(this, &TimelineWaveform::propertyChanged, this, [this]() { update(); });
+		connect(this, &TimelineWaveform::propertyChanged, this, [this]() -> void { update(); });
 	}
 
 	Q_INVOKABLE void connectToModel() {
 		if (m_model)
 			return; // Already connected
 
-		QObject* obj = qmlContext(this)->contextProperty("multitrack").value<QObject*>();
-		m_model      = qobject_cast<MultitrackModel*>(obj);
+		auto* obj = qmlContext(this)->contextProperty("multitrack").value<QObject*>();
+		m_model = qobject_cast<MultitrackModel*>(obj);
 		if (m_model) {
 			connect(m_model, SIGNAL(dataChanged(const QModelIndex&, const QModelIndex&, const QVector<int>&)), this,
 			        SLOT(onDataChanged(const QModelIndex&, const QModelIndex&, const QVector<int>&)));
@@ -124,12 +139,12 @@ class TimelineWaveform : public QQuickPaintedItem {
 		}
 	}
 
-	void paint(QPainter* painter) {
+	void paint(QPainter* painter) override {
 		if (!m_isActive)
 			return;
 
-		const QVariantList*            data        = nullptr;
-		QmlProducer*                   qmlProducer = nullptr;
+		const QVariantList* data = nullptr;
+		QmlProducer* qmlProducer = nullptr;
 		std::unique_ptr<Mlt::ClipInfo> clipInfo;
 
 		// Get audio levels from producer property if available
@@ -160,8 +175,8 @@ class TimelineWaveform : public QQuickPaintedItem {
 		// In and out points are # frames at current fps,
 		// but audio levels are created at 25 fps.
 		// Scale in and out point to 25 fps.
-		const int   inPoint        = qRound(m_inPoint / MLT.profile().fps() * 25.0);
-		const int   outPoint       = qRound(m_outPoint / MLT.profile().fps() * 25.0);
+		const int inPoint = qRound(m_inPoint / MLT.profile().fps() * 25.0);
+		const int outPoint = qRound(m_outPoint / MLT.profile().fps() * 25.0);
 		const qreal indicesPrPixel = qreal(outPoint - inPoint) / width();
 
 		//        LOG_DEBUG() << "In/out points" << inPoint << "/" << outPoint;
@@ -169,13 +184,13 @@ class TimelineWaveform : public QQuickPaintedItem {
 		QPainterPath path;
 		path.moveTo(-1, height());
 		int       i        = 0;
-		const int dataSize = data->size();
+		const auto dataSize = data->size();
 		for (; i < width(); ++i) {
-			int idx = inPoint + int(i * indicesPrPixel);
+			const int idx = inPoint + int(i * indicesPrPixel);
 			if ((idx < 0) || (idx + 1 >= dataSize))
 				break;
 			// Convert to real only for values actually used
-			qreal level = qMax(data->at(idx).toReal(), data->at(idx + 1).toReal()) / 256.0;
+			const qreal level = qMax(data->at(idx).toReal(), data->at(idx + 1).toReal()) / 256.0;
 			path.lineTo(i, height() - level * height());
 		}
 		path.lineTo(i, height());
@@ -198,13 +213,13 @@ class TimelineWaveform : public QQuickPaintedItem {
 
   private slots:
 
-	void onDataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight, const QVector<int>& roles) {
+	void onDataChanged(const QModelIndex& topLeft, const QModelIndex&  /*bottomRight*/, const QVector<int>& roles) {
 		// Check if this update is for our clip and includes AudioLevelsRole
 		if (m_model && topLeft.isValid()) {
-			QModelIndex parentIndex = topLeft.parent();
+			QModelIndex const parentIndex = topLeft.parent();
 			if (parentIndex.isValid()) {
-				int updateTrackIndex = parentIndex.row();
-				int updateClipIndex  = topLeft.row();
+				const int updateTrackIndex = parentIndex.row();
+				const int updateClipIndex  = topLeft.row();
 				if (updateTrackIndex == m_trackIndex && updateClipIndex == m_clipIndex) {
 					if (roles.isEmpty() || roles.contains(MultitrackModel::AudioLevelsRole)) {
 						update();
@@ -215,14 +230,14 @@ class TimelineWaveform : public QQuickPaintedItem {
 	}
 
   private:
-	QPointer<QObject>         m_producer;
+	QPointer<QObject> m_producer;
 	QPointer<MultitrackModel> m_model;
-	int                       m_trackIndex{-1};
-	int                       m_clipIndex{-1};
-	int                       m_inPoint;
-	int                       m_outPoint;
-	QColor                    m_color;
-	bool                      m_isActive{true};
+	int m_trackIndex{-1};
+	int m_clipIndex{-1};
+	int m_inPoint;
+	int m_outPoint;
+	QColor m_color;
+	bool m_isActive{true};
 };
 
 class MarkerStart : public QQuickPaintedItem {
@@ -235,7 +250,7 @@ class MarkerStart : public QQuickPaintedItem {
 		connect(this, SIGNAL(propertyChanged()), this, SLOT(update()));
 	}
 
-	void paint(QPainter* painter) {
+	void paint(QPainter* painter) override {
 		QPainterPath path;
 		path.moveTo(0, 0);
 		path.lineTo(0, 10);
@@ -262,7 +277,7 @@ class MarkerEnd : public QQuickPaintedItem {
 		connect(this, SIGNAL(propertyChanged()), this, SLOT(update()));
 	}
 
-	void paint(QPainter* painter) {
+	void paint(QPainter* painter) override {
 		QPainterPath path;
 		path.moveTo(0, 17);
 		path.lineTo(7, 10);

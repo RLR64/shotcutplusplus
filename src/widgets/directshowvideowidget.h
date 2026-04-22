@@ -19,9 +19,15 @@
 #ifndef DIRECTSHOWVIDEOWIDGET_H
 #define DIRECTSHOWVIDEOWIDGET_H
 
+// Local
 #include "abstractproducerwidget.hpp"
 
+// Qt
+#include <MltProducer.h>
 #include <QWidget>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 namespace Ui {
 class DirectShowVideoWidget;
@@ -31,12 +37,12 @@ class DirectShowVideoWidget : public QWidget, public AbstractProducerWidget {
 	Q_OBJECT
 
   public:
-	explicit DirectShowVideoWidget(QWidget* parent = 0);
-	~DirectShowVideoWidget();
+	explicit DirectShowVideoWidget(QWidget* parent = nullptr);
+	~DirectShowVideoWidget() override;
 
 	// AbstractProducerWidget overrides
-	Mlt::Producer* newProducer(Mlt::Profile& profile);
-	void           setProducer(Mlt::Producer* producer);
+	Mlt::Producer* newProducer(Mlt::Profile& profile) override;
+	void setProducer(Mlt::Producer* producer) override;
 
   signals:
 	void producerChanged(Mlt::Producer*);

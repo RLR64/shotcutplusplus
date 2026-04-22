@@ -15,14 +15,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
+#include "abstractjob.hpp"
 #include "qimagejob.hpp"
-
+#include "jobs/postjobaction.hpp"
 #include "util.hpp"
 
+// Qt
 #include <QImage>
 #include <QImageReader>
 #include <QRunnable>
 #include <QtConcurrent/QtConcurrent>
+#include <QtConcurrent/qtconcurrentrun.h>
+#include <qdir.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
 
 QImageJob::QImageJob(const QString& destFilePath, const QString& srcFilePath, const int height)
     : AbstractJob(srcFilePath), m_srcFilePath(srcFilePath), m_destFilePath(destFilePath), m_height(height) {
@@ -38,7 +45,7 @@ QImageJob::~QImageJob() {
 
 void QImageJob::start() {
 	AbstractJob::start();
-	auto result = QtConcurrent::run([=]() {
+	auto result = QtConcurrent::run([this]() -> void {
 		appendToLog(QStringLiteral("Reading source image \"%1\"\n").arg(m_srcFilePath));
 		QImageReader reader;
 		reader.setAutoTransform(true);

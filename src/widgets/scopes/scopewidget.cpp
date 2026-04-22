@@ -15,11 +15,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
+#include "Logger.hpp"
+#include "dataqueue.hpp"
+#include "sharedframe.hpp"
 #include "scopewidget.h"
 
-#include "Logger.hpp"
-
-#include <QtConcurrent/QtConcurrent>
+// Qt
+#include <QtConcurrent/qtconcurrentrun.h>
+#include <qcontainerfwd.h>
+#include <qcoreevent.h>
+#include <qmutex.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qvariant.h>
+#include <qwidget.h>
 
 ScopeWidget::ScopeWidget(const QString& name)
     : QWidget(), m_queue(3, DataQueue<SharedFrame>::OverflowModeDiscardOldest), m_future(), m_refreshPending(false),
@@ -29,8 +40,7 @@ ScopeWidget::ScopeWidget(const QString& name)
 	LOG_DEBUG() << "end";
 }
 
-ScopeWidget::~ScopeWidget() {
-}
+ScopeWidget::~ScopeWidget() = default;
 
 void ScopeWidget::onNewFrame(const SharedFrame& frame) {
 	m_queue.push(frame);
@@ -51,8 +61,8 @@ void ScopeWidget::refreshInThread() {
 	}
 
 	m_mutex.lock();
-	QSize size     = m_size;
-	bool  full     = m_forceRefresh;
+	QSize const size = m_size;
+	const bool full = m_forceRefresh;
 	m_forceRefresh = false;
 	m_mutex.unlock();
 

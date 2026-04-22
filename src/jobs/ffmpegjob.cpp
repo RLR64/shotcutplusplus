@@ -15,24 +15,39 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "ffmpegjob.hpp"
-
 #include "Logger.hpp"
 #include "dialogs/textviewerdialog.hpp"
+#include "jobs/abstractjob.hpp"
+#include "jobs/postjobaction.hpp"
 #include "mainwindow.hpp"
+#include "mltcontroller.hpp"
 #include "util.hpp"
 
+// Qt
 #include <MltProperties.h>
 #include <QAction>
 #include <QApplication>
 #include <QDir>
 #include <QFileInfo>
 #include <QRegularExpression>
+#include <qcontainerfwd.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qprocess.h>
+#include <qthread.h>
+#include <qtmetamacros.h>
+
+// STL
 #include <cstdio>
+
+// Number constants
+constexpr int singleShotNumber{3000};
 
 FfmpegJob::FfmpegJob(const QString& name, const QStringList& args, bool isOpenLog, QThread::Priority priority)
     : AbstractJob(name, priority), m_duration(0.0), m_previousPercent(0), m_isOpenLog(isOpenLog) {
-	QAction* action = new QAction(tr("Open"), this);
+	auto* action = new QAction(tr("Open"), this);
 	action->setData("Open");
 	connect(action, SIGNAL(triggered()), this, SLOT(onOpenTriggered()));
 	m_successActions << action;
@@ -47,8 +62,8 @@ FfmpegJob::~FfmpegJob() {
 }
 
 void FfmpegJob::start() {
-	QString   shotcutPath = qApp->applicationDirPath();
-	QFileInfo ffmpegPath(shotcutPath, "ffmpeg");
+	QString const shotcutPath = qApp->applicationDirPath();
+	QFileInfo const ffmpegPath(shotcutPath, "ffmpeg");
 	setReadChannel(QProcess::StandardError);
 	LOG_DEBUG() << ffmpegPath.absoluteFilePath() + " " + m_args.join(' ');
 	AbstractJob::start(ffmpegPath.absoluteFilePath(), m_args);
@@ -57,7 +72,7 @@ void FfmpegJob::start() {
 void FfmpegJob::stop() {
 	setKilled(hasPostJobAction());
 	write("q");
-	QTimer::singleShot(3000, this, [this]() { AbstractJob::stop(); });
+	QTimer::singleShot(singleShotNumber, this, [this]() -> void { AbstractJob::stop(); });
 }
 
 void FfmpegJob::onOpenTriggered() {
@@ -71,8 +86,8 @@ void FfmpegJob::onOpenTriggered() {
 	}
 }
 
-static double timeToSeconds(QString time) {
-	int       h, m, s, mil;
+static auto timeToSeconds(const QString& time) -> double {
+	int h, m, s, mil;
 	const int ret = std::sscanf(time.toLatin1().constData(), "%d:%d:%d.%d", &h, &m, &s, &mil);
 	if (ret != 4) {
 		LOG_ERROR() << "unable to parse time:" << time;
@@ -89,15 +104,15 @@ void FfmpegJob::onReadyRead() {
 			appendToLog(msg);
 		}
 		if (m_duration == 0 && msg.contains("Duration:")) {
-			msg        = msg.mid(msg.indexOf("Duration:") + 9);
-			msg        = msg.left(msg.indexOf(','));
+			msg = msg.mid(msg.indexOf("Duration:") + 9);
+			msg = msg.left(msg.indexOf(','));
 			m_duration = timeToSeconds(msg);
 			emit progressUpdated(m_item, 0);
 		} else if (m_duration != 0 && msg.startsWith("frame=")) {
-			msg            = msg.mid(msg.indexOf("time=") + 6);
-			msg            = msg.left(msg.indexOf(" bitrate"));
-			double time    = timeToSeconds(msg);
-			int    percent = qRound(time * 100.0 / m_duration);
+			msg = msg.mid(msg.indexOf("time=") + 6);
+			msg = msg.left(msg.indexOf(" bitrate"));
+			const double time    = timeToSeconds(msg);
+			const int    percent = qRound(time * 100.0 / m_duration);
 			if (percent != m_previousPercent) {
 				emit progressUpdated(m_item, percent);
 				m_previousPercent = percent;

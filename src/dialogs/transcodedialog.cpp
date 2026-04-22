@@ -15,13 +15,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "transcodedialog.hpp"
-
 #include "mltcontroller.hpp"
 #include "settings.hpp"
 #include "ui_transcodedialog.h"
 
+// Qt
 #include <QPushButton>
+#include <qdialog.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
 
 TranscodeDialog::TranscodeDialog(const QString& message, bool isProgressive, QWidget* parent)
     : QDialog(parent), ui(new Ui::TranscodeDialog), m_format(0), m_isChecked(false), m_isProgressive(isProgressive) {
@@ -48,7 +52,7 @@ TranscodeDialog::TranscodeDialog(const QString& message, bool isProgressive, QWi
 	ui->frcComboBox->addItem(tr("Motion Compensation (slow)"), QVariant("mci"));
 	ui->frcComboBox->setCurrentIndex(0);
 
-	QPushButton* advancedButton = new QPushButton(tr("Advanced"));
+	auto* advancedButton = new QPushButton(tr("Advanced"));
 	advancedButton->setCheckable(true);
 	connect(advancedButton, SIGNAL(toggled(bool)), ui->advancedWidget, SLOT(setVisible(bool)));
 	if (!Settings.convertAdvanced()) {
@@ -69,24 +73,24 @@ void TranscodeDialog::showCheckBox() {
 	ui->checkBox->show();
 }
 
-bool TranscodeDialog::deinterlace() const {
+auto TranscodeDialog::deinterlace() const -> bool {
 	return ui->deinterlaceCheckBox->isChecked();
 }
 
-bool TranscodeDialog::fpsOverride() const {
+auto TranscodeDialog::fpsOverride() const -> bool {
 	return ui->fpsCheckBox->isChecked();
 }
 
-double TranscodeDialog::fps() const {
+auto TranscodeDialog::fps() const -> double {
 	return ui->fpsWidget->fps();
 }
 
-QString TranscodeDialog::frc() const {
+auto TranscodeDialog::frc() const -> QString {
 	// Frame Rate Conversion Mode
 	return ui->frcComboBox->currentData().toString();
 }
 
-bool TranscodeDialog::get709Convert() {
+auto TranscodeDialog::get709Convert() -> bool {
 	return ui->convert709CheckBox->isChecked();
 }
 
@@ -94,7 +98,7 @@ void TranscodeDialog::set709Convert(bool enable) {
 	ui->convert709CheckBox->setChecked(enable);
 }
 
-QString TranscodeDialog::sampleRate() const {
+auto TranscodeDialog::sampleRate() const -> QString {
 	QString sampleRate;
 	if (ui->sampleRateComboBox->currentIndex() == 1) {
 		sampleRate = "44100";
@@ -108,7 +112,7 @@ void TranscodeDialog::showSubClipCheckBox() {
 	ui->subclipCheckBox->show();
 }
 
-bool TranscodeDialog::isSubClip() const {
+auto TranscodeDialog::isSubClip() const -> bool {
 	return ui->subclipCheckBox->isChecked();
 }
 

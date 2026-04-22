@@ -18,16 +18,20 @@
 #ifndef QIMAGEJOB_HPP
 #define QIMAGEJOB_HPP
 
+// Local
 #include "abstractjob.hpp"
+#include "jobs/postjobaction.hpp"
 
+// Qt
 #include <QSize>
+#include <qtmetamacros.h>
 
 class QImageJob : public AbstractJob {
 	Q_OBJECT
   public:
 	QImageJob(const QString& destFilePath, const QString& srcFilePath, const int height);
-	virtual ~QImageJob();
-	void start();
+	~QImageJob() override;
+	void start() override;
 	void execute();
 
   private:

@@ -15,26 +15,43 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "audiosurroundscopewidget.h"
-
 #include "Logger.hpp"
 #include "settings.hpp"
 #include "widgets/iecscale.h"
+#include "widgets/scopes/scopewidget.h"
 
+// Qt
 #include <QPainter>
 #include <QPen>
+#include <qcontainerfwd.h>
+#include <qmath.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qvariant.h>
+#include <qwidget.h>
+
+// STL
+#include <cstdint>
 #include <cmath>
+#include <limits>
+#include <utility>
 
-static constexpr int TEXT_MARGIN = {3};
+static constexpr int TEXT_MARGIN{3};
 
-QPointF vectorToPoint(qreal direction, qreal magnitude) {
+static auto vectorToPoint(qreal direction, qreal magnitude) -> QPointF {
 	QPointF result;
 	result.setX(magnitude * cos(direction * M_PI / 180));
 	result.setY(magnitude * sin(direction * M_PI / 180));
 	return result;
 }
 
-QPointF mapFromCenter(QPointF point, QPointF center) {
+static auto mapFromCenter(QPointF point, QPointF center) -> QPointF {
 	point.setX(center.x() + point.x());
 	point.setY(center.y() - point.y());
 	return point;
@@ -46,27 +63,26 @@ AudioSurroundScopeWidget::AudioSurroundScopeWidget()
 	LOG_DEBUG() << "begin";
 
 	setWhatsThis("https://forum.shotcut.org/t/audio-surround-scope/43816/1");
-	connect(&Settings, &ShotcutSettings::playerAudioChannelsChanged, this, [&]() {
+	connect(&Settings, &ShotcutSettings::playerAudioChannelsChanged, this, [&]() -> void {
 		m_channelsChanged = true;
-		m_channels        = Settings.playerAudioChannels();
+		m_channels = Settings.playerAudioChannels();
 		requestRefresh();
 	});
 
 	LOG_DEBUG() << "end";
 }
 
-AudioSurroundScopeWidget::~AudioSurroundScopeWidget() {
-}
+AudioSurroundScopeWidget::~AudioSurroundScopeWidget() = default;
 
-QString AudioSurroundScopeWidget::getTitle() {
+auto AudioSurroundScopeWidget::getTitle() -> QString {
 	return tr("Audio Surround");
 }
 
 void AudioSurroundScopeWidget::refreshScope(const QSize& size, bool full) {
 	Q_UNUSED(full)
 
-	qreal side       = qMin(size.width(), size.height());
-	QSize squareSize = QSize(side, side);
+	const qreal side = qMin(size.width(), size.height());
+	QSize const squareSize = QSize(side, side);
 
 	if (m_graticuleImg.size() != size || m_channelsChanged) {
 		m_graticuleImg = QImage(squareSize, QImage::Format_ARGB32_Premultiplied);
@@ -83,15 +99,15 @@ void AudioSurroundScopeWidget::refreshScope(const QSize& size, bool full) {
 
 	if (m_frame.is_valid() && m_frame.get_audio_samples() > 0) {
 		// Calculate the peak level for each channel
-		int             channels = m_frame.get_audio_channels();
-		int             samples  = m_frame.get_audio_samples();
+		const int channels = m_frame.get_audio_channels();
+		const int samples  = m_frame.get_audio_samples();
 		QVector<double> levels;
 		const int16_t*  audio = m_frame.get_audio();
 		for (int c = 0; c < channels; c++) {
 			int16_t        peak = 0;
 			const int16_t* p    = audio + c;
 			for (int s = 0; s < samples; s++) {
-				int16_t sample = abs(*p);
+				const int16_t sample = abs(*p);
 				if (sample > peak)
 					peak = sample;
 				p += channels;
@@ -110,16 +126,16 @@ void AudioSurroundScopeWidget::refreshScope(const QSize& size, bool full) {
 		QPainter p(&newDisplayImage);
 		p.setRenderHint(QPainter::SmoothPixmapTransform, true);
 		p.setRenderHint(QPainter::Antialiasing, true);
-		QPen             pen;
-		QRectF           rect   = newDisplayImage.rect();
-		QPointF          center = rect.center();
+		QPen pen;
+		QRectF const rect = newDisplayImage.rect();
+		QPointF const center = rect.center();
 		QVector<QPointF> allPoints;
-		QRectF           insideRect;
+		QRectF insideRect;
 		insideRect.setX(fontMetrics().height() + 2 * TEXT_MARGIN);
 		insideRect.setY(insideRect.x());
 		insideRect.setWidth(rect.width() - 2 * insideRect.x());
 		insideRect.setHeight(insideRect.width());
-		qreal maxCornerLength = sqrt(2 * pow(insideRect.width() / 2, 2));
+		const qreal maxCornerLength = sqrt(2 * pow(insideRect.width() / 2, 2));
 
 		// Draw the inside lines from center
 		pen.setColor(palette().color(QPalette::Active, QPalette::Highlight));
@@ -127,9 +143,9 @@ void AudioSurroundScopeWidget::refreshScope(const QSize& size, bool full) {
 		p.setPen(pen);
 		// Left
 		if (channels > 1) {
-			qreal   magnitude = levels[0] * maxCornerLength;
-			QPointF point     = vectorToPoint(135, magnitude);
-			point             = mapFromCenter(point, center);
+			const qreal magnitude = levels[0] * maxCornerLength;
+			QPointF point = vectorToPoint(135, magnitude);
+			point = mapFromCenter(point, center);
 			p.drawLine(center, point);
 			allPoints << point;
 		}
@@ -142,15 +158,15 @@ void AudioSurroundScopeWidget::refreshScope(const QSize& size, bool full) {
 				magnitude = levels[2];
 			magnitude *= insideRect.height() / 2;
 			QPointF point = vectorToPoint(90, magnitude);
-			point         = mapFromCenter(point, center);
+			point = mapFromCenter(point, center);
 			p.drawLine(center, point);
 			allPoints << point;
 		}
 		// Right
 		if (channels > 1) {
-			qreal   magnitude = levels[1] * maxCornerLength;
-			QPointF point     = vectorToPoint(45, magnitude);
-			point             = mapFromCenter(point, center);
+			const qreal magnitude = levels[1] * maxCornerLength;
+			QPointF point = vectorToPoint(45, magnitude);
+			point = mapFromCenter(point, center);
 			p.drawLine(center, point);
 			allPoints << point;
 		}
@@ -176,7 +192,7 @@ void AudioSurroundScopeWidget::refreshScope(const QSize& size, bool full) {
 				magnitude = levels[4];
 			magnitude *= maxCornerLength;
 			QPointF point = vectorToPoint(225, magnitude);
-			point         = mapFromCenter(point, center);
+			point = mapFromCenter(point, center);
 			p.drawLine(center, point);
 			allPoints << point;
 		}
@@ -187,7 +203,7 @@ void AudioSurroundScopeWidget::refreshScope(const QSize& size, bool full) {
 
 		// Draw the outside lines from point-to-point
 		// Find a complimentary color
-		QColor outline = QColor::fromHsv((h + 120) % 360, s, v);
+		QColor const outline = QColor::fromHsv((h + 120) % 360, s, v);
 		pen.setColor(outline);
 		p.setPen(pen);
 		for (int i = 0; i < allPoints.size() - 1; i++) {
@@ -205,14 +221,14 @@ void AudioSurroundScopeWidget::refreshScope(const QSize& size, bool full) {
 		// Draw a circle for the average value
 		float x = 0;
 		float y = 0;
-		for (int i = 0; i < allPoints.size(); i++) {
-			x += allPoints[i].x();
-			y += allPoints[i].y();
+		for (const auto allPoint : std::as_const(allPoints)) {
+			x += allPoint.x();
+			y += allPoint.y();
 		}
 		x /= allPoints.size();
 		y /= allPoints.size();
 		// Find another complimentary color
-		QColor circle = QColor::fromHsv((h + 240) % 360, s, v);
+		QColor const circle = QColor::fromHsv((h + 240) % 360, s, v);
 		pen.setColor(circle);
 		p.setPen(pen);
 		p.drawEllipse(QPointF(x, y), 4, 4);
@@ -230,13 +246,13 @@ void AudioSurroundScopeWidget::refreshScope(const QSize& size, bool full) {
 	}
 }
 
-void AudioSurroundScopeWidget::drawGraticule(QPainter& p, qreal lineWidth) {
-	QPen    pen;
-	QColor  color;
-	QRect   rect = p.window();
-	QPoint  labelPosition;
+void AudioSurroundScopeWidget::drawGraticule(QPainter& p, qreal  /*lineWidth*/) {
+	QPen pen;
+	QColor color;
+	QRect const rect = p.window();
+	QPoint labelPosition;
 	QString labelText;
-	int     labelWidth;
+	int labelWidth;
 
 	// Left
 	labelText = tr("L");
@@ -323,10 +339,10 @@ void AudioSurroundScopeWidget::paintEvent(QPaintEvent*) {
 
 	QRect squareRect;
 	if (width() > height()) {
-		int x      = (width() - height()) / 2;
+		const int x = (width() - height()) / 2;
 		squareRect = QRect(x, 0, height(), height());
 	} else {
-		int y      = (height() - width()) / 2;
+		const int y = (height() - width()) / 2;
 		squareRect = QRect(0, y, width(), width());
 	}
 

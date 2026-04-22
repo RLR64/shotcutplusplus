@@ -18,10 +18,20 @@
 #ifndef VIDEOZOOMWIDGET_H
 #define VIDEOZOOMWIDGET_H
 
+// Local
 #include "sharedframe.hpp"
 
+// Qt
 #include <QMutex>
 #include <QWidget>
+#include <qobject.h>
+#include <qsize.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
+
+// STL
+#include <cstdint>
 
 class VideoZoomWidget : public QWidget {
 	Q_OBJECT
@@ -39,14 +49,14 @@ class VideoZoomWidget : public QWidget {
 	explicit VideoZoomWidget();
 
 	// May be called from a worker thread.
-	void putFrame(SharedFrame frame);
+	void putFrame(const SharedFrame& frame);
 
-	QPoint      getSelectedPixel();
-	void        setSelectedPixel(QPoint pixel);
-	QRect       getPixelRect();
-	int         getZoom();
+	QPoint getSelectedPixel();
+	void setSelectedPixel(QPoint pixel);
+	QRect getPixelRect();
+	int getZoom();
 	PixelValues getPixelValues(const QPoint& pixel);
-	void        setOffset(QPoint offset);
+	void setOffset(QPoint offset);
 
   signals:
 	void pixelSelected(const QPoint&);
@@ -56,26 +66,26 @@ class VideoZoomWidget : public QWidget {
 	void lock(bool locked);
 
   private:
-	virtual QSize sizeHint() const Q_DECL_OVERRIDE;
+	[[nodiscard]] QSize sizeHint() const Q_DECL_OVERRIDE;
 
 	void paintEvent(QPaintEvent*) Q_DECL_OVERRIDE;
 	void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
 	void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
 	void wheelEvent(QWheelEvent* event) Q_DECL_OVERRIDE;
 
-	QPoint      pixelToPos(const QPoint& pixel);
-	QPoint      posToPixel(const QPoint& pos);
+	QPoint pixelToPos(const QPoint& pixel);
+	QPoint posToPixel(const QPoint& pos);
 	PixelValues pixelToValues(const QPoint& pixel);
 
-	bool   m_locked;
-	bool   m_selectionInProgress;
-	int    m_zoom;
+	bool m_locked;
+	bool m_selectionInProgress;
+	int m_zoom;
 	QPoint m_imageOffset;
 	QPoint m_mouseGrabPixel;
 	QPoint m_selectedPixel;
 
 	// Variables accessed from multiple threads (mutex protected)
-	QMutex      m_mutex;
+	QMutex m_mutex;
 	SharedFrame m_frame;
 };
 

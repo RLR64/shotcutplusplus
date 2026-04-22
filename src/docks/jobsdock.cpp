@@ -15,25 +15,39 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "jobsdock.hpp"
-
 #include "Logger.hpp"
 #include "dialogs/textviewerdialog.hpp"
 #include "jobqueue.hpp"
 #include "ui_jobsdock.h"
 
+// Qt
 #include <QtWidgets>
+#include <qdockwidget.h>
+#include <qforeach.h>
+#include <qheaderview.h>
+#include <qmenu.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpoint.h>
+#include <qprocess.h>
+#include <qwidget.h>
+
+// Number constants
+constexpr int setColumnWidthNumber{24};
 
 JobsDock::JobsDock(QWidget* parent) : QDockWidget(parent), ui(new Ui::JobsDock) {
 	LOG_DEBUG() << "begin";
 	ui->setupUi(this);
-	QIcon icon = QIcon::fromTheme("run-build", QIcon(":/icons/oxygen/32x32/actions/run-builld.png"));
+	QIcon const icon = QIcon::fromTheme("run-build", QIcon(":/icons/oxygen/32x32/actions/run-builld.png"));
 	toggleViewAction()->setIcon(icon);
 	ui->treeView->setModel(&JOBS);
 	QHeaderView* header = ui->treeView->header();
 	header->setStretchLastSection(false);
 	header->setSectionResizeMode(JobQueue::COLUMN_ICON, QHeaderView::Fixed);
-	ui->treeView->setColumnWidth(JobQueue::COLUMN_ICON, 24);
+	ui->treeView->setColumnWidth(JobQueue::COLUMN_ICON, setColumnWidthNumber);
 	header->setSectionResizeMode(JobQueue::COLUMN_OUTPUT, QHeaderView::Stretch);
 	header->setSectionResizeMode(JobQueue::COLUMN_STATUS, QHeaderView::ResizeToContents);
 	ui->cleanButton->hide();
@@ -45,15 +59,15 @@ JobsDock::~JobsDock() {
 	delete ui;
 }
 
-AbstractJob* JobsDock::currentJob() const {
-	QModelIndex index = ui->treeView->currentIndex();
+auto JobsDock::currentJob() const -> AbstractJob* {
+	QModelIndex const index = ui->treeView->currentIndex();
 	if (!index.isValid())
-		return 0;
+		return nullptr;
 	return JOBS.jobFromIndex(index);
 }
 
 void JobsDock::onJobAdded() {
-	QModelIndex   index       = JOBS.index(JOBS.rowCount() - 1, JobQueue::COLUMN_OUTPUT);
+	QModelIndex   const index       = JOBS.index(JOBS.rowCount() - 1, JobQueue::COLUMN_OUTPUT);
 	QProgressBar* progressBar = new QProgressBar;
 	progressBar->setMinimum(0);
 	progressBar->setMaximum(100);
@@ -76,8 +90,8 @@ void JobsDock::onJobAdded() {
 
 void JobsDock::onProgressUpdated(QStandardItem* item, int percent) {
 	if (item) {
-		QModelIndex   index       = JOBS.index(item->row(), JobQueue::COLUMN_OUTPUT);
-		QProgressBar* progressBar = qobject_cast<QProgressBar*>(ui->treeView->indexWidget(index));
+		QModelIndex   const index       = JOBS.index(item->row(), JobQueue::COLUMN_OUTPUT);
+		auto* progressBar = qobject_cast<QProgressBar*>(ui->treeView->indexWidget(index));
 		if (progressBar && percent > progressBar->value())
 			progressBar->setValue(percent);
 	}
@@ -92,9 +106,9 @@ void JobsDock::resizeEvent(QResizeEvent* event) {
 }
 
 void JobsDock::on_treeView_customContextMenuRequested(const QPoint& pos) {
-	QModelIndex  index = ui->treeView->currentIndex();
+	QModelIndex  const index = ui->treeView->currentIndex();
 	QMenu        menu(this);
-	AbstractJob* job = index.isValid() ? JOBS.jobFromIndex(index) : nullptr;
+	AbstractJob const* job = index.isValid() ? JOBS.jobFromIndex(index) : nullptr;
 	if (job) {
 		if (job->ran() && job->state() == QProcess::NotRunning && job->exitStatus() == QProcess::NormalExit) {
 			menu.addActions(job->successActions());
@@ -119,7 +133,7 @@ void JobsDock::on_treeView_customContextMenuRequested(const QPoint& pos) {
 }
 
 void JobsDock::on_actionStopJob_triggered() {
-	QModelIndex index = ui->treeView->currentIndex();
+	QModelIndex const index = ui->treeView->currentIndex();
 	if (!index.isValid())
 		return;
 	AbstractJob* job = JOBS.jobFromIndex(index);
@@ -128,7 +142,7 @@ void JobsDock::on_actionStopJob_triggered() {
 }
 
 void JobsDock::on_actionViewLog_triggered() {
-	QModelIndex index = ui->treeView->currentIndex();
+	QModelIndex const index = ui->treeView->currentIndex();
 	if (!index.isValid())
 		return;
 	AbstractJob* job = JOBS.jobFromIndex(index);
@@ -137,7 +151,7 @@ void JobsDock::on_actionViewLog_triggered() {
 		dialog.setWindowTitle(tr("Job Log"));
 		dialog.setText(job->log());
 		auto connection =
-		    connect(job, &AbstractJob::progressUpdated, this, [&]() { dialog.setText(job->log(), true); });
+			connect(job, &AbstractJob::progressUpdated, this, [&]() -> void { dialog.setText(job->log(), true); });
 		dialog.exec();
 		disconnect(connection);
 	}
@@ -151,7 +165,7 @@ void JobsDock::on_pauseButton_toggled(bool checked) {
 }
 
 void JobsDock::on_actionRun_triggered() {
-	QModelIndex index = ui->treeView->currentIndex();
+	QModelIndex const index = ui->treeView->currentIndex();
 	if (!index.isValid())
 		return;
 	AbstractJob* job = JOBS.jobFromIndex(index);
@@ -164,7 +178,7 @@ void JobsDock::on_menuButton_clicked() {
 }
 
 void JobsDock::on_treeView_doubleClicked(const QModelIndex& index) {
-	AbstractJob* job = JOBS.jobFromIndex(index);
+	AbstractJob const* const job = JOBS.jobFromIndex(index);
 	if (job && job->ran() && job->state() == QProcess::NotRunning && job->exitStatus() == QProcess::NormalExit) {
 		foreach (QAction* action, job->successActions()) {
 			if (action->data() == "Open") {
@@ -176,7 +190,7 @@ void JobsDock::on_treeView_doubleClicked(const QModelIndex& index) {
 }
 
 void JobsDock::on_actionRemove_triggered() {
-	QModelIndex index = ui->treeView->currentIndex();
+	QModelIndex const index = ui->treeView->currentIndex();
 	if (!index.isValid())
 		return;
 	JOBS.remove(index);

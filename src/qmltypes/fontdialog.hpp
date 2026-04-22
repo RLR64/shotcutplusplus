@@ -18,8 +18,10 @@
 #ifndef FONTDIALOG_HPP
 #define FONTDIALOG_HPP
 
+// Qt
 #include <QFont>
 #include <QObject>
+#include <qtmetamacros.h>
 
 class FontDialog : public QObject {
 	Q_OBJECT
@@ -38,7 +40,7 @@ class FontDialog : public QObject {
   private:
 	QFont m_font;
 
-	QFont selectedFont() const {
+	[[nodiscard]] auto selectedFont() const -> QFont {
 		return m_font;
 	}
 

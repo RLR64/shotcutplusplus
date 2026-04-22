@@ -18,6 +18,7 @@
 #ifndef HTMLGENERATOR_HPP
 #define HTMLGENERATOR_HPP
 
+// Qt
 #include <QElapsedTimer>
 #include <QJsonObject>
 #include <QNetworkAccessManager>
@@ -27,16 +28,18 @@
 #include <QTemporaryDir>
 #include <QTimer>
 #include <QWebSocket>
+#include <qhashfunctions.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 class HtmlGenerator : public QObject {
 	Q_OBJECT
   public:
 	explicit HtmlGenerator(QObject* parent = nullptr);
-	~HtmlGenerator();
+	~HtmlGenerator() override;
 
 	void setAnimationParameters(double fps, int duration);
-	void launchBrowser(const QString& executablePath, const QString& url, const QSize& viewport,
-	                   const QString& outputPath);
+	void launchBrowser(const QString& executablePath, const QString& url, const QSize& viewport, const QString& outputPath);
 
   signals:
 	void progressUpdate(float);
@@ -59,25 +62,25 @@ class HtmlGenerator : public QObject {
 	int  sendCommand(const QString& method, const QJsonObject& params = QJsonObject());
 
   private:
-	QWebSocket*            m_webSocket;
+	QWebSocket* m_webSocket;
 	QNetworkAccessManager* m_networkManager;
-	int                    m_messageId;
-	QProcess*              m_chromeProcess;
-	QString                m_url;
-	QSize                  m_viewport;
-	QString                m_outputPath;
-	bool                   m_pendingScreenshot   = false;
-	int                    m_screenshotMessageId = 0;
-	bool                   m_screenshotCompleted = false;
-	QTemporaryDir          m_tempDir;
+	int m_messageId;
+	QProcess* m_chromeProcess;
+	QString m_url;
+	QSize m_viewport;
+	QString m_outputPath;
+	bool m_pendingScreenshot = false;
+	int m_screenshotMessageId = 0;
+	bool m_screenshotCompleted = false;
+	QTemporaryDir m_tempDir;
 
 	// Animation recording members
-	bool          m_animationMode  = false;
-	double        m_fps            = 0.0;
-	int           m_duration       = 0;
-	int           m_currentFrame   = 0;
-	int           m_totalFrames    = 0;
-	QTimer*       m_animationTimer = nullptr;
+	bool m_animationMode  = false;
+	double m_fps = 0.0;
+	int m_duration = 0;
+	int m_currentFrame = 0;
+	int m_totalFrames = 0;
+	QTimer* m_animationTimer = nullptr;
 	QElapsedTimer m_animationElapsed;
 };
 

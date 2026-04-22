@@ -23,39 +23,45 @@
  * https://github.com/google/spatial-media/docs/spatial-audio-rfc.md
  */
 
+// Local
 #include "sa3d.hpp"
-
 #include "constants.hpp"
+#include "spatialmedia/box.hpp"
 
+// STL
+#include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <cstring>
+#include <fstream>
 #include <iostream>
 #include <iterator>
 #include <sstream>
+#include <string>
+#include <vector>
 
 SA3DBox::SA3DBox() : Box() {
 	memcpy(m_name, constants::TAG_SA3D, 4);
-	m_iHeaderSize               = 8;
-	m_iPosition                 = 0;
-	m_iContentSize              = 0;
-	m_iVersion                  = 0;
-	m_iAmbisonicType            = 0;
-	m_iAmbisonicOrder           = 0;
+	m_iHeaderSize = 8;
+	m_iPosition = 0;
+	m_iContentSize = 0;
+	m_iVersion = 0;
+	m_iAmbisonicType = 0;
+	m_iAmbisonicOrder = 0;
 	m_iAmbisonicChannelOrdering = 0;
-	m_iAmbisonicNormalization   = 0;
-	m_iNumChannels              = 0;
+	m_iAmbisonicNormalization = 0;
+	m_iNumChannels = 0;
 
 	m_AmbisonicTypes["periphonic"]    = 0;
 	m_AmbisonicOrderings["ACN"]       = 0;
 	m_AmbisonicNormalizations["SN3D"] = 0;
 }
 
-SA3DBox::~SA3DBox() {
-}
+SA3DBox::~SA3DBox() = default;
 
 // Loads the SA3D box located at position pos in a mp4 file.
-Box* SA3DBox::load(std::fstream& fs, uint32_t iPos, uint32_t iEnd) {
-	SA3DBox* pNewBox = NULL;
+auto SA3DBox::load(std::fstream& fs, uint32_t iPos, uint32_t iEnd) -> Box* {
+	SA3DBox* pNewBox = nullptr;
 	if (iPos < 0)
 		iPos = fs.tellg();
 
@@ -71,13 +77,13 @@ Box* SA3DBox::load(std::fstream& fs, uint32_t iPos, uint32_t iEnd) {
 	}
 
 	if (0 != memcmp(name, constants::TAG_SA3D, sizeof(*constants::TAG_SA3D))) {
-		std::cerr << "Error: box is not an SA3D box." << std::endl;
-		return NULL;
+		std::cerr << "Error: box is not an SA3D box.\n";
+		return nullptr;
 	}
 
 	if (iPos + iSize > iEnd) {
-		std::cerr << "Error: SA3D box size exceeds bounds." << std::endl;
-		return NULL;
+		std::cerr << "Error: SA3D box size exceeds bounds.\n";
+		return nullptr;
 	}
 
 	pNewBox                              = new SA3DBox();
@@ -91,16 +97,16 @@ Box* SA3DBox::load(std::fstream& fs, uint32_t iPos, uint32_t iEnd) {
 	pNewBox->m_iNumChannels              = readUint32(fs);
 
 	for (auto i = 0U; i < pNewBox->m_iNumChannels; i++) {
-		uint32_t iVal = readUint32(fs);
+		const uint32_t iVal = readUint32(fs);
 		pNewBox->m_ChannelMap.push_back(iVal);
 	}
 	return pNewBox;
 }
 
-Box* SA3DBox::create(int32_t iNumChannels) {
+auto SA3DBox::create(int32_t iNumChannels) -> Box* {
 	// audio_metadata: dictionary ('ambisonic_type': string, 'ambisonic_order': int),
 
-	SA3DBox* pNewBox       = new SA3DBox();
+	auto* pNewBox = new SA3DBox();
 	pNewBox->m_iHeaderSize = 8;
 	memcpy(pNewBox->m_name, constants::TAG_SA3D, 4);
 	pNewBox->m_iAmbisonicOrder = ::sqrt(iNumChannels) - 1;
@@ -152,31 +158,31 @@ void SA3DBox::save(std::fstream& fsIn, std::fstream& fsOut, int32_t) {
 	writeUint8(fsOut, m_iAmbisonicNormalization);
 	writeUint32(fsOut, m_iNumChannels);
 
-	std::vector<uint32_t>::iterator it = m_ChannelMap.begin();
+	auto it = m_ChannelMap.begin();
 	while (it != m_ChannelMap.end()) {
 		writeUint32(fsOut, *it++);
 	}
 }
 
-const char* SA3DBox::ambisonic_type_name() {
+auto SA3DBox::ambisonic_type_name() -> const char* {
 	// return  (key for key,value in SA3DBox.ambisonic_types.items()
 	//   if value==self.ambisonic_type).next()
-	return NULL;
+	return nullptr;
 }
 
-const char* SA3DBox::ambisonic_channel_ordering_name() {
+auto SA3DBox::ambisonic_channel_ordering_name() -> const char* {
 	// return (key for key,value in SA3DBox.ambisonic_orderings.items()
 	//   if value==self.ambisonic_channel_ordering).next()
-	return NULL;
+	return nullptr;
 }
 
-const char* SA3DBox::ambisonic_normalization_name() {
+auto SA3DBox::ambisonic_normalization_name() -> const char* {
 	// return (key for key,value in SA3DBox.ambisonic_normalizations.items()
 	//   if value==self.ambisonic_normalization).next()
-	return NULL;
+	return nullptr;
 }
 
-std::string SA3DBox::mapToString() {
+auto SA3DBox::mapToString() -> std::string {
 	std::stringstream ss;
 	std::copy(m_ChannelMap.begin(), m_ChannelMap.end(), std::ostream_iterator<uint32_t>(ss, ", "));
 	return ss.str();
@@ -187,17 +193,17 @@ void SA3DBox::print_box() {
 	const char* ambisonic_type          = ambisonic_type_name();
 	const char* channel_ordering        = ambisonic_channel_ordering_name();
 	const char* ambisonic_normalization = ambisonic_normalization_name();
-	std::string str                     = mapToString();
+	const std::string str = mapToString();
 
-	std::cout << "\t\tAmbisonic Type: " << ambisonic_type << std::endl;
-	std::cout << "\t\tAmbisonic Order: " << m_iAmbisonicOrder << std::endl;
-	std::cout << "\t\tAmbisonic Channel Ordering: " << channel_ordering << std::endl;
-	std::cout << "\t\tAmbisonic Normalization: " << ambisonic_normalization << std::endl;
-	std::cout << "\t\tNumber of Channels: " << m_iNumChannels << std::endl;
-	std::cout << "\t\tChannel Map: %s" << str << std::endl;
+	std::cout << "\t\tAmbisonic Type: " << ambisonic_type << '\n';
+	std::cout << "\t\tAmbisonic Order: " << m_iAmbisonicOrder << '\n';
+	std::cout << "\t\tAmbisonic Channel Ordering: " << channel_ordering << '\n';
+	std::cout << "\t\tAmbisonic Normalization: " << ambisonic_normalization << '\n';
+	std::cout << "\t\tNumber of Channels: " << m_iNumChannels << '\n';
+	std::cout << "\t\tChannel Map: %s" << str << '\n';
 }
 
-std::string SA3DBox::get_metadata_string() {
+auto SA3DBox::get_metadata_string() -> std::string {
 	// Outputs a concise single line audio metadata string.
 	std::ostringstream str;
 	str << ambisonic_normalization_name() << ", ";

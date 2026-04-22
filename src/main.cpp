@@ -15,12 +15,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "ConsoleAppender.hpp"
 #include "FileAppender.hpp"
 #include "Logger.hpp"
 #include "mainwindow.hpp"
 #include "settings.hpp"
 
+// Qt
 #include <QCommandLineParser>
 #include <QFile>
 #include <QProcess>
@@ -30,7 +32,37 @@
 #include <QtGlobal>
 #include <QtWidgets>
 #include <framework/mlt_log.h>
+#include <framework/mlt_properties.h>
+#include <framework/mlt_service.h>
+#include <framework/mlt_types.h>
+#include <qbytearrayalgorithms.h>
+#include <qcommandlineoption.h>
+#include <qcontainerfwd.h>
+#include <qdir.h>
+#include <qevent.h>
+#include <qfiledevice.h>
+#include <qhashfunctions.h>
+#include <qlibraryinfo.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qprocess.h>
+#include <qsplashscreen.h>
+#include <qstandardpaths.h>
+#include <qtenvironmentvariables.h>
+#include <qtranslator.h>
+#include <qwindowdefs.h>
 
+// STL
+#include <cstdarg>
+#include <cstdlib>
+#include <cstring>
+#include <minwindef.h>
+#include <synchapi.h>
+
+// clang-format off
 #ifdef Q_OS_MAC
 #include "macos.hpp"
 #endif
@@ -42,12 +74,15 @@
 #endif
 extern "C" {
 // Inform the driver we could make use of the discrete gpu
-__declspec(dllexport) DWORD NvOptimusEnablement                  = 0x00000001;
+__declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 __declspec(dllexport) DWORD AmdPowerXpressRequestHighPerformance = 0x00000001;
 }
 #endif
+// clang-format on
 
-static constexpr int kMaxCacheCount = {5000};
+// Number constants
+static constexpr int setLogWarningNumber{1000};
+static constexpr int kMaxCacheCount{5000};
 
 static void mlt_log_handler(void* service, int mlt_level, const char* format, va_list args) {
 	if (mlt_level > mlt_log_get_level())
@@ -73,12 +108,12 @@ static void mlt_log_handler(void* service, int mlt_level, const char* format, va
 		cuteLoggerLevel = Logger::Warning;
 		break;
 	}
-	QString        message;
-	mlt_properties properties = service ? MLT_SERVICE_PROPERTIES((mlt_service)service) : NULL;
+	QString message;
+	mlt_properties properties = service ? MLT_SERVICE_PROPERTIES((mlt_service)service) : nullptr;
 	if (properties) {
-		char* mlt_type     = mlt_properties_get(properties, "mlt_type");
-		char* service_name = mlt_properties_get(properties, "mlt_service");
-		char* resource     = mlt_properties_get(properties, "resource");
+		const char* mlt_type = mlt_properties_get(properties, "mlt_type");
+		const char* service_name = mlt_properties_get(properties, "mlt_service");
+		const char* resource = mlt_properties_get(properties, "resource");
 		if (!resource || resource[0] != '<' || resource[strlen(resource) - 1] != '>')
 			mlt_type = mlt_properties_get(properties, "mlt_type");
 		if (service_name)
@@ -104,8 +139,8 @@ class Application : public QApplication {
 	QTranslator qtBaseTranslator;
 	QTranslator shotcutTranslator;
 	QStringList resourceArg;
-	bool        isFullScreen;
-	QString     appDirArg;
+	bool isFullScreen;
+	QString appDirArg;
 
 	Application(int& argc, char** argv) : QApplication(argc, argv) {
 		auto appPath = applicationDirPath();
@@ -114,7 +149,7 @@ class Application : public QApplication {
 #ifdef Q_OS_WIN
 #include <winbase.h>
 		SetDllDirectoryA(appPath.toLocal8Bit());
-		CreateMutexA(NULL, FALSE, "Meltytech Shotcut Running Mutex");
+		CreateMutexA(nullptr, FALSE, "Meltytech Shotcut Running Mutex");
 #else
 		dir.cdUp();
 #endif
@@ -146,18 +181,18 @@ class Application : public QApplication {
 		                                                                "Fill the screen with the Shotcut window."));
 		parser.addOption(fullscreenOption);
 #endif
-		QCommandLineOption noupgradeOption("noupgrade",
+		QCommandLineOption const noupgradeOption("noupgrade",
 		                                   QCoreApplication::translate("main", "Hide upgrade prompt and menu item."));
 		parser.addOption(noupgradeOption);
-		QCommandLineOption glaxnimateOption("glaxnimate",
+		QCommandLineOption const glaxnimateOption("glaxnimate",
 		                                    QCoreApplication::translate("main", "Run Glaxnimate instead of Shotcut."));
 		parser.addOption(glaxnimateOption);
-		QCommandLineOption gpuOption("gpu", QCoreApplication::translate("main", "Use GPU processing."));
+		QCommandLineOption const gpuOption("gpu", QCoreApplication::translate("main", "Use GPU processing."));
 		parser.addOption(gpuOption);
-		QCommandLineOption clearRecentOption("clear-recent",
+		QCommandLineOption const clearRecentOption("clear-recent",
 		                                     QCoreApplication::translate("main", "Clear Recent on Exit"));
 		parser.addOption(clearRecentOption);
-		QCommandLineOption appDataOption("appdata",
+		QCommandLineOption const appDataOption("appdata",
 		                                 QCoreApplication::translate("main",
 		                                                             "The directory for app configuration and data."),
 		                                 QCoreApplication::translate("main", "directory"));
@@ -171,14 +206,14 @@ class Application : public QApplication {
 		    QCoreApplication::translate("main", "A semicolon-separated list of scale factors for each screen"),
 		    QCoreApplication::translate("main", "list"));
 		parser.addOption(scaleOption);
-		QCommandLineOption scalePolicyOption("QT_SCALE_FACTOR_ROUNDING_POLICY",
+		QCommandLineOption const scalePolicyOption("QT_SCALE_FACTOR_ROUNDING_POLICY",
 		                                     QCoreApplication::translate("main",
 		                                                                 "How to handle a fractional display scale: %1")
 		                                         .arg("Round, Ceil, Floor, RoundPreferFloor, PassThrough"),
 		                                     QCoreApplication::translate("main", "string"), "PassThrough");
 		parser.addOption(scalePolicyOption);
 #if defined(Q_OS_WIN)
-		QCommandLineOption sdlAudioDriverOption(
+		QCommandLineOption const sdlAudioDriverOption(
 		    "SDL_AUDIODRIVER",
 		    QCoreApplication::translate("main", "Which operating system audio API to use: %1")
 		        .arg("directsound, wasapi, winmm"),
@@ -200,7 +235,7 @@ class Application : public QApplication {
 			if (!args.isEmpty())
 				args.removeFirst();
 			args.removeAll("--glaxnimate");
-			QProcess child;
+			QProcess const child;
 			if (child.startDetached(Settings.glaxnimatePath(), args))
 				::exit(EXIT_SUCCESS);
 		}
@@ -233,12 +268,12 @@ class Application : public QApplication {
 			if (!QFile::rename(logFileName, previousLogName))
 				LOG_WARNING() << "Failed to rename backup log file" << previousLogName;
 		}
-		FileAppender* fileAppender = new FileAppender(logFileName);
+		auto* fileAppender = new FileAppender(logFileName);
 		fileAppender->setFormat("[%{type:-7}] <%{function}> %{message}\n");
 		cuteLogger->RegisterAppender(fileAppender);
 #ifndef NDEBUG
 		// Only log to console in dev debug builds.
-		ConsoleAppender* consoleAppender = new ConsoleAppender();
+		auto* consoleAppender = new ConsoleAppender();
 		consoleAppender->setFormat(fileAppender->format());
 		cuteLogger->RegisterAppender(consoleAppender);
 
@@ -289,15 +324,15 @@ class Application : public QApplication {
 			installTranslator(&shotcutTranslator);
 	}
 
-	~Application() {
+	~Application() override {
 		delete mainWindow;
 		LOG_DEBUG() << "exiting";
 	}
 
   protected:
-	bool event(QEvent* event) {
+	auto event(QEvent* event) -> bool override {
 		if (event->type() == QEvent::FileOpen) {
-			QFileOpenEvent* openEvent = static_cast<QFileOpenEvent*>(event);
+			QFileOpenEvent const* openEvent = dynamic_cast<QFileOpenEvent*>(event);
 			resourceArg << openEvent->file();
 			return true;
 		} else
@@ -314,7 +349,7 @@ int main(int argc, char** argv) {
 #endif
 	for (int i = 1; i + 1 < argc; i++) {
 		if (!::qstrcmp("--QT_SCALE_FACTOR", argv[i]) || !::qstrcmp("--QT_SCREEN_SCALE_FACTORS", argv[i])) {
-			QByteArray value(argv[i + 1]);
+			QByteArray const value(argv[i + 1]);
 			::qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "0");
 			::qputenv(value.contains(';') ? "QT_SCREEN_SCALE_FACTORS" : "QT_SCALE_FACTOR", value);
 			break;
@@ -412,18 +447,17 @@ int main(int argc, char** argv) {
 				LOG_INFO() << "removing" << qMax(0, ls.size() - kMaxCacheCount) << "from" << dir.path();
 			}
 			for (int i = kMaxCacheCount; i < ls.size(); i++) {
-				QString filePath = dir.filePath(ls[i]);
+				QString const filePath = dir.filePath(ls[i]);
 				if (!QFile::remove(filePath)) {
 					LOG_WARNING() << "failed to delete" << filePath;
 				}
-				if (i % 1000 == 0) {
+				if (i % setLogWarningNumber == 0) {
 					a.processEvents();
 				}
 			}
 		}
 
-		splash.showMessage(QCoreApplication::translate("main", "Loading plugins..."),
-		                   Qt::AlignRight | Qt::AlignVCenter);
+		splash.showMessage(QCoreApplication::translate("main", "Loading plugins..."), Qt::AlignRight | Qt::AlignVCenter);
 		a.processEvents();
 
 		a.setProperty("system-style", a.style()->objectName());
@@ -431,8 +465,7 @@ int main(int argc, char** argv) {
 		QQuickStyle::setStyle("Fusion");
 
 		a.mainWindow = &MAIN;
-		if (!a.appDirArg.isEmpty())
-			a.mainWindow->hideSetDataDirectory();
+		if (!a.appDirArg.isEmpty()) a.mainWindow->hideSetDataDirectory();
 #if defined(Q_OS_WIN) || defined(Q_OS_MAC)
 		a.mainWindow->setProperty("windowOpacity", 0.0);
 #endif
@@ -459,10 +492,9 @@ int main(int argc, char** argv) {
 			::qputenv("LIBGL_ALWAYS_SOFTWARE",
 			          Settings.drawMethod() == Qt::AA_UseSoftwareOpenGL && !Settings.playerGPU() ? "1" : "0");
 #endif
-			QProcess*   restart = new QProcess;
-			QStringList args    = a.arguments();
-			if (!args.isEmpty())
-				args.removeFirst();
+			QProcess* restart = new QProcess;
+			QStringList args = a.arguments();
+			if (!args.isEmpty()) args.removeFirst();
 			restart->start(a.applicationFilePath(), args, QIODevice::NotOpen);
 			result = EXIT_SUCCESS;
 		}
@@ -470,7 +502,7 @@ int main(int argc, char** argv) {
 #ifdef Q_OS_WIN
 	} else { // if (::qEnvironmentVariableIsSet("QSG_RHI_BACKEND"))
 		// Run as a parent process to check if the child crashes on startup
-		QProcess*   child = new QProcess;
+		QProcess* child = new QProcess;
 		QStringList args  = a.arguments();
 		if (!args.isEmpty())
 			args.removeFirst();

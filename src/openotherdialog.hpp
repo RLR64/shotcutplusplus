@@ -18,8 +18,12 @@
 #ifndef OPENOTHERDIALOG_HPP
 #define OPENOTHERDIALOG_HPP
 
+// Qt
 #include <QDialog>
 #include <QTreeWidgetItem>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 namespace Ui {
 class OpenOtherDialog;
@@ -37,12 +41,12 @@ class OpenOtherDialog : public QDialog {
 
   public:
 	explicit OpenOtherDialog(QWidget* parent = nullptr);
-	~OpenOtherDialog();
+	~OpenOtherDialog() override;
 
 	Mlt::Producer* newProducer(Mlt::Profile&) const;
-	void           load(Mlt::Producer*);
+	void load(Mlt::Producer*);
 
-	QWidget* currentWidget() const {
+	[[nodiscard]] QWidget* currentWidget() const {
 		return m_current;
 	}
 
@@ -51,11 +55,11 @@ class OpenOtherDialog : public QDialog {
 
   private:
 	Ui::OpenOtherDialog* ui;
-	QWidget*             m_current;
-	QPushButton*         m_addTimelineButton;
+	QWidget* m_current;
+	QPushButton* m_addTimelineButton;
 
 	Mlt::Producer* newProducer(Mlt::Profile&, QObject* widget) const;
-	void           selectTreeWidget(const QString& s);
+	void selectTreeWidget(const QString& s);
 };
 
 #endif // OPENOTHERDIALOG_HPP

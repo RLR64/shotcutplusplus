@@ -18,16 +18,25 @@
 #ifndef VIDEORGBPARADESCOPEWIDGET_H
 #define VIDEORGBPARADESCOPEWIDGET_H
 
+// Local
 #include "scopewidget.h"
+#include "sharedframe.hpp"
 
+// Qt
 #include <QImage>
 #include <QMutex>
+#include <qhashfunctions.h>
+#include <qsize.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class VideoRgbParadeScopeWidget Q_DECL_FINAL : public ScopeWidget {
 	Q_OBJECT
 
   public:
 	explicit VideoRgbParadeScopeWidget();
+
 	QString getTitle() Q_DECL_OVERRIDE;
 
   private:
@@ -36,7 +45,7 @@ class VideoRgbParadeScopeWidget Q_DECL_FINAL : public ScopeWidget {
 	void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
 
 	SharedFrame m_frame;
-	QImage      m_renderImg;
+	QImage m_renderImg;
 
 	// Variables accessed from multiple threads (mutex protected)
 	QMutex m_mutex;

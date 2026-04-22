@@ -15,35 +15,41 @@
  * limitations under the License.
  *
  ****************************************************************************/
-#include "container.hpp"
 
+// Local
+#include "container.hpp"
 #include "constants.hpp"
 #include "sa3d.hpp"
+#include "spatialmedia/box.hpp"
 
+// STL
 #include <cassert>
+#include <cstdint>
 #include <cstring>
+#include <fstream>
 #include <iostream>
+#include <string>
+#include <vector>
 
 Container::Container(uint32_t iPadding) : Box() {
 	m_iType    = constants::Container;
 	m_iPadding = iPadding;
 }
 
-Container::~Container() {
-}
+Container::~Container() = default;
 
-Box* Container::load(std::fstream& fs, uint32_t iPos, uint32_t iEnd) {
+auto Container::load(std::fstream& fs, uint32_t iPos, uint32_t iEnd) -> Box* {
 	//  if ( iPos == 0 )
 	//       iPos = fs.tellg ( );
 
 	fs.seekg(iPos);
 	uint32_t iHeaderSize = 8;
-	uint32_t iSize       = readUint32(fs);
-	char     name[4];
+	uint32_t iSize = readUint32(fs);
+	char name[4];
 	fs.read(name, 4);
 
-	int32_t iArrSize = (int32_t)(sizeof(constants::CONTAINERS_LIST) / sizeof(constants::CONTAINERS_LIST[0]));
-	bool    bIsBox   = true;
+	auto iArrSize = (int32_t)(sizeof(constants::CONTAINERS_LIST) / sizeof(constants::CONTAINERS_LIST[0]));
+	bool bIsBox = true;
 	for (auto t = 0; t < iArrSize; t++) {
 		if (memcmp(name, constants::CONTAINERS_LIST[t], 4) == 0) {
 			bIsBox = false;
@@ -67,13 +73,13 @@ Box* Container::load(std::fstream& fs, uint32_t iPos, uint32_t iEnd) {
 	}
 
 	if (iSize < 8) {
-		std::cerr << "Error, invalid size " << iSize << " in " << name << " at " << iPos << std::endl;
-		return NULL;
+		std::cerr << "Error, invalid size " << iSize << " in " << name << " at " << iPos << '\n';
+		return nullptr;
 	}
 
 	if (iPos + iSize > iEnd) {
-		std::cerr << "Error: Container box size exceeds bounds." << std::endl;
-		return NULL;
+		std::cerr << "Error: Container box size exceeds bounds.\n";
+		return nullptr;
 	}
 
 	uint32_t iPadding = 0;
@@ -103,12 +109,12 @@ Box* Container::load(std::fstream& fs, uint32_t iPos, uint32_t iEnd) {
 				iPadding = 64;
 				break;
 			default:
-				std::cerr << "Unsupported sample description version:" << iSampleDescVersion << std::endl;
+				std::cerr << "Unsupported sample description version:" << iSampleDescVersion << '\n';
 				break;
 			}
 		}
 	}
-	Container* pNewBox = new Container();
+	auto* pNewBox = new Container();
 	memcpy(pNewBox->m_name, name, 4);
 	pNewBox->m_iPosition    = iPos;
 	pNewBox->m_iHeaderSize  = iHeaderSize;
@@ -118,18 +124,18 @@ Box* Container::load(std::fstream& fs, uint32_t iPos, uint32_t iEnd) {
 
 	if (pNewBox->m_listContents.empty()) {
 		delete pNewBox;
-		return NULL;
+		return nullptr;
 	}
 
 	return pNewBox;
 }
 
-std::vector<Box*> Container::load_multiple(std::fstream& fs, uint32_t iPos, uint32_t iEnd) {
+auto Container::load_multiple(std::fstream& fs, uint32_t iPos, uint32_t iEnd) -> std::vector<Box*> {
 	std::vector<Box*> list, empty;
 	while (iPos < iEnd) {
 		Box* pBox = load(fs, iPos, iEnd);
 		if (!pBox) {
-			std::cerr << "Error, failed to load box." << std::endl;
+			std::cerr << "Error, failed to load box.\n";
 			clear(list);
 			return empty;
 		}
@@ -141,12 +147,12 @@ std::vector<Box*> Container::load_multiple(std::fstream& fs, uint32_t iPos, uint
 
 void Container::resize() {
 	// Recomputes the box size and recurses on contents."""
-	m_iContentSize                 = m_iPadding;
-	std::vector<Box*>::iterator it = m_listContents.begin();
+	m_iContentSize = m_iPadding;
+	auto it = m_listContents.begin();
 	while (it != m_listContents.end()) {
 		Box* pBox = *it++;
 		if (pBox->type() == constants::Container) {
-			Container* p = (Container*)pBox;
+			auto* p = dynamic_cast<Container*>(pBox);
 			p->resize();
 		}
 		m_iContentSize += pBox->size();
@@ -155,13 +161,13 @@ void Container::resize() {
 
 void Container::print_structure(const char* pIndent) {
 	// Prints the box structure and recurses on contents."""
-	uint32_t iSize1 = m_iHeaderSize;
-	uint32_t iSize2 = m_iContentSize;
-	std::cout << "{" << pIndent << "} {" << name() << "} [{" << iSize1 << "}, {" << iSize2 << "}]" << std::endl;
+	const uint32_t iSize1 = m_iHeaderSize;
+	const uint32_t iSize2 = m_iContentSize;
+	std::cout << "{" << pIndent << "} {" << name() << "} [{" << iSize1 << "}, {" << iSize2 << "}]" << '\n';
 
-	int32_t                     iCount    = m_listContents.size();
-	std::string                 strIndent = pIndent;
-	std::vector<Box*>::iterator it        = m_listContents.begin();
+	int32_t iCount = m_listContents.size();
+	std::string strIndent = pIndent;
+	auto it = m_listContents.begin();
 	while (it != m_listContents.end()) {
 		Box* pBox = *it++;
 		if (!pBox)
@@ -180,8 +186,8 @@ void Container::print_structure(const char* pIndent) {
 
 void Container::remove(const char* pName) {
 	std::vector<Box*> list;
-	m_iContentSize                 = 0;
-	std::vector<Box*>::iterator it = m_listContents.begin();
+	m_iContentSize = 0;
+	auto it = m_listContents.begin();
 	while (it != m_listContents.end()) {
 		Box* pBox = *it++;
 		if (!pBox)
@@ -190,7 +196,7 @@ void Container::remove(const char* pName) {
 			list.push_back(pBox);
 
 			if (pBox->type() == constants::Container) {
-				Container* p = (Container*)pBox;
+				auto* p = dynamic_cast<Container*>(pBox);
 				p->remove(pName);
 			}
 			m_iContentSize += pBox->size();
@@ -200,17 +206,17 @@ void Container::remove(const char* pName) {
 	m_listContents = list;
 }
 
-bool Container::add(Box* pElement) {
+auto Container::add(Box* pElement) -> bool {
 	// Adds an element, merging with containers of the same type.
-	std::vector<Box*>::iterator it = m_listContents.begin();
+	auto it = m_listContents.begin();
 	while (it != m_listContents.end()) {
 		Box* pBox = *it++;
 		if (memcmp(pElement->m_name, pBox->m_name, 4) == 0) {
 			if (pBox->type() == constants::ContainerLeaf) {
-				Container* p = (Container*)pBox;
+				auto* p = dynamic_cast<Container*>(pBox);
 				return p->merge(pElement);
 			}
-			std::cerr << "Error, cannot merge leafs." << std::endl;
+			std::cerr << "Error, cannot merge leafs.\n";
 			return false;
 		}
 	}
@@ -218,13 +224,13 @@ bool Container::add(Box* pElement) {
 	return true;
 }
 
-bool Container::merge(Box* pElem) {
+auto Container::merge(Box* pElem) -> bool {
 	assert(pElem->type() == constants::Container); // isinstance(element, container_box))
-	Container* pElement = (Container*)pElem;
+	auto* pElement = dynamic_cast<Container*>(pElem);
 	// Merges structure with container.
-	int iRet = memcmp(m_name, pElement->m_name, 4);
+	const int iRet = memcmp(m_name, pElement->m_name, 4);
 	assert(iRet == 0);
-	std::vector<Box*>::iterator it = pElement->m_listContents.begin();
+	auto it = pElement->m_listContents.begin();
 	while (it != pElement->m_listContents.end()) {
 		Box* pSubElement = *it++;
 		if (!add(pSubElement))
@@ -249,7 +255,7 @@ void Container::save(std::fstream& fsIn, std::fstream& fsOut, int32_t iDelta) {
 		Box::tag_copy(fsIn, fsOut, m_iPadding);
 	}
 
-	std::vector<Box*>::iterator it = m_listContents.begin();
+	auto it = m_listContents.begin();
 	while (it != m_listContents.end()) {
 		Box* pElement = *it++;
 		if (!pElement)

@@ -18,7 +18,11 @@
 #ifndef FRAMERATEWIDGET_H
 #define FRAMERATEWIDGET_H
 
+// Qt
 #include <QWidget>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class QDoubleSpinBox;
 class QComboBox;
@@ -42,8 +46,8 @@ class FrameRateWidget : public QWidget {
 
   private:
 	QDoubleSpinBox* m_fpsSpinner;
-	QComboBox*      m_fpsComboBox;
-	double          m_fps;
+	QComboBox* m_fpsComboBox;
+	double m_fps;
 };
 
 #endif // FRAMERATEWIDGET_H

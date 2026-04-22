@@ -18,13 +18,17 @@
 #ifndef QMLPRODUCER_HPP
 #define QMLPRODUCER_HPP
 
+// Local
 #include "shotcut_mlt_properties.hpp"
 
+// Qt
 #include <MltProducer.h>
 #include <QObject>
 #include <QRectF>
 #include <QString>
 #include <QVariant>
+#include <qcontainerfwd.h>
+#include <qtmetamacros.h>
 
 class QmlProducer : public QObject {
 	Q_OBJECT
@@ -74,7 +78,7 @@ class QmlProducer : public QObject {
 	int                 fadeOut();
 	double              speed();
 
-	int position() const {
+	[[nodiscard]] int position() const {
 		return m_position;
 	}
 
@@ -91,9 +95,9 @@ class QmlProducer : public QObject {
 
 	Q_INVOKABLE void    remakeAudioLevels();
 	double              displayAspectRatio();
-	Q_INVOKABLE QString get(QString name, int position = -1);
-	Q_INVOKABLE double  getDouble(QString name, int position = -1);
-	Q_INVOKABLE QRectF  getRect(QString name, int position = -1);
+	Q_INVOKABLE QString get(const QString& name, int position = -1);
+	Q_INVOKABLE double  getDouble(const QString& name, int position = -1);
+	Q_INVOKABLE QRectF  getRect(const QString& name, int position = -1);
 	Q_INVOKABLE bool    outOfBounds();
 	Q_INVOKABLE void    newGlaxnimateFile(const QString& filename);
 	Q_INVOKABLE void    launchGlaxnimate(const QString& filename = QString()) const;

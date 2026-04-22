@@ -15,11 +15,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "networkproducerwidget.h"
-
 #include "mltcontroller.hpp"
 #include "ui_networkproducerwidget.h"
 #include "util.hpp"
+
+// Qt
+#include <MltProfile.h>
+#include <MltProperties.h>
+#include <qbytearrayalgorithms.h>
 
 NetworkProducerWidget::NetworkProducerWidget(QWidget* parent) : QWidget(parent), ui(new Ui::NetworkProducerWidget) {
 	ui->setupUi(this);
@@ -33,12 +38,12 @@ NetworkProducerWidget::~NetworkProducerWidget() {
 	delete ui;
 }
 
-Mlt::Producer* NetworkProducerWidget::newProducer(Mlt::Profile& profile) {
-	Mlt::Producer* p = new Mlt::Producer(profile, ui->urlLineEdit->text().toUtf8().constData());
-	return p;
+auto NetworkProducerWidget::newProducer(Mlt::Profile& profile) -> Mlt::Producer* {
+	Mlt::Producer const* p = new Mlt::Producer(profile, ui->urlLineEdit->text().toUtf8().constData());
+	return {};
 }
 
-Mlt::Properties NetworkProducerWidget::getPreset() const {
+auto NetworkProducerWidget::getPreset() const -> Mlt::Properties {
 	Mlt::Properties p;
 	p.set("resource", ui->urlLineEdit->text().toUtf8().constData());
 	return p;
@@ -51,7 +56,7 @@ void NetworkProducerWidget::loadPreset(Mlt::Properties& p) {
 }
 
 void NetworkProducerWidget::on_preset_selected(void* p) {
-	Mlt::Properties* properties = (Mlt::Properties*)p;
+	auto* properties = (Mlt::Properties*)p;
 	loadPreset(*properties);
 	delete properties;
 }

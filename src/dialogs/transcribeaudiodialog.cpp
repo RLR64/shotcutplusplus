@@ -15,18 +15,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "transcribeaudiodialog.hpp"
-
 #include "Logger.hpp"
 #include "dialogs/filedownloaddialog.hpp"
 #include "docks/timelinedock.hpp"
 #include "mainwindow.hpp"
 #include "models/extensionmodel.hpp"
+#include "models/multitrackmodel.hpp"
 #include "qmltypes/qmlapplication.hpp"
+#include "qmltypes/qmlextension.hpp"
+#include "settings.hpp"
 #include "shotcut_mlt_properties.hpp"
 #include "util.hpp"
 
+// Qt
 #include <MltProducer.h>
+#include <MltTractor.h>
 #include <QCheckBox>
 #include <QClipboard>
 #include <QComboBox>
@@ -42,6 +47,26 @@
 #include <QPushButton>
 #include <QSpinBox>
 #include <QTreeView>
+#include <qabstractscrollarea.h>
+#include <qcursor.h>
+#include <qdialog.h>
+#include <qdir.h>
+#include <qevent.h>
+#include <qframe.h>
+#include <qguiapplication.h>
+#include <qlist.h>
+#include <qlocale.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpalette.h>
+#include <qpoint.h>
+#include <qsizepolicy.h>
+
+// STL
+#include <memory>
+#include <qtypes.h>
+#include <vector>
 
 static const QString WHISPER_MODEL_EXTENSION_URL = QStringLiteral("https://check.shotcut.org/whispermodel.qml");
 
@@ -57,14 +82,14 @@ static const std::vector<const char*> whisperLanguages = {
 
 static void fillLanguages(QComboBox* combo) {
 	QMap<QString, QString> codeMap;
-	for (int i = 0; i < whisperLanguages.size(); i++) {
-		QString           langCode = whisperLanguages[i];
-		QLocale::Language lang     = QLocale::codeToLanguage(langCode);
+	for (const auto whisperLanguage : whisperLanguages) {
+		QString const langCode = whisperLanguage;
+		QLocale::Language const lang     = QLocale::codeToLanguage(langCode);
 		if (lang == QLocale::AnyLanguage) {
 			LOG_ERROR() << "Language not found" << langCode;
 			continue;
 		}
-		QString langStr = QLocale::languageToString(lang);
+		QString const langStr = QLocale::languageToString(lang);
 		if (!langCode.isEmpty() && !langStr.isEmpty()) {
 			codeMap.insert(langStr, langCode);
 		}
@@ -86,7 +111,7 @@ TranscribeAudioDialog::TranscribeAudioDialog(const QString& trackName, QWidget* 
 		return;
 	}
 
-	QGridLayout* grid = new QGridLayout();
+	auto* grid = new QGridLayout();
 
 	grid->addWidget(new QLabel(tr("Name")), 0, 0, Qt::AlignRight);
 	m_name = new QLineEdit(this);
@@ -97,7 +122,7 @@ TranscribeAudioDialog::TranscribeAudioDialog(const QString& trackName, QWidget* 
 	m_lang = new QComboBox(this);
 	fillLanguages(m_lang);
 	// Try to set the default to the system language
-	QString currentLangCode = QLocale::languageToCode(QLocale::system().language(), QLocale::ISO639Part1);
+	QString const currentLangCode = QLocale::languageToCode(QLocale::system().language(), QLocale::ISO639Part1);
 	for (int i = 0; i < m_lang->count(); i++) {
 		if (m_lang->itemData(i).toString() == currentLangCode) {
 			m_lang->setCurrentIndex(i);
@@ -132,7 +157,7 @@ TranscribeAudioDialog::TranscribeAudioDialog(const QString& trackName, QWidget* 
 	grid->addWidget(m_nonspoken, 4, 0, Qt::AlignRight);
 	grid->addWidget(new QLabel(tr("Include non-spoken sounds")), 4, 1, Qt::AlignLeft);
 
-	QLabel* tracksLabel = new QLabel(tr("Tracks with speech"));
+	auto* tracksLabel = new QLabel(tr("Tracks with speech"));
 	tracksLabel->setToolTip(tr("Select tracks that contain speech to be transcribed."));
 	grid->addWidget(tracksLabel, 5, 0, Qt::AlignRight);
 	m_trackList = new QListWidget(this);
@@ -145,23 +170,23 @@ TranscribeAudioDialog::TranscribeAudioDialog(const QString& trackName, QWidget* 
 		LOG_ERROR() << "Invalid tractor";
 		return;
 	}
-	TrackList trackList = MAIN.timelineDock()->model()->trackList();
+	TrackList const trackList = MAIN.timelineDock()->model()->trackList();
 	if (trackList.size() == 0) {
 		LOG_ERROR() << "No tracks";
 		return;
 	}
-	for (int trackIndex = 0; trackIndex < trackList.size(); trackIndex++) {
-		std::unique_ptr<Mlt::Producer> track(tractor.track(trackList[trackIndex].mlt_index));
+	for (const auto & trackIndex : trackList) {
+		std::unique_ptr<Mlt::Producer> track(tractor.track(trackIndex.mlt_index));
 		if (track) {
-			QString trackName = QString::fromUtf8(track->get(kTrackNameProperty));
+			QString const trackName = QString::fromUtf8(track->get(kTrackNameProperty));
 			if (!trackName.isEmpty()) {
-				QListWidgetItem* listItem = new QListWidgetItem(trackName, m_trackList);
+				auto* listItem = new QListWidgetItem(trackName, m_trackList);
 				if (track->get_int("hide") & 2) {
 					listItem->setCheckState(Qt::Unchecked);
 				} else {
 					listItem->setCheckState(Qt::Checked);
 				}
-				listItem->setData(Qt::UserRole, QVariant(trackList[trackIndex].mlt_index));
+				listItem->setData(Qt::UserRole, QVariant(trackIndex.mlt_index));
 				m_trackList->addItem(listItem);
 			}
 		}
@@ -170,13 +195,14 @@ TranscribeAudioDialog::TranscribeAudioDialog(const QString& trackName, QWidget* 
 
 	// The config section is a single widget with a unique grid layout inside of it.
 	// The config section is hidden by hiding the config widget (and the layout it contains)
-	static const int maxPathWidth = 350;
+	static constexpr int maxPathWidth{350};
+
 	m_configWidget                = new QWidget(this);
 	QGridLayout* configLayout     = new QGridLayout(this);
 	m_configWidget->setLayout(configLayout);
 
 	// Horizontal separator line
-	QFrame* line = new QFrame(m_configWidget);
+	auto* line = new QFrame(m_configWidget);
 	line->setFrameShape(QFrame::HLine);
 	line->setFrameShadow(QFrame::Sunken);
 	configLayout->addWidget(line, 0, 0, 1, 2);
@@ -187,10 +213,10 @@ TranscribeAudioDialog::TranscribeAudioDialog(const QString& trackName, QWidget* 
 	m_exeLabel->setFixedWidth(maxPathWidth);
 	m_exeLabel->setReadOnly(true);
 	configLayout->addWidget(m_exeLabel, 1, 1, Qt::AlignLeft);
-	QPushButton* exeBrowseButton = new QPushButton(this);
+	auto* exeBrowseButton = new QPushButton(this);
 	exeBrowseButton->setIcon(
 	    QIcon::fromTheme("document-open", QIcon(":/icons/oxygen/32x32/actions/document-open.png")));
-	connect(exeBrowseButton, &QAbstractButton::clicked, this, [&] {
+	connect(exeBrowseButton, &QAbstractButton::clicked, this, [&] () -> void {
 		auto path = QFileDialog::getOpenFileName(this, tr("Find Whisper.cpp"), Settings.whisperExe(), QString(),
 		                                         nullptr, Util::getFileDialogOptions());
 		if (QFileInfo(path).isExecutable()) {
@@ -207,13 +233,13 @@ TranscribeAudioDialog::TranscribeAudioDialog(const QString& trackName, QWidget* 
 	m_modelLabel->setPlaceholderText(tr("Select a model or browse to choose one"));
 	m_modelLabel->setReadOnly(true);
 	configLayout->addWidget(m_modelLabel, 2, 1, Qt::AlignLeft);
-	QPushButton* modelBrowseButton = new QPushButton(this);
+	auto* modelBrowseButton = new QPushButton(this);
 	modelBrowseButton->setIcon(
 	    QIcon::fromTheme("document-open", QIcon(":/icons/oxygen/32x32/actions/document-open.png")));
-	connect(modelBrowseButton, &QAbstractButton::clicked, this, [&] {
+	connect(modelBrowseButton, &QAbstractButton::clicked, this, [&] () -> void {
 		auto path = QFileDialog::getOpenFileName(this, tr("Find Whisper.cpp"), Settings.whisperModel(), "*.bin",
 		                                         nullptr, Util::getFileDialogOptions());
-		if (QFileInfo(path).exists()) {
+		if (QFileInfo::exists(path)) {
 			LOG_INFO() << "Model found" << path;
 			Settings.setWhisperModel(path);
 			updateWhisperStatus();
@@ -224,7 +250,7 @@ TranscribeAudioDialog::TranscribeAudioDialog(const QString& trackName, QWidget* 
 	configLayout->addWidget(modelBrowseButton, 2, 2, Qt::AlignLeft);
 
 	// Update Model button
-	QPushButton* updateModelsButton = new QPushButton(tr("Refresh Models"), this);
+	auto* updateModelsButton = new QPushButton(tr("Refresh Models"), this);
 	connect(updateModelsButton, &QAbstractButton::clicked, this, &TranscribeAudioDialog::refreshModels);
 	configLayout->addWidget(updateModelsButton, 3, 1, Qt::AlignLeft);
 
@@ -239,7 +265,7 @@ TranscribeAudioDialog::TranscribeAudioDialog(const QString& trackName, QWidget* 
 	m_table->setModel(&m_model);
 	m_table->setWordWrap(false);
 	m_table->header()->setStretchLastSection(false);
-	qreal rowHeight = fontMetrics().height() * devicePixelRatioF();
+	qreal const rowHeight = fontMetrics().height() * devicePixelRatioF();
 	m_table->header()->setMinimumSectionSize(rowHeight);
 	m_table->header()->setSectionResizeMode(ExtensionModel::COLUMN_STATUS, QHeaderView::Fixed);
 	m_table->setColumnWidth(ExtensionModel::COLUMN_STATUS, rowHeight);
@@ -257,11 +283,11 @@ TranscribeAudioDialog::TranscribeAudioDialog(const QString& trackName, QWidget* 
 
 	// Add a button box to the dialog
 	m_buttonBox               = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-	QPushButton* configButton = new QPushButton(tr("Configuration"));
+	auto* configButton = new QPushButton(tr("Configuration"));
 	configButton->setCheckable(true);
-	connect(configButton, &QPushButton::toggled, this, [&](bool checked) { m_configWidget->setVisible(checked); });
+	connect(configButton, &QPushButton::toggled, this, [&](bool checked) -> void { m_configWidget->setVisible(checked); });
 	updateWhisperStatus();
-	QPushButton* okButton = m_buttonBox->button(QDialogButtonBox::Ok);
+	QPushButton const* const okButton = m_buttonBox->button(QDialogButtonBox::Ok);
 	if (!m_buttonBox->button(QDialogButtonBox::Ok)->isEnabled()) {
 		// Show the config section
 		configButton->setChecked(true);
@@ -279,10 +305,10 @@ TranscribeAudioDialog::TranscribeAudioDialog(const QString& trackName, QWidget* 
 	layout()->setSizeConstraint(QLayout::SetFixedSize);
 }
 
-QList<int> TranscribeAudioDialog::tracks() {
+auto TranscribeAudioDialog::tracks() -> QList<int> {
 	QList<int> tracks;
 	for (int i = 0; i < m_trackList->count(); i++) {
-		QListWidgetItem* item = m_trackList->item(i);
+		QListWidgetItem const* item = m_trackList->item(i);
 		if (item && item->checkState() == Qt::Checked) {
 			tracks << item->data(Qt::UserRole).toInt();
 		}
@@ -291,7 +317,7 @@ QList<int> TranscribeAudioDialog::tracks() {
 }
 
 void TranscribeAudioDialog::onButtonClicked(QAbstractButton* button) {
-	QDialogButtonBox::ButtonRole role = m_buttonBox->buttonRole(button);
+	QDialogButtonBox::ButtonRole const role = m_buttonBox->buttonRole(button);
 	if (role == QDialogButtonBox::AcceptRole) {
 		LOG_DEBUG() << "Accept";
 		accept();
@@ -313,7 +339,7 @@ void TranscribeAudioDialog::onModelRowClicked(const QModelIndex& index) {
 		qDialog.setDefaultButton(QMessageBox::Yes);
 		qDialog.setEscapeButton(QMessageBox::No);
 		qDialog.setWindowModality(QmlApplication::dialogModality());
-		int result = qDialog.exec();
+		const int result = qDialog.exec();
 		if (result == QMessageBox::Yes) {
 			downloadModel(index.row());
 		}
@@ -322,29 +348,29 @@ void TranscribeAudioDialog::onModelRowClicked(const QModelIndex& index) {
 	updateWhisperStatus();
 }
 
-QString TranscribeAudioDialog::name() {
+auto TranscribeAudioDialog::name() -> QString {
 	return m_name->text();
 }
 
-QString TranscribeAudioDialog::language() {
+auto TranscribeAudioDialog::language() -> QString {
 	return m_lang->currentData().toString();
 }
 
-bool TranscribeAudioDialog::translate() {
+auto TranscribeAudioDialog::translate() -> bool {
 	return m_translate->checkState() == Qt::Checked;
 }
 
-int TranscribeAudioDialog::maxLineLength() {
+auto TranscribeAudioDialog::maxLineLength() -> int {
 	return m_maxLength->value();
 }
 
-bool TranscribeAudioDialog::includeNonspoken() {
+auto TranscribeAudioDialog::includeNonspoken() -> bool{
 	return m_nonspoken->checkState() == Qt::Checked;
 }
 
 void TranscribeAudioDialog::showEvent(QShowEvent* event) {
 	QDialog::showEvent(event);
-	bool modelFound = QFileInfo(Settings.whisperModel()).exists();
+	bool const modelFound = QFileInfo::exists(Settings.whisperModel());
 	if (modelFound) {
 		return;
 	}
@@ -355,10 +381,10 @@ void TranscribeAudioDialog::showEvent(QShowEvent* event) {
 	qDialog.setDefaultButton(QMessageBox::Yes);
 	qDialog.setEscapeButton(QMessageBox::No);
 	qDialog.setWindowModality(QmlApplication::dialogModality());
-	int result = qDialog.exec();
+	const int result = qDialog.exec();
 	if (result == QMessageBox::Yes) {
 		refreshModels(false);
-		int index = m_model.getStandardIndex();
+		const int index = m_model.getStandardIndex();
 		downloadModel(index);
 		setCurrentModel(index);
 		updateWhisperStatus();
@@ -366,7 +392,7 @@ void TranscribeAudioDialog::showEvent(QShowEvent* event) {
 }
 
 void TranscribeAudioDialog::refreshModels(bool report) {
-	QString localDst =
+	QString const localDst =
 	    QmlExtension::appDir(QmlExtension::WHISPER_ID).absoluteFilePath(QmlExtension::extensionFileName("whisper"));
 	FileDownloadDialog dlDialog(tr("Refresh Models"), this);
 	dlDialog.setSrc(WHISPER_MODEL_EXTENSION_URL);
@@ -394,8 +420,8 @@ void TranscribeAudioDialog::downloadModel(int index) {
 
 void TranscribeAudioDialog::setCurrentModel(int index) {
 	if (m_model.downloaded(index)) {
-		QString path = m_model.localPath(index);
-		if (QFileInfo(path).exists()) {
+		QString const path = m_model.localPath(index);
+		if (QFileInfo::exists(path)) {
 			LOG_INFO() << "Model found" << path;
 			Settings.setWhisperModel(path);
 		} else {
@@ -407,8 +433,8 @@ void TranscribeAudioDialog::setCurrentModel(int index) {
 }
 
 void TranscribeAudioDialog::updateWhisperStatus() {
-	bool exeFound   = QFileInfo(Settings.whisperExe()).isExecutable();
-	bool modelFound = QFileInfo(Settings.whisperModel()).exists();
+	const bool exeFound   = QFileInfo(Settings.whisperExe()).isExecutable();
+	const bool modelFound = QFileInfo::exists(Settings.whisperModel());
 
 	m_exeLabel->setText(Settings.whisperExe());
 	m_modelLabel->setText(Settings.whisperModel());
@@ -422,7 +448,7 @@ void TranscribeAudioDialog::updateWhisperStatus() {
 	}
 
 	if (exeFound) {
-		QPalette palette;
+		QPalette const palette;
 		m_exeLabel->setPalette(palette);
 		m_exeLabel->setToolTip(tr("Path to Whisper.cpp executable"));
 	} else {
@@ -433,7 +459,7 @@ void TranscribeAudioDialog::updateWhisperStatus() {
 	}
 
 	if (modelFound) {
-		QPalette palette;
+		QPalette const palette;
 		m_modelLabel->setPalette(palette);
 		m_modelLabel->setToolTip(tr("Path to GGML model"));
 	} else {
@@ -448,7 +474,7 @@ void TranscribeAudioDialog::updateWhisperStatus() {
 		}
 	}
 
-	QModelIndex index = m_model.getIndexForPath(Settings.whisperModel());
+	QModelIndex const index = m_model.getIndexForPath(Settings.whisperModel());
 	m_table->setCurrentIndex(index);
 }
 
@@ -458,15 +484,15 @@ void TranscribeAudioDialog::showModelContextMenu(QPoint p) {
 		updateWhisperStatus();
 		return;
 	}
-	QMenu*   menu   = new QMenu(tr("Model"));
-	QAction* action = new QAction(tr("Delete Model"), this);
-	connect(action, &QAction::triggered, this, [&]() { m_model.deleteFile(index.row()); });
+	auto*   menu   = new QMenu(tr("Model"));
+	auto* action = new QAction(tr("Delete Model"), this);
+	connect(action, &QAction::triggered, this, [&]() -> void { m_model.deleteFile(index.row()); });
 	QIcon icon = QIcon::fromTheme("edit-delete", QIcon(":/icons/oxygen/32x32/actions/edit-delete.png"));
 	action->setIcon(icon);
 	menu->addAction(action);
 	action = new QAction(tr("Copy Model URL to Clipboard"), this);
-	connect(action, &QAction::triggered, this, [&]() {
-		QString url = m_model.url(index.row());
+	connect(action, &QAction::triggered, this, [&]() -> void {
+		QString const url = m_model.url(index.row());
 		QGuiApplication::clipboard()->setText(url);
 	});
 	icon = QIcon::fromTheme("edit-copy", QIcon(":/icons/oxygen/32x32/actions/edit-copy.png"));

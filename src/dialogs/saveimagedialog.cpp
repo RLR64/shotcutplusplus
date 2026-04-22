@@ -15,15 +15,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "saveimagedialog.hpp"
-
 #include "Logger.hpp"
 #include "mltcontroller.hpp"
 #include "settings.hpp"
 #include "util.hpp"
 
+// Qt
 #include <QDebug>
 #include <QtMath>
+#include <framework/mlt_types.h>
+#include <qcontainerfwd.h>
+#include <qdir.h>
+#include <qfiledialog.h>
+#include <qimage.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qtdeprecationdefinitions.h>
+
+// STL
+#include <qtypes.h>
+#include <utility>
+
+// Number constants
+static constexpr int setAspectRatioNumber{1000};
 
 static QString suffixFromFilter(const QString& filterText) {
 	QString suffix = filterText.section("*", 1, 1).section(")", 0, 0).section(" ", 0, 0);
@@ -45,10 +62,10 @@ SaveImageDialog::SaveImageDialog(QWidget* parent, const QString& caption, QImage
 	                        "(*.tif *.tiff);;WebP (*.webp);;All Files (*)");
 	setNameFilter(nameFilter);
 
-	QStringList nameFilters        = nameFilter.split(";;");
-	QString     suffix             = Settings.exportFrameSuffix();
+	QStringList nameFilters              = nameFilter.split(";;");
+	QString     const suffix             = Settings.exportFrameSuffix();
 	QString     selectedNameFilter = nameFilters[0];
-	for (const auto& f : nameFilters) {
+	for (const auto& f : std::as_const(nameFilters)) {
 		if (f.contains(suffix.toLower())) {
 			selectedNameFilter = f;
 			break;
@@ -77,7 +94,7 @@ void SaveImageDialog::onFilterSelected(const QString& filter) {
 	if (filter.isEmpty()) {
 		return;
 	}
-	QString suffix = suffixFromFilter(filter);
+	QString const suffix = suffixFromFilter(filter);
 	if (suffix.isEmpty()) {
 		return; // All files
 	}
@@ -112,8 +129,8 @@ void SaveImageDialog::onFileSelected(const QString& file) {
 	if (Util::warnIfNotWritable(m_saveFile, this, windowTitle()))
 		return;
 	// Convert to square pixels if needed.
-	qreal aspectRatio = (qreal)m_image.width() / m_image.height();
-	if (qFloor(aspectRatio * 1000) != qFloor(MLT.profile().dar() * 1000)) {
+	qreal const aspectRatio = (qreal)m_image.width() / m_image.height();
+	if (qFloor(aspectRatio * setAspectRatioNumber) != qFloor(MLT.profile().dar() * setAspectRatioNumber)) {
 		m_image = m_image.scaled(qRound(m_image.height() * MLT.profile().dar()), m_image.height(),
 		                         Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 	}

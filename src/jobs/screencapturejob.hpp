@@ -18,19 +18,27 @@
 #ifndef SCREENCAPTUREJOB_HPP
 #define SCREENCAPTUREJOB_HPP
 
+// Local
 #include "abstractjob.hpp"
+#include "jobs/postjobaction.hpp"
 
+// Qt
 #include <QRect>
 #include <QTimer>
+#include <qprocess.h>
+#include <qtmetamacros.h>
+
+// clang-format off
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
 #include <QDBusConnection>
 #endif
+// clang-format on
 
 class ScreenCaptureJob : public AbstractJob {
 	Q_OBJECT
   public:
 	ScreenCaptureJob(const QString& name, const QString& filename, const QRect& captureRect, bool recordAudio = true);
-	virtual ~ScreenCaptureJob();
+	~ScreenCaptureJob() override;
 	void start() override;
 	void stop() override;
 

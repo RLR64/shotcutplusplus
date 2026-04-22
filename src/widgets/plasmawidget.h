@@ -19,8 +19,16 @@
 #ifndef PLASMAWIDGET_H
 #define PLASMAWIDGET_H
 
+// Local
+#include "abstractproducerwidget.hpp"
+
+// Qt
+#include <MltProducer.h>
+#include <MltProperties.h>
 #include <QWidget>
-#include <abstractproducerwidget.hpp>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 namespace Ui {
 class PlasmaWidget;
@@ -30,13 +38,13 @@ class PlasmaWidget : public QWidget, public AbstractProducerWidget {
 	Q_OBJECT
 
   public:
-	explicit PlasmaWidget(QWidget* parent = 0);
-	~PlasmaWidget();
+	explicit PlasmaWidget(QWidget* parent = nullptr);
+	~PlasmaWidget() override;
 
 	// AbstractProducerWidget overrides
-	Mlt::Producer*  newProducer(Mlt::Profile&);
-	Mlt::Properties getPreset() const;
-	void            loadPreset(Mlt::Properties&);
+	Mlt::Producer* newProducer(Mlt::Profile&) override;
+	[[nodiscard]] Mlt::Properties getPreset() const override;
+	void loadPreset(Mlt::Properties&) override;
 
   signals:
 	void producerChanged(Mlt::Producer*);

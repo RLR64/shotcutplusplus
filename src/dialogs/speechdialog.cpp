@@ -15,13 +15,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "speechdialog.hpp"
-
 #include "Logger.hpp"
 #include "mltcontroller.hpp"
 #include "qmltypes/qmlapplication.hpp"
 #include "settings.hpp"
 
+// Qt
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QDoubleSpinBox>
@@ -32,8 +33,17 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QStringList>
+#include <qcontainerfwd.h>
+#include <qdialog.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qoverload.h>
+#include <qwidget.h>
 
-SpeechDialog::SpeechDialog(QWidget* parent) {
+// STL
+#include <memory>
+
+SpeechDialog::SpeechDialog(QWidget*  /*parent*/) {
 	setWindowTitle(tr("Text to Speech"));
 	setWindowModality(QmlApplication::dialogModality());
 
@@ -83,7 +93,7 @@ SpeechDialog::SpeechDialog(QWidget* parent) {
 	voiceLayout->addWidget(voiceButton);
 	voiceLayout->addStretch();
 	grid->addWidget(voiceRow, 1, 1, 1, 2);
-	connect(voiceButton, &QPushButton::clicked, this, [this]() {
+	connect(voiceButton, &QPushButton::clicked, this, [this]() -> void {
 		auto dir = QmlApplication::dataDir();
 		dir.cd("shotcut");
 		dir.cd("voices");
@@ -92,7 +102,7 @@ SpeechDialog::SpeechDialog(QWidget* parent) {
 		Mlt::Producer p(MLT.profile(), filename.toLocal8Bit().constData());
 		if (m_consumer && m_consumer->is_valid())
 			m_consumer->stop();
-		m_consumer.reset(new Mlt::Consumer(MLT.profile(), "sdl2_audio"));
+		m_consumer = std::make_unique<Mlt::Consumer>(MLT.profile(), "sdl2_audio");
 		if (!m_consumer || !m_consumer->is_valid())
 			return;
 		m_consumer->connect(p);
@@ -104,7 +114,7 @@ SpeechDialog::SpeechDialog(QWidget* parent) {
 	// Populate voices for initial selection and react to changes
 	populateVoices(m_language->currentData().toString());
 	connect(m_language, qOverload<int>(&QComboBox::currentIndexChanged), this,
-	        [this](int) { populateVoices(m_language->currentData().toString()); });
+			[this](int) -> void { populateVoices(m_language->currentData().toString()); });
 	// Set persisted voice (after voices are populated again below if needed)
 	const QString savedVoice = Settings.speechVoice();
 	if (!savedVoice.isEmpty()) {
@@ -150,7 +160,7 @@ SpeechDialog::SpeechDialog(QWidget* parent) {
 	outputLayout->addWidget(browseButton);
 	grid->addWidget(outputRow, 3, 1, 1, 2);
 
-	connect(browseButton, &QPushButton::clicked, this, [this]() {
+	connect(browseButton, &QPushButton::clicked, this, [this]() -> void {
 		const QString selected =
 		    QFileDialog::getSaveFileName(this, tr("Save Audio File"), Settings.savePath(), tr("WAV files (*.wav)"));
 		if (!selected.isEmpty()) {
@@ -166,7 +176,7 @@ SpeechDialog::SpeechDialog(QWidget* parent) {
 	auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 	grid->addWidget(buttonBox, 4, 0, 1, 3);
 	connect(buttonBox->button(QDialogButtonBox::Cancel), &QAbstractButton::clicked, this, &QDialog::close);
-	connect(buttonBox->button(QDialogButtonBox::Ok), &QAbstractButton::clicked, this, [&] {
+	connect(buttonBox->button(QDialogButtonBox::Ok), &QAbstractButton::clicked, this, [&] () -> void {
 		const QString lang  = m_language->currentData().toString();
 		const QString voice = m_voice->currentData().toString();
 		const double  speed = m_speed->value();
@@ -226,7 +236,7 @@ void SpeechDialog::populateVoices(const QString& langCode) {
 	const QString prefix = langCode.left(1);
 	for (const auto& v : kVoices) {
 		if (v.startsWith(prefix)) {
-			const int underscore = v.indexOf('_');
+			const auto underscore = v.indexOf('_');
 			if (underscore > 0 && underscore + 1 < v.size()) {
 				const QString name   = v.mid(underscore + 1);
 				const QString gender = v.mid(1, 1).toLower();

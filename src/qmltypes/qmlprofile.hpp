@@ -18,7 +18,9 @@
 #ifndef PROFILE_HPP
 #define PROFILE_HPP
 
+// Qt
 #include <QObject>
+#include <qtmetamacros.h>
 
 class QmlProfile : public QObject {
 	Q_OBJECT
@@ -31,11 +33,11 @@ class QmlProfile : public QObject {
   public:
 	static QmlProfile& singleton();
 
-	int    width() const;
-	int    height() const;
-	double aspectRatio() const;
-	double fps() const;
-	double sar() const;
+	[[nodiscard]] int width() const;
+	[[nodiscard]] int height() const;
+	[[nodiscard]] double aspectRatio() const;
+	[[nodiscard]] double fps() const;
+	[[nodiscard]] double sar() const;
 
   signals:
 	void profileChanged();

@@ -18,7 +18,12 @@
 #ifndef EDITMARKERDIALOG_HPP
 #define EDITMARKERDIALOG_HPP
 
+// Qt
 #include <QDialog>
+#include <qcolor.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class EditMarkerWidget;
 class QAbstractButton;
@@ -30,10 +35,10 @@ class EditMarkerDialog : public QDialog {
   public:
 	explicit EditMarkerDialog(QWidget* parent, const QString& text, const QColor& color, int start, int end,
 	                          int maxEnd);
-	QString getText();
-	QColor  getColor();
-	int     getStart();
-	int     getEnd();
+	auto getText() -> QString;
+	auto getColor() -> QColor;
+	auto getStart() -> int;
+	auto getEnd() -> int;
 
   private slots:
 	void clicked(QAbstractButton* button);

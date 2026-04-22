@@ -15,23 +15,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "textviewerdialog.hpp"
-
 #include "settings.hpp"
 #include "ui_textviewerdialog.h"
 #include "util.hpp"
 
+// Qt
 #include <QClipboard>
 #include <QFileDialog>
 #include <QPushButton>
 #include <QScrollBar>
+#include <qabstractbutton.h>
+#include <qdialog.h>
+#include <qdir.h>
+#include <qfileinfo.h>
+#include <qguiapplication.h>
+#include <qobject.h>
 
 TextViewerDialog::TextViewerDialog(QWidget* parent, bool forMltXml)
     : QDialog(parent), ui(new Ui::TextViewerDialog), m_forMltXml(forMltXml) {
 	ui->setupUi(this);
 	auto button = ui->buttonBox->addButton(tr("Copy"), QDialogButtonBox::ActionRole);
-	connect(button, &QAbstractButton::clicked, this,
-	        [&]() { QGuiApplication::clipboard()->setText(ui->plainTextEdit->toPlainText()); });
+	connect(button, &QAbstractButton::clicked, this, [&]() -> void { QGuiApplication::clipboard()->setText(ui->plainTextEdit->toPlainText()); });
 }
 
 TextViewerDialog::~TextViewerDialog() {
@@ -46,13 +52,13 @@ void TextViewerDialog::setText(const QString& s, bool scroll) {
 	}
 }
 
-QDialogButtonBox* TextViewerDialog::buttonBox() const {
+auto TextViewerDialog::buttonBox() const -> QDialogButtonBox* {
 	return ui->buttonBox;
 }
 
 void TextViewerDialog::on_buttonBox_accepted() {
-	QString path       = Settings.savePath();
-	QString caption    = tr("Save Text");
+	QString const path       = Settings.savePath();
+	QString const caption    = tr("Save Text");
 	QString nameFilter = tr("Text Documents (*.txt);;All Files (*)");
 	if (m_forMltXml) {
 		nameFilter = tr("MLT XML (*.mlt);;All Files (*)");
@@ -60,7 +66,7 @@ void TextViewerDialog::on_buttonBox_accepted() {
 	QString filename =
 	    QFileDialog::getSaveFileName(this, caption, path, nameFilter, nullptr, Util::getFileDialogOptions());
 	if (!filename.isEmpty()) {
-		QFileInfo fi(filename);
+		QFileInfo const fi(filename);
 		if (fi.suffix().isEmpty()) {
 			if (m_forMltXml)
 				filename += ".mlt";

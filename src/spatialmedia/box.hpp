@@ -20,6 +20,7 @@
  ****************************************************************************/
 
 // Tool for loading mpeg4 files and manipulating atoms.
+// STL
 #include <cstdint>
 #include <fstream>
 #include <vector>
@@ -67,7 +68,7 @@ class Box {
 	void     index_copy_from_contents(std::fstream& fsOut, Box* pBox, bool bBigMode, int32_t iDelta);
 
   public:
-	char     m_name[4];
+	char m_name[4];
 	uint32_t m_iPosition;
 	uint32_t m_iHeaderSize;
 	uint32_t m_iContentSize;

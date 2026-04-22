@@ -18,12 +18,18 @@
 #ifndef VIDEOZOOMSCOPEWIDGET_H
 #define VIDEOZOOMSCOPEWIDGET_H
 
+// Local
 #include "scopewidget.h"
 #include "widgets/screenselector.h"
 
+// Qt
 #include <QMutex>
 #include <QPoint>
 #include <QString>
+#include <qhashfunctions.h>
+#include <qsize.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
 
 class QLabel;
 class QToolButton;
@@ -34,6 +40,7 @@ class VideoZoomScopeWidget Q_DECL_FINAL : public ScopeWidget {
 
   public:
 	explicit VideoZoomScopeWidget();
+
 	QString getTitle() Q_DECL_OVERRIDE;
 
   private slots:
@@ -52,17 +59,17 @@ class VideoZoomScopeWidget Q_DECL_FINAL : public ScopeWidget {
 	Q_INVOKABLE void updateLabels();
 
 	VideoZoomWidget* m_zoomWidget;
-	ScreenSelector   m_selector;
-	QLabel*          m_zoomLabel;
-	QLabel*          m_pixelXLabel;
-	QLabel*          m_pixelYLabel;
-	QLabel*          m_rLabel;
-	QLabel*          m_gLabel;
-	QLabel*          m_bLabel;
-	QLabel*          m_yLabel;
-	QLabel*          m_uLabel;
-	QLabel*          m_vLabel;
-	QToolButton*     m_lockButton;
+	ScreenSelector m_selector;
+	QLabel* m_zoomLabel;
+	QLabel* m_pixelXLabel;
+	QLabel* m_pixelYLabel;
+	QLabel* m_rLabel;
+	QLabel* m_gLabel;
+	QLabel* m_bLabel;
+	QLabel* m_yLabel;
+	QLabel* m_uLabel;
+	QLabel* m_vLabel;
+	QToolButton* m_lockButton;
 };
 
 #endif // VIDEOZOOMSCOPEWIDGET_H

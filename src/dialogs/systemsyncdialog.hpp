@@ -18,7 +18,10 @@
 #ifndef SYSTEMSYNCDIALOG_HPP
 #define SYSTEMSYNCDIALOG_HPP
 
+// Qt
 #include <QDialog>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 namespace Ui {
 class SystemSyncDialog;
@@ -29,7 +32,7 @@ class SystemSyncDialog : public QDialog {
 
   public:
 	explicit SystemSyncDialog(QWidget* parent = nullptr);
-	~SystemSyncDialog();
+	~SystemSyncDialog() override;
 
   private slots:
 	void on_syncSlider_sliderReleased();

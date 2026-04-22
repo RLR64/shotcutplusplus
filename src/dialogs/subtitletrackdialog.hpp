@@ -18,7 +18,10 @@
 #ifndef SUBTITLETRACKDIALOG_HPP
 #define SUBTITLETRACKDIALOG_HPP
 
+// Qt
 #include <QDialog>
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 class QLineEdit;
 class QComboBox;
@@ -28,11 +31,11 @@ class SubtitleTrackDialog : public QDialog {
 
   public:
 	explicit SubtitleTrackDialog(const QString& name, const QString& lang, QWidget* parent);
-	QString getName();
-	QString getLanguage();
+	auto getName() -> QString;
+	auto getLanguage() -> QString;
 
   private slots:
-	void accept();
+	void accept() override;
 
   private:
 	QLineEdit* m_name;

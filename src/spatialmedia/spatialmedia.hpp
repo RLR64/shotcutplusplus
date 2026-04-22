@@ -20,6 +20,7 @@
 #ifndef SPATIALMEDIA_HPP
 #define SPATIALMEDIA_HPP
 
+// STL
 #include <string>
 
 class SpatialMedia {

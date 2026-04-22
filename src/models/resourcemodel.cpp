@@ -15,20 +15,38 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "resourcemodel.hpp"
-
 #include "Logger.hpp"
 #include "shotcut_mlt_properties.hpp"
 #include "util.hpp"
 
+// Qt
 #include <Mlt.h>
+#include <MltChain.h>
+#include <MltLink.h>
+#include <MltParser.h>
+#include <qabstractitemmodel.h>
+#include <qfileinfo.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qtpreprocessorsupport.h>
+
+// STL
+#include <algorithm>
+
+// Number constants
+constexpr int sampleRatetoDoubleNumber{1000};
 
 class ProducerFinder : public Mlt::Parser {
   public:
 	ProducerFinder(ResourceModel* model) : Mlt::Parser(), m_model(model) {
 	}
 
-	int on_start_producer(Mlt::Producer* producer) {
+	auto on_start_producer(Mlt::Producer* producer) -> int override {
 		if (!m_isBackgroundTrack && producer->parent().get("resource") != QStringLiteral("<tractor>")) {
 			if (!m_isTransition)
 				m_clipIndex++;
@@ -50,15 +68,15 @@ class ProducerFinder : public Mlt::Parser {
 		return 0;
 	}
 
-	int on_start_filter(Mlt::Filter*) {
+	auto on_start_filter(Mlt::Filter*) -> int override {
 		return 0;
 	}
 
-	int on_end_producer(Mlt::Producer*) {
+	auto on_end_producer(Mlt::Producer*) -> int override {
 		return 0;
 	}
 
-	int on_start_playlist(Mlt::Playlist* playlist) {
+	auto on_start_playlist(Mlt::Playlist* playlist) -> int override {
 		if (playlist->get("id") == QStringLiteral("background")) {
 			m_isBackgroundTrack = true;
 		} else {
@@ -67,13 +85,13 @@ class ProducerFinder : public Mlt::Parser {
 		return 0;
 	}
 
-	int on_end_playlist(Mlt::Playlist*) {
+	auto on_end_playlist(Mlt::Playlist*) -> int override {
 		m_trackName.clear();
 		m_isBackgroundTrack = false;
 		return 0;
 	}
 
-	int on_start_tractor(Mlt::Tractor*) {
+	auto on_start_tractor(Mlt::Tractor*) -> int override {
 		if (!m_isTimeline) {
 			m_isTimeline = true;
 		} else {
@@ -84,20 +102,20 @@ class ProducerFinder : public Mlt::Parser {
 		return 0;
 	}
 
-	int on_end_tractor(Mlt::Tractor*) {
+	auto on_end_tractor(Mlt::Tractor*) -> int override {
 		m_isTransition = false;
 		return 0;
 	}
 
-	int on_start_multitrack(Mlt::Multitrack*) {
+	auto on_start_multitrack(Mlt::Multitrack*) -> int override {
 		return 0;
 	}
 
-	int on_end_multitrack(Mlt::Multitrack*) {
+	auto on_end_multitrack(Mlt::Multitrack*) -> int override {
 		return 0;
 	}
 
-	int on_start_track() {
+	auto on_start_track() -> int override {
 		if (!m_isTransition) {
 			m_trackIndex++;
 			m_clipIndex = -1;
@@ -105,49 +123,49 @@ class ProducerFinder : public Mlt::Parser {
 		return 0;
 	}
 
-	int on_end_track() {
+	auto on_end_track() -> int override {
 		return 0;
 	}
 
-	int on_end_filter(Mlt::Filter*) {
+	auto on_end_filter(Mlt::Filter*) -> int override {
 		return 0;
 	}
 
-	int on_start_transition(Mlt::Transition*) {
+	auto on_start_transition(Mlt::Transition*) -> int override {
 		return 0;
 	}
 
-	int on_end_transition(Mlt::Transition*) {
+	auto on_end_transition(Mlt::Transition*) -> int override {
 		return 0;
 	}
 
-	int on_start_chain(Mlt::Chain*) {
+	auto on_start_chain(Mlt::Chain*) -> int override {
 		return 0;
 	}
 
-	int on_end_chain(Mlt::Chain*) {
+	auto on_end_chain(Mlt::Chain*) -> int override {
 		return 0;
 	}
 
-	int on_start_link(Mlt::Link*) {
+	auto on_start_link(Mlt::Link*) -> int override {
 		return 0;
 	}
 
-	int on_end_link(Mlt::Link*) {
+	auto on_end_link(Mlt::Link*) -> int override {
 		return 0;
 	}
 
   private:
 	ResourceModel* m_model;
-	bool           m_isTimeline        = false;
-	bool           m_isTransition      = false;
-	bool           m_isBackgroundTrack = false;
-	int            m_trackIndex        = -1;
-	int            m_clipIndex         = -1;
-	QString        m_trackName;
+	bool m_isTimeline = false;
+	bool m_isTransition = false;
+	bool m_isBackgroundTrack = false;
+	int  m_trackIndex = -1;
+	int  m_clipIndex = -1;
+	QString m_trackName;
 };
 
-QString appendLocation(QString& currentLocations, const QString& location) {
+static auto appendLocation(QString& currentLocations, const QString& location) -> QString {
 	if (currentLocations.isEmpty()) {
 		return location;
 	} else {
@@ -158,8 +176,7 @@ QString appendLocation(QString& currentLocations, const QString& location) {
 ResourceModel::ResourceModel(QObject* parent) : QAbstractItemModel(parent) {
 }
 
-ResourceModel::~ResourceModel() {
-}
+ResourceModel::~ResourceModel() = default;
 
 void ResourceModel::search(Mlt::Producer* producer) {
 	if (!producer) {
@@ -168,7 +185,7 @@ void ResourceModel::search(Mlt::Producer* producer) {
 	ProducerFinder parser(this);
 	beginResetModel();
 	parser.start(*producer);
-	std::sort(m_producers.begin(), m_producers.end(), [&](Mlt::Producer& a, Mlt::Producer& b) {
+	std::sort(m_producers.begin(), m_producers.end(), [&](Mlt::Producer& a, Mlt::Producer& b) -> bool {
 		return Util::GetFilenameFromProducer(&a, true).compare(Util::GetFilenameFromProducer(&b, true),
 		                                                       Qt::CaseInsensitive) < 0;
 	});
@@ -180,7 +197,7 @@ void ResourceModel::add(Mlt::Producer* producer, const QString& location) {
 		// Do not add
 	} else if (producer->is_cut()) {
 		Mlt::Producer parent = producer->parent();
-		QString       hash   = Util::getHash(parent);
+		QString const hash = Util::getHash(parent);
 		if (!hash.isEmpty()) {
 			if (!exists(hash)) {
 				beginInsertRows(QModelIndex(), m_producers.size(), m_producers.size());
@@ -190,7 +207,7 @@ void ResourceModel::add(Mlt::Producer* producer, const QString& location) {
 			m_locations[hash] = appendLocation(m_locations[hash], location);
 		}
 	} else {
-		QString hash = Util::getHash(*producer);
+		QString const hash = Util::getHash(*producer);
 		if (!hash.isEmpty()) {
 			if (!exists(hash)) {
 				beginInsertRows(QModelIndex(), m_producers.size(), m_producers.size());
@@ -202,10 +219,10 @@ void ResourceModel::add(Mlt::Producer* producer, const QString& location) {
 	}
 }
 
-QList<Mlt::Producer> ResourceModel::getProducers(const QModelIndexList& indices) {
+auto ResourceModel::getProducers(const QModelIndexList& indices) -> QList<Mlt::Producer> {
 	QList<Mlt::Producer> producers;
 	foreach (auto index, indices) {
-		int row = index.row();
+		const int row = index.row();
 		if (row >= 0 && row < m_producers.size()) {
 			producers << m_producers[row];
 		}
@@ -213,7 +230,7 @@ QList<Mlt::Producer> ResourceModel::getProducers(const QModelIndexList& indices)
 	return producers;
 }
 
-bool ResourceModel::exists(const QString& hash) {
+auto ResourceModel::exists(const QString& hash) -> bool {
 	for (int i = 0; i < m_producers.count(); ++i) {
 		if (Util::getHash(m_producers[i]) == hash) {
 			return true;
@@ -222,28 +239,28 @@ bool ResourceModel::exists(const QString& hash) {
 	return false;
 }
 
-int ResourceModel::producerCount() {
+auto ResourceModel::producerCount() -> int {
 	return m_producers.count();
 }
 
-Mlt::Producer ResourceModel::producer(int index) {
+auto ResourceModel::producer(int index) -> Mlt::Producer {
 	if (index >= 0 && index < m_producers.count()) {
 		return m_producers[index];
 	}
-	return Mlt::Producer();
+	return {};
 }
 
-int ResourceModel::rowCount(const QModelIndex& parent) const {
+auto ResourceModel::rowCount(const QModelIndex& parent) const -> int {
 	Q_UNUSED(parent)
 	return m_producers.size();
 }
 
-int ResourceModel::columnCount(const QModelIndex& parent) const {
+auto ResourceModel::columnCount(const QModelIndex& parent) const -> int {
 	Q_UNUSED(parent)
 	return COLUMN_COUNT;
 }
 
-QVariant ResourceModel::data(const QModelIndex& index, int role) const {
+auto ResourceModel::data(const QModelIndex& index, int role) const -> QVariant {
 	QVariant result;
 
 	switch (role) {
@@ -262,36 +279,36 @@ QVariant ResourceModel::data(const QModelIndex& index, int role) const {
 		return result;
 	}
 
-	Mlt::Producer* producer = const_cast<Mlt::Producer*>(&m_producers[index.row()]);
+	auto* producer = const_cast<Mlt::Producer*>(&m_producers[index.row()]);
 	switch (role) {
 	case Qt::DisplayRole:
 		switch (index.column()) {
 		case COLUMN_INFO:
 			break;
 		case COLUMN_NAME: {
-			QString   path = Util::GetFilenameFromProducer(producer, true);
-			QFileInfo info(path);
+			QString const path = Util::GetFilenameFromProducer(producer, true);
+			QFileInfo const info(path);
 			result = info.fileName();
 			break;
 		}
 		case COLUMN_SIZE: {
-			QString   path = Util::GetFilenameFromProducer(producer, true);
-			QFileInfo info(path);
-			double    size = (double)info.size() / (double)(1024 * 1024);
-			result         = tr("%1MB").arg(QLocale().toString(size, 'f', 2));
+			QString const path = Util::GetFilenameFromProducer(producer, true);
+			QFileInfo const info(path);
+			const double size = (double)info.size() / (double)(1024 * 1024);
+			result = tr("%1MB").arg(QLocale().toString(size, 'f', 2));
 			break;
 		}
 		case COLUMN_VID_DESCRIPTION: {
-			int width  = producer->get_int("meta.media.width");
-			int height = producer->get_int("meta.media.height");
+			const int width = producer->get_int("meta.media.width");
+			const int height = producer->get_int("meta.media.height");
 			if (producer->get_int("video_index") >= 0) {
-				double frame_rate_num = producer->get_double("meta.media.frame_rate_num");
-				double frame_rate_den = producer->get_double("meta.media.frame_rate_den");
+				const double frame_rate_num = producer->get_double("meta.media.frame_rate_num");
+				const double frame_rate_den = producer->get_double("meta.media.frame_rate_den");
 				if (width && height && frame_rate_num && frame_rate_den && (frame_rate_num / frame_rate_den) < 1000) {
-					int     index = producer->get_int("video_index");
-					QString key   = QStringLiteral("meta.media.%1.codec.name").arg(index);
-					QString codec(producer->get(key.toLatin1().constData()));
-					double  frame_rate = frame_rate_num / frame_rate_den;
+					const int index = producer->get_int("video_index");
+					QString const key = QStringLiteral("meta.media.%1.codec.name").arg(index);
+					QString const codec(producer->get(key.toLatin1().constData()));
+					const double  frame_rate = frame_rate_num / frame_rate_den;
 					result             = tr("%1 %2x%3 %4fps")
 					                         .arg(codec)
 					                         .arg(width)
@@ -306,15 +323,15 @@ QVariant ResourceModel::data(const QModelIndex& index, int role) const {
 		}
 		case COLUMN_AUD_DESCRIPTION: {
 			if (producer->get_int("audio_index") >= 0) {
-				int     index = producer->get_int("audio_index");
-				QString key   = QStringLiteral("meta.media.%1.codec.name").arg(index);
-				QString codec(producer->get(key.toLatin1().constData()));
+				const int index = producer->get_int("audio_index");
+				QString key = QStringLiteral("meta.media.%1.codec.name").arg(index);
+				QString const codec(producer->get(key.toLatin1().constData()));
 				if (!codec.isEmpty()) {
 					key = QStringLiteral("meta.media.%1.codec.channels").arg(index);
-					int channels(producer->get_int(key.toLatin1().constData()));
+					const int channels(producer->get_int(key.toLatin1().constData()));
 					key = QStringLiteral("meta.media.%1.codec.sample_rate").arg(index);
-					QString sampleRate(producer->get(key.toLatin1().constData()));
-					result = QStringLiteral("%1 %2ch %3KHz").arg(codec).arg(channels).arg(sampleRate.toDouble() / 1000);
+					QString const sampleRate(producer->get(key.toLatin1().constData()));
+					result = QStringLiteral("%1 %2ch %3KHz").arg(codec).arg(channels).arg(sampleRate.toDouble() / sampleRatetoDoubleNumber);
 				}
 			}
 			break;
@@ -333,9 +350,9 @@ QVariant ResourceModel::data(const QModelIndex& index, int role) const {
 		case COLUMN_VID_DESCRIPTION:
 		case COLUMN_AUD_DESCRIPTION:
 		case COLUMN_SIZE: {
-			QString filename  = Util::GetFilenameFromProducer(producer, true);
-			QString hash      = Util::getHash(*producer);
-			QString locations = m_locations[hash];
+			QString const filename = Util::GetFilenameFromProducer(producer, true);
+			QString const hash = Util::getHash(*producer);
+			QString const locations = m_locations[hash];
 			if (locations.isEmpty()) {
 				result = filename;
 			} else {
@@ -392,7 +409,7 @@ QVariant ResourceModel::data(const QModelIndex& index, int role) const {
 	return result;
 }
 
-QVariant ResourceModel::headerData(int section, Qt::Orientation orientation, int role) const {
+auto ResourceModel::headerData(int section, Qt::Orientation  /*orientation*/, int role) const -> QVariant {
 	switch (role) {
 	case Qt::DisplayRole: {
 		switch (section) {
@@ -422,17 +439,17 @@ QVariant ResourceModel::headerData(int section, Qt::Orientation orientation, int
 		break;
 	}
 
-	return QVariant();
+	return {};
 }
 
-QModelIndex ResourceModel::index(int row, int column, const QModelIndex& parent) const {
+auto ResourceModel::index(int row, int column, const QModelIndex& parent) const -> QModelIndex {
 	Q_UNUSED(parent)
 	if (column < 0 || column >= COLUMN_COUNT || row < 0 || row >= m_producers.size())
-		return QModelIndex();
+		return {};
 	return createIndex(row, column, (int)0);
 }
 
-QModelIndex ResourceModel::parent(const QModelIndex& index) const {
+auto ResourceModel::parent(const QModelIndex& index) const -> QModelIndex {
 	Q_UNUSED(index)
-	return QModelIndex();
+	return {};
 }

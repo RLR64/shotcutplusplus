@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "filtersdock.hpp"
-
 #include "Logger.hpp"
 #include "actions.hpp"
 #include "controllers/filtercontroller.hpp"
@@ -30,7 +30,10 @@
 #include "qmltypes/qmlfilter.hpp"
 #include "qmltypes/qmlutilities.hpp"
 #include "qmltypes/qmlview.hpp"
+#include "sharedframe.hpp"
+#include "shotcut_mlt_properties.hpp"
 
+// Qt
 #include <QAction>
 #include <QDir>
 #include <QIcon>
@@ -40,6 +43,18 @@
 #include <QQuickItem>
 #include <QUrl>
 #include <QtWidgets/QScrollArea>
+#include <framework/mlt_types.h>
+#include <qcoreevent.h>
+#include <qdockwidget.h>
+#include <qevent.h>
+#include <qkeysequence.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qvariant.h>
+
+// Number constants
+constexpr int viewFilterSizeNumber{200};
 
 FiltersDock::FiltersDock(MetadataModel* metadataModel, AttachedFiltersModel* attachedModel,
                          MotionTrackerModel* motionTrackerModel, SubtitlesModel* subtitlesModel, QWidget* parent)
@@ -47,9 +62,9 @@ FiltersDock::FiltersDock(MetadataModel* metadataModel, AttachedFiltersModel* att
 	LOG_DEBUG() << "begin";
 	setObjectName("FiltersDock");
 	setWhatsThis("https://forum.shotcut.org/t/about-filters/48127/1");
-	QIcon icon = QIcon::fromTheme("view-filter", QIcon(":/icons/oxygen/32x32/actions/view-filter.png"));
+	QIcon const icon = QIcon::fromTheme("view-filter", QIcon(":/icons/oxygen/32x32/actions/view-filter.png"));
 	toggleViewAction()->setIcon(icon);
-	setMinimumSize(200, 200);
+	setMinimumSize(viewFilterSizeNumber, viewFilterSizeNumber);
 	setupActions();
 
 	m_qview.setFocusPolicy(Qt::StrongFocus);
@@ -72,7 +87,7 @@ FiltersDock::FiltersDock(MetadataModel* metadataModel, AttachedFiltersModel* att
 	connect(m_qview.quickWindow(), &QQuickWindow::sceneGraphInitialized, this, &FiltersDock::load,
 	        Qt::QueuedConnection);
 
-	setCurrentFilter(0, 0, QmlFilter::NoCurrentFilter);
+	setCurrentFilter(nullptr, nullptr, QmlFilter::NoCurrentFilter);
 
 	LOG_DEBUG() << "end";
 }
@@ -83,7 +98,7 @@ void FiltersDock::setCurrentFilter(QmlFilter* filter, QmlMetadata* meta, int ind
 		if (mlt_service_playlist_type != filter->producer().type() && MLT.producer() && MLT.producer()->is_valid())
 			onSeeked(MLT.producer()->position());
 	} else {
-		Mlt::Producer emptyProducer(mlt_producer(0));
+		Mlt::Producer emptyProducer(mlt_producer(nullptr));
 		m_producer.setProducer(emptyProducer);
 	}
 	m_qview.rootContext()->setContextProperty("filter", filter);
@@ -96,8 +111,8 @@ void FiltersDock::setCurrentFilter(QmlFilter* filter, QmlMetadata* meta, int ind
 	m_qview.setWhatsThis(meta ? meta->helpText() : QString());
 }
 
-bool FiltersDock::event(QEvent* event) {
-	bool result = QDockWidget::event(event);
+auto FiltersDock::event(QEvent* event) -> bool {
+	const bool result = QDockWidget::event(event);
 	if (event->type() == QEvent::PaletteChange || event->type() == QEvent::StyleChange ||
 	    event->type() == QEvent::Show) {
 		load();
@@ -129,7 +144,7 @@ void FiltersDock::onSeeked(int position) {
 
 void FiltersDock::onShowFrame(const SharedFrame& frame) {
 	if (m_producer.producer().is_valid()) {
-		int position = frame.get_position();
+		const int position = frame.get_position();
 		onSeeked(position);
 	}
 }
@@ -175,7 +190,7 @@ void FiltersDock::load() {
 
 	m_qview.setResizeMode(QQuickWidget::SizeRootObjectToView);
 	m_qview.quickWindow()->setColor(palette().window().color());
-	QUrl source = QUrl::fromLocalFile(viewPath.absoluteFilePath("filterview.qml"));
+	QUrl const source = QUrl::fromLocalFile(viewPath.absoluteFilePath("filterview.qml"));
 	m_qview.setSource(source);
 
 	QObject::connect(m_qview.rootObject(), SIGNAL(currentFilterRequested(int)), SIGNAL(currentFilterRequested(int)));
@@ -191,7 +206,7 @@ void FiltersDock::setupActions() {
 	action->setToolTip(tr("Choose a filter to add"));
 	icon = QIcon::fromTheme("list-add", QIcon(":/icons/oxygen/32x32/actions/list-add.png"));
 	action->setIcon(icon);
-	connect(action, &QAction::triggered, this, [=]() {
+	connect(action, &QAction::triggered, this, [this]() -> void {
 		show();
 		raise();
 		m_qview.setFocus();
@@ -205,25 +220,25 @@ void FiltersDock::setupActions() {
 	action->setToolTip(tr("Remove selected filter"));
 	icon = QIcon::fromTheme("list-remove", QIcon(":/icons/oxygen/32x32/actions/list-remove.png"));
 	action->setIcon(icon);
-	connect(action, &QAction::triggered, this, [=]() { MAIN.filterController()->removeCurrent(); });
+	connect(action, &QAction::triggered, this, [=]() -> void { MAIN.filterController()->removeCurrent(); });
 	addAction(action);
 	Actions.add("filtersRemoveFilterAction", action, windowTitle());
 
 	action = new QAction(tr("Copy Enabled"), this);
 	action->setToolTip(tr("Copy checked filters to the clipboard"));
-	connect(action, &QAction::triggered, this, [=]() { QmlApplication::singleton().copyEnabledFilters(); });
+	connect(action, &QAction::triggered, this, [=]() -> void { QmlApplication::singleton().copyEnabledFilters(); });
 	addAction(action);
 	Actions.add("filtersCopyFiltersAction", action, windowTitle());
 
 	action = new QAction(tr("Copy Current"), this);
 	action->setToolTip(tr("Copy current filter to the clipboard"));
-	connect(action, &QAction::triggered, this, [=]() { QmlApplication::singleton().copyCurrentFilter(); });
+	connect(action, &QAction::triggered, this, [=]() -> void { QmlApplication::singleton().copyCurrentFilter(); });
 	addAction(action);
 	Actions.add("filtersCopyCurrentFilterAction", action, windowTitle());
 
 	action = new QAction(tr("Copy All"), this);
 	action->setToolTip(tr("Copy all filters to the clipboard"));
-	connect(action, &QAction::triggered, this, [=]() { QmlApplication::singleton().copyAllFilters(); });
+	connect(action, &QAction::triggered, this, [=]() -> void { QmlApplication::singleton().copyAllFilters(); });
 	addAction(action);
 	Actions.add("filtersCopyAllFilterAction", action, windowTitle());
 
@@ -231,7 +246,7 @@ void FiltersDock::setupActions() {
 	action->setToolTip(tr("Paste the filters from the clipboard"));
 	icon = QIcon::fromTheme("edit-paste", QIcon(":/icons/oxygen/32x32/actions/edit-paste.png"));
 	action->setIcon(icon);
-	connect(action, &QAction::triggered, this, [=]() { MAIN.filterController()->attachedModel()->pasteFilters(); });
+	connect(action, &QAction::triggered, this, [=]() -> void { MAIN.filterController()->attachedModel()->pasteFilters(); });
 	addAction(action);
 	Actions.add("filtersPasteFiltersAction", action, windowTitle());
 }

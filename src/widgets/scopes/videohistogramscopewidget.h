@@ -18,29 +18,42 @@
 #ifndef VIDEOHISTOGRAMSCOPEWIDGET_H
 #define VIDEOHISTOGRAMSCOPEWIDGET_H
 
+// Local
 #include "scopewidget.h"
+#include "sharedframe.hpp"
 
+// Qt
 #include <QMutex>
 #include <QVector>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qicon.h>
+#include <qpaintdevice.h>
+#include <qsize.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class VideoHistogramScopeWidget Q_DECL_FINAL : public ScopeWidget {
 	Q_OBJECT
 
   public:
 	explicit VideoHistogramScopeWidget();
+
 	QString getTitle() Q_DECL_OVERRIDE;
 
   private:
 	void refreshScope(const QSize& size, bool full) Q_DECL_OVERRIDE;
 	void paintEvent(QPaintEvent*) Q_DECL_OVERRIDE;
-	void drawHistogram(QPainter& p, QString title, QColor color, QColor outline, QVector<unsigned int>& bins,
+	void drawHistogram(QPainter& p, const QString& title, QColor color, QColor outline, QVector<unsigned int>& bins,
 	                   QRect rect);
 	void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
 
 	SharedFrame m_frame;
 
 	// Variables accessed from multiple threads (mutex protected)
-	QMutex                m_mutex;
+	QMutex m_mutex;
 	QVector<unsigned int> m_yBins;
 	QVector<unsigned int> m_rBins;
 	QVector<unsigned int> m_gBins;

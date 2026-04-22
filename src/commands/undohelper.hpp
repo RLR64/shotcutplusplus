@@ -18,13 +18,16 @@
 #ifndef UNDOHELPER_HPP
 #define UNDOHELPER_HPP
 
+// Local
 #include "models/multitrackmodel.hpp"
 
+// Qt
 #include <MltPlaylist.h>
 #include <QList>
 #include <QMap>
 #include <QSet>
 #include <QString>
+#include <qobject.h>
 
 class UndoHelper {
   public:
@@ -37,7 +40,7 @@ class UndoHelper {
 	void UndoChanges();
 	void SetHints(OptimizationHints Hints);
 
-	QSet<int> AffectedTracks() const {
+	[[nodiscard]] auto AffectedTracks() const -> QSet<int> {
 		return m_affectedTracks;
 	}
 

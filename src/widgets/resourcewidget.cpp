@@ -15,20 +15,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "resourcewidget.h"
-
 #include "Logger.hpp"
 #include "models/resourcemodel.hpp"
 
+// Qt
+#include <MltProducer.h>
 #include <QHeaderView>
 #include <QTreeView>
 #include <QVBoxLayout>
+#include <qabstractitemview.h>
+#include <qitemselectionmodel.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qtypes.h>
+#include <qwidget.h>
+
+// Name constants
+static constexpr int setTableWidthNumber{30};
+static constexpr int setTableHeightNumber{400};
+static constexpr int MAX_COLUMN_WIDTH{300};
 
 ResourceWidget::ResourceWidget(QWidget* parent) : QWidget(parent) {
-	QVBoxLayout* vlayout = new QVBoxLayout();
-
+	auto* vlayout = new QVBoxLayout();
 	m_model = new ResourceModel(this);
-
 	m_table = new QTreeView();
 	m_table->setSelectionMode(QAbstractItemView::ExtendedSelection);
 	m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -40,7 +51,7 @@ ResourceWidget::ResourceWidget(QWidget* parent) : QWidget(parent) {
 	m_table->setWordWrap(false);
 	m_table->setAlternatingRowColors(true);
 	m_table->header()->setStretchLastSection(false);
-	qreal rowHeight = fontMetrics().height() * devicePixelRatioF();
+	const qreal rowHeight = fontMetrics().height() * devicePixelRatioF();
 	m_table->header()->setMinimumSectionSize(rowHeight);
 	m_table->header()->setSectionResizeMode(ResourceModel::COLUMN_INFO, QHeaderView::Fixed);
 	m_table->setColumnWidth(ResourceModel::COLUMN_INFO, rowHeight);
@@ -48,15 +59,12 @@ ResourceWidget::ResourceWidget(QWidget* parent) : QWidget(parent) {
 	m_table->header()->setSectionResizeMode(ResourceModel::COLUMN_SIZE, QHeaderView::Interactive);
 	m_table->header()->setSectionResizeMode(ResourceModel::COLUMN_VID_DESCRIPTION, QHeaderView::Interactive);
 	m_table->header()->setSectionResizeMode(ResourceModel::COLUMN_AUD_DESCRIPTION, QHeaderView::Interactive);
-	connect(m_table->selectionModel(), &QItemSelectionModel::currentChanged, this,
-	        [=]() { m_table->selectionModel()->clearCurrentIndex(); });
+	connect(m_table->selectionModel(), &QItemSelectionModel::currentChanged, this, [this]() -> void { m_table->selectionModel()->clearCurrentIndex(); });
 	vlayout->addWidget(m_table);
-
 	setLayout(vlayout);
 }
 
-ResourceWidget::~ResourceWidget() {
-}
+ResourceWidget::~ResourceWidget() = default;
 
 void ResourceWidget::search(Mlt::Producer* producer) {
 	m_model->search(producer);
@@ -69,17 +77,17 @@ void ResourceWidget::add(Mlt::Producer* producer) {
 void ResourceWidget::selectTroubleClips() {
 	m_table->selectionModel()->clearSelection();
 	for (int i = 0; i < m_model->rowCount(QModelIndex()); i++) {
-		QModelIndex index = m_model->index(i, ResourceModel::COLUMN_INFO);
+		QModelIndex const index = m_model->index(i, ResourceModel::COLUMN_INFO);
 		if (!m_model->data(index, Qt::ToolTipRole).toString().isEmpty()) {
 			m_table->selectionModel()->select(index, QItemSelectionModel::Select | QItemSelectionModel::Rows);
 		}
 	}
 }
 
-bool ResourceWidget::hasTroubleClips() {
+auto ResourceWidget::hasTroubleClips() -> bool {
 	auto n = m_model->rowCount(QModelIndex());
 	for (int i = 0; n > 1 && i < n; i++) {
-		QModelIndex index = m_model->index(i, ResourceModel::COLUMN_INFO);
+		QModelIndex const index = m_model->index(i, ResourceModel::COLUMN_INFO);
 		if (!m_model->data(index, Qt::ToolTipRole).toString().isEmpty()) {
 			return true;
 		}
@@ -87,21 +95,20 @@ bool ResourceWidget::hasTroubleClips() {
 	return false;
 }
 
-int ResourceWidget::producerCount() {
+auto ResourceWidget::producerCount() -> int {
 	return m_model->producerCount();
 }
 
-Mlt::Producer ResourceWidget::producer(int index) {
+auto ResourceWidget::producer(int index) -> Mlt::Producer {
 	return m_model->producer(index);
 }
 
-QList<Mlt::Producer> ResourceWidget::getSelected() {
+auto ResourceWidget::getSelected() -> QList<Mlt::Producer> {
 	return m_model->getProducers(m_table->selectionModel()->selectedRows());
 }
 
 void ResourceWidget::updateSize() {
-	static constexpr int MAX_COLUMN_WIDTH = 300;
-	int              tableWidth       = 38 + m_table->columnWidth(ResourceModel::COLUMN_INFO);
+	int tableWidth = setTableWidthNumber + m_table->columnWidth(ResourceModel::COLUMN_INFO);
 	for (int i = ResourceModel::COLUMN_NAME; i < m_table->model()->columnCount(); i++) {
 		m_table->resizeColumnToContents(i);
 		int columnWidth = m_table->columnWidth(i);
@@ -111,5 +118,5 @@ void ResourceWidget::updateSize() {
 		}
 		tableWidth += columnWidth;
 	}
-	resize(tableWidth, 400);
+	resize(tableWidth, setTableHeightNumber);
 }

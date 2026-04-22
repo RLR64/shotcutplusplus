@@ -18,40 +18,50 @@
 #ifndef GLAXNIMATEPRODUCERWIDGET_H
 #define GLAXNIMATEPRODUCERWIDGET_H
 
+// Local
 #include "abstractproducerwidget.hpp"
 #include "sharedframe.hpp"
 
+// Qt
+#include <MltProducer.h>
+#include <MltProperties.h>
 #include <QDataStream>
 #include <QLocalServer>
 #include <QLocalSocket>
 #include <QPointer>
 #include <QSharedMemory>
 #include <QWidget>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
+
+// STL
+#include <memory>
 
 class GlaxnimateIpcServer : public QObject {
 	Q_OBJECT
 
 	class ParentResources {
 	  public:
-		Mlt::Producer                  m_producer;
-		std::unique_ptr<Mlt::Profile>  m_profile;
+		Mlt::Producer m_producer;
+		std::unique_ptr<Mlt::Profile> m_profile;
 		std::unique_ptr<Mlt::Producer> m_glaxnimateProducer;
-		int                            m_frameNum = -1;
+		int m_frameNum = -1;
 
 		void setProducer(const Mlt::Producer& producer, bool hideCurrentTrack);
 	};
 
   public:
 	std::unique_ptr<ParentResources> parent;
-	std::unique_ptr<QLocalServer>    m_server;
-	std::unique_ptr<QDataStream>     m_stream;
-	bool                             m_isProtocolValid = false;
-	std::unique_ptr<QSharedMemory>   m_sharedMemory;
-	QPointer<QLocalSocket>           m_socket;
+	std::unique_ptr<QLocalServer> m_server;
+	std::unique_ptr<QDataStream> m_stream;
+	bool m_isProtocolValid = false;
+	std::unique_ptr<QSharedMemory> m_sharedMemory;
+	QPointer<QLocalSocket> m_socket;
 
 	static GlaxnimateIpcServer& instance();
-	static void                 newFile(const QString& filename, int duration);
-	void                        reset();
+	static void newFile(const QString& filename, int duration);
+	void reset();
 	void launch(const Mlt::Producer& producer, QString filename = QString(), bool hideCurrentTrack = true);
 
   private slots:
@@ -61,8 +71,8 @@ class GlaxnimateIpcServer : public QObject {
 	void onFrameDisplayed(const SharedFrame& frame);
 
   private:
-	int         toMltFps(float frame) const;
-	bool        copyToShared(const QImage& image);
+	[[nodiscard]] int toMltFps(float frame) const;
+	bool copyToShared(const QImage& image);
 	SharedFrame m_sharedFrame;
 };
 
@@ -80,15 +90,15 @@ class GlaxnimateProducerWidget : public QWidget, public AbstractProducerWidget {
 	Q_OBJECT
 
   public:
-	explicit GlaxnimateProducerWidget(QWidget* parent = 0);
-	~GlaxnimateProducerWidget();
+	explicit GlaxnimateProducerWidget(QWidget* parent = nullptr);
+	~GlaxnimateProducerWidget() override;
 
 	// AbstractProducerWidget overrides
-	Mlt::Producer*  newProducer(Mlt::Profile&);
-	virtual void    setProducer(Mlt::Producer*);
-	Mlt::Properties getPreset() const;
-	void            loadPreset(Mlt::Properties&);
-	void            setLaunchOnNew(bool launch);
+	Mlt::Producer* newProducer(Mlt::Profile&) override;
+	void setProducer(Mlt::Producer*) override;
+	[[nodiscard]] Mlt::Properties getPreset() const override;
+	void loadPreset(Mlt::Properties&) override;
+	void setLaunchOnNew(bool launch);
 
   signals:
 	void producerChanged(Mlt::Producer*);
@@ -109,10 +119,10 @@ class GlaxnimateProducerWidget : public QWidget, public AbstractProducerWidget {
 	void on_durationSpinBox_editingFinished();
 
   private:
-	Ui::GlaxnimateProducerWidget*       ui;
-	QString                             m_title;
+	Ui::GlaxnimateProducerWidget* ui;
+	QString m_title;
 	std::unique_ptr<QFileSystemWatcher> m_watcher;
-	bool                                m_launchOnNew = true;
+	bool m_launchOnNew = true;
 };
 
 #endif // GLAXNIMATEPRODUCERWIDGET_H

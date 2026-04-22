@@ -15,15 +15,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "subtitlesselectionmodel.hpp"
-
 #include "Logger.hpp"
 #include "models/subtitlesmodel.hpp"
+
+// Qt
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qitemselectionmodel.h>
+#include <qtmetamacros.h>
+
+// STL
 
 SubtitlesSelectionModel::SubtitlesSelectionModel(QAbstractItemModel* model)
     : QItemSelectionModel(model), m_selectedTrackIndex(-1) {
 	connect(this, &QItemSelectionModel::selectionChanged, this,
-	        [&](const QItemSelection& selected, const QItemSelection& deselected) {
+			[&](const QItemSelection& /*selected*/, const QItemSelection& /*deselected*/) -> void {
 		        QVariantList result;
 		        foreach (auto modelIndex, selectedRows()) {
 			        result << modelIndex.row();
@@ -36,12 +45,12 @@ SubtitlesSelectionModel::SubtitlesSelectionModel(QAbstractItemModel* model)
 	        });
 }
 
-QModelIndex SubtitlesSelectionModel::selectedTrackModelIndex() {
-	SubtitlesModel* smodel = dynamic_cast<SubtitlesModel*>(model());
+auto SubtitlesSelectionModel::selectedTrackModelIndex() -> QModelIndex {
+	SubtitlesModel const* smodel = dynamic_cast<SubtitlesModel*>(model());
 	return smodel->trackModelIndex(m_selectedTrackIndex);
 }
 
-int SubtitlesSelectionModel::selectedTrack() {
+auto SubtitlesSelectionModel::selectedTrack() -> int {
 	return m_selectedTrackIndex;
 }
 
@@ -54,11 +63,11 @@ void SubtitlesSelectionModel::setSelectedTrack(int trackIndex) {
 	}
 }
 
-QVariantList SubtitlesSelectionModel::selectedItems() {
+auto SubtitlesSelectionModel::selectedItems() -> QVariantList {
 	return m_selectedItems;
 }
 
-bool SubtitlesSelectionModel::isItemSelected(int itemIndex) {
+auto SubtitlesSelectionModel::isItemSelected(int itemIndex) -> bool {
 	if (m_selectedItems.contains(QVariant(itemIndex))) {
 		return true;
 	}
@@ -71,8 +80,8 @@ void SubtitlesSelectionModel::selectItem(int itemIndex) {
 		// This item is already selected
 		return;
 	}
-	SubtitlesModel* smodel         = dynamic_cast<SubtitlesModel*>(model());
-	QModelIndex     itemModelIndex = smodel->itemModelIndex(m_selectedTrackIndex, itemIndex);
+	SubtitlesModel const* smodel = dynamic_cast<SubtitlesModel*>(model());
+	QModelIndex const itemModelIndex = smodel->itemModelIndex(m_selectedTrackIndex, itemIndex);
 	if (itemModelIndex.isValid()) {
 		select(itemModelIndex, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
 		setCurrentIndex(itemModelIndex, QItemSelectionModel::NoUpdate);
@@ -80,8 +89,8 @@ void SubtitlesSelectionModel::selectItem(int itemIndex) {
 }
 
 void SubtitlesSelectionModel::selectRange(int itemIndex) {
-	SubtitlesModel* smodel         = dynamic_cast<SubtitlesModel*>(model());
-	QModelIndex     itemModelIndex = smodel->itemModelIndex(m_selectedTrackIndex, itemIndex);
+	SubtitlesModel const* smodel = dynamic_cast<SubtitlesModel*>(model());
+	QModelIndex const itemModelIndex = smodel->itemModelIndex(m_selectedTrackIndex, itemIndex);
 	if (!itemModelIndex.isValid()) {
 		return;
 	}
@@ -90,8 +99,8 @@ void SubtitlesSelectionModel::selectRange(int itemIndex) {
 		select(itemModelIndex,
 		       QItemSelectionModel::ClearAndSelect | QItemSelectionModel::SelectCurrent | QItemSelectionModel::Rows);
 	} else {
-		QModelIndex    firstItemModelIndex = smodel->itemModelIndex(m_selectedTrackIndex, m_lastSingleSelection);
-		QItemSelection newSelection(firstItemModelIndex, itemModelIndex);
+		QModelIndex const firstItemModelIndex = smodel->itemModelIndex(m_selectedTrackIndex, m_lastSingleSelection);
+		QItemSelection const newSelection(firstItemModelIndex, itemModelIndex);
 		select(newSelection,
 		       QItemSelectionModel::ClearAndSelect | QItemSelectionModel::SelectCurrent | QItemSelectionModel::Rows);
 	}

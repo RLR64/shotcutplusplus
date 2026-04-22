@@ -18,6 +18,7 @@
 #ifndef MLTXMLCHECKER_HPP
 #define MLTXMLCHECKER_HPP
 
+// Qt
 #include <QFileInfo>
 #include <QPair>
 #include <QStandardItemModel>
@@ -27,6 +28,8 @@
 #include <QVersionNumber>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
+#include <qcontainerfwd.h>
+#include <qscopedpointer.h>
 
 class QUIDevice;
 
@@ -38,33 +41,33 @@ class MltXmlChecker {
 
 	MltXmlChecker();
 	QXmlStreamReader::Error check(const QString& fileName);
-	QString                 errorString() const;
+	[[nodiscard]] QString errorString() const;
 
-	bool needsGPU() const {
+	[[nodiscard]] bool needsGPU() const {
 		return m_needsGPU;
 	}
 
-	bool needsCPU() const {
+	[[nodiscard]] bool needsCPU() const {
 		return m_needsCPU;
 	}
 
-	bool hasEffects() const {
+	[[nodiscard]] bool hasEffects() const {
 		return m_hasEffects;
 	}
 
-	bool isConverted() const {
+	[[nodiscard]] bool isConverted() const {
 		return m_isConverted;
 	}
 
-	bool isCorrected() const {
+	[[nodiscard]] bool isCorrected() const {
 		return m_isCorrected;
 	}
 
-	bool isUpdated() const {
+	[[nodiscard]] bool isUpdated() const {
 		return m_isUpdated;
 	}
 
-	QTemporaryFile& tempFile() const {
+	[[nodiscard]] QTemporaryFile& tempFile() const {
 		return *m_tempFile;
 	}
 
@@ -72,7 +75,7 @@ class MltXmlChecker {
 		return m_unlinkedFilesModel;
 	}
 
-	QString shotcutVersion() const {
+	[[nodiscard]] QString shotcutVersion() const {
 		return m_shotcutVersion;
 	}
 
@@ -101,32 +104,32 @@ class MltXmlChecker {
 	void checkForProxy(const QString& mlt_service, QVector<MltProperty>& properties);
 	bool checkMltVersion();
 
-	QXmlStreamReader               m_xml;
-	QXmlStreamWriter               m_newXml;
-	bool                           m_needsGPU;
-	bool                           m_needsCPU;
-	bool                           m_hasEffects;
-	bool                           m_isConverted;
-	bool                           m_isCorrected;
-	bool                           m_isUpdated;
-	QChar                          m_decimalPoint;
+	QXmlStreamReader m_xml;
+	QXmlStreamWriter m_newXml;
+	bool m_needsGPU;
+	bool m_needsCPU;
+	bool m_hasEffects;
+	bool m_isConverted;
+	bool m_isCorrected;
+	bool m_isUpdated;
+	QChar m_decimalPoint;
 	QScopedPointer<QTemporaryFile> m_tempFile;
-	bool                           m_numericValueChanged;
-	QFileInfo                      m_fileInfo;
-	QStandardItemModel             m_unlinkedFilesModel;
-	QString                        mlt_class;
-	QVector<MltProperty>           m_properties;
+	bool m_numericValueChanged;
+	QFileInfo m_fileInfo;
+	QStandardItemModel m_unlinkedFilesModel;
+	QString mlt_class;
+	QVector<MltProperty> m_properties;
 
 	struct MltXmlResource {
 		QFileInfo info;
-		QString   hash;
-		QString   newHash;
-		QString   newDetail;
-		QString   prefix;
-		QString   suffix;
-		int       audio_index, video_index;
-		bool      isProxy;
-		bool      notProxyMeta;
+		QString hash;
+		QString newHash;
+		QString newDetail;
+		QString prefix;
+		QString suffix;
+		int audio_index, video_index;
+		bool isProxy;
+		bool notProxyMeta;
 
 		void clear() {
 			info.setFile(QString());
@@ -136,15 +139,15 @@ class MltXmlChecker {
 			prefix.clear();
 			suffix.clear();
 			audio_index = video_index = -1;
-			isProxy                   = false;
-			notProxyMeta              = false;
+			isProxy = false;
+			notProxyMeta = false;
 		}
 	} m_resource;
 
 	QVersionNumber m_mltVersion;
-	QString        m_shotcutVersion;
-	QString        m_processingMode;
-	bool           m_isTractorTransition;
+	QString m_shotcutVersion;
+	QString m_processingMode;
+	bool m_isTractorTransition;
 };
 
 #endif // MLTXMLCHECKER_HPP

@@ -18,10 +18,15 @@
 #ifndef JOBQUEUE_HPP
 #define JOBQUEUE_HPP
 
+// Local
 #include "jobs/abstractjob.hpp"
 
+// Qt
 #include <QMutex>
 #include <QStandardItemModel>
+#include <qlist.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 #define JOBS JobQueue::singleton()
 
@@ -35,19 +40,19 @@ class JobQueue : public QStandardItemModel {
 	enum ColumnRole { COLUMN_ICON, COLUMN_OUTPUT, COLUMN_STATUS, COLUMN_COUNT };
 
 	static JobQueue& singleton(QObject* parent = nullptr);
-	void             cleanup();
-	AbstractJob*     add(AbstractJob* job);
-	AbstractJob*     jobFromIndex(const QModelIndex& index) const;
-	void             pause();
-	void             pauseCurrent();
-	void             resume();
-	void             resumeCurrent();
-	bool             isPaused() const;
-	bool             hasIncomplete() const;
-	void             remove(const QModelIndex& index);
-	void             removeFinished();
+	void cleanup();
+	AbstractJob* add(AbstractJob* job);
+	[[nodiscard]] AbstractJob* jobFromIndex(const QModelIndex& index) const;
+	void pause();
+	void pauseCurrent();
+	void resume();
+	void resumeCurrent();
+	[[nodiscard]] bool isPaused() const;
+	[[nodiscard]] bool hasIncomplete() const;
+	void remove(const QModelIndex& index);
+	void removeFinished();
 
-	QList<AbstractJob*> jobs() const {
+	[[nodiscard]] QList<AbstractJob*> jobs() const {
 		return m_jobs;
 	}
 
@@ -58,12 +63,12 @@ class JobQueue : public QStandardItemModel {
 
   public slots:
 	void onProgressUpdated(QStandardItem* standardItem, int percent);
-	void onFinished(AbstractJob* job, bool isSuccess, QString time);
+	void onFinished(AbstractJob* job, bool isSuccess, const QString& time);
 
   private:
 	QList<AbstractJob*> m_jobs;
-	QMutex              m_mutex; // protects m_jobs
-	bool                m_paused;
+	QMutex m_mutex; // protects m_jobs
+	bool m_paused;
 };
 
 #endif // JOBQUEUE_HPP

@@ -18,9 +18,12 @@
 #ifndef SAVEIMAGEDIALOG_HPP
 #define SAVEIMAGEDIALOG_HPP
 
+// Qt
 #include <QFileDialog>
 #include <QImage>
 #include <QString>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class SaveImageDialog : public QFileDialog {
 	Q_OBJECT
@@ -28,7 +31,7 @@ class SaveImageDialog : public QFileDialog {
   public:
 	explicit SaveImageDialog(QWidget* parent, const QString& caption, QImage& image);
 
-	QString saveFile() {
+	auto saveFile() -> QString {
 		return m_saveFile;
 	}
 

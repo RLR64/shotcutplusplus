@@ -8,11 +8,20 @@
 **
 ****************************************************************************/
 
+// Local
 #include "lineeditclear.h"
 
+// Qt
 #include <QKeyEvent>
 #include <QStyle>
 #include <QToolButton>
+#include <qcoreevent.h>
+#include <qlineedit.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qwidget.h>
 
 LineEditClear::LineEditClear(QWidget* parent) : QLineEdit(parent) {
 	clearButton = new QToolButton(this);
@@ -23,23 +32,23 @@ LineEditClear::LineEditClear(QWidget* parent) : QLineEdit(parent) {
 	clearButton->hide();
 	connect(clearButton, SIGNAL(clicked()), this, SLOT(clear()));
 	connect(this, SIGNAL(textChanged(const QString&)), this, SLOT(updateCloseButton(const QString&)));
-	int frameWidth = style()->pixelMetric(QStyle::PM_DefaultFrameWidth);
+	const int frameWidth = style()->pixelMetric(QStyle::PM_DefaultFrameWidth);
 	//    setStyleSheet(QStringLiteral("QLineEdit { padding-right: %1px; } ").arg(clearButton->sizeHint().width() +
 	//    frameWidth + 1));
-	QSize msz = minimumSizeHint();
+	QSize const msz = minimumSizeHint();
 	setMinimumSize(qMax(msz.width(), clearButton->sizeHint().height() + frameWidth * 2 + 2),
 	               qMax(msz.height(), clearButton->sizeHint().height() + frameWidth * 2 + 2));
 	installEventFilter(this);
 }
 
 void LineEditClear::resizeEvent(QResizeEvent*) {
-	QSize sz         = clearButton->sizeHint();
-	int   frameWidth = style()->pixelMetric(QStyle::PM_DefaultFrameWidth);
+	QSize const sz = clearButton->sizeHint();
+	const int frameWidth = style()->pixelMetric(QStyle::PM_DefaultFrameWidth);
 	clearButton->move(rect().right() - frameWidth - sz.width(), (rect().bottom() + 1 - sz.height()) / 2);
 }
 
-bool LineEditClear::eventFilter(QObject* target, QEvent* event) {
-	if (QEvent::KeyPress == event->type() && Qt::Key_Escape == static_cast<QKeyEvent*>(event)->key()) {
+auto LineEditClear::eventFilter(QObject* target, QEvent* event) -> bool {
+	if (QEvent::KeyPress == event->type() && Qt::Key_Escape == dynamic_cast<QKeyEvent*>(event)->key()) {
 		clear();
 	}
 	return QLineEdit::eventFilter(target, event);

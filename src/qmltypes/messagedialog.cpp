@@ -15,12 +15,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "messagedialog.hpp"
-
 #include "Logger.hpp"
 #include "qmlapplication.hpp"
 
+// Qt
 #include <QApplication>
+#include <qmessagebox.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 MessageDialog::MessageDialog(QObject* parent) : QObject{parent}, m_buttons{0} {
 }

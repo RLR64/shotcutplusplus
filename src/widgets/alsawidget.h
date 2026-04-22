@@ -18,9 +18,17 @@
 #ifndef ALSAWIDGET_H
 #define ALSAWIDGET_H
 
+// Local
 #include "abstractproducerwidget.hpp"
 
+// Qt
+#include <MltProducer.h>
+#include <MltProperties.h>
 #include <QWidget>
+#include <qtmetamacros.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 namespace Ui {
 class AlsaWidget;
@@ -30,14 +38,14 @@ class AlsaWidget : public QWidget, public AbstractProducerWidget {
 	Q_OBJECT
 
   public:
-	explicit AlsaWidget(QWidget* parent = 0);
-	~AlsaWidget();
+	explicit AlsaWidget(QWidget* parent = nullptr);
+	~AlsaWidget() override;
 
 	// AbstractProducerWidget overrides
-	Mlt::Producer*  newProducer(Mlt::Profile& profile);
-	Mlt::Properties getPreset() const;
-	void            loadPreset(Mlt::Properties&);
-	void            setProducer(Mlt::Producer*);
+	auto newProducer(Mlt::Profile& profile) -> Mlt::Producer* override;
+	[[nodiscard]] auto getPreset() const -> Mlt::Properties override;
+	void loadPreset(Mlt::Properties&) override;
+	void setProducer(Mlt::Producer*) override;
 
   private slots:
 	void on_preset_selected(void* p);

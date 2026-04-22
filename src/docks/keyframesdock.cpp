@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "keyframesdock.hpp"
-
 #include "Logger.hpp"
 #include "actions.hpp"
 #include "mainwindow.hpp"
@@ -26,6 +26,7 @@
 #include "settings.hpp"
 #include "widgets/docktoolbar.h"
 
+// Qt
 #include <QAction>
 #include <QActionGroup>
 #include <QDir>
@@ -38,10 +39,20 @@
 #include <QToolButton>
 #include <QUrl>
 #include <QVBoxLayout>
+#include <qcoreevent.h>
+#include <qdockwidget.h>
+#include <qevent.h>
+#include <qkeysequence.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+
+// STL
 #include <cmath>
 
+
 static QmlMetadata m_emptyQmlMetadata;
-static QmlFilter   m_emptyQmlFilter;
+static QmlFilter m_emptyQmlFilter;
 
 KeyframesDock::KeyframesDock(QmlProducer* qmlProducer, QWidget* parent)
     : QDockWidget(tr("Keyframes"), parent), m_qview(QmlUtilities::sharedEngine(), this), m_qmlProducer(qmlProducer) {
@@ -63,20 +74,20 @@ KeyframesDock::KeyframesDock(QmlProducer* qmlProducer, QWidget* parent)
 	m_mainMenu->addAction(Actions["keyframesToggleKeyframeAction"]);
 	m_mainMenu->addAction(Actions["keyframesSeekPreviousAction"]);
 	m_mainMenu->addAction(Actions["keyframesSeekNextAction"]);
-	QMenu* viewMenu = new QMenu(tr("View"), this);
+	auto* viewMenu = new QMenu(tr("View"), this);
 	viewMenu->addAction(Actions["keyframesZoomOutAction"]);
 	viewMenu->addAction(Actions["keyframesZoomInAction"]);
 	viewMenu->addAction(Actions["keyframesZoomFitAction"]);
 	m_mainMenu->addMenu(viewMenu);
 	Actions.loadFromMenu(m_mainMenu);
 
-	m_keyMenu         = new QMenu(tr("Keyframe"), this);
+	m_keyMenu = new QMenu(tr("Keyframe"), this);
 	m_keyTypePrevMenu = new QMenu(tr("From Previous"), this);
 	m_keyTypePrevMenu->addAction(Actions["keyframesTypePrevHoldAction"]);
 	m_keyTypePrevMenu->addAction(Actions["keyframesTypePrevLinearAction"]);
 	m_keyTypePrevMenu->addAction(Actions["keyframesTypePrevSmoothNaturalAction"]);
 
-	QMenu* keyEaseOutMenu = new QMenu(tr("Ease Out"), this);
+	auto* keyEaseOutMenu = new QMenu(tr("Ease Out"), this);
 	icon = QIcon::fromTheme("keyframe-ease-out", QIcon(":/icons/oxygen/32x32/actions/keyframe-ease-out.png"));
 	keyEaseOutMenu->setIcon(icon);
 	keyEaseOutMenu->addAction(Actions["keyframesTypePrevEaseOutSinuAction"]);
@@ -96,7 +107,7 @@ KeyframesDock::KeyframesDock(QmlProducer* qmlProducer, QWidget* parent)
 	m_keyTypeNextMenu->addAction(Actions["keyframesTypeLinearAction"]);
 	m_keyTypeNextMenu->addAction(Actions["keyframesTypeSmoothNaturalAction"]);
 
-	QMenu* keyEaseInMenu = new QMenu(tr("Ease In"), this);
+	auto* keyEaseInMenu = new QMenu(tr("Ease In"), this);
 	icon = QIcon::fromTheme("keyframe-ease-in", QIcon(":/icons/oxygen/32x32/actions/keyframe-ease-in.png"));
 	keyEaseInMenu->setIcon(icon);
 	keyEaseInMenu->addAction(Actions["keyframesTypeEaseInSinuAction"]);
@@ -111,7 +122,7 @@ KeyframesDock::KeyframesDock(QmlProducer* qmlProducer, QWidget* parent)
 	keyEaseInMenu->addAction(Actions["keyframesTypeEaseInBounAction"]);
 	m_keyTypeNextMenu->addMenu(keyEaseInMenu);
 
-	QMenu* keyEaseInOutMenu = new QMenu(tr("Ease In/Out"), this);
+	auto* keyEaseInOutMenu = new QMenu(tr("Ease In/Out"), this);
 	icon = QIcon::fromTheme("keyframe-ease-inout", QIcon(":/icons/oxygen/32x32/actions/keyframe-ease-inout.png"));
 	keyEaseInOutMenu->setIcon(icon);
 	keyEaseInOutMenu->addAction(Actions["keyframesTypeEaseInOutSinuAction"]);
@@ -133,12 +144,12 @@ KeyframesDock::KeyframesDock(QmlProducer* qmlProducer, QWidget* parent)
 	m_clipMenu->addAction(Actions["keyframesRebuildAudioWaveformAction"]);
 	Actions.loadFromMenu(m_clipMenu);
 
-	QVBoxLayout* vboxLayout = new QVBoxLayout();
+	auto* vboxLayout = new QVBoxLayout();
 	vboxLayout->setSpacing(0);
 	vboxLayout->setContentsMargins(0, 0, 0, 0);
 
-	DockToolBar* toolbar    = new DockToolBar(tr("Keyframes Controls"));
-	QToolButton* menuButton = new QToolButton();
+	auto* toolbar    = new DockToolBar(tr("Keyframes Controls"));
+	auto* menuButton = new QToolButton();
 	menuButton->setIcon(QIcon::fromTheme("show-menu", QIcon(":/icons/oxygen/32x32/actions/show-menu.png")));
 	menuButton->setToolTip(tr("Keyframes Menu"));
 	menuButton->setAutoRaise(true);
@@ -155,20 +166,20 @@ KeyframesDock::KeyframesDock(QmlProducer* qmlProducer, QWidget* parent)
 	toolbar->addAction(Actions["keyframesScrubDragAction"]);
 	toolbar->addSeparator();
 	toolbar->addAction(Actions["keyframesZoomOutAction"]);
-	QSlider* zoomSlider = new QSlider();
+	auto* zoomSlider = new QSlider();
 	zoomSlider->setOrientation(Qt::Horizontal);
 	zoomSlider->setMaximumWidth(200);
 	zoomSlider->setMinimum(0);
 	zoomSlider->setMaximum(300);
 	zoomSlider->setValue(100);
 	zoomSlider->setTracking(false);
-	connect(zoomSlider, &QSlider::valueChanged, this, [&](int value) {
+	connect(zoomSlider, &QSlider::valueChanged, this, [&](int value) -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
 		emit setZoom(value / 100.0);
 	});
-	connect(this, &KeyframesDock::timeScaleChanged, zoomSlider, [=]() {
-		double value = round(pow(m_timeScale - 0.01, 1.0 / 3.0) * 100.0);
+	connect(this, &KeyframesDock::timeScaleChanged, zoomSlider, [this, zoomSlider]() -> void {
+		const double value = round(pow(m_timeScale - 0.01, 1.0 / 3.0) * 100.0);
 		zoomSlider->setValue(value);
 	});
 	toolbar->addWidget(zoomSlider);
@@ -194,11 +205,11 @@ KeyframesDock::KeyframesDock(QmlProducer* qmlProducer, QWidget* parent)
 #ifndef Q_OS_MAC
 	m_qview.setAttribute(Qt::WA_AcceptTouchEvents);
 #endif
-	setCurrentFilter(0, 0);
+	setCurrentFilter(nullptr, nullptr);
 	connect(this, SIGNAL(visibilityChanged(bool)), this, SLOT(load(bool)));
 
 	vboxLayout->addWidget(&m_qview);
-	QWidget* dockContentsWidget = new QWidget();
+	auto* dockContentsWidget = new QWidget();
 	dockContentsWidget->setLayout(vboxLayout);
 	QDockWidget::setWidget(dockContentsWidget);
 
@@ -214,13 +225,13 @@ void KeyframesDock::setupActions() {
 	action->setWhatsThis("https://forum.shotcut.org/t/trimming-filters/13212/1");
 	icon = QIcon::fromTheme("keyframes-filter-in", QIcon(":/icons/oxygen/32x32/actions/keyframes-filter-in.png"));
 	action->setIcon(icon);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (m_qmlProducer && m_filter && m_filter->allowTrim()) {
-			int i = m_qmlProducer->position() + m_qmlProducer->in();
+			const int i = m_qmlProducer->position() + m_qmlProducer->in();
 			m_model.trimFilterIn(i);
 		}
 	});
-	connect(this, &KeyframesDock::newFilter, action, [=]() {
+	connect(this, &KeyframesDock::newFilter, action, [this, action]() -> void {
 		bool enabled = false;
 		if (m_filter && m_filter->allowTrim())
 			enabled = true;
@@ -233,13 +244,13 @@ void KeyframesDock::setupActions() {
 	action->setWhatsThis("https://forum.shotcut.org/t/trimming-filters/13212/1");
 	icon = QIcon::fromTheme("keyframes-filter-out", QIcon(":/icons/oxygen/32x32/actions/keyframes-filter-out.png"));
 	action->setIcon(icon);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (m_qmlProducer && m_filter && m_filter->allowTrim()) {
-			int i = m_qmlProducer->position() + m_qmlProducer->in();
+			const int i = m_qmlProducer->position() + m_qmlProducer->in();
 			m_model.trimFilterOut(i);
 		}
 	});
-	connect(this, &KeyframesDock::newFilter, action, [=]() {
+	connect(this, &KeyframesDock::newFilter, action, [this, action]() -> void {
 		bool enabled = false;
 		if (m_filter && m_filter->allowTrim())
 			enabled = true;
@@ -252,13 +263,13 @@ void KeyframesDock::setupActions() {
 	action->setWhatsThis("https://forum.shotcut.org/t/simple-keyframes/43639/1");
 	icon = QIcon::fromTheme("keyframes-simple-in", QIcon(":/icons/oxygen/32x32/actions/keyframes-simple-in.png"));
 	action->setIcon(icon);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (m_qmlProducer && m_filter && m_filter->allowAnimateIn()) {
-			int i = m_qmlProducer->position() + m_qmlProducer->in() - m_filter->in();
+			const int i = m_qmlProducer->position() + m_qmlProducer->in() - m_filter->in();
 			m_filter->setAnimateIn(i);
 		}
 	});
-	connect(this, &KeyframesDock::newFilter, action, [=]() {
+	connect(this, &KeyframesDock::newFilter, action, [this, action]() -> void {
 		bool enabled = false;
 		if (m_filter && m_filter->allowAnimateIn())
 			enabled = true;
@@ -271,13 +282,13 @@ void KeyframesDock::setupActions() {
 	action->setWhatsThis("https://forum.shotcut.org/t/simple-keyframes/43639/1");
 	icon = QIcon::fromTheme("keyframes-simple-out", QIcon(":/icons/oxygen/32x32/actions/keyframes-simple-out.png"));
 	action->setIcon(icon);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (m_qmlProducer && m_filter && m_filter->allowAnimateOut()) {
-			int i = m_filter->out() - (m_qmlProducer->position() + m_qmlProducer->in());
+			const int i = m_filter->out() - (m_qmlProducer->position() + m_qmlProducer->in());
 			m_filter->setAnimateOut(i);
 		}
 	});
-	connect(this, &KeyframesDock::newFilter, action, [=]() {
+	connect(this, &KeyframesDock::newFilter, action, [this, action]() -> void {
 		bool enabled = false;
 		if (m_filter && m_filter->allowAnimateOut())
 			enabled = true;
@@ -290,16 +301,16 @@ void KeyframesDock::setupActions() {
 	action->setIcon(icon);
 	action->setCheckable(true);
 	action->setChecked(Settings.keyframesDragScrub());
-	connect(action, &QAction::triggered, this, [&](bool checked) { Settings.setKeyframesDragScrub(checked); });
+	connect(action, &QAction::triggered, this, [&](bool checked) -> void { Settings.setKeyframesDragScrub(checked); });
 	connect(&Settings, &ShotcutSettings::keyframesDragScrubChanged, action,
-	        [=]() { action->setChecked(Settings.keyframesDragScrub()); });
+			[=]() -> void { action->setChecked(Settings.keyframesDragScrub()); });
 	Actions.add("keyframesScrubDragAction", action);
 
 	action = new QAction(tr("Zoom Keyframes Out"), this);
 	action->setShortcut(QKeySequence(Qt::ALT | Qt::Key_Minus));
 	icon = QIcon::fromTheme("zoom-out", QIcon(":/icons/oxygen/32x32/actions/zoom-out.png"));
 	action->setIcon(icon);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
 		emit zoomOut();
@@ -310,7 +321,7 @@ void KeyframesDock::setupActions() {
 	action->setShortcut(QKeySequence(Qt::ALT | Qt::Key_Plus));
 	icon = QIcon::fromTheme("zoom-in", QIcon(":/icons/oxygen/32x32/actions/zoom-in.png"));
 	action->setIcon(icon);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
 		emit zoomIn();
@@ -321,7 +332,7 @@ void KeyframesDock::setupActions() {
 	action->setShortcut(QKeySequence(Qt::ALT | Qt::Key_0));
 	icon = QIcon::fromTheme("zoom-fit-best", QIcon(":/icons/oxygen/32x32/actions/zoom-fit-best.png"));
 	action->setIcon(icon);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
 		emit zoomToFit();
@@ -333,11 +344,11 @@ void KeyframesDock::setupActions() {
 	keyframeTypePrevActionGroup->setExclusive(true);
 
 	action = new QAction(tr("Hold"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt() - 1, KeyframesModel::DiscreteInterpolation);
 		}
 	});
@@ -347,11 +358,11 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypePrevHoldAction", action);
 
 	action = new QAction(tr("Linear"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt() - 1, KeyframesModel::LinearInterpolation);
 		}
 	});
@@ -361,11 +372,11 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypePrevLinearAction", action);
 
 	action = new QAction(tr("Smooth"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt() - 1,
 			                         KeyframesModel::SmoothNaturalInterpolation);
 		}
@@ -376,11 +387,11 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypePrevSmoothNaturalAction", action);
 
 	action = new QAction(tr("Ease Out Sinusoidal"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt() - 1, KeyframesModel::EaseOutSinusoidal);
 		}
 	});
@@ -390,11 +401,11 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypePrevEaseOutSinuAction", action);
 
 	action = new QAction(tr("Ease Out Quadratic"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt() - 1, KeyframesModel::EaseOutQuadratic);
 		}
 	});
@@ -404,11 +415,11 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypePrevEaseOutQuadAction", action);
 
 	action = new QAction(tr("Ease Out Cubic"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt() - 1, KeyframesModel::EaseOutCubic);
 		}
 	});
@@ -418,11 +429,11 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypePrevEaseOutCubeAction", action);
 
 	action = new QAction(tr("Ease Out Quartic"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt() - 1, KeyframesModel::EaseOutQuartic);
 		}
 	});
@@ -432,11 +443,11 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypePrevEaseOutQuartAction", action);
 
 	action = new QAction(tr("Ease Out Quintic"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt() - 1, KeyframesModel::EaseOutQuintic);
 		}
 	});
@@ -446,11 +457,11 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypePrevEaseOutQuintAction", action);
 
 	action = new QAction(tr("Ease Out Exponential"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt() - 1, KeyframesModel::EaseOutExponential);
 		}
 	});
@@ -460,11 +471,11 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypePrevEaseOutExpoAction", action);
 
 	action = new QAction(tr("Ease Out Circular"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt() - 1, KeyframesModel::EaseOutCircular);
 		}
 	});
@@ -474,15 +485,15 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypePrevEaseOutCircAction", action);
 
 	action = new QAction(tr("Ease Out Back"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt() - 1, KeyframesModel::EaseOutBack);
 		}
 	});
-	connect(this, &KeyframesDock::newFilter, action, [=]() {
+	connect(this, &KeyframesDock::newFilter, action, [this, action]() -> void {
 		bool enabled = true;
 		if (m_metadata && m_metadata->keyframes() && !m_metadata->keyframes()->allowOvershoot()) {
 			enabled = false;
@@ -496,15 +507,15 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypePrevEaseOutBackAction", action);
 
 	action = new QAction(tr("Ease Out Elastic"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt() - 1, KeyframesModel::EaseOutElastic);
 		}
 	});
-	connect(this, &KeyframesDock::newFilter, action, [=]() {
+	connect(this, &KeyframesDock::newFilter, action, [this, action]() -> void {
 		bool enabled = true;
 		if (m_metadata && m_metadata->keyframes() && !m_metadata->keyframes()->allowOvershoot()) {
 			enabled = false;
@@ -518,11 +529,11 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypePrevEaseOutElasAction", action);
 
 	action = new QAction(tr("Ease Out Bounce"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt() - 1, KeyframesModel::EaseOutBounce);
 		}
 	});
@@ -536,11 +547,11 @@ void KeyframesDock::setupActions() {
 	keyframeTypeActionGroup->setExclusive(true);
 
 	action = new QAction(tr("Hold"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt(), KeyframesModel::DiscreteInterpolation);
 		}
 	});
@@ -550,11 +561,11 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypeHoldAction", action);
 
 	action = new QAction(tr("Linear"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt(), KeyframesModel::LinearInterpolation);
 		}
 	});
@@ -564,11 +575,11 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypeLinearAction", action);
 
 	action = new QAction(tr("Smooth"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt(), KeyframesModel::SmoothNaturalInterpolation);
 		}
 	});
@@ -578,11 +589,11 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypeSmoothNaturalAction", action);
 
 	action = new QAction(tr("Ease In Sinusoidal"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt(), KeyframesModel::EaseInSinusoidal);
 		}
 	});
@@ -592,11 +603,11 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypeEaseInSinuAction", action);
 
 	action = new QAction(tr("Ease In Quadratic"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt(), KeyframesModel::EaseInQuadratic);
 		}
 	});
@@ -606,11 +617,11 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypeEaseInQuadAction", action);
 
 	action = new QAction(tr("Ease In Cubic"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt(), KeyframesModel::EaseInCubic);
 		}
 	});
@@ -620,11 +631,11 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypeEaseInCubeAction", action);
 
 	action = new QAction(tr("Ease In Quartic"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt(), KeyframesModel::EaseInQuartic);
 		}
 	});
@@ -634,11 +645,11 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypeEaseInQuartAction", action);
 
 	action = new QAction(tr("Ease In Quintic"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt(), KeyframesModel::EaseInQuintic);
 		}
 	});
@@ -648,11 +659,11 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypeEaseInQuintAction", action);
 
 	action = new QAction(tr("Ease In Exponential"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt(), KeyframesModel::EaseInExponential);
 		}
 	});
@@ -662,11 +673,11 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypeEaseInExpoAction", action);
 
 	action = new QAction(tr("Ease In Circular"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt(), KeyframesModel::EaseInCircular);
 		}
 	});
@@ -676,15 +687,15 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypeEaseInCircAction", action);
 
 	action = new QAction(tr("Ease In Back"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt(), KeyframesModel::EaseInBack);
 		}
 	});
-	connect(this, &KeyframesDock::newFilter, action, [=]() {
+	connect(this, &KeyframesDock::newFilter, action, [this, action]() -> void {
 		bool enabled = true;
 		if (m_metadata && m_metadata->keyframes() && !m_metadata->keyframes()->allowOvershoot()) {
 			enabled = false;
@@ -698,15 +709,15 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypeEaseInBackAction", action);
 
 	action = new QAction(tr("Ease In Elastic"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt(), KeyframesModel::EaseInElastic);
 		}
 	});
-	connect(this, &KeyframesDock::newFilter, action, [=]() {
+	connect(this, &KeyframesDock::newFilter, action, [this, action]() -> void {
 		bool enabled = true;
 		if (m_metadata && m_metadata->keyframes() && !m_metadata->keyframes()->allowOvershoot()) {
 			enabled = false;
@@ -720,11 +731,11 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypeEaseInElasAction", action);
 
 	action = new QAction(tr("Ease In Bounce"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt(), KeyframesModel::EaseInBounce);
 		}
 	});
@@ -734,11 +745,11 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypeEaseInBounAction", action);
 
 	action = new QAction(tr("Ease In/Out Sinusoidal"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt(), KeyframesModel::EaseInOutSinusoidal);
 		}
 	});
@@ -748,11 +759,11 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypeEaseInOutSinuAction", action);
 
 	action = new QAction(tr("Ease In/Out Quadratic"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt(), KeyframesModel::EaseInOutQuadratic);
 		}
 	});
@@ -762,11 +773,11 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypeEaseInOutQuadAction", action);
 
 	action = new QAction(tr("Ease In/Out Cubic"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt(), KeyframesModel::EaseInOutCubic);
 		}
 	});
@@ -776,11 +787,11 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypeEaseInOutCubeAction", action);
 
 	action = new QAction(tr("Ease In/Out Quartic"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt(), KeyframesModel::EaseInOutQuartic);
 		}
 	});
@@ -790,11 +801,11 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypeEaseInOutQuartAction", action);
 
 	action = new QAction(tr("Ease In/Out Quintic"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt(), KeyframesModel::EaseInOutQuintic);
 		}
 	});
@@ -804,11 +815,11 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypeEaseInOutQuintAction", action);
 
 	action = new QAction(tr("Ease In/Out Exponential"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt(), KeyframesModel::EaseInOutExponential);
 		}
 	});
@@ -818,11 +829,11 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypeEaseInOutExpoAction", action);
 
 	action = new QAction(tr("Ease In/Out Circular"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt(), KeyframesModel::EaseInOutCircular);
 		}
 	});
@@ -832,15 +843,15 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypeEaseInOutCircAction", action);
 
 	action = new QAction(tr("Ease In/Out Back"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt(), KeyframesModel::EaseInOutBack);
 		}
 	});
-	connect(this, &KeyframesDock::newFilter, action, [=]() {
+	connect(this, &KeyframesDock::newFilter, action, [this, action]() -> void {
 		bool enabled = true;
 		if (m_metadata && m_metadata->keyframes() && !m_metadata->keyframes()->allowOvershoot()) {
 			enabled = false;
@@ -854,15 +865,15 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypeEaseInOutBackAction", action);
 
 	action = new QAction(tr("Ease In/Out Elastic"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt(), KeyframesModel::EaseInOutElastic);
 		}
 	});
-	connect(this, &KeyframesDock::newFilter, action, [=]() {
+	connect(this, &KeyframesDock::newFilter, action, [this, action]() -> void {
 		bool enabled = true;
 		if (m_metadata && m_metadata->keyframes() && !m_metadata->keyframes()->allowOvershoot()) {
 			enabled = false;
@@ -876,11 +887,11 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypeEaseInOutElasAction", action);
 
 	action = new QAction(tr("Ease In/Out Bounce"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.setInterpolation(currentTrack, keyframeIndex.toInt(), KeyframesModel::EaseInOutBounce);
 		}
 	});
@@ -890,11 +901,11 @@ void KeyframesDock::setupActions() {
 	Actions.add("keyframesTypeEaseInOutBounAction", action);
 
 	action = new QAction(tr("Remove"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_qview.rootObject())
 			return;
-		int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
-		for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int currentTrack = m_qview.rootObject()->property("currentTrack").toInt();
+		for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
 			m_model.remove(currentTrack, keyframeIndex.toInt());
 		}
 	});
@@ -902,19 +913,19 @@ void KeyframesDock::setupActions() {
 
 	action = new QAction(tr("Rebuild Audio Waveform"), this);
 	action->setEnabled(Settings.timelineShowWaveforms());
-	connect(action, &QAction::triggered, this, [&](bool checked) {
+	connect(action, &QAction::triggered, this, [&](bool  /*checked*/) -> void {
 		if (m_qmlProducer && Settings.timelineShowWaveforms()) {
 			m_qmlProducer->remakeAudioLevels();
 		}
 	});
 	connect(&Settings, &ShotcutSettings::timelineShowWaveformsChanged, action,
-	        [=]() { action->setEnabled(Settings.timelineShowWaveforms()); });
+			[=]() -> void { action->setEnabled(Settings.timelineShowWaveforms()); });
 	Actions.add("keyframesRebuildAudioWaveformAction", action);
 
 	action = new QAction(tr("Seek Previous Keyframe"), this);
 	action->setShortcut(QKeySequence(Qt::ALT | Qt::Key_BracketLeft));
 	action->setEnabled(m_qmlProducer && m_filter);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (m_qmlProducer && m_filter) {
 			if (m_model.advancedKeyframesInUse())
 				seekPrevious();
@@ -922,13 +933,13 @@ void KeyframesDock::setupActions() {
 				emit seekPreviousSimple();
 		}
 	});
-	connect(this, &KeyframesDock::newFilter, action, [=]() { action->setEnabled(m_qmlProducer && m_filter); });
+	connect(this, &KeyframesDock::newFilter, action, [action, this]() -> void { action->setEnabled(m_qmlProducer && m_filter); });
 	Actions.add("keyframesSeekPreviousAction", action);
 
 	action = new QAction(tr("Seek Next Keyframe"), this);
 	action->setShortcut(QKeySequence(Qt::ALT | Qt::Key_BracketRight));
 	action->setEnabled(m_qmlProducer && m_filter);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (m_qmlProducer && m_filter) {
 			if (m_model.advancedKeyframesInUse())
 				seekNext();
@@ -936,13 +947,13 @@ void KeyframesDock::setupActions() {
 				emit seekNextSimple();
 		}
 	});
-	connect(this, &KeyframesDock::newFilter, action, [=]() { action->setEnabled(m_qmlProducer && m_filter); });
+	connect(this, &KeyframesDock::newFilter, action, [action, this]() -> void { action->setEnabled(m_qmlProducer && m_filter); });
 	Actions.add("keyframesSeekNextAction", action);
 
 	action = new QAction(tr("Toggle Keyframe At Playhead"), this);
 	action->setShortcut(QKeySequence(Qt::Key_Semicolon));
 	action->setEnabled(m_qmlProducer && m_filter);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (m_qmlProducer && m_filter && currentParameter() >= 0) {
 			auto position       = m_qmlProducer->position() - (m_filter->in() - m_qmlProducer->in());
 			auto parameterIndex = currentParameter();
@@ -954,11 +965,11 @@ void KeyframesDock::setupActions() {
 			}
 		}
 	});
-	connect(this, &KeyframesDock::newFilter, action, [=]() { action->setEnabled(m_qmlProducer && m_filter); });
+	connect(this, &KeyframesDock::newFilter, action, [action, this]() -> void { action->setEnabled(m_qmlProducer && m_filter); });
 	Actions.add("keyframesToggleKeyframeAction", action);
 }
 
-int KeyframesDock::seekPrevious() {
+auto KeyframesDock::seekPrevious() -> int {
 	if (m_qmlProducer) {
 		int position =
 		    m_model.previousKeyframePosition(currentParameter(), m_qmlProducer->position() + m_qmlProducer->in());
@@ -969,7 +980,7 @@ int KeyframesDock::seekPrevious() {
 	return 0;
 }
 
-int KeyframesDock::seekNext() {
+auto KeyframesDock::seekNext() -> int {
 	if (m_qmlProducer) {
 		int position =
 		    m_model.nextKeyframePosition(currentParameter(), m_qmlProducer->position() + m_qmlProducer->in());
@@ -1000,8 +1011,8 @@ void KeyframesDock::setCurrentFilter(QmlFilter* filter, QmlMetadata* meta) {
 	emit newFilter();
 }
 
-bool KeyframesDock::event(QEvent* event) {
-	bool result = QDockWidget::event(event);
+auto KeyframesDock::event(QEvent* event) -> bool {
+	const bool result = QDockWidget::event(event);
 	if (event->type() == QEvent::PaletteChange || event->type() == QEvent::StyleChange) {
 		load(true);
 	}
@@ -1020,7 +1031,7 @@ void KeyframesDock::keyReleaseEvent(QKeyEvent* event) {
 		MAIN.keyReleaseEvent(event);
 }
 
-int KeyframesDock::currentParameter() const {
+auto KeyframesDock::currentParameter() -> const int {
 	if (!m_qview.rootObject())
 		return 0;
 	return m_qview.rootObject()->property("currentTrack").toInt();
@@ -1046,7 +1057,7 @@ void KeyframesDock::load(bool force) {
 
 		m_qview.setResizeMode(QQuickWidget::SizeRootObjectToView);
 		m_qview.quickWindow()->setColor(palette().window().color());
-		QUrl source = QUrl::fromLocalFile(viewPath.absoluteFilePath("keyframes.qml"));
+		QUrl const source = QUrl::fromLocalFile(viewPath.absoluteFilePath("keyframes.qml"));
 		m_qview.setSource(source);
 		connect(m_qview.rootObject(), SIGNAL(rightClicked()), this, SLOT(onDockRightClicked()));
 		connect(m_qview.rootObject(), SIGNAL(keyframeRightClicked()), this, SLOT(onKeyframeRightClicked()));
@@ -1074,8 +1085,8 @@ void KeyframesDock::onKeyframeRightClicked() {
 		return;
 	bool firstKey = false;
 	bool lastKey  = false;
-	for (auto keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
-		int keyIndex = keyframeIndex.toInt();
+	for (const auto &keyframeIndex : m_qview.rootObject()->property("selection").toList()) {
+		const int keyIndex = keyframeIndex.toInt();
 		if (keyIndex == 0) {
 			firstKey = true;
 		}

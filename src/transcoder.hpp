@@ -18,11 +18,15 @@
 #ifndef TRANSCODER_HPP
 #define TRANSCODER_HPP
 
+// Local
 #include "dialogs/transcodedialog.hpp"
 
+// Qt
 #include <MltProducer.h>
 #include <QList>
 #include <QObject>
+#include <qlist.h>
+#include <qtmetamacros.h>
 
 class Transcoder : public QObject {
 	Q_OBJECT
@@ -37,7 +41,7 @@ class Transcoder : public QObject {
 	void convert(TranscodeDialog& dialog);
 
   private:
-	void                 convertProducer(Mlt::Producer* producer, TranscodeDialog& dialog, QString filename);
+	void convertProducer(Mlt::Producer* producer, TranscodeDialog& dialog, const QString& filename);
 	QList<Mlt::Producer> m_producers;
 };
 

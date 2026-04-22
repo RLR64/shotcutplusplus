@@ -15,20 +15,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "util.hpp"
-
 #include "FlatpakWrapperGenerator.hpp"
 #include "Logger.hpp"
 #include "dialogs/transcodedialog.hpp"
 #include "mainwindow.hpp"
+#include "mltcontroller.hpp"
 #include "proxymanager.hpp"
 #include "qmltypes/qmlapplication.hpp"
 #include "settings.hpp"
 #include "shotcut_mlt_properties.hpp"
 #include "transcoder.hpp"
 
+// Qt
 #include <MltChain.h>
 #include <MltProducer.h>
+#include <MltProperties.h>
 #include <QApplication>
 #include <QCamera>
 #include <QCameraDevice>
@@ -51,21 +54,68 @@
 #include <QUrl>
 #include <QWidget>
 #include <QtGlobal>
+#include <cstdint>
+#include <framework/mlt_types.h>
+#include <functional>
+#include <limits>
+#include <qbytearrayalgorithms.h>
+#include <qcolordialog.h>
+#include <qcontainerfwd.h>
+#include <qfiledialog.h>
+#include <qforeach.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qoverload.h>
+#include <qpair.h>
+#include <qscopedpointer.h>
+#include <qtypes.h>
+
+// STL
+#include <climits>
 #include <cmath>
 #include <memory>
+#include <utility>
+#include <sysinfoapi.h>
 
+// Number constants
+// File hash
+static constexpr qint64 kHashBlockSize{1000000};      // 1 MB
+static constexpr qint64 kHashFileSizeLimit{1000000 * 2};  // 2 MB
+
+// FPS
+static constexpr double  kFpsMultiplier6{1000000.0};
+static constexpr double  kFpsMultiplier5{100000.0};
+
+static constexpr int kFps2398Rounded{23976024};
+static constexpr int kFps2997Rounded{2997003};
+static constexpr int kFps4795Rounded{47952048};
+static constexpr int kFps5994Rounded{5994006};
+
+static constexpr int kFps2398Numerator{24000};
+static constexpr int kFps2997Numerator{30000};
+static constexpr int kFps4795Numerator{48000};
+static constexpr int kFps5994Numerator{60000};
+static constexpr int kFpsDenominator1001{1001};
+static constexpr int kFpsPrecision{1000000};
+
+// Bytes available
+static constexpr int setBytesAvailableNumber{1024};
+
+// clang-format off
 #ifdef Q_OS_WIN
 #include <windows.h>
 #endif
 
 #ifdef Q_OS_MAC
-static constexpr unsigned int kLowMemoryThresholdPercent = {10U};
+static constexpr unsigned int kLowMemoryThresholdPercent{10U};
 #else
-static constexpr unsigned int kLowMemoryThresholdKB = {256U * 1024U};
+static constexpr unsigned int kLowMemoryThresholdKB{256U * 1024U};
 #endif
-static constexpr qint64 kFreeSpaceThesholdGB = {25LL * 1024 * 1024 * 1024};
+static constexpr qint64 kFreeSpaceThesholdGB{25LL * 1024 * 1024 * 1024};
+// clang-format on
 
-QString Util::baseName(const QString& filePath, bool trimQuery) {
+auto Util::baseName(const QString& filePath, bool trimQuery) -> QString {
 	QString s = filePath;
 	// Only if absolute path and not a URI.
 	if (s.startsWith('/') || s.mid(1, 2) == ":/" || s.mid(1, 2) == ":\\")
@@ -99,7 +149,7 @@ void Util::setColorsToHighlight(QWidget* widget, QPalette::ColorRole role) {
 }
 
 void Util::showInFolder(const QString& path) {
-	QFileInfo info(removeQueryString(path));
+	QFileInfo const info(removeQueryString(path));
 #if defined(Q_OS_WIN)
 	QStringList args;
 	if (!info.isDir())
@@ -127,7 +177,7 @@ void Util::showInFolder(const QString& path) {
 	Util::openUrl(QUrl::fromLocalFile(info.isDir() ? path : info.path()));
 }
 
-bool Util::warnIfNotWritable(const QString& filePath, QWidget* parent, const QString& caption) {
+auto Util::warnIfNotWritable(const QString& filePath, QWidget* parent, const QString& caption) -> bool {
 	// Returns true if not writable.
 	if (!filePath.isEmpty() && !filePath.contains("://")) {
 		QFileInfo info(filePath);
@@ -147,9 +197,9 @@ bool Util::warnIfNotWritable(const QString& filePath, QWidget* parent, const QSt
 	return false;
 }
 
-QString Util::producerTitle(const Mlt::Producer& producer) {
-	QString        result;
-	Mlt::Producer& p = const_cast<Mlt::Producer&>(producer);
+auto Util::producerTitle(const Mlt::Producer& producer) -> QString {
+	QString result;
+	auto& p = const_cast<Mlt::Producer&>(producer);
 	if (!p.is_valid() || p.is_blank())
 		return result;
 	if (p.get(kShotcutTransitionProperty))
@@ -163,7 +213,7 @@ QString Util::producerTitle(const Mlt::Producer& producer) {
 	return Util::baseName(ProxyManager::resource(p));
 }
 
-QString Util::removeFileScheme(QUrl& url, bool fromPercentEncoding) {
+auto Util::removeFileScheme(QUrl& url, bool fromPercentEncoding) -> QString {
 	QString path = url.url();
 	if (url.scheme() == "file")
 		path = url.toString(QUrl::PreferLocalFile);
@@ -172,38 +222,38 @@ QString Util::removeFileScheme(QUrl& url, bool fromPercentEncoding) {
 	return path;
 }
 
-static inline bool isValidGoProFirstFilePrefix(const QFileInfo& info) {
-	QStringList list{"GOPR", "GH01", "GL01", "GM01", "GS01", "GX01"};
+static inline auto isValidGoProFirstFilePrefix(const QFileInfo& info) -> bool {
+	QStringList const list{"GOPR", "GH01", "GL01", "GM01", "GS01", "GX01"};
 	return list.contains(info.baseName().left(4).toUpper());
 }
 
-static inline bool isValidGoProPrefix(const QFileInfo& info) {
-	QStringList list{"GP", "GH", "GL", "GM", "GS", "GX"};
+static inline auto isValidGoProPrefix(const QFileInfo& info) -> bool {
+	QStringList const list{"GP", "GH", "GL", "GM", "GS", "GX"};
 	return list.contains(info.baseName().left(2).toUpper());
 }
 
-static inline bool isValidGoProSuffix(const QFileInfo& info) {
-	QStringList list{"MP4", "LRV", "360", "WAV"};
+static inline auto isValidGoProSuffix(const QFileInfo& info) -> bool {
+	QStringList const list{"MP4", "LRV", "360", "WAV"};
 	return list.contains(info.suffix().toUpper());
 }
 
-const QStringList Util::sortedFileList(const QList<QUrl>& urls) {
-	QStringList                result;
+auto Util::sortedFileList(const QList<QUrl>& urls) -> const QStringList {
+	QStringList result;
 	QMap<QString, QStringList> goproFiles;
 
 	// First look for GoPro main files.
 	foreach (QUrl url, urls) {
-		QFileInfo fi(removeFileScheme(url, false));
+		QFileInfo const fi(removeFileScheme(url, false));
 		if (fi.baseName().size() == 8 && isValidGoProSuffix(fi) && isValidGoProFirstFilePrefix(fi)) {
 			goproFiles[fi.baseName().mid(4)] << fi.filePath();
 		}
 	}
 	// Then, look for GoPro split files.
 	foreach (QUrl url, urls) {
-		QFileInfo fi(removeFileScheme(url, false));
+		QFileInfo const fi(removeFileScheme(url, false));
 		if (fi.baseName().size() == 8 && isValidGoProSuffix(fi) && isValidGoProPrefix(fi) &&
 		    !isValidGoProFirstFilePrefix(fi)) {
-			QString goproNumber = fi.baseName().mid(4);
+			QString const goproNumber = fi.baseName().mid(4);
 			// Only if there is a matching main GoPro file.
 			if (goproFiles.contains(goproNumber) && goproFiles[goproNumber].size()) {
 				goproFiles[goproNumber] << fi.filePath();
@@ -222,10 +272,10 @@ const QStringList Util::sortedFileList(const QList<QUrl>& urls) {
 	}
 	// Add all the non-GoPro files.
 	for (auto url : urls) {
-		QFileInfo fi(removeFileScheme(url, false));
+		QFileInfo const fi(removeFileScheme(url, false));
 		if (fi.baseName().size() == 8 && isValidGoProSuffix(fi) &&
 		    (isValidGoProFirstFilePrefix(fi) || isValidGoProPrefix(fi))) {
-			QString goproNumber = fi.baseName().mid(4);
+			QString const goproNumber = fi.baseName().mid(4);
 			if (goproFiles.contains(goproNumber) && goproFiles[goproNumber].contains(fi.filePath()))
 				continue;
 		}
@@ -234,18 +284,18 @@ const QStringList Util::sortedFileList(const QList<QUrl>& urls) {
 	return result;
 }
 
-int Util::coerceMultiple(int value, int multiple) {
+auto Util::coerceMultiple(int value, int multiple) -> int {
 	return (value + multiple - 1) / multiple * multiple;
 }
 
-QList<QUrl> Util::expandDirectories(const QList<QUrl>& urls) {
+auto Util::expandDirectories(const QList<QUrl>& urls) -> QList<QUrl> {
 	QList<QUrl> result;
 	foreach (QUrl url, urls) {
-		QString   path = Util::removeFileScheme(url, false);
-		QFileInfo fi(path);
+		QString const path = Util::removeFileScheme(url, false);
+		QFileInfo const fi(path);
 		if (fi.isDir()) {
-			QDir dir(path);
-			foreach (QFileInfo fi, dir.entryInfoList(QDir::Files | QDir::Readable, QDir::Name))
+			QDir const dir(path);
+			foreach (QFileInfo const fi, dir.entryInfoList(QDir::Files | QDir::Readable, QDir::Name))
 				result << fi.filePath();
 		} else {
 			result << url;
@@ -254,30 +304,28 @@ QList<QUrl> Util::expandDirectories(const QList<QUrl>& urls) {
 	return result;
 }
 
-bool Util::isDecimalPoint(QChar ch) {
+auto Util::isDecimalPoint(QChar ch) -> bool {
 	// See https://en.wikipedia.org/wiki/Decimal_separator#Unicode_characters
 	return ch == '.' || ch == ',' || ch == '\'' || ch == ' ' || ch == QChar(0x00B7) || ch == QChar(0x2009) ||
 	       ch == QChar(0x202F) || ch == QChar(0x02D9) || ch == QChar(0x066B) || ch == QChar(0x066C) ||
 	       ch == QChar(0x2396);
 }
 
-bool Util::isNumeric(QString& str) {
-	for (int i = 0; i < str.size(); ++i) {
-		auto ch = str[i];
-		if (ch != '+' && ch != '-' && ch.toLower() != 'e' && !isDecimalPoint(ch) && !ch.isDigit())
+auto Util::isNumeric(QString& str) -> bool {
+	for (const auto ch : str) {
+			if (ch != '+' && ch != '-' && ch.toLower() != 'e' && !isDecimalPoint(ch) && !ch.isDigit())
 			return false;
 	}
 	return true;
 }
 
-bool Util::convertNumericString(QString& str, QChar decimalPoint) {
+auto Util::convertNumericString(QString& str, QChar decimalPoint) -> bool {
 	// Returns true if the string was changed.
 	bool result = false;
 	if (isNumeric(str)) {
-		for (int i = 0; i < str.size(); ++i) {
-			auto ch = str[i];
-			if (ch != decimalPoint && isDecimalPoint(ch)) {
-				ch     = decimalPoint;
+		for (auto ch : std::as_const(str)) {
+				if (ch != decimalPoint && isDecimalPoint(ch)) {
+				ch = decimalPoint;
 				result = true;
 			}
 		}
@@ -285,13 +333,12 @@ bool Util::convertNumericString(QString& str, QChar decimalPoint) {
 	return result;
 }
 
-bool Util::convertDecimalPoints(QString& str, QChar decimalPoint) {
+auto Util::convertDecimalPoints(QString& str, QChar decimalPoint) -> bool {
 	// Returns true if the string was changed.
 	bool result = false;
 	if (!str.contains(decimalPoint)) {
-		for (int i = 0; i < str.size(); ++i) {
-			auto ch = str[i];
-			// Space is used as a delimiter for rect fields and possibly elsewhere.
+		for (auto ch : str) {
+				// Space is used as a delimiter for rect fields and possibly elsewhere.
 			if (ch != decimalPoint && ch != ' ' && isDecimalPoint(ch)) {
 				ch     = decimalPoint;
 				result = true;
@@ -302,7 +349,7 @@ bool Util::convertDecimalPoints(QString& str, QChar decimalPoint) {
 }
 
 void Util::showFrameRateDialog(const QString& caption, int numerator, QDoubleSpinBox* spinner, QWidget* parent) {
-	double      fps = numerator / 1001.0;
+	const double fps = numerator / 1001.0;
 	QMessageBox dialog(QMessageBox::Question, caption,
 	                   QObject::tr("The value you entered is very similar to the common,\n"
 	                               "more standard %1 = %2/1001.\n\n"
@@ -318,14 +365,14 @@ void Util::showFrameRateDialog(const QString& caption, int numerator, QDoubleSpi
 	}
 }
 
-QTemporaryFile* Util::writableTemporaryFile(const QString& filePath, const QString& templateName) {
+auto Util::writableTemporaryFile(const QString& filePath, const QString& templateName) -> QTemporaryFile* {
 	// filePath should already be checked writable.
-	QFileInfo info(filePath);
-	QString   templateFileName =
+	QFileInfo const info(filePath);
+	QString const templateFileName =
 	    templateName.isEmpty() ? QStringLiteral("%1.XXXXXX").arg(QCoreApplication::applicationName()) : templateName;
 
 	// First, try the system temp dir.
-	QString                         templateFilePath = QDir(QDir::tempPath()).filePath(templateFileName);
+	QString const templateFilePath = QDir(QDir::tempPath()).filePath(templateFileName);
 	std::unique_ptr<QTemporaryFile> tmp(new QTemporaryFile(templateFilePath));
 
 	if (!tmp->open() || tmp->write("") < 0) {
@@ -377,8 +424,8 @@ void Util::applyCustomProperties(Mlt::Producer& destination, Mlt::Producer& sour
 		destination.set("warp_resource", resource.toUtf8().constData());
 		resource = QStringLiteral("%1:%2:%3").arg("timewarp", source.get("warp_speed"), resource);
 		destination.set("resource", resource.toUtf8().constData());
-		double speedRatio = 1.0 / speed;
-		int    length     = qRound(destination.get_length() * speedRatio);
+		const double speedRatio = 1.0 / speed;
+		const int length = qRound(destination.get_length() * speedRatio);
 		destination.set("length", destination.frames_to_time(length, mlt_time_clock));
 	} else {
 		auto caption = Util::baseName(resource, true);
@@ -391,16 +438,16 @@ void Util::applyCustomProperties(Mlt::Producer& destination, Mlt::Producer& sour
 	destination.set_in_and_out(in, out);
 }
 
-QString Util::getFileHash(const QString& path) {
+auto Util::getFileHash(const QString& path) -> QString {
 	// This routine is intentionally copied from Kdenlive.
 	QFile file(removeQueryString(path));
 	if (file.open(QIODevice::ReadOnly)) {
 		QByteArray fileData;
 		// 1 MB = 1 second per 450 files (or faster)
 		// 10 MB = 9 seconds per 450 files (or faster)
-		if (file.size() > 1000000 * 2) {
-			fileData = file.read(1000000);
-			if (file.seek(file.size() - 1000000))
+		if (file.size() > kHashFileSizeLimit) {
+			fileData = file.read(kHashBlockSize);
+			if (file.seek(file.size() - kHashBlockSize))
 				fileData.append(file.readAll());
 		} else {
 			fileData = file.readAll();
@@ -408,13 +455,13 @@ QString Util::getFileHash(const QString& path) {
 		file.close();
 		return QCryptographicHash::hash(fileData, QCryptographicHash::Md5).toHex();
 	}
-	return QString();
+	return {};
 }
 
-QString Util::getHash(Mlt::Properties& properties) {
+auto Util::getHash(Mlt::Properties& properties) -> QString {
 	QString hash = properties.get(kShotcutHashProperty);
 	if (hash.isEmpty()) {
-		QString service  = properties.get("mlt_service");
+		QString const service = properties.get("mlt_service");
 		QString resource = QString::fromUtf8(properties.get("resource"));
 
 		if (properties.get_int(kIsProxyProperty) && properties.get(kOriginalResourceProperty))
@@ -430,30 +477,30 @@ QString Util::getHash(Mlt::Properties& properties) {
 	return hash;
 }
 
-bool Util::hasDriveLetter(const QString& path) {
+auto Util::hasDriveLetter(const QString& path) -> bool {
 	auto driveSeparators = path.mid(1, 2);
 	return driveSeparators == ":/" || driveSeparators == ":\\";
 }
 
-QColorDialog::ColorDialogOptions Util::getColorDialogOptions() {
+auto Util::getColorDialogOptions() -> QColorDialog::ColorDialogOptions {
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
 	return QColorDialog::DontUseNativeDialog;
 #endif
-	return QColorDialog::ColorDialogOptions();
+	return {};
 }
 
-QFileDialog::Options Util::getFileDialogOptions() {
+auto Util::getFileDialogOptions() -> QFileDialog::Options {
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
 	if (qEnvironmentVariableIsSet("SNAP")) {
 		return QFileDialog::DontUseNativeDialog;
 	}
 #endif
-	return QFileDialog::Options();
+	return {};
 }
 
-bool Util::isMemoryLow() {
+auto Util::isMemoryLow() -> bool {
 #if defined(Q_OS_WIN)
-	unsigned int   availableKB = UINT_MAX;
+	unsigned int availableKB = UINT_MAX;
 	MEMORYSTATUSEX memory_status;
 	ZeroMemory(&memory_status, sizeof(MEMORYSTATUSEX));
 	memory_status.dwLength = sizeof(MEMORYSTATUSEX);
@@ -499,8 +546,8 @@ bool Util::isMemoryLow() {
 	unsigned int availableKB = UINT_MAX;
 	QFile        meminfo("/proc/meminfo");
 	if (meminfo.open(QIODevice::ReadOnly)) {
-		for (auto line = meminfo.readLine(1024); availableKB == UINT_MAX && !line.isEmpty();
-		     line      = meminfo.readLine(1024)) {
+		for (auto line = meminfo.readLine(setBytesAvailableNumber); availableKB == UINT_MAX && !line.isEmpty();
+			 line      = meminfo.readLine(setBytesAvailableNumber)) {
 			if (line.startsWith("MemAvailable")) {
 				const auto& fields = line.split(' ');
 				for (const auto& s : fields) {
@@ -520,7 +567,7 @@ bool Util::isMemoryLow() {
 #endif
 }
 
-QString Util::removeQueryString(const QString& s) {
+auto Util::removeQueryString(const QString& s) -> QString {
 	auto i = s.lastIndexOf("\\?");
 	if (i < 0) {
 		i = s.lastIndexOf("%5C?");
@@ -531,7 +578,7 @@ QString Util::removeQueryString(const QString& s) {
 	return s;
 }
 
-int Util::greatestCommonDivisor(int m, int n) {
+auto Util::greatestCommonDivisor(int m, int n) -> int {
 	int gcd, remainder;
 	while (n) {
 		remainder = m % n;
@@ -544,29 +591,29 @@ int Util::greatestCommonDivisor(int m, int n) {
 
 void Util::normalizeFrameRate(double fps, int& numerator, int& denominator) {
 	// Convert some common non-integer frame rates to fractions.
-	if (qRound(fps * 1000000.0) == 23976024) {
-		numerator   = 24000;
-		denominator = 1001;
-	} else if (qRound(fps * 100000.0) == 2997003) {
-		numerator   = 30000;
-		denominator = 1001;
-	} else if (qRound(fps * 1000000.0) == 47952048) {
-		numerator   = 48000;
-		denominator = 1001;
-	} else if (qRound(fps * 100000.0) == 5994006) {
-		numerator   = 60000;
-		denominator = 1001;
+	if (qRound(fps * kFpsMultiplier6) == kFps2398Rounded) {
+		numerator   = kFps2398Numerator;
+		denominator = kFpsDenominator1001;
+	} else if (qRound(fps * kFpsMultiplier5) == kFps2997Rounded) {
+		numerator   = kFps2997Numerator;
+		denominator = kFpsDenominator1001;
+	} else if (qRound(fps * kFpsMultiplier6) == kFps4795Rounded) {
+		numerator   = kFps4795Numerator;
+		denominator = kFpsDenominator1001;
+	} else if (qRound(fps * kFpsMultiplier5) == kFps5994Rounded) {
+		numerator   = kFps5994Numerator;
+		denominator = kFpsDenominator1001;
 	} else {
 		// Workaround storing QDoubleSpinBox::value() loses precision.
-		numerator   = qRound(fps * 1000000.0);
-		denominator = 1000000;
+		numerator   = qRound(fps * kFpsPrecision);
+		denominator = kFpsPrecision;
 		auto gcd    = greatestCommonDivisor(numerator, denominator);
 		numerator /= gcd;
 		denominator /= gcd;
 	}
 }
 
-QString Util::textColor(const QColor& color) {
+auto Util::textColor(const QColor& color) -> QString {
 	return (color.value() < 150) ? "white" : "black";
 }
 
@@ -574,7 +621,7 @@ void Util::cameraFrameRateSize(const QByteArray& deviceName, qreal& frameRate, Q
 	std::unique_ptr<QCamera> camera;
 	for (const QCameraDevice& cameraDevice : QMediaDevices::videoInputs()) {
 		if (cameraDevice.id() == deviceName) {
-			camera.reset(new QCamera(cameraDevice));
+			camera = std::make_unique<QCamera>(cameraDevice);
 			break;
 		}
 	}
@@ -605,11 +652,11 @@ void Util::cameraFrameRateSize(const QByteArray& deviceName, qreal& frameRate, Q
 	}
 }
 
-bool Util::ProducerIsTimewarp(Mlt::Producer* producer) {
+auto Util::ProducerIsTimewarp(Mlt::Producer* producer) -> bool {
 	return QString::fromUtf8(producer->get("mlt_service")) == "timewarp";
 }
 
-QString Util::GetFilenameFromProducer(Mlt::Producer* producer, bool useOriginal) {
+auto Util::GetFilenameFromProducer(Mlt::Producer* producer, bool useOriginal) -> QString {
 	QString resource;
 	if (useOriginal && producer->get(kOriginalResourceProperty)) {
 		resource = QString::fromUtf8(producer->get(kOriginalResourceProperty));
@@ -625,14 +672,14 @@ QString Util::GetFilenameFromProducer(Mlt::Producer* producer, bool useOriginal)
 		resource = QString::fromUtf8(producer->get("resource"));
 	}
 	if (QFileInfo(resource).isRelative()) {
-		QString   basePath = QFileInfo(MAIN.fileName()).canonicalPath();
-		QFileInfo fi(basePath, resource);
+		QString const basePath = QFileInfo(MAIN.fileName()).canonicalPath();
+		QFileInfo const fi(basePath, resource);
 		resource = fi.filePath();
 	}
 	return resource;
 }
 
-double Util::GetSpeedFromProducer(Mlt::Producer* producer) {
+auto Util::GetSpeedFromProducer(Mlt::Producer* producer) -> double {
 	double speed = 1.0;
 	if (ProducerIsTimewarp(producer)) {
 		speed = fabs(producer->get_double("warp_speed"));
@@ -640,10 +687,10 @@ double Util::GetSpeedFromProducer(Mlt::Producer* producer) {
 	return speed;
 }
 
-QString Util::updateCaption(Mlt::Producer* producer) {
-	double  warpSpeed = GetSpeedFromProducer(producer);
-	QString resource  = GetFilenameFromProducer(producer);
-	QString name      = Util::baseName(resource, true);
+auto Util::updateCaption(Mlt::Producer* producer) -> QString {
+	const double warpSpeed = GetSpeedFromProducer(producer);
+	QString const resource = GetFilenameFromProducer(producer);
+	QString const name = Util::baseName(resource, true);
 	QString caption   = producer->get(kShotcutCaptionProperty);
 	if (caption.isEmpty() || caption.startsWith(name)) {
 		// compute the caption
@@ -664,29 +711,28 @@ void Util::passProducerProperties(Mlt::Producer* src, Mlt::Producer* dst) {
 	               "," kPlaylistIndexProperty "," kShotcutSkipConvertProperty "," kCommentProperty
 	               "," kDefaultAudioIndexProperty "," kShotcutCaptionProperty "," kOriginalResourceProperty
 	               "," kDisableProxyProperty "," kIsProxyProperty "," kShotcutProducerProperty);
-	QString shotcutProducer(src->get(kShotcutProducerProperty));
-	QString service(src->get("mlt_service"));
+	QString const shotcutProducer(src->get(kShotcutProducerProperty));
+	QString const service(src->get("mlt_service"));
 	if (service.startsWith("avformat") || shotcutProducer == "avformat")
 		dst->set(kShotcutProducerProperty, "avformat");
 }
 
-bool Util::warnIfLowDiskSpace(const QString& path) {
+auto Util::warnIfLowDiskSpace(const QString& path) -> bool {
 	// Check if the drive this file will be on is getting low on space.
 	if (Settings.encodeFreeSpaceCheck()) {
-		QStorageInfo si(QFileInfo(path).path());
+		QStorageInfo const si(QFileInfo(path).path());
 		LOG_DEBUG() << si.bytesAvailable() << "bytes available on" << si.displayName();
 		if (si.isValid() && si.bytesAvailable() < kFreeSpaceThesholdGB) {
 			QMessageBox dialog(QMessageBox::Question, QApplication::applicationDisplayName(),
 			                   QObject::tr("The drive you chose only has %1 MiB of free space.\n"
 			                               "Do you still want to continue?")
-			                       .arg(si.bytesAvailable() / 1024 / 1024),
+								   .arg(si.bytesAvailable() / setBytesAvailableNumber / setBytesAvailableNumber),
 			                   QMessageBox::No | QMessageBox::Yes);
 			dialog.setWindowModality(QmlApplication::dialogModality());
 			dialog.setDefaultButton(QMessageBox::Yes);
 			dialog.setEscapeButton(QMessageBox::No);
-			dialog.setCheckBox(
-			    new QCheckBox(QObject::tr("Do not show this anymore.", "Export free disk space warning dialog")));
-			int result = dialog.exec();
+			dialog.setCheckBox(new QCheckBox(QObject::tr("Do not show this anymore.", "Export free disk space warning dialog")));
+			const int result = dialog.exec();
 			if (dialog.checkBox()->isChecked())
 				Settings.setEncodeFreeSpaceCheck(false);
 			if (result == QMessageBox::No) {
@@ -697,27 +743,27 @@ bool Util::warnIfLowDiskSpace(const QString& path) {
 	return false;
 }
 
-bool Util::isFpsDifferent(double a, double b) {
+auto Util::isFpsDifferent(double a, double b) -> bool {
 	return qAbs(a - b) > 0.001;
 }
 
-QString Util::getNextFile(const QString& filePath) {
-	QFileInfo info(filePath);
-	QString   basename  = info.completeBaseName();
-	QString   extension = info.suffix();
+auto Util::getNextFile(const QString& filePath) -> QString {
+	QFileInfo const info(filePath);
+	QString basename = info.completeBaseName();
+	QString extension = info.suffix();
 	if (extension.isEmpty()) {
 		extension = basename;
 		basename  = QString();
 	}
 	for (unsigned i = 1; i < std::numeric_limits<unsigned>::max(); i++) {
-		QString filename = QString::fromLatin1("%1%2.%3").arg(basename).arg(i).arg(extension);
+		QString const filename = QString::fromLatin1("%1%2.%3").arg(basename).arg(i).arg(extension);
 		if (!info.dir().exists(filename))
 			return info.dir().filePath(filename);
 	}
 	return filePath;
 }
 
-QString Util::trcString(int trc) {
+auto Util::trcString(int trc) -> QString {
 	QString trcString = QObject::tr("unknown (%1)").arg(trc);
 	switch (trc) {
 	case 0:
@@ -757,18 +803,18 @@ QString Util::trcString(int trc) {
 	return trcString;
 }
 
-bool Util::trcIsCompatible(int trc) {
+auto Util::trcIsCompatible(int trc) -> bool {
 	// Transfer characteristics > SMPTE240M Probably need conversion except IEC61966-2-4 is OK
 	return trc <= 7 || trc == 11 || trc == 13 || trc == 14 || trc == 15 || trc == 18;
 }
 
-QString Util::getConversionAdvice(Mlt::Producer* producer) {
+auto Util::getConversionAdvice(Mlt::Producer* producer) -> QString {
 	QString advice;
 	producer->probe();
-	QString resource = Util::GetFilenameFromProducer(producer);
-	int     trc      = producer->get_int("meta.media.color_trc");
+	QString const resource = Util::GetFilenameFromProducer(producer);
+	const int trc = producer->get_int("meta.media.color_trc");
 	if (!Util::trcIsCompatible(trc)) {
-		QString trcString = Util::trcString(trc);
+		QString const trcString = Util::trcString(trc);
 		LOG_INFO() << resource << "Probable HDR" << trcString;
 		advice = QObject::tr("This file uses color transfer characteristics %1, which may result "
 		                     "in incorrect colors or brightness in Shotcut.")
@@ -786,7 +832,7 @@ QString Util::getConversionAdvice(Mlt::Producer* producer) {
 	return advice;
 }
 
-mlt_color Util::mltColorFromQColor(const QColor& color) {
+auto Util::mltColorFromQColor(const QColor& color) -> mlt_color {
 	return mlt_color{static_cast<uint8_t>(color.red()), static_cast<uint8_t>(color.green()),
 	                 static_cast<uint8_t>(color.blue()), static_cast<uint8_t>(color.alpha())};
 }
@@ -813,14 +859,14 @@ void Util::offerSingleFileConversion(QString& message, Mlt::Producer* producer, 
 	transcoder.convert(dialog);
 }
 
-double Util::getAndroidFrameRate(Mlt::Producer* producer) {
+auto Util::getAndroidFrameRate(Mlt::Producer* producer) -> double {
 	auto fps = producer->get_double("meta.attr.com.android.capture.fps.markup");
 	if (!qIsFinite(fps))
 		fps = 0.0;
 	return fps;
 }
 
-double Util::getSuggestedFrameRate(Mlt::Producer* producer) {
+auto Util::getSuggestedFrameRate(Mlt::Producer* producer) -> double {
 	auto fps = producer->get_double("meta.attr.com.android.capture.fps.markup");
 	if (!qIsFinite(fps))
 		fps = 0.0;
@@ -834,13 +880,13 @@ double Util::getSuggestedFrameRate(Mlt::Producer* producer) {
 	return fps;
 }
 
-Mlt::Producer Util::openMltVirtualClip(const QString& path) {
-	Mlt::Producer                xmlProducer(nullptr, "xml-clip", path.toUtf8().constData());
-	QScopedPointer<Mlt::Profile> testProfile(xmlProducer.profile());
+auto Util::openMltVirtualClip(const QString& path) -> Mlt::Producer {
+	Mlt::Producer xmlProducer(nullptr, "xml-clip", path.toUtf8().constData());
+	QScopedPointer<Mlt::Profile> const testProfile(xmlProducer.profile());
 	if (Settings.playerGPU() && MLT.profile().is_explicit()) {
 		if (testProfile->width() != MLT.profile().width() || testProfile->height() != MLT.profile().height() ||
 		    Util::isFpsDifferent(MLT.profile().fps(), testProfile->fps())) {
-			return Mlt::Producer();
+			return {};
 		}
 	}
 	if (xmlProducer.is_valid()) {
@@ -852,17 +898,17 @@ Mlt::Producer Util::openMltVirtualClip(const QString& path) {
 		chain.set("resource", path.toUtf8().constData());
 		return chain;
 	}
-	return Mlt::Producer();
+	return {};
 }
 
-bool Util::hasiPhoneAmbisonic(Mlt::Producer* producer) {
+auto Util::hasiPhoneAmbisonic(Mlt::Producer* producer) -> bool {
 	// iPhone 16 Pro has a 4 channel (spatial) audio stream with codec "apac" that causes failure.
 	// This is not limited to only iPhone 16 Pro, but I think most iPhones only record one usable audio track.
 	return producer && producer->is_valid() && !::qstrcmp(producer->get("meta.media.1.stream.type"), "audio") &&
 	       QString(producer->get("meta.attr.com.apple.quicktime.model.markup")).contains("iPhone");
 }
 
-bool Util::installFlatpakWrappers(QWidget* parent) {
+auto Util::installFlatpakWrappers(QWidget* parent) -> bool {
 	if (!Settings.askFlatpakWrappers())
 		return false;
 	QMessageBox dialog(QMessageBox::Question, qApp->applicationName(),
@@ -877,14 +923,14 @@ bool Util::installFlatpakWrappers(QWidget* parent) {
 	dialog.setWindowModality(QmlApplication::dialogModality());
 	dialog.setDefaultButton(QMessageBox::Yes);
 	dialog.setEscapeButton(QMessageBox::No);
-	int r = dialog.exec();
+	const int r = dialog.exec();
 	if (dialog.checkBox()->isChecked())
 		Settings.setAskFlatpakWrappers(false);
 	if (r == QMessageBox::Yes) {
 		FlatpakWrapperGenerator flatpaks;
-		const auto              ls     = QStandardPaths::standardLocations(QStandardPaths::HomeLocation);
-		auto                    home   = QDir(ls.first());
-		const auto              subdir = QStringLiteral("Flatpaks");
+		const auto ls = QStandardPaths::standardLocations(QStandardPaths::HomeLocation);
+		auto home = QDir(ls.first());
+		const auto subdir = QStringLiteral("Flatpaks");
 		if (!home.cd(subdir)) {
 			if (home.mkdir(subdir))
 				home.cd(subdir);
@@ -899,7 +945,7 @@ bool Util::installFlatpakWrappers(QWidget* parent) {
 	return false;
 }
 
-QString Util::getExecutable(QWidget* parent) {
+auto Util::getExecutable(QWidget* parent) -> QString {
 	QString dir;
 	QString filter;
 #if defined(Q_OS_WIN)
@@ -923,7 +969,7 @@ QString Util::getExecutable(QWidget* parent) {
 	                                    Util::getFileDialogOptions());
 }
 
-QPair<bool, bool> Util::dockerStatus(const QString& imageName) {
+auto Util::dockerStatus(const QString& imageName) -> QPair<bool, bool> {
 	// Check if docker executable is available by running 'docker --version'.
 	QProcess proc;
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
@@ -940,7 +986,7 @@ QPair<bool, bool> Util::dockerStatus(const QString& imageName) {
 		proc.kill();
 		return qMakePair(false, false);
 	}
-	bool dockerOk = proc.exitStatus() == QProcess::NormalExit && proc.exitCode() == 0;
+	const bool dockerOk = proc.exitStatus() == QProcess::NormalExit && proc.exitCode() == 0;
 	if (!dockerOk) {
 		return qMakePair(false, false);
 	}
@@ -964,7 +1010,7 @@ QPair<bool, bool> Util::dockerStatus(const QString& imageName) {
 		procImage.kill();
 		return qMakePair(true, false);
 	}
-	bool imageOk = procImage.exitStatus() == QProcess::NormalExit && procImage.exitCode() == 0;
+	const bool imageOk = procImage.exitStatus() == QProcess::NormalExit && procImage.exitCode() == 0;
 	return qMakePair(true, imageOk);
 }
 
@@ -975,12 +1021,12 @@ static QString digestFromManifestInspect(const QByteArray& json) {
 	if (idx >= 0 && idx + 71 <= s.size()) {
 		return s.mid(idx, 71);
 	}
-	return QString();
+	return {};
 }
 
 static QSet<QString> dockerCurrentState;
 
-bool Util::isDockerImageCurrent(const QString& imageRef) {
+auto Util::isDockerImageCurrent(const QString& imageRef) -> bool {
 	if (imageRef.isEmpty()) {
 		return false;
 	}
@@ -1029,7 +1075,7 @@ bool Util::isDockerImageCurrent(const QString& imageRef) {
 	return !remoteDigest.isEmpty() && !localDigest.isEmpty() && localDigest == remoteDigest;
 }
 
-void Util::isDockerImageCurrentAsync(const QString& imageRef, QObject* receiver, std::function<void(bool)> callback) {
+void Util::isDockerImageCurrentAsync(const QString& imageRef, QObject* receiver, const std::function<void(bool)>& callback) {
 	if (!callback) {
 		return; // nothing to do
 	}
@@ -1048,8 +1094,8 @@ void Util::isDockerImageCurrentAsync(const QString& imageRef, QObject* receiver,
 	callback(false);
 	return;
 
-	auto emitResult = [callback](bool result) {
-		QMetaObject::invokeMethod(qApp, [callback, result]() { callback(result); }, Qt::QueuedConnection);
+	auto emitResult = [callback](bool result) -> void {
+		QMetaObject::invokeMethod(qApp, [callback, result]() -> void { callback(result); }, Qt::QueuedConnection);
 	};
 
 	// Start with local inspect.
@@ -1061,12 +1107,12 @@ void Util::isDockerImageCurrentAsync(const QString& imageRef, QObject* receiver,
 	localProc->setProcessEnvironment(env);
 #endif
 
-	QObject::connect(localProc, &QProcess::errorOccurred, localProc, [localProc, emitResult](QProcess::ProcessError) {
+	QObject::connect(localProc, &QProcess::errorOccurred, localProc, [localProc, emitResult](QProcess::ProcessError) -> void {
 		localProc->deleteLater();
 		emitResult(false);
 	});
 	QObject::connect(localProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), localProc,
-	                 [imageRef, receiver, emitResult, localProc](int, QProcess::ExitStatus) {
+					 [imageRef, receiver, emitResult, localProc](int, QProcess::ExitStatus) -> void {
 		                 QString localDigest;
 		                 if (localProc->exitStatus() == QProcess::NormalExit && localProc->exitCode() == 0) {
 			                 localDigest = digestFromManifestInspect(localProc->readAllStandardOutput());
@@ -1082,12 +1128,12 @@ void Util::isDockerImageCurrentAsync(const QString& imageRef, QObject* receiver,
 #endif
 
 		                 QObject::connect(remoteProc, &QProcess::errorOccurred, remoteProc,
-		                                  [remoteProc, emitResult](QProcess::ProcessError) {
+										  [remoteProc, emitResult](QProcess::ProcessError) -> void {
 			                                  remoteProc->deleteLater();
 			                                  emitResult(false);
 		                                  });
 		                 QObject::connect(remoteProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-		                                  remoteProc, [emitResult, remoteProc, localDigest](int, QProcess::ExitStatus) {
+										  remoteProc, [emitResult, remoteProc, localDigest](int, QProcess::ExitStatus) -> void {
 			                                  QString remoteDigest;
 			                                  if (remoteProc->exitStatus() == QProcess::NormalExit &&
 			                                      remoteProc->exitCode() == 0) {
@@ -1095,8 +1141,7 @@ void Util::isDockerImageCurrentAsync(const QString& imageRef, QObject* receiver,
 				                                      digestFromManifestInspect(remoteProc->readAllStandardOutput());
 			                                  }
 			                                  remoteProc->deleteLater();
-			                                  bool current = !remoteDigest.isEmpty() && !localDigest.isEmpty() &&
-			                                                 localDigest == remoteDigest;
+											  const bool current = !remoteDigest.isEmpty() && !localDigest.isEmpty() && localDigest == remoteDigest;
 			                                  emitResult(current);
 		                                  });
 		                 LOG_DEBUG() << "docker manifest inspect" << imageRef;
@@ -1106,14 +1151,14 @@ void Util::isDockerImageCurrentAsync(const QString& imageRef, QObject* receiver,
 	localProc->start(Settings.dockerPath(), {"image", "inspect", imageRef});
 }
 
-bool Util::isChromiumAvailable() {
+auto Util::isChromiumAvailable() -> bool {
 	// Check if Chromium executable file exists and is executable
-	QFileInfo fileInfo(Settings.chromiumPath());
+	QFileInfo const fileInfo(Settings.chromiumPath());
 	return fileInfo.exists() && fileInfo.isExecutable();
 }
 
-bool Util::startDetached(const QString& program, const QStringList& arguments) {
-	QProcess process;
+auto Util::startDetached(const QString& program, const QStringList& arguments) -> bool {
+	QProcess const process;
 
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
 	// Remove parts of environment variables that our launch script has set
@@ -1154,7 +1199,7 @@ bool Util::startDetached(const QString& program, const QStringList& arguments) {
 	return process.startDetached(program, arguments);
 }
 
-bool Util::openUrl(const QUrl& url) {
+auto Util::openUrl(const QUrl& url) -> bool {
 	auto success = QDesktopServices::openUrl(url);
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
 	if (!success)

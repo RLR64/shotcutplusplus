@@ -18,9 +18,16 @@
 #ifndef COLORBARSWIDGET_H
 #define COLORBARSWIDGET_H
 
+// Local
 #include "abstractproducerwidget.hpp"
 
+// Qt
+#include <MltProducer.h>
+#include <MltProperties.h>
 #include <QWidget>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 namespace Ui {
 class ColorBarsWidget;
@@ -30,13 +37,13 @@ class ColorBarsWidget : public QWidget, public AbstractProducerWidget {
 	Q_OBJECT
 
   public:
-	explicit ColorBarsWidget(QWidget* parent = 0);
-	~ColorBarsWidget();
+	explicit ColorBarsWidget(QWidget* parent = nullptr);
+	~ColorBarsWidget() override;
 
 	// AbstractProducerWidget overrides
-	Mlt::Producer*  newProducer(Mlt::Profile&);
-	Mlt::Properties getPreset() const;
-	void            loadPreset(Mlt::Properties&);
+	Mlt::Producer*  newProducer(Mlt::Profile&) override;
+	[[nodiscard]] Mlt::Properties getPreset() const override;
+	void loadPreset(Mlt::Properties&) override;
 
   signals:
 	void producerChanged(Mlt::Producer*);

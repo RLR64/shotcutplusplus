@@ -18,9 +18,14 @@
 #ifndef EXTENSIONMODEL_HPP
 #define EXTENSIONMODEL_HPP
 
+// Local
 #include "qmltypes/qmlextension.hpp"
 
+// Qt
 #include <QAbstractItemModel>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 class ExtensionModel : public QAbstractItemModel {
 	Q_OBJECT
@@ -34,26 +39,26 @@ class ExtensionModel : public QAbstractItemModel {
 	};
 
 	explicit ExtensionModel(QObject* parent = nullptr);
-	virtual ~ExtensionModel();
-	void        load(const QString& id);
-	int         count();
-	QString     getName(int row) const;
-	QString     getFormattedDataSize(int row) const;
-	QString     localPath(int row) const;
-	QString     url(int row) const;
-	bool        downloaded(int row) const;
-	void        deleteFile(int row);
-	int         getStandardIndex() const;
-	QModelIndex getIndexForPath(QString path);
+	~ExtensionModel() override;
+	void load(const QString& id);
+	auto count() -> int;
+	[[nodiscard]] auto getName(int row) const -> QString;
+	[[nodiscard]] auto getFormattedDataSize(int row) const -> QString;
+	[[nodiscard]] auto localPath(int row) const -> QString;
+	[[nodiscard]] auto url(int row) const -> QString;
+	[[nodiscard]] auto downloaded(int row) const -> bool;
+	void deleteFile(int row);
+	[[nodiscard]] auto getStandardIndex() const -> int;
+	auto getIndexForPath(const QString& path) -> QModelIndex;
 
   protected:
 	// Implement QAbstractItemModel
-	int         rowCount(const QModelIndex& parent) const;
-	int         columnCount(const QModelIndex& parent) const;
-	QVariant    data(const QModelIndex& index, int role) const;
-	QVariant    headerData(int section, Qt::Orientation orientation, int role) const;
-	QModelIndex index(int row, int column = 0, const QModelIndex& parent = QModelIndex()) const;
-	QModelIndex parent(const QModelIndex& index) const;
+	[[nodiscard]] auto rowCount(const QModelIndex& parent) const -> int override;
+	[[nodiscard]] auto columnCount(const QModelIndex& parent) const -> int override;
+	[[nodiscard]] auto data(const QModelIndex& index, int role) const -> QVariant override;
+	[[nodiscard]] auto headerData(int section, Qt::Orientation orientation, int role) const -> QVariant override;
+	[[nodiscard]] auto index(int row, int column = 0, const QModelIndex& parent = QModelIndex()) const -> QModelIndex override;
+	[[nodiscard]] auto parent(const QModelIndex& index) const -> QModelIndex override;
 
   private:
 	QmlExtension* m_ext;

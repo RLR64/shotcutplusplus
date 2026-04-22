@@ -18,11 +18,19 @@
 #ifndef PLAYER_HPP
 #define PLAYER_HPP
 
+// Local
 #include "sharedframe.hpp"
 
+// Qt
 #include <QIcon>
 #include <QSize>
 #include <QWidget>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qpalette.h>
+#include <qpoint.h>
+#include <qtmetamacros.h>
 
 class DockToolBar;
 class ScrubBar;
@@ -51,23 +59,23 @@ class Player : public QWidget {
 	typedef enum { SourceTabIndex = 0, ProjectTabIndex } TabIndex;
 
 	explicit Player(QWidget* parent = nullptr);
-	void  connectTransport(const TransportControllable*);
-	void  setIn(int);
-	void  setOut(int);
-	void  setMarkers(const QList<int>&);
-	QSize videoSize() const;
+	void connectTransport(const TransportControllable*);
+	void setIn(int);
+	void setOut(int);
+	void setMarkers(const QList<int>&);
+	[[nodiscard]] QSize videoSize() const;
 
-	int position() const {
+	[[nodiscard]] int position() const {
 		return m_position;
 	}
 
-	NewProjectFolder* projectWidget() const {
+	[[nodiscard]] NewProjectFolder* projectWidget() const {
 		return m_projectWidget;
 	}
 
-	void     moveVideoToScreen(int screen = -1);
-	void     setPauseAfterOpen(bool pause);
-	TabIndex tabIndex() const;
+	void moveVideoToScreen(int screen = -1);
+	void setPauseAfterOpen(bool pause);
+	[[nodiscard]] TabIndex tabIndex() const;
 
   signals:
 	void endOfStream();
@@ -112,8 +120,7 @@ class Player : public QWidget {
 	void switchToTab(TabIndex index);
 	void enableTab(TabIndex index, bool enabled = true);
 	void onTabBarClicked(int index);
-	void setStatusLabel(const QString& text, int timeoutSeconds, QAction* action,
-	                    QPalette::ColorRole role = QPalette::ToolTipBase);
+	void setStatusLabel(const QString& text, int timeoutSeconds, QAction* action, QPalette::ColorRole role = QPalette::ToolTipBase);
 	void showIdleStatus();
 	void focusPositionSpinner() const;
 	void onMuteButtonToggled(bool checked);
@@ -122,64 +129,64 @@ class Player : public QWidget {
 
   protected:
 	void resizeEvent(QResizeEvent* event) override;
-	bool event(QEvent* event) override;
+	[[nodiscard]] bool event(QEvent* event) override;
 	void keyPressEvent(QKeyEvent* event) override;
 
   private:
-	void   setupActions();
-	void   adjustScrollBars(float horizontal, float vertical);
+	void setupActions();
+	void adjustScrollBars(float horizontal, float vertical);
 	double setVolume(int volume);
-	void   setLoopRange(int start, int end);
-	void   layoutToolbars();
-	void   seekBy(int frames);
+	void setLoopRange(int start, int end);
+	void layoutToolbars();
+	void seekBy(int frames);
 
-	ScrubBar*                    m_scrubber;
-	TimeSpinBox*                 m_positionSpinner;
-	QLabel*                      m_durationLabel;
-	QLabel*                      m_inPointLabel;
-	QLabel*                      m_selectedLabel;
-	int                          m_position;
-	int                          m_playPosition;
-	QIcon                        m_playIcon;
-	QIcon                        m_loopIcon;
-	QIcon                        m_pauseIcon;
-	QIcon                        m_stopIcon;
-	QFrame*                      m_volumePopup;
-	QSlider*                     m_volumeSlider;
-	QPushButton*                 m_muteButton;
-	int                          m_previousIn;
-	int                          m_previousOut;
-	double                       m_savedVolume;
-	int                          m_duration;
-	bool                         m_isSeekable;
-	QScrollBar*                  m_horizontalScroll;
-	QScrollBar*                  m_verticalScroll;
-	QToolButton*                 m_zoomButton;
-	QToolButton*                 m_gridButton;
-	QActionGroup*                m_gridActionGroup;
-	QAction*                     m_gridDefaultAction;
-	QToolButton*                 m_volumeButton;
-	float                        m_zoomToggleFactor;
-	QTabBar*                     m_tabs;
-	bool                         m_pauseAfterOpen;
-	int                          m_monitorScreen;
-	QWidget*                     m_videoWidget;
-	QHBoxLayout*                 m_videoLayout;
-	QWidget*                     m_videoScrollWidget;
+	ScrubBar* m_scrubber;
+	TimeSpinBox* m_positionSpinner;
+	QLabel* m_durationLabel;
+	QLabel* m_inPointLabel;
+	QLabel* m_selectedLabel;
+	int m_position;
+	int m_playPosition;
+	QIcon m_playIcon;
+	QIcon m_loopIcon;
+	QIcon m_pauseIcon;
+	QIcon m_stopIcon;
+	QFrame* m_volumePopup;
+	QSlider* m_volumeSlider;
+	QPushButton* m_muteButton;
+	int m_previousIn;
+	int m_previousOut;
+	double m_savedVolume;
+	int m_duration;
+	bool m_isSeekable;
+	QScrollBar* m_horizontalScroll;
+	QScrollBar* m_verticalScroll;
+	QToolButton* m_zoomButton;
+	QToolButton* m_gridButton;
+	QActionGroup* m_gridActionGroup;
+	QAction* m_gridDefaultAction;
+	QToolButton* m_volumeButton;
+	float m_zoomToggleFactor;
+	QTabBar* m_tabs;
+	bool m_pauseAfterOpen;
+	int m_monitorScreen;
+	QWidget* m_videoWidget;
+	QHBoxLayout* m_videoLayout;
+	QWidget* m_videoScrollWidget;
 	const TransportControllable* m_currentTransport;
-	StatusLabelWidget*           m_statusLabel;
-	QMenu*                       m_zoomMenu;
-	QMenu*                       m_mainMenu;
-	NewProjectFolder*            m_projectWidget;
-	int                          m_loopStart;
-	int                          m_loopEnd;
-	DockToolBar*                 m_currentDurationToolBar;
-	DockToolBar*                 m_controlsToolBar;
-	DockToolBar*                 m_optionsToolBar;
-	DockToolBar*                 m_inSelectedToolBar;
-	QHBoxLayout*                 m_toolRow1;
-	QHBoxLayout*                 m_toolRow2;
-	int                          m_requestedPosition{0};
+	StatusLabelWidget* m_statusLabel;
+	QMenu* m_zoomMenu;
+	QMenu* m_mainMenu;
+	NewProjectFolder* m_projectWidget;
+	int m_loopStart;
+	int m_loopEnd;
+	DockToolBar* m_currentDurationToolBar;
+	DockToolBar* m_controlsToolBar;
+	DockToolBar* m_optionsToolBar;
+	DockToolBar* m_inSelectedToolBar;
+	QHBoxLayout* m_toolRow1;
+	QHBoxLayout* m_toolRow2;
+	int m_requestedPosition{0};
 
   private slots:
 	void updateSelection();

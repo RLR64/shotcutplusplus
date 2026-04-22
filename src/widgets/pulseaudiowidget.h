@@ -19,9 +19,13 @@
 #ifndef PULSEAUDIOWIDGET_H
 #define PULSEAUDIOWIDGET_H
 
+// Local
 #include "abstractproducerwidget.hpp"
 
+// Qt
+#include <MltProducer.h>
 #include <QWidget>
+#include <qtmetamacros.h>
 
 namespace Ui {
 class PulseAudioWidget;
@@ -31,11 +35,11 @@ class PulseAudioWidget : public QWidget, public AbstractProducerWidget {
 	Q_OBJECT
 
   public:
-	explicit PulseAudioWidget(QWidget* parent = 0);
-	~PulseAudioWidget();
+	explicit PulseAudioWidget(QWidget* parent = nullptr);
+	~PulseAudioWidget() override;
 
 	// AbstractProducerWidget overrides
-	Mlt::Producer* newProducer(Mlt::Profile& profile);
+	Mlt::Producer* newProducer(Mlt::Profile& profile) override;
 
   private:
 	Ui::PulseAudioWidget* ui;

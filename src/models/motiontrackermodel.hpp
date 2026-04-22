@@ -18,12 +18,15 @@
 #ifndef MOTIONTRACKERMODEL_HPP
 #define MOTIONTRACKERMODEL_HPP
 
+// Qt
 #include <MltProducer.h>
 #include <QAbstractListModel>
 #include <QList>
 #include <QMap>
 #include <QRectF>
 #include <QString>
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 class QmlFilter;
 
@@ -49,18 +52,18 @@ class MotionTrackerModel : public QAbstractListModel {
 	void                updateData(const QString& key, const QString& data);
 	void                remove(const QString& key);
 	Q_INVOKABLE void    setName(QmlFilter* filter, const QString& name);
-	Q_INVOKABLE QString nextName() const;
-	QString             keyForRow(int row) const;
+	[[nodiscard]] Q_INVOKABLE QString nextName() const;
+	[[nodiscard]] QString             keyForRow(int row) const;
 	QString             keyForFilter(Mlt::Service* service);
 	Q_INVOKABLE void    reset(QmlFilter* filter, const QString& property, int row);
-	QList<TrackingItem> trackingData(const QString& key) const;
-	Q_INVOKABLE QList<QRectF> trackingData(int row) const;
-	Q_INVOKABLE int           keyframeIntervalFrames(int row) const;
+	[[nodiscard]] QList<TrackingItem> trackingData(const QString& key) const;
+	[[nodiscard]] Q_INVOKABLE QList<QRectF> trackingData(int row) const;
+	[[nodiscard]] Q_INVOKABLE int           keyframeIntervalFrames(int row) const;
 
-	int                     rowCount(const QModelIndex& parent = QModelIndex()) const override;
-	QVariant                data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
-	bool                    setData(const QModelIndex& index, const QVariant& value, int role = Qt::EditRole) override;
-	Qt::ItemFlags           flags(const QModelIndex& index) const override;
+	[[nodiscard]] int                     rowCount(const QModelIndex& parent = QModelIndex()) const override;
+	[[nodiscard]] QVariant                data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
+	[[nodiscard]] bool                    setData(const QModelIndex& index, const QVariant& value, int role = Qt::EditRole) override;
+	[[nodiscard]] Qt::ItemFlags           flags(const QModelIndex& index) const override;
 	Q_INVOKABLE static void undo(QmlFilter* filter = nullptr, const QString& propertyName = QString());
 
 	static QString trackerNameProperty() {

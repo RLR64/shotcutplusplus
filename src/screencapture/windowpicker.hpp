@@ -18,16 +18,19 @@
 #ifndef WINDOWPICKER_HPP
 #define WINDOWPICKER_HPP
 
+// Qt
 #include <QList>
 #include <QRect>
 #include <QWidget>
+#include <qhashfunctions.h>
+#include <qtmetamacros.h>
 
 class WindowPicker : public QWidget {
 	Q_OBJECT
 
   public:
 	explicit WindowPicker(QWidget* parent = nullptr);
-	~WindowPicker();
+	~WindowPicker() override;
 
   signals:
 	void windowSelected(const QRect& rect);
@@ -39,19 +42,19 @@ class WindowPicker : public QWidget {
 
   private:
 	struct WindowInfo {
-		QRect         geometry;         // Logical coordinates for Qt display
-		QRect         physicalGeometry; // Physical coordinates from X11
-		QString       title;
+		QRect geometry;         // Logical coordinates for Qt display
+		QRect physicalGeometry; // Physical coordinates from X11
+		QString title;
 		unsigned long windowId;
 	};
 
-	void              detectWindows();
-	int               findWindowAtPosition(const QPoint& pos);
-	QRect             getWindowGeometry(unsigned long windowId);
+	void detectWindows();
+	int findWindowAtPosition(const QPoint& pos);
+	QRect getWindowGeometry(unsigned long windowId);
 	QList<WindowInfo> getX11Windows();
 
 	QList<WindowInfo> m_windows;
-	int               m_highlightedWindow;
+	int m_highlightedWindow;
 };
 
 #endif // WINDOWPICKER_HPP

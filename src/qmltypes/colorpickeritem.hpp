@@ -18,15 +18,18 @@
 #ifndef COLORPICKERITEM_HPP
 #define COLORPICKERITEM_HPP
 
+// Local
 #include "widgets/screenselector.h"
 
+// Qt
 #include <QColor>
 #include <QObject>
+#include <qtmetamacros.h>
 
 class ColorPickerItem : public QObject {
 	Q_OBJECT
   public:
-	explicit ColorPickerItem(QObject* parent = 0);
+	explicit ColorPickerItem(QObject* parent = nullptr);
 
   signals:
 	void pickColor(QPoint initialPos = QPoint(-1, -1));

@@ -18,10 +18,16 @@
 #ifndef PLAYLISTMODEL_HPP
 #define PLAYLISTMODEL_HPP
 
+// Qt
 #include <MltPlaylist.h>
 #include <QAbstractTableModel>
 #include <QMimeData>
 #include <QStringList>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 class PlaylistModel : public QAbstractTableModel {
 	Q_OBJECT
@@ -63,41 +69,41 @@ class PlaylistModel : public QAbstractTableModel {
 		FIELD_BIN
 	};
 
-	static constexpr int THUMBNAIL_WIDTH  = {80};
-	static constexpr int THUMBNAIL_HEIGHT = {45};
+	static constexpr int THUMBNAIL_WIDTH{80};
+	static constexpr int THUMBNAIL_HEIGHT{45};
 
 	explicit PlaylistModel(QObject* parent = nullptr);
-	~PlaylistModel();
-	int             rowCount(const QModelIndex& parent = QModelIndex()) const;
-	int             columnCount(const QModelIndex& parent = QModelIndex()) const;
-	QVariant        data(const QModelIndex& index, int role = Qt::DisplayRole) const;
-	QVariant        headerData(int section, Qt::Orientation orientation, int role) const;
-	Qt::DropActions supportedDropActions() const;
-	bool            insertRows(int row, int count, const QModelIndex& parent = QModelIndex());
-	bool            removeRows(int row, int count, const QModelIndex& parent = QModelIndex());
-	bool moveRows(const QModelIndex& sourceParent, int sourceRow, int count, const QModelIndex& destinationParent,
-	              int destinationChild);
-	void sort(int column, Qt::SortOrder order = Qt::AscendingOrder);
-	Qt::ItemFlags flags(const QModelIndex& index) const;
-	QStringList   mimeTypes() const;
-	QMimeData*    mimeData(const QModelIndexList& indexes) const;
-	bool dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent);
-	QModelIndex createIndex(int row, int column) const;
-	void        createIfNeeded();
-	void        showThumbnail(int row);
-	void        refreshThumbnails();
+	~PlaylistModel() override;
+	[[nodiscard]] auto rowCount(const QModelIndex& parent = QModelIndex()) const -> int override;
+	[[nodiscard]] auto columnCount(const QModelIndex& parent = QModelIndex()) const -> int override;
+	[[nodiscard]] auto data(const QModelIndex& index, int role = Qt::DisplayRole) const -> QVariant override;
+	[[nodiscard]] auto headerData(int section, Qt::Orientation orientation, int role) const -> QVariant override;
+	[[nodiscard]] auto supportedDropActions() const -> Qt::DropActions override;
+	auto insertRows(int row, int count, const QModelIndex& parent = QModelIndex()) -> bool override;
+	auto removeRows(int row, int count, const QModelIndex& parent = QModelIndex()) -> bool override;
+	auto moveRows(const QModelIndex& sourceParent, int sourceRow, int count, const QModelIndex& destinationParent,
+				  int destinationChild) -> bool override;
+	void sort(int column, Qt::SortOrder order = Qt::AscendingOrder) override;
+	[[nodiscard]] auto flags(const QModelIndex& index) const -> Qt::ItemFlags override;
+	[[nodiscard]] auto mimeTypes() const -> QStringList override;
+	[[nodiscard]] auto mimeData(const QModelIndexList& indexes) const -> QMimeData* override;
+	[[nodiscard]] auto dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent) -> bool override;
+	[[nodiscard]] auto createIndex(int row, int column) const -> QModelIndex;
+	void createIfNeeded();
+	void showThumbnail(int row);
+	void refreshThumbnails();
 
-	Mlt::Playlist* playlist() {
+	auto playlist() -> Mlt::Playlist* {
 		return m_playlist;
 	}
 
 	void setPlaylist(Mlt::Playlist& playlist);
 	void setInOut(int row, int in, int out);
 
-	ViewMode viewMode() const;
-	void     setViewMode(ViewMode mode);
-	void     setBin(int row, const QString& name);
-	void     renameBin(const QString& bin, const QString& newName = QString());
+	[[nodiscard]] auto viewMode() const -> ViewMode;
+	void setViewMode(ViewMode mode);
+	void setBin(int row, const QString& name);
+	void renameBin(const QString& bin, const QString& newName = QString());
 
   signals:
 	void created();
@@ -126,9 +132,9 @@ class PlaylistModel : public QAbstractTableModel {
 
   private:
 	Mlt::Playlist* m_playlist;
-	int            m_dropRow;
-	ViewMode       m_mode;
-	QList<int>     m_rowsRemoved;
+	int m_dropRow;
+	ViewMode m_mode;
+	QList<int> m_rowsRemoved;
 
   private slots:
 	void onRowsAboutToBeRemoved(const QModelIndex& parent, int first, int last);

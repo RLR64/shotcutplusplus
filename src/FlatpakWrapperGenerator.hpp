@@ -18,9 +18,12 @@
 #ifndef FLATPAKWRAPPERGENERATOR_HPP
 #define FLATPAKWRAPPERGENERATOR_HPP
 
+// Qt
 #include <QList>
 #include <QString>
 #include <QStringList>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
 struct AppEntry {
 	QString appId;
@@ -49,15 +52,15 @@ class FlatpakWrapperGenerator {
 	bool generateFor(const QStringList& appIds);
 
   private:
-	bool            ensureOutputDir() const;
-	QList<AppEntry> listInstalledApps() const;
-	QString         getBranchForAppId(const QString& appId) const;
-	bool            writeWrapper(const AppEntry& app) const;
-	QString         buildWrapperScript(const AppEntry& app) const;
+	[[nodiscard]] bool ensureOutputDir() const;
+	[[nodiscard]] QList<AppEntry> listInstalledApps() const;
+	[[nodiscard]] QString getBranchForAppId(const QString& appId) const;
+	[[nodiscard]] bool writeWrapper(const AppEntry& app) const;
+	[[nodiscard]] QString buildWrapperScript(const AppEntry& app) const;
 
 	QString m_outputDir;
-	bool    m_force  = false;
-	bool    m_dryRun = false;
+	bool m_force = false;
+	bool m_dryRun = false;
 	QString m_prefix;
 };
 

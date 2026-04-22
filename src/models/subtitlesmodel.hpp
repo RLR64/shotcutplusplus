@@ -18,12 +18,22 @@
 #ifndef SUBTITLESMODEL_HPP
 #define SUBTITLESMODEL_HPP
 
+// Local
 #include "models/subtitles.hpp"
 
+// Qt
 #include <MltProducer.h>
 #include <QAbstractItemModel>
 #include <QString>
 #include <QTimer>
+#include <qhash.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+
+// STL
+#include <cstdint>
 
 class SubtitlesModel : public QAbstractItemModel {
 	Q_OBJECT
@@ -47,16 +57,16 @@ class SubtitlesModel : public QAbstractItemModel {
 	};
 
 	explicit SubtitlesModel(QObject* parent = nullptr);
-	virtual ~SubtitlesModel();
+	~SubtitlesModel() override;
 
 	void    load(Mlt::Producer* producer);
-	bool    isValid() const;
-	int64_t maxTime() const;
+	[[nodiscard]] bool    isValid() const;
+	[[nodiscard]] int64_t maxTime() const;
 
-	// Track Functions
-	int                                  trackCount() const;
-	Q_INVOKABLE QModelIndex              trackModelIndex(int trackIndex) const;
-	QList<SubtitlesModel::SubtitleTrack> getTracks() const;
+		   // Track Functions
+	[[nodiscard]] int                                  trackCount() const;
+	[[nodiscard]] Q_INVOKABLE QModelIndex              trackModelIndex(int trackIndex) const;
+	[[nodiscard]] QList<SubtitlesModel::SubtitleTrack> getTracks() const;
 	int                                  getTrackIndex(const QString& name);
 	SubtitlesModel::SubtitleTrack        getTrack(const QString& name);
 	SubtitlesModel::SubtitleTrack        getTrack(int index);
@@ -64,14 +74,14 @@ class SubtitlesModel : public QAbstractItemModel {
 	void                                 removeTrack(QString& name);
 	void                                 editTrack(int trackIndex, SubtitlesModel::SubtitleTrack& track);
 
-	// Item Functions
-	Q_INVOKABLE int                itemCount(int trackIndex) const;
-	int64_t                        endTime(int trackIndex) const;
-	QModelIndex                    itemModelIndex(int trackIndex, int itemIndex) const;
-	int                            itemIndexAtTime(int trackIndex, int64_t msTime) const;
-	int                            itemIndexBeforeTime(int trackIndex, int64_t msTime) const;
-	int                            itemIndexAfterTime(int trackIndex, int64_t msTime) const;
-	const Subtitles::SubtitleItem& getItem(int trackIndex, int itemIndex) const;
+		   // Item Functions
+	[[nodiscard]] Q_INVOKABLE int                itemCount(int trackIndex) const;
+	[[nodiscard]] int64_t                        endTime(int trackIndex) const;
+	[[nodiscard]] QModelIndex                    itemModelIndex(int trackIndex, int itemIndex) const;
+	[[nodiscard]] int                            itemIndexAtTime(int trackIndex, int64_t msTime) const;
+	[[nodiscard]] int                            itemIndexBeforeTime(int trackIndex, int64_t msTime) const;
+	[[nodiscard]] int                            itemIndexAfterTime(int trackIndex, int64_t msTime) const;
+	[[nodiscard]] const Subtitles::SubtitleItem& getItem(int trackIndex, int itemIndex) const;
 	void importSubtitles(int trackIndex, int64_t msTime, QList<Subtitles::SubtitleItem>& items);
 	void importSubtitlesToNewTrack(SubtitlesModel::SubtitleTrack& track, QList<Subtitles::SubtitleItem>& items);
 	void exportSubtitles(const QString& filePath, int trackIndex) const;
@@ -84,7 +94,7 @@ class SubtitlesModel : public QAbstractItemModel {
 	Q_INVOKABLE void moveItems(int trackIndex, int firstItemIndex, int lastItemIndex, int64_t msTime);
 	Q_INVOKABLE bool validateMove(const QModelIndexList& items, int64_t msTime);
 
-	// Only to be called by subtitle commands
+		   // Only to be called by subtitle commands
 	void doInsertTrack(const SubtitlesModel::SubtitleTrack& track, int trackIndex);
 	void doRemoveTrack(int trackIndex);
 	void doEditTrack(const SubtitlesModel::SubtitleTrack& track, int trackIndex);
@@ -99,13 +109,13 @@ class SubtitlesModel : public QAbstractItemModel {
 
   protected:
 	// Implement QAbstractItemModel
-	int                    rowCount(const QModelIndex& parent) const;
-	int                    columnCount(const QModelIndex& parent) const;
-	QVariant               data(const QModelIndex& index, int role) const;
-	QVariant               headerData(int section, Qt::Orientation orientation, int role) const;
-	QModelIndex            index(int row, int column = 0, const QModelIndex& parent = QModelIndex()) const;
-	QModelIndex            parent(const QModelIndex& index) const;
-	QHash<int, QByteArray> roleNames() const;
+	[[nodiscard]] int                    rowCount(const QModelIndex& parent) const override;
+	[[nodiscard]] int                    columnCount(const QModelIndex& parent) const override;
+	[[nodiscard]] QVariant               data(const QModelIndex& index, int role) const override;
+	[[nodiscard]] QVariant               headerData(int section, Qt::Orientation orientation, int role) const override;
+	[[nodiscard]] QModelIndex            index(int row, int column = 0, const QModelIndex& parent = QModelIndex()) const override;
+	[[nodiscard]] QModelIndex            parent(const QModelIndex& index) const override;
+	[[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 
   private:
 	void                                  requestFeedCommit(int trackIndex);

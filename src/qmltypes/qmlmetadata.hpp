@@ -18,11 +18,14 @@
 #ifndef QMLMETADATA_HPP
 #define QMLMETADATA_HPP
 
+// Qt
 #include <QDir>
 #include <QObject>
 #include <QQmlListProperty>
 #include <QString>
 #include <QUrl>
+#include <qcontainerfwd.h>
+#include <qtmetamacros.h>
 
 class QmlKeyframesParameter : public QObject {
 	Q_OBJECT
@@ -46,47 +49,47 @@ class QmlKeyframesParameter : public QObject {
 	Q_ENUM(RangeType)
 	explicit QmlKeyframesParameter(QObject* parent = nullptr);
 
-	QString name() const {
+	[[nodiscard]] QString name() const {
 		return m_name;
 	}
 
-	QString property() const {
+	[[nodiscard]] QString property() const {
 		return m_property;
 	}
 
-	QStringList gangedProperties() const {
+	[[nodiscard]] QStringList gangedProperties() const {
 		return m_gangedProperties;
 	}
 
-	QStringList gangedRectProperties() const {
+	[[nodiscard]] QStringList gangedRectProperties() const {
 		return m_gangedRectProperties;
 	}
 
-	bool isCurve() const {
+	[[nodiscard]] bool isCurve() const {
 		return m_isCurve;
 	}
 
-	double minimum() const {
+	[[nodiscard]] double minimum() const {
 		return m_minimum;
 	}
 
-	double maximum() const {
+	[[nodiscard]] double maximum() const {
 		return m_maximum;
 	}
 
-	QString units() const {
+	[[nodiscard]] QString units() const {
 		return m_units;
 	}
 
-	bool isRectangle() const {
+	[[nodiscard]] bool isRectangle() const {
 		return m_isRectangle;
 	}
 
-	RangeType rangeType() const {
+	[[nodiscard]] RangeType rangeType() const {
 		return m_rangeType;
 	}
 
-	bool isColor() const {
+	[[nodiscard]] bool isColor() const {
 		return m_isColor;
 	}
 
@@ -122,39 +125,39 @@ class QmlKeyframesMetadata : public QObject {
   public:
 	explicit QmlKeyframesMetadata(QObject* parent = nullptr);
 
-	bool allowTrim() const {
+	[[nodiscard]] bool allowTrim() const {
 		return m_allowTrim;
 	}
 
-	bool allowAnimateIn() const {
+	[[nodiscard]] bool allowAnimateIn() const {
 		return m_allowAnimateIn;
 	}
 
-	bool allowAnimateOut() const {
+	[[nodiscard]] bool allowAnimateOut() const {
 		return m_allowAnimateOut;
 	}
 
-	QList<QString> simpleProperties() const {
+	[[nodiscard]] QList<QString> simpleProperties() const {
 		return m_simpleProperties;
 	}
 
-	bool allowOvershoot() const {
+	[[nodiscard]] bool allowOvershoot() const {
 		return m_allowOvershoot;
 	}
 
 	QQmlListProperty<QmlKeyframesParameter> parameters() {
-		return QQmlListProperty<QmlKeyframesParameter>(this, &m_parameters);
+		return {this, &m_parameters};
 	}
 
-	int parameterCount() const {
+	[[nodiscard]] int parameterCount() const {
 		return m_parameters.count();
 	}
 
-	QmlKeyframesParameter* parameter(int index) const {
+	[[nodiscard]] QmlKeyframesParameter* parameter(int index) const {
 		return m_parameters[index];
 	}
 
-	Q_INVOKABLE QmlKeyframesParameter* parameter(const QString& propertyName) const;
+	[[nodiscard]] Q_INVOKABLE QmlKeyframesParameter* parameter(const QString& propertyName) const;
 	void                               checkVersion(const QString& version);
 	void                               setDisabled();
 
@@ -213,52 +216,52 @@ class QmlMetadata : public QObject {
 	explicit QmlMetadata(QObject* parent = nullptr);
 	void loadSettings();
 
-	PluginType type() const {
+	[[nodiscard]] PluginType type() const {
 		return m_type;
 	}
 
 	void setType(PluginType);
 
-	QString name() const {
+	[[nodiscard]] QString name() const {
 		return m_name;
 	}
 
 	void setName(const QString&);
 
-	QString mlt_service() const {
+	[[nodiscard]] QString mlt_service() const {
 		return m_mlt_service;
 	}
 
 	void    set_mlt_service(const QString&);
-	QString uniqueId() const;
+	[[nodiscard]] QString uniqueId() const;
 
-	bool needsGPU() const {
+	[[nodiscard]] bool needsGPU() const {
 		return m_needsGPU;
 	}
 
 	void setNeedsGPU(bool);
 
-	QString qmlFileName() const {
+	[[nodiscard]] QString qmlFileName() const {
 		return m_qmlFileName;
 	}
 
 	void setQmlFileName(const QString&);
 
-	QString vuiFileName() const {
+	[[nodiscard]] QString vuiFileName() const {
 		return m_vuiFileName;
 	}
 
 	void setVuiFileName(const QString&);
 
-	QDir path() const {
+	[[nodiscard]] QDir path() const {
 		return m_path;
 	}
 
 	void setPath(const QDir& path);
-	QUrl qmlFilePath() const;
-	QUrl vuiFilePath() const;
+	[[nodiscard]] QUrl qmlFilePath() const;
+	[[nodiscard]] QUrl vuiFilePath() const;
 
-	QString iconFilePath() const {
+	[[nodiscard]] QString iconFilePath() const {
 		return (m_icon.isEmpty() || m_icon.startsWith("qrc:"))
 		           ? m_icon
 		           : QUrl::fromLocalFile(m_path.absoluteFilePath(m_icon)).toString();
@@ -266,55 +269,55 @@ class QmlMetadata : public QObject {
 
 	void setIconFileName(const QString&);
 
-	bool isAudio() const {
+	[[nodiscard]] bool isAudio() const {
 		return m_isAudio;
 	}
 
 	void setIsAudio(bool isAudio);
 
-	bool isHidden() const {
+	[[nodiscard]] bool isHidden() const {
 		return m_isHidden;
 	}
 
 	void setIsHidden(bool isHidden);
 
-	bool isFavorite() const {
+	[[nodiscard]] bool isFavorite() const {
 		return m_isFavorite;
 	}
 
 	void setIsFavorite(bool isFavorite);
 
-	QString gpuAlt() const {
+	[[nodiscard]] QString gpuAlt() const {
 		return m_gpuAlt;
 	}
 
 	void setGpuAlt(const QString&);
 
-	bool allowMultiple() const {
+	[[nodiscard]] bool allowMultiple() const {
 		return m_allowMultiple;
 	}
 
 	void setAllowMultiple(bool allowMultiple);
 
-	bool isClipOnly() const {
+	[[nodiscard]] bool isClipOnly() const {
 		return m_isClipOnly;
 	}
 
 	void setIsClipOnly(bool isClipOnly);
 
-	bool isTrackOnly() const {
+	[[nodiscard]] bool isTrackOnly() const {
 		return m_isTrackOnly;
 	}
 
 	void setIsTrackOnly(bool isTrackOnly);
 
-	bool isOutputOnly() const {
+	[[nodiscard]] bool isOutputOnly() const {
 		return m_isOutputOnly;
 	}
 
 	void setIsOutputOnly(bool isOutputOnly);
 
-	bool isGpuCompatible() const {
+	[[nodiscard]] bool isGpuCompatible() const {
 		return m_isGpuCompatible;
 	}
 
@@ -326,11 +329,11 @@ class QmlMetadata : public QObject {
 		return &m_keyframes;
 	}
 
-	const QmlKeyframesMetadata* keyframes() const {
+	[[nodiscard]] const QmlKeyframesMetadata* keyframes() const {
 		return &m_keyframes;
 	}
 
-	bool isDeprecated() const {
+	[[nodiscard]] bool isDeprecated() const {
 		return m_isDeprecated;
 	}
 
@@ -340,15 +343,15 @@ class QmlMetadata : public QObject {
 
 	bool isMltVersion(const QString& version);
 
-	QString keywords() const {
+	[[nodiscard]] QString keywords() const {
 		return m_keywords;
 	}
 
-	bool seekReverse() const {
+	[[nodiscard]] bool seekReverse() const {
 		return m_seekReverse;
 	}
 
-	QString helpText() const {
+	[[nodiscard]] QString helpText() const {
 		return m_helpText;
 	}
 

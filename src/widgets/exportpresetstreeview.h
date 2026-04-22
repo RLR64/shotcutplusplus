@@ -18,13 +18,17 @@
 #ifndef EXPORTPRESETSTREEVIEW_H
 #define EXPORTPRESETSTREEVIEW_H
 
+// Qt
 #include <QTreeView>
+#include <qabstractitemmodel.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class ExportPresetsTreeView : public QTreeView {
   public:
 	ExportPresetsTreeView(QWidget* parent = nullptr);
   protected slots:
-	void currentChanged(const QModelIndex& current, const QModelIndex& previous);
+	void currentChanged(const QModelIndex& current, const QModelIndex& previous) override;
 };
 
 #endif // EXPORTPRESETSTREEVIEW_H

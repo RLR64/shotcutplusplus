@@ -18,8 +18,13 @@
 #ifndef RESOURCEWIDGET_H
 #define RESOURCEWIDGET_H
 
-#include <Mlt.h>
+// Qt
+#include <MltProducer.h>
 #include <QWidget>
+#include <qlist.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class ResourceModel;
 class QTreeView;
@@ -29,20 +34,20 @@ class ResourceWidget : public QWidget {
 
   public:
 	ResourceWidget(QWidget* parent);
-	virtual ~ResourceWidget();
+	~ResourceWidget() override;
 
-	void                 search(Mlt::Producer* producer);
-	void                 add(Mlt::Producer* producer);
-	void                 selectTroubleClips();
-	bool                 hasTroubleClips();
-	int                  producerCount();
-	Mlt::Producer        producer(int index);
+	void search(Mlt::Producer* producer);
+	void add(Mlt::Producer* producer);
+	void selectTroubleClips();
+	bool hasTroubleClips();
+	int producerCount();
+	Mlt::Producer producer(int index);
 	QList<Mlt::Producer> getSelected();
-	void                 updateSize();
+	void updateSize();
 
   private:
 	ResourceModel* m_model;
-	QTreeView*     m_table;
+	QTreeView* m_table;
 };
 
 #endif // RESOURCEWIDGET_H

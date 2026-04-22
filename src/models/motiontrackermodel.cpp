@@ -15,18 +15,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "motiontrackermodel.hpp"
-
 #include "Logger.hpp"
 #include "mltcontroller.hpp"
 #include "qmltypes/qmlfilter.hpp"
 #include "shotcut_mlt_properties.hpp"
 
+// Qt
 #include <Mlt.h>
+#include <MltChain.h>
+#include <MltLink.h>
+#include <MltParser.h>
 #include <QUuid>
+#include <framework/mlt_types.h>
+#include <qabstractitemmodel.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+
+// STL
+#include <utility>
 
 // This is hard-coded for now (minimum viable product).
-static constexpr int KEYFRAME_INTERVAL_FRAMES = {5};
+static constexpr int KEYFRAME_INTERVAL_FRAMES{5};
 
 class FindTrackersParser : public Mlt::Parser {
   private:
@@ -36,7 +50,7 @@ class FindTrackersParser : public Mlt::Parser {
 	FindTrackersParser(MotionTrackerModel& model) : Mlt::Parser(), m_model{model} {
 	}
 
-	int on_start_filter(Mlt::Filter* filter) {
+	auto on_start_filter(Mlt::Filter* filter) -> int override {
 		if (QString::fromUtf8(filter->get("mlt_service")) == "opencv.tracker") {
 			auto results = QString::fromLatin1(filter->get("results"));
 			if (!results.isEmpty()) {
@@ -54,71 +68,71 @@ class FindTrackersParser : public Mlt::Parser {
 		return 0;
 	}
 
-	int on_start_producer(Mlt::Producer*) {
+	auto on_start_producer(Mlt::Producer*) -> int override {
 		return 0;
 	}
 
-	int on_end_producer(Mlt::Producer*) {
+	auto on_end_producer(Mlt::Producer*) -> int override {
 		return 0;
 	}
 
-	int on_start_playlist(Mlt::Playlist*) {
+	auto on_start_playlist(Mlt::Playlist*) -> int override {
 		return 0;
 	}
 
-	int on_end_playlist(Mlt::Playlist*) {
+	auto on_end_playlist(Mlt::Playlist*) -> int override{
 		return 0;
 	}
 
-	int on_start_tractor(Mlt::Tractor*) {
+	auto on_start_tractor(Mlt::Tractor*) -> int override {
 		return 0;
 	}
 
-	int on_end_tractor(Mlt::Tractor*) {
+	auto on_end_tractor(Mlt::Tractor*) -> int override {
 		return 0;
 	}
 
-	int on_start_multitrack(Mlt::Multitrack*) {
+	auto on_start_multitrack(Mlt::Multitrack*) -> int override {
 		return 0;
 	}
 
-	int on_end_multitrack(Mlt::Multitrack*) {
+	auto on_end_multitrack(Mlt::Multitrack*) -> int override {
 		return 0;
 	}
 
-	int on_start_track() {
+	auto on_start_track() -> int override {
 		return 0;
 	}
 
-	int on_end_track() {
+	auto on_end_track() -> int override {
 		return 0;
 	}
 
-	int on_end_filter(Mlt::Filter*) {
+	auto on_end_filter(Mlt::Filter*) -> int override {
 		return 0;
 	}
 
-	int on_start_transition(Mlt::Transition*) {
+	auto on_start_transition(Mlt::Transition*) -> int override {
 		return 0;
 	}
 
-	int on_end_transition(Mlt::Transition*) {
+	auto on_end_transition(Mlt::Transition*) -> int override {
 		return 0;
 	}
 
-	int on_start_chain(Mlt::Chain*) {
+	auto on_start_chain(Mlt::Chain*) -> int override {
 		return 0;
 	}
 
-	int on_end_chain(Mlt::Chain*) {
+	auto on_end_chain(Mlt::Chain*) -> int override {
 		return 0;
 	}
 
-	int on_start_link(Mlt::Link*) {
+	auto on_start_link(Mlt::Link*) -> int override {
 		return 0;
 	}
 
-	int on_end_link(Mlt::Link*) {
+	auto on_end_link(Mlt::Link*) -> int override {
 		return 0;
 	}
 };
@@ -151,7 +165,7 @@ void MotionTrackerModel::load(Mlt::Producer* producer, bool reset) {
 		endResetModel();
 }
 
-QString MotionTrackerModel::add(const QString& name, const QString& data) {
+auto MotionTrackerModel::add(const QString& name, const QString& data) -> QString {
 	auto key = QUuid::createUuid().toString();
 	if (!m_data.contains(key)) {
 		auto row = rowCount();
@@ -161,7 +175,7 @@ QString MotionTrackerModel::add(const QString& name, const QString& data) {
 		endInsertRows();
 		return key;
 	}
-	return QString();
+	return {};
 }
 
 void MotionTrackerModel::updateData(const QString& key, const QString& data) {
@@ -214,11 +228,11 @@ void MotionTrackerModel::setName(QmlFilter* filter, const QString& name) {
 	}
 }
 
-QString MotionTrackerModel::nextName() const {
+auto MotionTrackerModel::nextName() const -> QString {
 	return tr("Tracker %1").arg(rowCount());
 }
 
-QString MotionTrackerModel::keyForRow(int row) const {
+auto MotionTrackerModel::keyForRow(int row) const -> QString {
 	QString key;
 	auto    keys = m_data.keys();
 	if (row >= 0 && row < keys.size()) {
@@ -227,7 +241,7 @@ QString MotionTrackerModel::keyForRow(int row) const {
 	return key;
 }
 
-QString MotionTrackerModel::keyForFilter(Mlt::Service* service) {
+auto MotionTrackerModel::keyForFilter(Mlt::Service* service) -> QString {
 	QString key;
 	if (service && service->is_valid())
 		key = service->get(kUuidProperty);
@@ -250,14 +264,14 @@ void MotionTrackerModel::reset(QmlFilter* filter, const QString& property, int r
 	}
 }
 
-QList<MotionTrackerModel::TrackingItem> MotionTrackerModel::trackingData(const QString& key) const {
+auto MotionTrackerModel::trackingData(const QString& key) const -> QList<MotionTrackerModel::TrackingItem> {
 	QList<TrackingItem> result;
 	auto                s = m_data.value(key, {}).trackingData;
 	auto                l = s.split(';');
 	bool                ok{false};
 	Mlt::Properties     props;
 
-	for (const auto& i : l) {
+	for (const auto& i : std::as_const(l)) {
 		auto pair = i.split("~=");
 		if (pair.size() == 2) {
 			auto frame = pair.at(0).toInt(&ok);
@@ -271,7 +285,7 @@ QList<MotionTrackerModel::TrackingItem> MotionTrackerModel::trackingData(const Q
 	return result;
 }
 
-QList<QRectF> MotionTrackerModel::trackingData(int row) const {
+auto MotionTrackerModel::trackingData(int row) const -> QList<QRectF> {
 	auto          key = keyForRow(row);
 	QList<QRectF> result;
 	if (!key.isEmpty() && m_data.contains(key)) {
@@ -282,14 +296,14 @@ QList<QRectF> MotionTrackerModel::trackingData(int row) const {
 	return result;
 }
 
-int MotionTrackerModel::keyframeIntervalFrames(int row) const {
+auto MotionTrackerModel::keyframeIntervalFrames(int row) const -> int {
 	auto key = keyForRow(row);
 	if (!key.isEmpty() && m_data.contains(key))
 		return m_data.value(key).intervalFrames;
 	return KEYFRAME_INTERVAL_FRAMES;
 }
 
-int MotionTrackerModel::rowCount(const QModelIndex& parent) const {
+auto MotionTrackerModel::rowCount(const QModelIndex& parent) const -> int {
 	// For list models only the root node (an invalid parent) should return the list's size. For all
 	// other (valid) parents, rowCount() should return 0 so that it does not become a tree model.
 	if (parent.isValid())
@@ -298,9 +312,9 @@ int MotionTrackerModel::rowCount(const QModelIndex& parent) const {
 	return m_data.size();
 }
 
-QVariant MotionTrackerModel::data(const QModelIndex& index, int role) const {
+auto MotionTrackerModel::data(const QModelIndex& index, int role) const -> QVariant {
 	if (!index.isValid())
-		return QVariant();
+		return {};
 
 	auto key = keyForRow(index.row());
 	if (!key.isEmpty()) {
@@ -313,10 +327,10 @@ QVariant MotionTrackerModel::data(const QModelIndex& index, int role) const {
 			break;
 		}
 	}
-	return QVariant();
+	return {};
 }
 
-bool MotionTrackerModel::setData(const QModelIndex& index, const QVariant& value, int role) {
+auto MotionTrackerModel::setData(const QModelIndex& index, const QVariant& value, int role) -> bool {
 	if (data(index, role) != value) {
 		auto key = index.data(Qt::UserRole).toString();
 		if (m_data.contains(key)) {
@@ -338,7 +352,7 @@ bool MotionTrackerModel::setData(const QModelIndex& index, const QVariant& value
 	return false;
 }
 
-Qt::ItemFlags MotionTrackerModel::flags(const QModelIndex& index) const {
+auto MotionTrackerModel::flags(const QModelIndex& index) const -> Qt::ItemFlags {
 	if (!index.isValid())
 		return Qt::NoItemFlags;
 

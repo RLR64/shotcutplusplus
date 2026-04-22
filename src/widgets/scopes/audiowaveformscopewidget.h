@@ -18,17 +18,27 @@
 #ifndef AUDIOWAVEFORMSCOPEWIDGET_H
 #define AUDIOWAVEFORMSCOPEWIDGET_H
 
+// Local
 #include "scopewidget.h"
+#include "sharedframe.hpp"
 
+// Qt
 #include <QImage>
 #include <QMutex>
+#include <qhashfunctions.h>
+#include <qobject.h>
+#include <qsize.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class AudioWaveformScopeWidget Q_DECL_FINAL : public ScopeWidget {
 	Q_OBJECT
 
   public:
 	explicit AudioWaveformScopeWidget();
-	~AudioWaveformScopeWidget();
+	~AudioWaveformScopeWidget() override;
+
 	QString getTitle() Q_DECL_OVERRIDE;
 
   private:
@@ -43,17 +53,17 @@ class AudioWaveformScopeWidget Q_DECL_FINAL : public ScopeWidget {
 
 	// Members accessed only in scope thread (no thread protection).
 	QImage m_renderWave;
-	int    m_graphTopPadding;
-	int    m_graphLeftPadding;
-	int    m_channels;
+	int m_graphTopPadding;
+	int m_graphLeftPadding;
+	int m_channels;
 
 	// Members accessed only in GUI thread (no thread protection).
 	int m_cursorPos;
 
 	// Members accessed in multiple threads (mutex protected).
-	QMutex      m_mutex;
-	QImage      m_displayWave;
-	QImage      m_displayGrid;
+	QMutex m_mutex;
+	QImage m_displayWave;
+	QImage m_displayGrid;
 	SharedFrame m_frame;
 };
 

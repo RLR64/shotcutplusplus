@@ -18,8 +18,12 @@
 #ifndef STATUSLABELWIDGET_H
 #define STATUSLABELWIDGET_H
 
+// Qt
 #include <QTimer>
 #include <QWidget>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class QHBoxLayout;
 class QPropertyAnimation;
@@ -30,7 +34,7 @@ class StatusLabelWidget : public QWidget {
 
   public:
 	StatusLabelWidget(QWidget* parent = nullptr);
-	virtual ~StatusLabelWidget();
+	~StatusLabelWidget() override;
 	void setWidth(int width);
 	void showText(const QString& text, int timeoutSeconds = -1, QAction* action = nullptr,
 	              QPalette::ColorRole role = QPalette::ToolTipBase);
@@ -39,13 +43,13 @@ class StatusLabelWidget : public QWidget {
 	void statusCleared();
 
   private:
-	void                onFadeOutFinished();
-	QHBoxLayout*        m_layout;
-	QPushButton*        m_label;
+	void onFadeOutFinished();
+	QHBoxLayout* m_layout;
+	QPushButton* m_label;
 	QPropertyAnimation* m_fadeIn;
 	QPropertyAnimation* m_fadeOut;
-	QTimer              m_timer;
-	int                 m_width;
+	QTimer m_timer;
+	int m_width;
 };
 
 #endif // STATUSLABELWIDGET_H

@@ -15,15 +15,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "isingwidget.h"
-
 #include "shotcut_mlt_properties.hpp"
 #include "ui_isingwidget.h"
 #include "util.hpp"
 
-static const char* kParamTemperature  = "0";
-static const char* kParamBorderGrowth = "1";
-static const char* kParamSpontaneous  = "2";
+// Qt
+#include <MltProducer.h>
+#include <MltProperties.h>
+#include <qtmetamacros.h>
+#include <qlatin1stringview.h>
+#include <qobject.h>
+
+// Number constants
+constexpr int setIsingWidgetNumberInt{100};
+constexpr double setIsingWidgetNumberDouble{100.0};
+
+
+static constexpr const char* kParamTemperature  = "0";
+static constexpr const char* kParamBorderGrowth = "1";
+static constexpr const char* kParamSpontaneous  = "2";
 
 IsingWidget::IsingWidget(QWidget* parent) : QWidget(parent), ui(new Ui::IsingWidget) {
 	ui->setupUi(this);
@@ -38,42 +50,42 @@ IsingWidget::~IsingWidget() {
 
 void IsingWidget::on_tempDial_valueChanged(int value) {
 	if (m_producer) {
-		m_producer->set(kParamTemperature, value / 100.0);
+		m_producer->set(kParamTemperature, value / setIsingWidgetNumberDouble);
 		emit producerChanged(m_producer.data());
 	}
-	ui->tempSpinner->setValue(value / 100.0);
+	ui->tempSpinner->setValue(value / setIsingWidgetNumberDouble);
 }
 
 void IsingWidget::on_tempSpinner_valueChanged(double value) {
-	ui->tempDial->setValue(value * 100);
+	ui->tempDial->setValue(value * setIsingWidgetNumberInt);
 }
 
 void IsingWidget::on_borderGrowthDial_valueChanged(int value) {
 	if (m_producer) {
-		m_producer->set(kParamBorderGrowth, value / 100.0);
+		m_producer->set(kParamBorderGrowth, value / setIsingWidgetNumberDouble);
 		emit producerChanged(m_producer.data());
 	}
-	ui->borderGrowthSpinner->setValue(value / 100.0);
+	ui->borderGrowthSpinner->setValue(value / setIsingWidgetNumberDouble);
 }
 
 void IsingWidget::on_borderGrowthSpinner_valueChanged(double value) {
-	ui->borderGrowthDial->setValue(value * 100);
+	ui->borderGrowthDial->setValue(value * setIsingWidgetNumberInt);
 }
 
 void IsingWidget::on_spontGrowthDial_valueChanged(int value) {
 	if (m_producer) {
-		m_producer->set(kParamSpontaneous, value / 100.0);
+		m_producer->set(kParamSpontaneous, value / setIsingWidgetNumberDouble);
 		emit producerChanged(producer());
 	}
-	ui->spontGrowthSpinner->setValue(value / 100.0);
+	ui->spontGrowthSpinner->setValue(value / setIsingWidgetNumberDouble);
 }
 
 void IsingWidget::on_spontGrowthSpinner_valueChanged(double value) {
-	ui->spontGrowthDial->setValue(value * 100);
+	ui->spontGrowthDial->setValue(value * setIsingWidgetNumberInt);
 }
 
-Mlt::Producer* IsingWidget::newProducer(Mlt::Profile& profile) {
-	Mlt::Producer* p = new Mlt::Producer(profile, "frei0r.ising0r");
+auto IsingWidget::newProducer(Mlt::Profile& profile) -> Mlt::Producer* {
+	auto* p = new Mlt::Producer(profile, "frei0r.ising0r");
 	p->set(kParamTemperature, ui->tempSpinner->text().toLatin1().constData());
 	p->set(kParamBorderGrowth, ui->borderGrowthSpinner->text().toLatin1().constData());
 	p->set(kParamSpontaneous, ui->spontGrowthSpinner->text().toLatin1().constData());
@@ -82,7 +94,7 @@ Mlt::Producer* IsingWidget::newProducer(Mlt::Profile& profile) {
 	return p;
 }
 
-Mlt::Properties IsingWidget::getPreset() const {
+auto IsingWidget::getPreset() const -> Mlt::Properties {
 	Mlt::Properties p;
 	p.set(kParamTemperature, ui->tempSpinner->text().toLatin1().constData());
 	p.set(kParamBorderGrowth, ui->borderGrowthSpinner->text().toLatin1().constData());
@@ -97,7 +109,7 @@ void IsingWidget::loadPreset(Mlt::Properties& p) {
 }
 
 void IsingWidget::on_preset_selected(void* p) {
-	Mlt::Properties* properties = (Mlt::Properties*)p;
+	auto* properties = (Mlt::Properties*)p;
 	loadPreset(*properties);
 	delete properties;
 }

@@ -18,10 +18,17 @@
 #ifndef AUDIOVECTORSCOPEWIDGET_H
 #define AUDIOVECTORSCOPEWIDGET_H
 
+// Local
 #include "scopewidget.h"
+#include "sharedframe.hpp"
 
+// Qt
 #include <QImage>
 #include <QMutex>
+#include <qhashfunctions.h>
+#include <qsize.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
 
 class QComboBox;
 class QLabel;
@@ -31,7 +38,8 @@ class AudioVectorScopeWidget Q_DECL_FINAL : public ScopeWidget {
 
   public:
 	explicit AudioVectorScopeWidget();
-	~AudioVectorScopeWidget();
+	~AudioVectorScopeWidget() override;
+
 	QString getTitle() Q_DECL_OVERRIDE;
 
   private:
@@ -39,23 +47,23 @@ class AudioVectorScopeWidget Q_DECL_FINAL : public ScopeWidget {
 	void refreshScope(const QSize& size, bool full) Q_DECL_OVERRIDE;
 
 	// Functions run in GUI thread.
-	void             setComboBoxOptions();
+	void setComboBoxOptions();
 	Q_INVOKABLE void onNewDisplayImage();
 
 	// Members accessed only in scope thread (no thread protection).
-	QImage      m_renderImg;
+	QImage m_renderImg;
 	SharedFrame m_frame;
 
 	// Members accessed only in GUI thread (no thread protection).
 	QComboBox* m_c1Combo;
 	QComboBox* m_c2Combo;
-	QLabel*    m_imgLabel;
+	QLabel* m_imgLabel;
 
 	// Members accessed in multiple threads (mutex protected).
 	QMutex m_mutex;
 	QImage m_displayImg;
-	int    m_c1Index;
-	int    m_c2Index;
+	int m_c1Index;
+	int m_c2Index;
 };
 
 #endif // AUDIOVECTORSCOPEWIDGET_H

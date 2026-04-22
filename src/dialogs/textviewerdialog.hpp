@@ -18,7 +18,11 @@
 #ifndef TEXTVIEWERDIALOG_HPP
 #define TEXTVIEWERDIALOG_HPP
 
+// Qt
 #include <QDialog>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class QDialogButtonBox;
 
@@ -31,9 +35,9 @@ class TextViewerDialog : public QDialog {
 
   public:
 	explicit TextViewerDialog(QWidget* parent = nullptr, bool forMltXml = false);
-	~TextViewerDialog();
+	~TextViewerDialog() override;
 	void              setText(const QString& s, bool scroll = false);
-	QDialogButtonBox* buttonBox() const;
+	[[nodiscard]] auto buttonBox() const -> QDialogButtonBox*;
 
   private slots:
 	void on_buttonBox_accepted();

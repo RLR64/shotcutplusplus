@@ -15,13 +15,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "blipproducerwidget.h"
-
 #include "shotcut_mlt_properties.hpp"
 #include "ui_blipproducerwidget.h"
 #include "util.hpp"
 
+// Qt
 #include <MltProfile.h>
+#include <qcontainerfwd.h>
+#include <qtmetamacros.h>
 
 BlipProducerWidget::BlipProducerWidget(QWidget* parent) : QWidget(parent), ui(new Ui::BlipProducerWidget) {
 	ui->setupUi(this);
@@ -35,8 +38,8 @@ BlipProducerWidget::~BlipProducerWidget() {
 	delete ui;
 }
 
-Mlt::Producer* BlipProducerWidget::newProducer(Mlt::Profile& profile) {
-	Mlt::Producer* p = new Mlt::Producer(profile, "blipflash:");
+auto BlipProducerWidget::newProducer(Mlt::Profile& profile) -> Mlt::Producer* {
+	auto* p = new Mlt::Producer(profile, "blipflash:");
 	p->set("period", ui->periodSpinBox->value());
 	p->set("force_seekable", 1);
 	p->set(kShotcutCaptionProperty, ui->nameLabel->text().toUtf8().constData());
@@ -44,7 +47,7 @@ Mlt::Producer* BlipProducerWidget::newProducer(Mlt::Profile& profile) {
 	return p;
 }
 
-Mlt::Properties BlipProducerWidget::getPreset() const {
+auto BlipProducerWidget::getPreset() const -> Mlt::Properties {
 	Mlt::Properties p;
 	p.set("period", ui->periodSpinBox->value());
 	return p;
@@ -65,7 +68,7 @@ void BlipProducerWidget::on_periodSpinBox_valueChanged(int value) {
 }
 
 void BlipProducerWidget::on_preset_selected(void* p) {
-	Mlt::Properties* properties = (Mlt::Properties*)p;
+	auto* properties = (Mlt::Properties*)p;
 	loadPreset(*properties);
 	delete properties;
 }
@@ -74,6 +77,6 @@ void BlipProducerWidget::on_preset_saveClicked() {
 	ui->preset->savePreset(getPreset());
 }
 
-QString BlipProducerWidget::detail() const {
+auto BlipProducerWidget::detail() const -> QString {
 	return tr("Period: %1s").arg(ui->periodSpinBox->value());
 }

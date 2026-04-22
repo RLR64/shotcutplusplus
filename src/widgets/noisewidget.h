@@ -19,9 +19,15 @@
 #ifndef NOISEWIDGET_H
 #define NOISEWIDGET_H
 
+// Local
 #include "abstractproducerwidget.hpp"
 
+// Qt
+#include <MltProducer.h>
 #include <QWidget>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 namespace Ui {
 class NoiseWidget;
@@ -31,11 +37,11 @@ class NoiseWidget : public QWidget, public AbstractProducerWidget {
 	Q_OBJECT
 
   public:
-	explicit NoiseWidget(QWidget* parent = 0);
-	~NoiseWidget();
+	explicit NoiseWidget(QWidget* parent = nullptr);
+	~NoiseWidget() override;
 
 	// AbstractProducerWidget overrides
-	Mlt::Producer* newProducer(Mlt::Profile&);
+	Mlt::Producer* newProducer(Mlt::Profile&) override;
 
   private:
 	Ui::NoiseWidget* ui;

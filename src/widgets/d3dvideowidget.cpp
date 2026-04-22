@@ -15,11 +15,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "d3dvideowidget.h"
-
 #include "Logger.hpp"
+#include "mltcontroller.hpp"
+#include "settings.hpp"
 
+// Qt
 #include <d3dcompiler.h>
+#include <directxmath.h>
+#include <framework/mlt_types.h>
+#include <minwindef.h>
+#include <qassert.h>
+#include <qlogging.h>
+#include <qobject.h>
+#include <qsgrendererinterface.h>
+#include <qtypes.h>
+#include <qwindowdefs_win.h>
+#include <winerror.h>
+
+// STL
+#include <cstdint>
+#include <cstring>
+#include <winnt.h>
 
 D3DVideoWidget::D3DVideoWidget(QObject* parent) : Mlt::VideoWidget{parent} {
 	m_maxTextureSize = D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION;
@@ -27,9 +45,9 @@ D3DVideoWidget::D3DVideoWidget(QObject* parent) : Mlt::VideoWidget{parent} {
 }
 
 D3DVideoWidget::~D3DVideoWidget() {
-	for (int i = 0; i < 3; i++) {
-		if (m_texture[i])
-			m_texture[i]->Release();
+	for (auto & i : m_texture) {
+		if (i)
+			i->Release();
 	}
 	if (m_vs)
 		m_vs->Release();
@@ -48,8 +66,8 @@ D3DVideoWidget::~D3DVideoWidget() {
 }
 
 void D3DVideoWidget::initialize() {
-	m_initialized             = true;
-	QSGRendererInterface* rif = quickWindow()->rendererInterface();
+	m_initialized = true;
+	QSGRendererInterface const* rif = quickWindow()->rendererInterface();
 
 	// We are not prepared for anything other than running with the RHI and its D3D11 backend.
 	Q_ASSERT(rif->graphicsApi() == QSGRendererInterface::Direct3D11);
@@ -123,8 +141,8 @@ void D3DVideoWidget::beforeRendering() {
 	m_context->ClearState();
 
 	// Provide vertices of triangle strip
-	float width        = rect().width() * devicePixelRatioF() / 2.0f;
-	float height       = rect().height() * devicePixelRatioF() / 2.0f;
+	float width = rect().width() * devicePixelRatioF() / 2.0f;
+	float height = rect().height() * devicePixelRatioF() / 2.0f;
 	float vertexData[] = {
 	    // x,y plus u,v texture coordinates
 	    width,  -height, 1.f,
@@ -165,12 +183,12 @@ void D3DVideoWidget::beforeRendering() {
 		Mlt::VideoWidget::beforeRendering();
 		return;
 	}
-	int            iwidth  = m_sharedFrame.get_image_width();
-	int            iheight = m_sharedFrame.get_image_height();
+	const int iwidth  = m_sharedFrame.get_image_width();
+	const int iheight = m_sharedFrame.get_image_height();
 	const uint8_t* image   = m_sharedFrame.get_image(mlt_image_yuv420p);
-	for (int i = 0; i < 3; i++) {
-		if (m_texture[i])
-			m_texture[i]->Release();
+	for (auto & i : m_texture) {
+		if (i)
+			i->Release();
 	}
 	m_texture[0] = initTexture(image, iwidth, iheight);
 	m_texture[1] = initTexture(image + iwidth * iheight, iwidth / 2, iheight / 2);
@@ -180,7 +198,7 @@ void D3DVideoWidget::beforeRendering() {
 	// Update the constants
 	D3D11_MAPPED_SUBRESOURCE mp;
 	// will copy the entire constant buffer every time -> pass WRITE_DISCARD -> prevent pipeline stalls
-	HRESULT hr = m_context->Map(m_cbuf, 0, D3D11_MAP_WRITE_DISCARD, 0, &mp);
+	HRESULT const hr = m_context->Map(m_cbuf, 0, D3D11_MAP_WRITE_DISCARD, 0, &mp);
 	if (SUCCEEDED(hr)) {
 		m_constants.colorspace = MLT.profile().colorspace();
 		::memcpy(mp.pData, &m_constants, sizeof(m_constants));
@@ -288,8 +306,8 @@ void D3DVideoWidget::prepareShader(Stage stage) {
 	}
 }
 
-QByteArray D3DVideoWidget::compileShader(Stage stage, const QByteArray& source, const QByteArray& entryPoint) {
-	const char* target;
+auto D3DVideoWidget::compileShader(Stage stage, const QByteArray& source, const QByteArray& entryPoint) -> QByteArray {
+	const char* target = nullptr;
 	switch (stage) {
 	case VertexStage:
 		target = "vs_5_0";
@@ -299,12 +317,12 @@ QByteArray D3DVideoWidget::compileShader(Stage stage, const QByteArray& source, 
 		break;
 	default:
 		qFatal("Unknown shader stage %d", stage);
-		return QByteArray();
+		return {};
 	}
 
 	ID3DBlob* bytecode = nullptr;
 	ID3DBlob* errors   = nullptr;
-	HRESULT   hr = D3DCompile(source.constData(), source.size(), nullptr, nullptr, nullptr, entryPoint.constData(),
+	HRESULT const hr = D3DCompile(source.constData(), source.size(), nullptr, nullptr, nullptr, entryPoint.constData(),
 	                          target, 0, 0, &bytecode, &errors);
 	if (FAILED(hr) || !bytecode) {
 		LOG_WARNING("HLSL shader compilation failed: 0x%x", uint(hr));
@@ -313,7 +331,7 @@ QByteArray D3DVideoWidget::compileShader(Stage stage, const QByteArray& source, 
 			errors->Release();
 			LOG_WARNING("%s", msg.constData());
 		}
-		return QByteArray();
+		return {};
 	}
 
 	QByteArray result;
@@ -324,37 +342,37 @@ QByteArray D3DVideoWidget::compileShader(Stage stage, const QByteArray& source, 
 	return result;
 }
 
-ID3D11ShaderResourceView* D3DVideoWidget::initTexture(const void* p, int width, int height) {
-	ID3D11ShaderResourceView* result;
-	D3D11_TEXTURE2D_DESC      desc;
-	desc.Width              = width;
-	desc.Height             = height;
-	desc.MipLevels          = 1;
-	desc.ArraySize          = 1;
-	desc.Format             = DXGI_FORMAT_R8_UNORM;
-	desc.SampleDesc.Count   = 1;
+auto D3DVideoWidget::initTexture(const void* p, int width, int height) -> ID3D11ShaderResourceView* {
+	ID3D11ShaderResourceView const* result = nullptr;
+	D3D11_TEXTURE2D_DESC desc;
+	desc.Width = width;
+	desc.Height = height;
+	desc.MipLevels = 1;
+	desc.ArraySize = 1;
+	desc.Format = DXGI_FORMAT_R8_UNORM;
+	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
-	desc.Usage              = D3D11_USAGE_DEFAULT;
-	desc.BindFlags          = D3D11_BIND_SHADER_RESOURCE;
-	desc.CPUAccessFlags     = 0;
-	desc.MiscFlags          = 0;
+	desc.Usage = D3D11_USAGE_DEFAULT;
+	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	desc.CPUAccessFlags = 0;
+	desc.MiscFlags = 0;
 
 	D3D11_SUBRESOURCE_DATA subresourceData;
-	subresourceData.pSysMem          = p;
-	subresourceData.SysMemPitch      = width;
+	subresourceData.pSysMem = p;
+	subresourceData.SysMemPitch = width;
 	subresourceData.SysMemSlicePitch = 0;
 
-	ID3D11Texture2D* texture;
+	ID3D11Texture2D* texture = nullptr;
 	m_device->CreateTexture2D(&desc, &subresourceData, &texture);
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-	srvDesc.Format                    = desc.Format;
-	srvDesc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
-	srvDesc.Texture2D.MipLevels       = 1;
+	srvDesc.Format = desc.Format;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = 1;
 	srvDesc.Texture2D.MostDetailedMip = 0;
 
-	m_device->CreateShaderResourceView(texture, &srvDesc, &result);
+	m_device->CreateShaderResourceView(texture, &srvDesc, {});
 	texture->Release();
 
-	return result;
+	return {};
 }

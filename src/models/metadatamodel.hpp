@@ -18,8 +18,14 @@
 #ifndef METADATAMODEL_H
 #define METADATAMODEL_H
 
+// Qt
 #include <QList>
 #include <QSortFilterProxyModel>
+#include <qabstractitemmodel.h>
+#include <qhash.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 class QmlMetadata;
 
@@ -64,24 +70,24 @@ class MetadataModel : public QSortFilterProxyModel {
 
 	explicit MetadataModel(QObject* parent = nullptr);
 
-	Q_INVOKABLE int          rowCount(const QModelIndex& parent = QModelIndex()) const;
-	int                      sourceRowCount(const QModelIndex& parent = QModelIndex()) const;
+	[[nodiscard]] Q_INVOKABLE int          rowCount(const QModelIndex& parent = QModelIndex()) const override;
+	[[nodiscard]] int                      sourceRowCount(const QModelIndex& parent = QModelIndex()) const;
 	void                     add(QmlMetadata* data);
-	Q_INVOKABLE QmlMetadata* get(int row) const;
-	QmlMetadata*             getFromSource(int index) const;
+	[[nodiscard]] Q_INVOKABLE QmlMetadata* get(int row) const;
+	[[nodiscard]] QmlMetadata*             getFromSource(int index) const;
 	void                     setHidden(const QString& objectName, bool hidden);
 	Q_INVOKABLE void         saveFilterSet(const QString& name);
 	Q_INVOKABLE void         deleteFilterSet(const QString& name);
 
-	MetadataFilter filter() const {
+	[[nodiscard]] MetadataFilter filter() const {
 		return m_filter;
 	}
 
 	void setFilter(MetadataFilter);
 	void updateFilterMask(bool isClipProducer, bool isChainProducer, bool isTrackProducer, bool isOutputProducer,
-	                      bool isReverseSupported);
+						  bool isReverseSupported);
 
-	QString search() const {
+	[[nodiscard]] QString search() const {
 		return m_search;
 	}
 
@@ -92,7 +98,7 @@ class MetadataModel : public QSortFilterProxyModel {
 	void searchChanged();
 
   protected:
-	bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const;
+	[[nodiscard]] bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const override;
 
   private:
 	MetadataFilter m_filter;
@@ -107,18 +113,18 @@ class MetadataModel : public QSortFilterProxyModel {
 
 class InternalMetadataModel : public QAbstractListModel {
   public:
-	explicit InternalMetadataModel(QObject* parent = 0) : QAbstractListModel(parent) {};
+	explicit InternalMetadataModel(QObject* parent = nullptr) : QAbstractListModel(parent) {};
 
-	// Implement QAbstractListModel
-	int                    rowCount(const QModelIndex& parent = QModelIndex()) const;
-	QVariant               data(const QModelIndex& index, int role) const;
-	bool                   setData(const QModelIndex& index, const QVariant& value, int role);
-	QHash<int, QByteArray> roleNames() const;
-	Qt::ItemFlags          flags(const QModelIndex& index) const;
+		   // Implement QAbstractListModel
+	[[nodiscard]] int                    rowCount(const QModelIndex& parent = QModelIndex()) const override;
+	[[nodiscard]] QVariant               data(const QModelIndex& index, int role) const override;
+	bool                   setData(const QModelIndex& index, const QVariant& value, int role) override;
+	[[nodiscard]] QHash<int, QByteArray> roleNames() const override;
+	[[nodiscard]] Qt::ItemFlags          flags(const QModelIndex& index) const override;
 
-	// Direct access to QmlMetadata
+		   // Direct access to QmlMetadata
 	void         add(QmlMetadata* data);
-	QmlMetadata* get(int index) const;
+	[[nodiscard]] QmlMetadata* get(int index) const;
 
 	QList<QmlMetadata*>& list() {
 		return m_list;

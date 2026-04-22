@@ -15,27 +15,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "bitrateviewerjob.hpp"
-
 #include "Logger.hpp"
 #include "dialogs/bitratedialog.hpp"
+#include "jobs/abstractjob.hpp"
+#include "jobs/ffprobejob.hpp"
 #include "mainwindow.hpp"
 #include "util.hpp"
 
+// Qt
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QString>
+#include <qaction.h>
+#include <qcontainerfwd.h>
+#include <qjsonparseerror.h>
+#include <qprocess.h>
 
 BitrateViewerJob::BitrateViewerJob(const QString& name, const QStringList& args, double fps)
     : FfprobeJob(name, args), m_resource(args.last()), m_fps(fps) {
-	QAction* action = new QAction(tr("Open"), this);
+	auto* action = new QAction(tr("Open"), this);
 	action->setData("Open");
 	connect(action, &QAction::triggered, this, &BitrateViewerJob::onOpenTriggered);
 	m_successActions << action;
 }
 
-BitrateViewerJob::~BitrateViewerJob() {
-}
+BitrateViewerJob::~BitrateViewerJob() = default;
 
 void BitrateViewerJob::onFinished(int exitCode, ExitStatus exitStatus) {
 	AbstractJob::onFinished(exitCode, exitStatus);

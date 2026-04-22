@@ -15,18 +15,38 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "videovectorscopewidget.h"
-
 #include "Logger.hpp"
 #include "mltcontroller.hpp"
 #include "qmltypes/qmlprofile.hpp"
+#include "widgets/scopes/scopewidget.h"
 
+// Qt
 #include <QMouseEvent>
 #include <QPainter>
 #include <QToolTip>
 #include <QtMath>
+#include <framework/mlt_types.h>
+#include <qbrush.h>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qminmax.h>
+#include <qmutex.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qvariant.h>
+#include <qwidget.h>
 
-static constexpr QColor LINE_COLOR = {255, 255, 255, 127};
+// STL
+#include <cstddef>
+#include <cstdint>
+
+static constexpr QColor LINE_COLOR{255, 255, 255, 127};
 
 VideoVectorScopeWidget::VideoVectorScopeWidget()
     : ScopeWidget("VideoVector"), m_frame(), m_renderImg(), m_mutex(), m_displayImg(), m_profileChanged(false) {
@@ -42,15 +62,15 @@ VideoVectorScopeWidget::~VideoVectorScopeWidget() {
 	disconnect(&QmlProfile::singleton(), SIGNAL(profileChanged()), this, SLOT(profileChanged()));
 }
 
-QString VideoVectorScopeWidget::getTitle() {
+auto VideoVectorScopeWidget::getTitle() -> QString {
 	return tr("Video Vector");
 }
 
 void VideoVectorScopeWidget::refreshScope(const QSize& size, bool full) {
 	Q_UNUSED(full)
 
-	qreal side       = qMin(size.width(), size.height());
-	QSize squareSize = QSize(side, side);
+	const qreal side = qMin(size.width(), size.height());
+	QSize const squareSize = QSize(side, side);
 
 	if (m_graticuleImg.size() != size || m_profileChanged) {
 		m_graticuleImg = QImage(squareSize, QImage::Format_RGB32);
@@ -92,8 +112,8 @@ void VideoVectorScopeWidget::refreshScope(const QSize& size, bool full) {
 		m_frame = m_queue.pop();
 	}
 
-	int width  = m_frame.get_image_width();
-	int height = m_frame.get_image_height();
+	const int width = m_frame.get_image_width();
+	const int height = m_frame.get_image_height();
 
 	if (m_frame.is_valid() && width && height) {
 		if (m_renderImg.width() != 256) {
@@ -101,18 +121,18 @@ void VideoVectorScopeWidget::refreshScope(const QSize& size, bool full) {
 		}
 		m_renderImg.fill(0);
 
-		const uint8_t* src     = m_frame.get_image(mlt_image_yuv420p);
-		const uint8_t* uSrc    = src + (width * height);
-		const uint8_t* vSrc    = uSrc + (width * height / 4);
-		uint8_t*       dst     = m_renderImg.scanLine(0);
-		int            cHeight = height / 2;
-		int            cWidth  = width / 2;
+		const uint8_t* src = m_frame.get_image(mlt_image_yuv420p);
+		const uint8_t* uSrc = src + (width * height);
+		const uint8_t* vSrc = uSrc + (width * height / 4);
+		uint8_t* dst = m_renderImg.scanLine(0);
+		const int cHeight = height / 2;
+		const int cWidth  = width / 2;
 
 		for (int y = 0; y < cHeight; y++) {
 			for (int x = 0; x < cWidth; x++) {
-				uint8_t dx     = *uSrc;
-				uint8_t dy     = 255 - *vSrc;
-				size_t  dIndex = (dy * 256 + dx) * 4;
+				const uint8_t dx = *uSrc;
+				const uint8_t dy = 255 - *vSrc;
+				const size_t  dIndex = (dy * 256 + dx) * 4;
 				if (dst[dIndex] < 0xff) {
 					dst[dIndex] += 0x0f;
 					dst[dIndex + 1] += 0x0f;
@@ -151,7 +171,7 @@ void VideoVectorScopeWidget::drawGraticuleLines(QPainter& p, qreal lineWidth) {
 	radialGradient.setColorAt(0.11, Qt::transparent);
 	radialGradient.setColorAt(0.3, Qt::transparent);
 	radialGradient.setColorAt(1.0, LINE_COLOR);
-	QBrush graticuleBrush(radialGradient);
+	QBrush const graticuleBrush(radialGradient);
 	p.setBrush(graticuleBrush);
 	p.setPen(QPen(graticuleBrush, lineWidth));
 	p.drawLine(m_points[BLUE_100], m_points[YELLOW_100]);
@@ -169,7 +189,7 @@ void VideoVectorScopeWidget::drawSkinToneLine(QPainter& p, qreal lineWidth) {
 	radialGradient.setColorAt(0.0, Qt::transparent);
 	radialGradient.setColorAt(0.2, Qt::transparent);
 	radialGradient.setColorAt(1.0, LINE_COLOR);
-	QBrush graticuleBrush(radialGradient);
+	QBrush const graticuleBrush(radialGradient);
 	p.setBrush(graticuleBrush);
 	p.setPen(QPen(graticuleBrush, lineWidth, Qt::DotLine));
 	QLineF skinToneLine;
@@ -199,7 +219,7 @@ void VideoVectorScopeWidget::paintEvent(QPaintEvent*) {
 	if (!isVisible())
 		return;
 
-	QRect squareRect = getCenteredSquare();
+	QRect const squareRect = getCenteredSquare();
 
 	// Create the painter
 	QPainter p(this);
@@ -217,27 +237,27 @@ void VideoVectorScopeWidget::paintEvent(QPaintEvent*) {
 }
 
 void VideoVectorScopeWidget::mouseMoveEvent(QMouseEvent* event) {
-	QRectF squareRect = getCenteredSquare();
+	QRectF const squareRect = getCenteredSquare();
 	if (!squareRect.contains(event->pos())) {
 		QToolTip::hideText();
 		return;
 	}
-	qreal   realX = (qreal)event->pos().x() - ((qreal)width() - squareRect.width()) / 2;
-	qreal   realY = (qreal)event->pos().y() - ((qreal)height() - squareRect.height()) / 2;
-	qreal   u     = realX * 255.0 / squareRect.width();
-	qreal   v     = (squareRect.height() - realY) * 255.0 / squareRect.height();
-	QString text  = tr("U: %1\nV: %2").arg(qRound(u)).arg(qRound(v));
+	const qreal realX = (qreal)event->pos().x() - ((qreal)width() - squareRect.width()) / 2;
+	const qreal realY = (qreal)event->pos().y() - ((qreal)height() - squareRect.height()) / 2;
+	const qreal u = realX * 255.0 / squareRect.width();
+	const qreal v = (squareRect.height() - realY) * 255.0 / squareRect.height();
+	QString const text  = tr("U: %1\nV: %2").arg(qRound(u)).arg(qRound(v));
 	QToolTip::showText(event->globalPosition().toPoint(), text);
 }
 
-QRect VideoVectorScopeWidget::getCenteredSquare() {
+auto VideoVectorScopeWidget::getCenteredSquare() -> QRect {
 	// Calculate the size. Vectorscope is always a square.
 	QRect squareRect;
 	if (width() > height()) {
-		int x      = (width() - height()) / 2;
+		const int x      = (width() - height()) / 2;
 		squareRect = QRect(x, 0, height(), height());
 	} else {
-		int y      = (height() - width()) / 2;
+		const int y      = (height() - width()) / 2;
 		squareRect = QRect(0, y, width(), width());
 	}
 	return squareRect;

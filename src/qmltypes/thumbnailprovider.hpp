@@ -19,19 +19,23 @@
 #ifndef THUMBNAILPROVIDER_HPP
 #define THUMBNAILPROVIDER_HPP
 
+// Qt
 #include <MltProducer.h>
 #include <MltProfile.h>
 #include <QQuickImageProvider>
+#include <qhashfunctions.h>
+#include <qimage.h>
+#include <qsize.h>
 
 class ThumbnailProvider : public QQuickImageProvider {
   public:
 	explicit ThumbnailProvider();
-	QImage requestImage(const QString& id, QSize* size, const QSize& requestedSize);
+	auto requestImage(const QString& id, QSize* size, const QSize& requestedSize) -> QImage override;
 
   private:
-	QString cacheKey(Mlt::Properties& properties, const QString& service, const QString& resource, const QString& hash,
-	                 int frameNumber);
-	QImage  makeThumbnail(Mlt::Producer&, int frameNumber, const QSize& requestedSize);
+	auto cacheKey(Mlt::Properties& properties, const QString& service, const QString& resource, const QString& hash,
+					 int frameNumber) -> QString;
+	auto  makeThumbnail(Mlt::Producer&, int frameNumber, const QSize& requestedSize) -> QImage;
 	Mlt::Profile m_profile;
 };
 

@@ -18,6 +18,7 @@
 #ifndef SUBTITLES_HPP
 #define SUBTITLES_HPP
 
+// STL
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -32,11 +33,11 @@ struct SubtitleItem {
 
 typedef std::vector<Subtitles::SubtitleItem> SubtitleVector;
 
-SubtitleVector readFromSrtFile(const std::string& path);
-bool           writeToSrtFile(const std::string& path, const SubtitleVector& items);
-SubtitleVector readFromSrtString(const std::string& text);
-bool           writeToSrtString(std::string& text, const SubtitleVector& items);
-int            indexForTime(const SubtitleVector& items, int64_t msTime, int searchStart, int msMargin);
+auto readFromSrtFile(const std::string& path) -> SubtitleVector;
+auto writeToSrtFile(const std::string& path, const SubtitleVector& items) -> bool;
+auto readFromSrtString(const std::string& text) -> SubtitleVector;
+auto writeToSrtString(std::string& text, const SubtitleVector& items) -> bool;
+auto indexForTime(const SubtitleVector& items, int64_t msTime, int searchStart, int msMargin) -> int;
 } // namespace Subtitles
 
 #endif // SUBTITLES_HPP

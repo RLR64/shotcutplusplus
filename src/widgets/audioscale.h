@@ -19,15 +19,18 @@
 #ifndef AUDIOSCALE_H
 #define AUDIOSCALE_H
 
+// Qt
 #include <QWidget>
+#include <qcontainerfwd.h>
+#include <qtmetamacros.h>
 
 class AudioScale : public QWidget {
 	Q_OBJECT
   public:
-	explicit AudioScale(QWidget* parent = 0);
+	explicit AudioScale(QWidget* parent = nullptr);
 
   protected:
-	void paintEvent(QPaintEvent*);
+	void paintEvent(QPaintEvent*) override;
 
   private:
 	QVector<int> dbscale;

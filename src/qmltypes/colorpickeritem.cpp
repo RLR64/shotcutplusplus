@@ -17,15 +17,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "colorpickeritem.hpp"
-
 #include "Logger.hpp"
+#include "widgets/screenselector.h"
 
+// Qt
 #include <QApplication>
 #include <QGuiApplication>
 #include <QImage>
 #include <QScreen>
 #include <QTimer>
+#include <qminmax.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+
+// Number constants
+constexpr int singleShotNumber{200};
 
 // clang-format off
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
@@ -58,30 +66,30 @@ void ColorPickerItem::screenSelected(const QRect& rect) {
 #endif
 		// Give the frame buffer time to clear the selector window before
 		// grabbing the color.
-		QTimer::singleShot(200, this, &ColorPickerItem::grabColor);
+		QTimer::singleShot(singleShotNumber, this, &ColorPickerItem::grabColor);
 }
 
 void ColorPickerItem::grabColor() {
 	QScreen* screen = QGuiApplication::screenAt(m_selectedRect.topLeft());
-	QPixmap  screenGrab =
+	QPixmap const screenGrab =
 	    screen->grabWindow(0, m_selectedRect.x() - screen->geometry().x(), m_selectedRect.y() - screen->geometry().y(),
 	                       m_selectedRect.width(), m_selectedRect.height());
-	QImage image    = screenGrab.toImage();
-	int    numPixel = qMax(image.width() * image.height(), 1);
-	int    sumR     = 0;
-	int    sumG     = 0;
-	int    sumB     = 0;
+	QImage const image = screenGrab.toImage();
+	const int numPixel = qMax(image.width() * image.height(), 1);
+	int sumR = 0;
+	int sumG = 0;
+	int sumB = 0;
 
 	for (int x = 0; x < image.width(); ++x) {
 		for (int y = 0; y < image.height(); ++y) {
-			QColor color = image.pixel(x, y);
+			QColor const color = image.pixel(x, y);
 			sumR += color.red();
 			sumG += color.green();
 			sumB += color.blue();
 		}
 	}
 
-	QColor avgColor(sumR / numPixel, sumG / numPixel, sumB / numPixel);
+	QColor const avgColor(sumR / numPixel, sumG / numPixel, sumB / numPixel);
 	emit   colorPicked(avgColor);
 }
 

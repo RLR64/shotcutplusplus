@@ -15,12 +15,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "qmlmetadata.hpp"
-
 #include "Logger.hpp"
 #include "settings.hpp"
 
+// Qt
 #include <QVersionNumber>
+#include <qdir.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 QmlMetadata::QmlMetadata(QObject* parent)
     : QObject(parent), m_type(Filter), m_needsGPU(false), m_qmlFileName(""), m_vuiFileName(""), m_isAudio(false),
@@ -31,7 +35,7 @@ QmlMetadata::QmlMetadata(QObject* parent)
 
 void QmlMetadata::loadSettings() {
 	// Override the default favorite setting if it has been set by the user.
-	QString favorite = Settings.filterFavorite(uniqueId());
+	QString const favorite = Settings.filterFavorite(uniqueId());
 	if (favorite == "yes") {
 		m_isFavorite = true;
 	} else if (favorite == "no") {
@@ -52,7 +56,7 @@ void QmlMetadata::set_mlt_service(const QString& service) {
 	m_mlt_service = service;
 }
 
-QString QmlMetadata::uniqueId() const {
+auto QmlMetadata::uniqueId() const -> QString {
 	if (!objectName().isEmpty()) {
 		return objectName();
 	} else if (m_type == FilterSet) {
@@ -79,7 +83,7 @@ void QmlMetadata::setPath(const QDir& path) {
 	m_path = path;
 }
 
-QUrl QmlMetadata::qmlFilePath() const {
+auto QmlMetadata::qmlFilePath() const -> QUrl {
 	QUrl retVal = QUrl();
 	if (!m_qmlFileName.isEmpty()) {
 		retVal = QUrl::fromLocalFile(m_path.absoluteFilePath(m_qmlFileName));
@@ -87,7 +91,7 @@ QUrl QmlMetadata::qmlFilePath() const {
 	return retVal;
 }
 
-QUrl QmlMetadata::vuiFilePath() const {
+auto QmlMetadata::vuiFilePath() const -> QUrl {
 	QUrl retVal = QUrl();
 	if (!m_vuiFileName.isEmpty()) {
 		retVal = QUrl::fromLocalFile(m_path.absoluteFilePath(m_vuiFileName));
@@ -143,7 +147,7 @@ void QmlMetadata::setIsOutputOnly(bool isOutputOnly) {
 	m_isOutputOnly = isOutputOnly;
 }
 
-bool QmlMetadata::isMltVersion(const QString& version) {
+auto QmlMetadata::isMltVersion(const QString& version) -> bool {
 	if (!m_minimumVersion.isEmpty()) {
 		LOG_DEBUG() << "MLT version:" << version << "Shotcut minimumVersion:" << m_minimumVersion;
 		if (QVersionNumber::fromString(version) < QVersionNumber::fromString(m_minimumVersion))
@@ -157,7 +161,7 @@ QmlKeyframesMetadata::QmlKeyframesMetadata(QObject* parent)
       m_allowOvershoot(true) {
 }
 
-QmlKeyframesParameter* QmlKeyframesMetadata::parameter(const QString& propertyName) const {
+auto QmlKeyframesMetadata::parameter(const QString& propertyName) const -> QmlKeyframesParameter* {
 	for (const auto& p : m_parameters) {
 		if (propertyName == p->property())
 			return p;

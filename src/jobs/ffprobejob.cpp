@@ -15,28 +15,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "ffprobejob.hpp"
-
 #include "Logger.hpp"
 #include "dialogs/textviewerdialog.hpp"
+#include "jobs/abstractjob.hpp"
+#include "jobs/postjobaction.hpp"
 #include "mainwindow.hpp"
 #include "util.hpp"
 
+// Qt
 #include <QAction>
 #include <QApplication>
 #include <QDir>
 #include <QFileInfo>
+#include <qcontainerfwd.h>
+#include <qprocess.h>
 
 FfprobeJob::FfprobeJob(const QString& name, const QStringList& args) : AbstractJob(name) {
 	m_args.append(args);
 }
 
-FfprobeJob::~FfprobeJob() {
-}
+FfprobeJob::~FfprobeJob() = default;
 
 void FfprobeJob::start() {
-	QString   shotcutPath = qApp->applicationDirPath();
-	QFileInfo ffprobePath(shotcutPath, "ffprobe");
+	QString const shotcutPath = qApp->applicationDirPath();
+	QFileInfo const ffprobePath(shotcutPath, "ffprobe");
 	setReadChannel(QProcess::StandardOutput);
 	LOG_DEBUG() << ffprobePath.absoluteFilePath() + " " + m_args.join(' ');
 	AbstractJob::start(ffprobePath.absoluteFilePath(), m_args);

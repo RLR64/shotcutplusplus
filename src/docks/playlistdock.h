@@ -18,12 +18,25 @@
 #ifndef PLAYLISTDOCK_H
 #define PLAYLISTDOCK_H
 
+// Local
 #include "models/playlistmodel.hpp"
 
+// Qt
+#include <MltPlaylist.h>
+#include <MltProducer.h>
+#include <MltProperties.h>
 #include <QDockWidget>
 #include <QTimer>
 #include <QTreeWidget>
 #include <QUndoCommand>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qpoint.h>
+#include <qtmetamacros.h>
+#include <qvariant.h>
+#include <qwidget.h>
 
 namespace Ui {
 class PlaylistDock;
@@ -49,7 +62,7 @@ class BinTree : public QTreeWidget {
 	void moved(QList<int>, QPointF);
 
   protected:
-	void dropEvent(QDropEvent* event);
+	void dropEvent(QDropEvent* event) override;
 };
 
 class PlaylistDock : public QDockWidget {
@@ -66,16 +79,16 @@ class PlaylistDock : public QDockWidget {
 	};
 
 	explicit PlaylistDock(QWidget* parent = nullptr);
-	~PlaylistDock();
+	~PlaylistDock() override;
 
-	PlaylistModel* model() {
+	auto model() -> PlaylistModel* {
 		return &m_model;
 	}
 
-	int            position();
+	auto            position() -> int;
 	void           replaceClipsWithHash(const QString& hash, Mlt::Producer& producer);
 	void           getSelectionRange(int* start, int* end);
-	Mlt::Playlist* binPlaylist();
+	auto binPlaylist() -> Mlt::Playlist*;
 	static void    sortBins(QTreeWidget* treeWidget);
 
   signals:
@@ -118,8 +131,8 @@ class PlaylistDock : public QDockWidget {
 	void updateStatus();
 
   protected:
-	void keyPressEvent(QKeyEvent* event);
-	void keyReleaseEvent(QKeyEvent* event);
+	void keyPressEvent(QKeyEvent* event) override;
+	void keyReleaseEvent(QKeyEvent* event) override;
 
   private:
 	void setupActions();

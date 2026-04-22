@@ -19,9 +19,16 @@
 #ifndef VIDEO4LINUXWIDGET_H
 #define VIDEO4LINUXWIDGET_H
 
+// Local
 #include "abstractproducerwidget.hpp"
 
+// Qt
+#include <MltProducer.h>
+#include <MltProperties.h>
 #include <QWidget>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 namespace Ui {
 class Video4LinuxWidget;
@@ -31,14 +38,14 @@ class Video4LinuxWidget : public QWidget, public AbstractProducerWidget {
 	Q_OBJECT
 
   public:
-	explicit Video4LinuxWidget(QWidget* parent = 0);
-	~Video4LinuxWidget();
+	explicit Video4LinuxWidget(QWidget* parent = nullptr);
+	~Video4LinuxWidget() override;
 
 	// AbstractProducerWidget overrides
-	Mlt::Producer*  newProducer(Mlt::Profile&);
-	Mlt::Properties getPreset() const;
-	void            loadPreset(Mlt::Properties&);
-	void            setProducer(Mlt::Producer*);
+	Mlt::Producer* newProducer(Mlt::Profile&) override;
+	[[nodiscard]] Mlt::Properties getPreset() const override;
+	void loadPreset(Mlt::Properties&) override;
+	void setProducer(Mlt::Producer*) override;
 
   signals:
 	void producerChanged(Mlt::Producer*);
@@ -51,8 +58,8 @@ class Video4LinuxWidget : public QWidget, public AbstractProducerWidget {
 
   private:
 	Ui::Video4LinuxWidget* ui;
-	QWidget*               m_audioWidget;
-	QString                URL() const;
+	QWidget* m_audioWidget;
+	[[nodiscard]] QString URL() const;
 };
 
 #endif // VIDEO4LINUXWIDGET_H

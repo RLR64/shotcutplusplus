@@ -26,11 +26,14 @@
  * https://github.com/google/spatial-media/docs/spatial-audio-rfc.md
  */
 
+// Local
 #include "box.hpp"
 
+// STL
 #include <cstdint>
 #include <fstream>
 #include <map>
+#include <string>
 #include <vector>
 
 class SA3DBox : public Box {
@@ -38,18 +41,18 @@ class SA3DBox : public Box {
 	enum ePosition { None };
 
 	SA3DBox();
-	virtual ~SA3DBox();
+	~SA3DBox() override;
 
 	// Loads the SA3D box located at position pos in a mp4 file.
 	static Box* load(std::fstream& fs, uint32_t iPos, uint32_t iEnd);
 
 	static Box* create(int32_t iNumChannels);
 
-	virtual void save(std::fstream& fsIn, std::fstream& fsOut, int32_t);
-	const char*  ambisonic_type_name();
-	const char*  ambisonic_channel_ordering_name();
-	const char*  ambisonic_normalization_name();
-	void         print_box();
+	void save(std::fstream& fsIn, std::fstream& fsOut, int32_t) override;
+	const char* ambisonic_type_name();
+	const char* ambisonic_channel_ordering_name();
+	const char* ambisonic_normalization_name();
+	void print_box();
 
 	std::string get_metadata_string();
 
@@ -62,12 +65,12 @@ class SA3DBox : public Box {
 	std::map<std::string, int32_t> m_AmbisonicNormalizations;
 
 	//    int32_t  m_iPosition;
-	uint8_t               m_iVersion;
-	uint8_t               m_iAmbisonicType;
-	uint32_t              m_iAmbisonicOrder;
-	uint8_t               m_iAmbisonicChannelOrdering;
-	uint8_t               m_iAmbisonicNormalization;
-	uint32_t              m_iNumChannels;
+	uint8_t m_iVersion;
+	uint8_t m_iAmbisonicType;
+	uint32_t m_iAmbisonicOrder;
+	uint8_t m_iAmbisonicChannelOrdering;
+	uint8_t m_iAmbisonicNormalization;
+	uint32_t m_iNumChannels;
 	std::vector<uint32_t> m_ChannelMap;
 };
 

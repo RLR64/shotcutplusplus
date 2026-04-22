@@ -16,11 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "pulseaudiowidget.h"
-
 #include "shotcut_mlt_properties.hpp"
 #include "ui_pulseaudiowidget.h"
 #include "util.hpp"
+
+// Qt
+#include <MltProducer.h>
 
 PulseAudioWidget::PulseAudioWidget(QWidget* parent) : QWidget(parent), ui(new Ui::PulseAudioWidget) {
 	ui->setupUi(this);
@@ -31,8 +34,8 @@ PulseAudioWidget::~PulseAudioWidget() {
 	delete ui;
 }
 
-Mlt::Producer* PulseAudioWidget::newProducer(Mlt::Profile& profile) {
-	Mlt::Producer* p = new Mlt::Producer(profile, "pulse:default?name=Shotcut");
+auto PulseAudioWidget::newProducer(Mlt::Profile& profile) -> Mlt::Producer* {
+	auto* p = new Mlt::Producer(profile, "pulse:default?name=Shotcut");
 	p->set(kBackgroundCaptureProperty, 1);
 	p->set(kShotcutCaptionProperty, "PulseAudio");
 	return p;

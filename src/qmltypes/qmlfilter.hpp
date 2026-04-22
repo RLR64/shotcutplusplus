@@ -18,8 +18,10 @@
 #ifndef FILTER_HPP
 #define FILTER_HPP
 
+// Local
 #include "qmlmetadata.hpp"
 
+// Qt
 #include <MltAnimation.h>
 #include <MltProducer.h>
 #include <MltService.h>
@@ -29,6 +31,9 @@
 #include <QString>
 #include <QUuid>
 #include <QVariant>
+#include <framework/mlt_types.h>
+#include <qcontainerfwd.h>
+#include <qtmetamacros.h>
 
 class AbstractJob;
 class EncodeJob;
@@ -53,9 +58,9 @@ class QmlFilter : public QObject {
 
 	explicit QmlFilter();
 	explicit QmlFilter(Mlt::Service& mltService, const QmlMetadata* metadata, QObject* parent = nullptr);
-	~QmlFilter();
+	~QmlFilter() override;
 
-	bool isNew() const {
+	[[nodiscard]] bool isNew() const {
 		return m_isNew;
 	}
 
@@ -63,34 +68,34 @@ class QmlFilter : public QObject {
 		m_isNew = isNew;
 	}
 
-	Q_INVOKABLE QString     get(QString name, int position = -1);
-	Q_INVOKABLE QColor      getColor(QString name, int position = -1);
-	Q_INVOKABLE double      getDouble(QString name, int position = -1);
-	Q_INVOKABLE QRectF      getRect(QString name, int position = -1);
-	Q_INVOKABLE void        removeRectPercents(QString name);
-	Q_INVOKABLE QStringList getGradient(QString name);
-	Q_INVOKABLE void        set(QString name, QString value, int position = -1);
-	Q_INVOKABLE void        set(QString name, const QColor& value, int position = -1,
+	Q_INVOKABLE QString     get(const QString& name, int position = -1);
+	Q_INVOKABLE QColor      getColor(const QString& name, int position = -1);
+	Q_INVOKABLE double      getDouble(const QString& name, int position = -1);
+	Q_INVOKABLE QRectF      getRect(const QString& name, int position = -1);
+	Q_INVOKABLE void        removeRectPercents(const QString& name);
+	Q_INVOKABLE QStringList getGradient(const QString& name);
+	Q_INVOKABLE void        set(const QString& name, const QString& value, int position = -1);
+	Q_INVOKABLE void        set(const QString& name, const QColor& value, int position = -1,
 	                            mlt_keyframe_type keyframeType = mlt_keyframe_type(-1));
-	Q_INVOKABLE void        set(QString name, double value, int position = -1,
+	Q_INVOKABLE void        set(const QString& name, double value, int position = -1,
 	                            mlt_keyframe_type keyframeType = mlt_keyframe_type(-1));
-	Q_INVOKABLE void        set(QString name, int value, int position = -1,
+	Q_INVOKABLE void        set(const QString& name, int value, int position = -1,
 	                            mlt_keyframe_type keyframeType = mlt_keyframe_type(-1));
-	Q_INVOKABLE void        set(QString name, bool value, int position = -1,
+	Q_INVOKABLE void        set(const QString& name, bool value, int position = -1,
 	                            mlt_keyframe_type keyframeType = mlt_keyframe_type(-1));
-	Q_INVOKABLE void        set(QString name, double x, double y, double width, double height, double opacity = 1.0,
+	Q_INVOKABLE void        set(const QString& name, double x, double y, double width, double height, double opacity = 1.0,
 	                            int position = -1, mlt_keyframe_type keyframeType = mlt_keyframe_type(-1));
-	Q_INVOKABLE void        set(QString name, const QRectF& rect, int position = -1,
+	Q_INVOKABLE void        set(const QString& name, const QRectF& rect, int position = -1,
 	                            mlt_keyframe_type keyframeType = mlt_keyframe_type(-1));
-	Q_INVOKABLE void        setGradient(QString name, const QStringList& gradient);
+	Q_INVOKABLE void        setGradient(const QString& name, const QStringList& gradient);
 
-	QString path() const {
+	[[nodiscard]] QString path() const {
 		return m_path;
 	}
 
 	Q_INVOKABLE void loadPresets();
 
-	QStringList presets() const {
+	[[nodiscard]] QStringList presets() const {
 		return m_presets;
 	}
 
@@ -129,9 +134,9 @@ class QmlFilter : public QObject {
 	Q_INVOKABLE int         getPrevKeyframePosition(const QString& name, int position);
 	Q_INVOKABLE bool        isAtLeastVersion(const QString& version);
 	Q_INVOKABLE static void deselect();
-	bool                    allowTrim() const;
-	bool                    allowAnimateIn() const;
-	bool                    allowAnimateOut() const;
+	[[nodiscard]] bool                    allowTrim() const;
+	[[nodiscard]] bool                    allowAnimateIn() const;
+	[[nodiscard]] bool                    allowAnimateOut() const;
 	Q_INVOKABLE void        crop(const QRectF& rect);
 	QString                 objectNameOrService();
 

@@ -18,9 +18,14 @@
 #ifndef RECENTDOCK_HPP
 #define RECENTDOCK_HPP
 
+// Qt
 #include <QDockWidget>
 #include <QSortFilterProxyModel>
 #include <QStandardItemModel>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 namespace Ui {
 class RecentDock;
@@ -31,7 +36,7 @@ class RecentDock : public QDockWidget {
 
   public:
 	explicit RecentDock(QWidget* parent = nullptr);
-	~RecentDock();
+	~RecentDock() override;
 
   signals:
 	void itemActivated(const QString& url);
@@ -39,11 +44,11 @@ class RecentDock : public QDockWidget {
 
   public slots:
 	void    add(const QString&);
-	QString remove(const QString& s);
+	auto remove(const QString& s) -> QString;
 	void    find();
 
   protected:
-	void keyPressEvent(QKeyEvent* event);
+	void keyPressEvent(QKeyEvent* event) override;
 
   private:
 	Ui::RecentDock*       ui;

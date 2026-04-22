@@ -18,24 +18,28 @@
 #ifndef DATABASE_HPP
 #define DATABASE_HPP
 
+// Qt
 #include <QDir>
 #include <QImage>
 #include <QTimer>
+#include <qobject.h>
+#include <qtclasshelpermacros.h>
+#include <qtmetamacros.h>
 
 #define DB Database::singleton()
 
 class Database : public QObject {
 	Q_OBJECT
-	explicit Database(QObject* parent = 0);
+	explicit Database(QObject* parent = nullptr);
 
   public:
-	static Database& singleton(QObject* parent = 0);
+	static Database& singleton(QObject* parent = nullptr);
 
 	bool   putThumbnail(const QString& hash, const QImage& image);
 	QImage getThumbnail(const QString& hash);
 
   private:
-	QDir   thumbnailsDir();
+	QDir thumbnailsDir();
 	QTimer m_deleteTimer;
 
   private slots:

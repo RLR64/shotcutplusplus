@@ -15,23 +15,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "actions.hpp"
-
 #include "Logger.hpp"
 #include "settings.hpp"
 
+// Qt
 #include <QAction>
 #include <QMenu>
+#include <qhashfunctions.h>
+#include <qkeysequence.h>
+#include <qlist.h>
+#include <qscopedpointer.h>
 
-const char* ShotcutActions::hardKeyProperty        = "_hardkey";
-const char* ShotcutActions::displayProperty        = "_display";
-const char* ShotcutActions::defaultKey1Property    = "_defaultKey1";
-const char* ShotcutActions::defaultKey2Property    = "_defaultKey2";
-const char* ShotcutActions::defaultToolTipProperty = "_defaultToolTip";
+// STL
+#include <utility>
+
+const char* ShotcutActions::hardKeyProperty{"_hardkey"};
+const char* ShotcutActions::displayProperty{"_display"};
+const char* ShotcutActions::defaultKey1Property{"_defaultKey1"};
+const char* ShotcutActions::defaultKey2Property{"_defaultKey2"};
+const char* ShotcutActions::defaultToolTipProperty{"_defaultToolTip"};
 
 static QScopedPointer<ShotcutActions> instance;
 
-ShotcutActions& ShotcutActions::singleton() {
+auto ShotcutActions::singleton() -> ShotcutActions& {
 	if (!instance) {
 		instance.reset(new ShotcutActions());
 	}
@@ -90,7 +98,7 @@ void ShotcutActions::loadFromMenu(QMenu* menu, QString group) {
 	}
 }
 
-QAction* ShotcutActions::operator[](const QString& key) {
+auto ShotcutActions::operator[](const QString& key) -> QAction* {
 	auto iterator = m_actions.find(key);
 	if (iterator != m_actions.end()) {
 		return iterator.value();
@@ -98,7 +106,7 @@ QAction* ShotcutActions::operator[](const QString& key) {
 	return nullptr;
 }
 
-QList<QString> ShotcutActions::keys() {
+auto ShotcutActions::keys() -> QList<QString> {
 	return m_actions.keys();
 }
 
@@ -137,8 +145,8 @@ void ShotcutActions::overrideShortcuts(const QString& key, QList<QKeySequence> s
 void ShotcutActions::initializeShortcuts() {
 	// Call this function exactly once after all the actions have been
 	// added to the ShotcutActions object.
-	for (auto action : m_actions) {
-		QList<QKeySequence> shortcutSettings = Settings.shortcuts(action->objectName());
+	for (auto action : std::as_const(m_actions)) {
+		QList<QKeySequence> const shortcutSettings = Settings.shortcuts(action->objectName());
 		if (!shortcutSettings.isEmpty())
 			action->setShortcuts(shortcutSettings);
 		addShortcutToToolTip(action);

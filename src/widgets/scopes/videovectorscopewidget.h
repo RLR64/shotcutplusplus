@@ -18,17 +18,30 @@
 #ifndef VIDEOVECTORSCOPEWIDGET_H
 #define VIDEOVECTORSCOPEWIDGET_H
 
+// Local
 #include "scopewidget.h"
+#include "sharedframe.hpp"
 
+// Qt
 #include <QImage>
 #include <QMutex>
+#include <qcolor.h>
+#include <qhashfunctions.h>
+#include <qicon.h>
+#include <qpoint.h>
+#include <qsize.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 class VideoVectorScopeWidget Q_DECL_FINAL : public ScopeWidget {
 	Q_OBJECT
 
   public:
 	explicit VideoVectorScopeWidget();
-	virtual ~VideoVectorScopeWidget();
+	~VideoVectorScopeWidget() override;
+
 	QString getTitle() Q_DECL_OVERRIDE;
 
   private:
@@ -61,14 +74,14 @@ class VideoVectorScopeWidget Q_DECL_FINAL : public ScopeWidget {
 
 	// Only accessed by the scope thread
 	SharedFrame m_frame;
-	QImage      m_renderImg;
-	QImage      m_graticuleImg;
+	QImage m_renderImg;
+	QImage m_graticuleImg;
 
 	// Variables accessed from multiple threads (mutex protected)
 	QMutex m_mutex;
 	QImage m_displayImg;
 	QPoint m_points[COLOR_POINT_COUNT];
-	bool   m_profileChanged;
+	bool m_profileChanged;
 
   private slots:
 	void profileChanged();

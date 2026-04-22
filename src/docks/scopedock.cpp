@@ -15,20 +15,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "scopedock.hpp"
-
 #include "Logger.hpp"
 #include "controllers/scopecontroller.hpp"
 #include "mltcontroller.hpp"
+#include "widgets/scopes/scopewidget.h"
 
+// Qt
 #include <QAction>
 #include <QtWidgets/QScrollArea>
+#include <qdockwidget.h>
+#include <qframe.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 
 ScopeDock::ScopeDock(ScopeController* scopeController, ScopeWidget* scopeWidget)
     : QDockWidget(), m_scopeController(scopeController), m_scopeWidget(scopeWidget) {
 	LOG_DEBUG() << "begin";
 	setObjectName(m_scopeWidget->objectName() + "Dock");
-	QScrollArea* scrollArea = new QScrollArea();
+	auto* scrollArea = new QScrollArea();
 	scrollArea->setFrameShape(QFrame::NoFrame);
 	scrollArea->setWidgetResizable(true);
 	scrollArea->setWidget(m_scopeWidget);

@@ -18,8 +18,18 @@
 #ifndef SUBTITLESDOCK_HPP
 #define SUBTITLESDOCK_HPP
 
+// Qt
 #include <MltPlaylist.h>
+#include <MltProducer.h>
 #include <QDockWidget>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
+
+// STL
+#include <memory>
 
 class SubtitlesModel;
 class SubtitlesSelectionModel;
@@ -36,7 +46,7 @@ class SubtitlesDock : public QDockWidget {
 
   public:
 	explicit SubtitlesDock(QWidget* parent = nullptr);
-	~SubtitlesDock();
+	~SubtitlesDock() override;
 	void setModel(SubtitlesModel* model, SubtitlesSelectionModel* selectionModel);
 	void importSrtFromFile(const QString& srtPath, const QString& trackName, const QString& lang,
 	                       bool includeNonspoken);
@@ -78,14 +88,14 @@ class SubtitlesDock : public QDockWidget {
 	void    setCurrentItem(int trackIndex, int itemIndex);
 	void    refreshWidgets();
 	void    selectItemForTime();
-	QString availableTrackName();
-	bool    trackNameExists(const QString& name);
+	auto availableTrackName() -> QString;
+	auto    trackNameExists(const QString& name) -> bool;
 	void    ensureTrackExists();
 	void    burnInOnTimeline();
 	void    generateTextOnTimeline();
 	void    speechToText();
 	void    textToSpeech();
-	bool    findWhisperExe();
+	auto    findWhisperExe() -> bool;
 	void    seekToText(QString text, int step);
 
 	SubtitlesModel*               m_model;

@@ -18,9 +18,16 @@
 #ifndef TONEPRODUCERWIDGET_H
 #define TONEPRODUCERWIDGET_H
 
+// local
 #include "abstractproducerwidget.hpp"
 
+// Qt
+#include <MltProducer.h>
+#include <MltProperties.h>
 #include <QWidget>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 namespace Ui {
 class ToneProducerWidget;
@@ -30,13 +37,13 @@ class ToneProducerWidget : public QWidget, public AbstractProducerWidget {
 	Q_OBJECT
 
   public:
-	explicit ToneProducerWidget(QWidget* parent = 0);
-	~ToneProducerWidget();
+	explicit ToneProducerWidget(QWidget* parent = nullptr);
+	~ToneProducerWidget() override;
 
 	// AbstractProducerWidget overrides
-	Mlt::Producer*  newProducer(Mlt::Profile&);
-	Mlt::Properties getPreset() const;
-	void            loadPreset(Mlt::Properties&);
+	Mlt::Producer* newProducer(Mlt::Profile&) override;
+	[[nodiscard]] Mlt::Properties getPreset() const override;
+	void loadPreset(Mlt::Properties&) override;
 
   signals:
 	void modified();
@@ -48,7 +55,7 @@ class ToneProducerWidget : public QWidget, public AbstractProducerWidget {
 	void on_preset_saveClicked();
 
   private:
-	QString                 detail() const;
+	[[nodiscard]] QString detail() const;
 	Ui::ToneProducerWidget* ui;
 };
 

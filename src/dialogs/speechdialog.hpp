@@ -18,12 +18,16 @@
 #ifndef SPEECHDIALOG_HPP
 #define SPEECHDIALOG_HPP
 
+// Qt
 #include <MltConsumer.h>
 #include <QComboBox>
 #include <QDialog>
 #include <QDoubleSpinBox>
 #include <QLineEdit>
 #include <QObject>
+
+// STL
+#include <memory>
 
 namespace Mlt {
 class Consumer;
@@ -33,19 +37,19 @@ class SpeechDialog : public QDialog {
   public:
 	explicit SpeechDialog(QWidget* parent);
 
-	QString outputFile() const {
+	[[nodiscard]] auto outputFile() const -> QString {
 		return m_outputFile ? m_outputFile->text().trimmed() : QString();
 	}
 
-	QString languageCode() const {
+	[[nodiscard]] auto languageCode() const -> QString {
 		return m_language ? m_language->currentData().toString() : QString();
 	}
 
-	QString voiceCode() const {
+	[[nodiscard]] auto voiceCode() const -> QString {
 		return m_voice ? m_voice->currentData().toString() : QString();
 	}
 
-	double speed() const {
+	[[nodiscard]] constexpr auto speed() const -> double {
 		return m_speed ? m_speed->value() : 1.0;
 	}
 

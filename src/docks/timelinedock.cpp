@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "timelinedock.hpp"
-
 #include "Logger.hpp"
 #include "abstractproducerwidget.hpp"
 #include "actions.hpp"
@@ -26,9 +26,13 @@
 #include "dialogs/editmarkerdialog.hpp"
 #include "dialogs/longuitask.hpp"
 #include "dialogs/resourcedialog.hpp"
+#include "jobs/ffmpegjob.hpp"
 #include "jobs/meltjob.hpp"
+#include "jobs/postjobaction.hpp"
 #include "mainwindow.hpp"
+#include "mltcontroller.hpp"
 #include "models/audiolevelstask.hpp"
+#include "models/markersmodel.hpp"
 #include "models/multitrackmodel.hpp"
 #include "proxymanager.hpp"
 #include "qmltypes/qmlapplication.hpp"
@@ -36,6 +40,7 @@
 #include "qmltypes/qmlview.hpp"
 #include "qmltypes/thumbnailprovider.hpp"
 #include "settings.hpp"
+#include "sharedframe.hpp"
 #include "shotcut_mlt_properties.hpp"
 #include "util.hpp"
 #include "widgets/blipproducerwidget.h"
@@ -48,6 +53,10 @@
 #include "widgets/textproducerwidget.h"
 #include "widgets/toneproducerwidget.h"
 
+// Qt
+#include <MltAnimation.h>
+#include <MltChain.h>
+#include <MltParser.h>
 #include <QAction>
 #include <QActionGroup>
 #include <QClipboard>
@@ -63,32 +72,74 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 #include <QWidgetAction>
+#include <QtConcurrent/qtconcurrentrun.h>
+#include <framework/mlt_types.h>
+#include <qassert.h>
+#include <qbytearrayalgorithms.h>
+#include <qcontainerfwd.h>
+#include <qdialog.h>
+#include <qdir.h>
+#include <qdockwidget.h>
+#include <qevent.h>
+#include <qeventloop.h>
+#include <qfiledialog.h>
+#include <qfileinfo.h>
+#include <qforeach.h>
+#include <qfuture.h>
+#include <qkeysequence.h>
+#include <qlatin1stringview.h>
+#include <qlist.h>
 #include <qlistwidget.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qprocess.h>
+#include <qqml.h>
+#include <qthread.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
 
-static const char* kFileUrlProtocol          = "file://";
-static const char* kFilesUrlDelimiter        = ",file://";
-static constexpr int   kRecordingTimerIntervalMs = {1000};
+// STL
+#include <algorithm>
+#include <cmath>
+#include <memory>
+#include <limits>
+#include <vector>
+
+// Number constants
+static constexpr int kRecordingTimerIntervalMs{1000};
+
+// Widgets
+static constexpr int setWindowTitleWeightNumber{400};
+static constexpr int setWindowTitleHeightNumber{300};
+
+static constexpr int setMinimumSizeWidthNumber{200};
+static constexpr int setMinimumSizeHeightNumber{120};
+
+static constexpr const char* kFileUrlProtocol = "file://";
+static constexpr const char* kFilesUrlDelimiter = ",file://";
 
 TimelineDock::TimelineDock(QWidget* parent)
     : QDockWidget(parent), m_quickView(QmlUtilities::sharedEngine(), this), m_subtitlesModel(),
       m_subtitlesSelectionModel(&m_subtitlesModel) {
 	LOG_DEBUG() << "begin";
-	m_selection.selectedTrack        = -1;
+	m_selection.selectedTrack = -1;
 	m_selection.isMultitrackSelected = false;
 
 	setObjectName("TimelineDock");
 	QDockWidget::setWindowTitle(tr("Timeline"));
-	resize(400, 300);
-	setMinimumSize(QSize(200, 120));
+	resize(setWindowTitleWeightNumber, setWindowTitleHeightNumber);
+	setMinimumSize(QSize(setMinimumSizeWidthNumber, setMinimumSizeHeightNumber));
 	setAcceptDrops(true);
-	QIcon icon = QIcon::fromTheme("view-time-schedule", QIcon(":/icons/oxygen/32x32/actions/view-time-schedule.png"));
+	QIcon const icon = QIcon::fromTheme("view-time-schedule", QIcon(":/icons/oxygen/32x32/actions/view-time-schedule.png"));
 	setWhatsThis("https://forum.shotcut.org/t/about-the-timeline/12952/1");
 
 	toggleViewAction()->setIcon(icon);
 	setupActions();
 
-	m_mainMenu                 = new QMenu(tr("Timeline"), this);
-	QMenu* trackOperationsMenu = new QMenu(tr("Track Operations"), this);
+	m_mainMenu = new QMenu(tr("Timeline"), this);
+	auto* trackOperationsMenu = new QMenu(tr("Track Operations"), this);
 	trackOperationsMenu->addAction(Actions["timelineAddAudioTrackAction"]);
 	trackOperationsMenu->addAction(Actions["timelineAddVideoTrackAction"]);
 	trackOperationsMenu->addAction(Actions["timelineInsertTrackAction"]);
@@ -102,12 +153,12 @@ TimelineDock::TimelineDock(QWidget* parent)
 	trackOperationsMenu->addAction(Actions["timelineToggleOtherTracksMuteAction"]);
 	trackOperationsMenu->addAction(Actions["timelineToggleTrackBlendingAction"]);
 	m_mainMenu->addMenu(trackOperationsMenu);
-	QMenu* trackHeightMenu = new QMenu(tr("Track Height"), this);
+	auto* trackHeightMenu = new QMenu(tr("Track Height"), this);
 	trackHeightMenu->addAction(Actions["timelineTracksShorterAction"]);
 	trackHeightMenu->addAction(Actions["timelineTracksTallerAction"]);
 	trackHeightMenu->addAction(Actions["timelineResetTrackHeightAction"]);
 	m_mainMenu->addMenu(trackHeightMenu);
-	QMenu* selectionMenu = new QMenu(tr("Selection"), this);
+	auto* selectionMenu = new QMenu(tr("Selection"), this);
 	selectionMenu->addAction(Actions["timelineSelectAllAction"]);
 	selectionMenu->addAction(Actions["timelineSelectAllOnTrackAction"]);
 	selectionMenu->addAction(Actions["timelineSelectNoneAction"]);
@@ -120,7 +171,7 @@ TimelineDock::TimelineDock(QWidget* parent)
 	selectionMenu->addAction(Actions["timelineCurrentTrackBelowAction"]);
 	selectionMenu->addAction(Actions["timelineGroupAction"]);
 	m_mainMenu->addMenu(selectionMenu);
-	QMenu* editMenu = new QMenu(tr("Edit"), this);
+	auto* editMenu = new QMenu(tr("Edit"), this);
 	editMenu->addAction(Actions["timelinePasteAction"]);
 	editMenu->addAction(Actions["timelineAppendAction"]);
 	editMenu->addAction(Actions["timelineOverwriteAction"]);
@@ -137,13 +188,13 @@ TimelineDock::TimelineDock(QWidget* parent)
 	editMenu->addAction(Actions["timelineApplyCopiedFiltersAction"]);
 	editMenu->addAction(Actions["timelineFreezeFrameAction"]);
 	m_mainMenu->addMenu(editMenu);
-	QMenu* viewMenu = new QMenu(tr("View"), this);
+	auto* viewMenu = new QMenu(tr("View"), this);
 	viewMenu->addAction(Actions["timelineZoomOutAction"]);
 	viewMenu->addAction(Actions["timelineZoomInAction"]);
 	viewMenu->addAction(Actions["timelineZoomFitAction"]);
 	viewMenu->addAction(Actions["timelinePropertiesAction"]);
 	m_mainMenu->addMenu(viewMenu);
-	QMenu* markerMenu = new QMenu(tr("Marker"), this);
+	auto* markerMenu = new QMenu(tr("Marker"), this);
 	markerMenu->addAction(Actions["timelineMarkerAction"]);
 	markerMenu->addAction(Actions["timelinePrevMarkerAction"]);
 	markerMenu->addAction(Actions["timelineNextMarkerAction"]);
@@ -177,7 +228,7 @@ TimelineDock::TimelineDock(QWidget* parent)
 	vboxLayout->setSpacing(0);
 	vboxLayout->setContentsMargins(0, 0, 0, 0);
 
-	DockToolBar* toolbar    = new DockToolBar(tr("Timeline Controls"));
+	auto* toolbar = new DockToolBar(tr("Timeline Controls"));
 	QToolButton* menuButton = new QToolButton();
 	menuButton->setIcon(QIcon::fromTheme("show-menu", QIcon(":/icons/oxygen/32x32/actions/show-menu.png")));
 	menuButton->setToolTip(tr("Timeline Menu"));
@@ -200,7 +251,7 @@ TimelineDock::TimelineDock(QWidget* parent)
 	menuButton->setMenu(action->menu());
 	toolbar->addWidget(menuButton);
 	connect(action, &QAction::triggered, this,
-	        [=]() { action->menu()->popup(menuButton->mapToGlobal(QPoint(0, menuButton->height()))); });
+			[=]() -> void { action->menu()->popup(menuButton->mapToGlobal(QPoint(0, menuButton->height()))); });
 
 	toolbar->addAction(Actions["timelineAppendAction"]);
 	toolbar->addAction(Actions["timelineDeleteAction"]);
@@ -219,20 +270,20 @@ TimelineDock::TimelineDock(QWidget* parent)
 	toolbar->addAction(Actions["timelineRippleMarkersAction"]);
 	toolbar->addSeparator();
 	toolbar->addAction(Actions["timelineZoomOutAction"]);
-	QSlider* zoomSlider = new QSlider();
+	auto* zoomSlider = new QSlider();
 	zoomSlider->setOrientation(Qt::Horizontal);
 	zoomSlider->setMaximumWidth(200);
 	zoomSlider->setMinimum(0);
 	zoomSlider->setMaximum(300);
 	zoomSlider->setValue(100);
 	zoomSlider->setTracking(false);
-	connect(zoomSlider, &QSlider::valueChanged, this, [&](int value) {
+	connect(zoomSlider, &QSlider::valueChanged, this, [&](int value) -> void {
 		if (!isVisible() || !m_quickView.rootObject())
 			return;
 		emit setZoom(value / 100.0);
 	});
-	connect(&m_model, &MultitrackModel::scaleFactorChanged, zoomSlider, [=]() {
-		double value = round(pow(m_model.scaleFactor() - 0.01, 1.0 / 3.0) * 100.0);
+	connect(&m_model, &MultitrackModel::scaleFactorChanged, zoomSlider, [this, zoomSlider]() -> void {
+		const double value = round(pow(m_model.scaleFactor() - 0.01, 1.0 / 3.0) * 100.0);
 		zoomSlider->blockSignals(true);
 		zoomSlider->setValue(value);
 		zoomSlider->blockSignals(false);
@@ -267,12 +318,12 @@ TimelineDock::TimelineDock(QWidget* parent)
 
 	m_selectionSignalTimer.setSingleShot(true);
 	m_selectionSignalTimer.setInterval(100);
-	connect(&m_selectionSignalTimer, &QTimer::timeout, this, [&]() {
+	connect(&m_selectionSignalTimer, &QTimer::timeout, this, [&]() -> void {
 		emit selectionChanged();
 		emitSelectedFromSelection();
 	});
 
-	connect(&m_quickView, &QQuickWidget::statusChanged, this, [&]() {
+	connect(&m_quickView, &QQuickWidget::statusChanged, this, [&]() -> void {
 		if (m_quickView.status() == QQuickWidget::Ready) {
 			connect(m_quickView.rootObject(), SIGNAL(clipClicked()), this, SIGNAL(clipClicked()));
 			connect(m_quickView.rootObject(), SIGNAL(timelineRightClicked()), this, SLOT(onTimelineRightClicked()));
@@ -280,7 +331,7 @@ TimelineDock::TimelineDock(QWidget* parent)
 		}
 	});
 
-	connect(&m_model, &MultitrackModel::created, this, [&]() {
+	connect(&m_model, &MultitrackModel::created, this, [&]() -> void {
 		connect(&m_model, &MultitrackModel::modified, this, &TimelineDock::clearSelectionIfInvalid);
 		connect(&m_model, &MultitrackModel::appended, this, &TimelineDock::selectClip);
 		connect(&m_model, &MultitrackModel::inserted, this, &TimelineDock::selectClip);
@@ -293,7 +344,7 @@ TimelineDock::TimelineDock(QWidget* parent)
 		reloadTimelineModels();
 	});
 
-	connect(&m_model, &MultitrackModel::aboutToClose, this, [&]() {
+	connect(&m_model, &MultitrackModel::aboutToClose, this, [&]() -> void {
 		setSelection();
 		disconnect(&m_model, &MultitrackModel::modified, this, &TimelineDock::clearSelectionIfInvalid);
 		disconnect(&m_model, &MultitrackModel::appended, this, &TimelineDock::selectClip);
@@ -305,7 +356,7 @@ TimelineDock::TimelineDock(QWidget* parent)
 		disconnect(&m_model, &MultitrackModel::noMoreEmptyTracks, this, &TimelineDock::onNoMoreEmptyTracks);
 	});
 
-	connect(&m_model, &MultitrackModel::closed, this, [&]() {
+	connect(&m_model, &MultitrackModel::closed, this, [&]() -> void {
 		onMultitrackClosed();
 		reloadTimelineModels();
 	});
@@ -321,7 +372,7 @@ TimelineDock::TimelineDock(QWidget* parent)
 	connect(this, SIGNAL(warnTrackLocked(int)), SLOT(onWarnTrackLocked()));
 	connect(&m_markersModel, SIGNAL(rangesChanged()), this, SIGNAL(markerRangesChanged()));
 
-	connect(this, &QDockWidget::visibilityChanged, this, [&](bool visible) {
+	connect(this, &QDockWidget::visibilityChanged, this, [&](bool visible) -> void {
 		if (visible) {
 			// Workaround for QML items going blank when moving the dock
 			// Emit some signals to trigger some QML items to redraw
@@ -334,22 +385,21 @@ TimelineDock::TimelineDock(QWidget* parent)
 		}
 	});
 
-	QWidget* dockContentsWidget = new QWidget();
+	auto* dockContentsWidget = new QWidget();
 	dockContentsWidget->setLayout(vboxLayout);
 	QDockWidget::setWidget(dockContentsWidget);
 	LOG_DEBUG() << "end";
 }
 
-TimelineDock::~TimelineDock() {
-}
+TimelineDock::~TimelineDock() = default;
 
 void TimelineDock::setupActions() {
-	QIcon    icon;
-	QAction* action;
+	QIcon icon;
+	QAction* action = nullptr;
 
 	action = new QAction(tr("Add Audio Track"), this);
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_U));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		show();
 		raise();
 		addAudioTrack();
@@ -358,7 +408,7 @@ void TimelineDock::setupActions() {
 
 	action = new QAction(tr("Add Video Track"), this);
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_I));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		show();
 		raise();
 		addVideoTrack();
@@ -367,7 +417,7 @@ void TimelineDock::setupActions() {
 
 	action = new QAction(tr("Insert Track"), this);
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_I));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		show();
 		raise();
 		insertTrack();
@@ -376,7 +426,7 @@ void TimelineDock::setupActions() {
 
 	action = new QAction(tr("Remove Track"), this);
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_U));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid())
 			return;
 		show();
@@ -387,7 +437,7 @@ void TimelineDock::setupActions() {
 
 	action = new QAction(tr("Move Track Up"), this);
 	action->setShortcut(QKeySequence(Qt::SHIFT | Qt::ALT | Qt::Key_Up));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid())
 			return;
 		show();
@@ -398,7 +448,7 @@ void TimelineDock::setupActions() {
 
 	action = new QAction(tr("Move Track Down"), this);
 	action->setShortcut(QKeySequence(Qt::SHIFT | Qt::ALT | Qt::Key_Down));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid())
 			return;
 		show();
@@ -414,7 +464,7 @@ void TimelineDock::setupActions() {
 #else
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_H));
 #endif
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void{
 		if (!isMultitrackValid())
 			return;
 		show();
@@ -424,7 +474,7 @@ void TimelineDock::setupActions() {
 	Actions.add("timelineToggleTrackHiddenAction", action);
 
 	action = new QAction(tr("Show/Hide Other Tracks"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid())
 			return;
 		show();
@@ -443,7 +493,7 @@ void TimelineDock::setupActions() {
 #else
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_L));
 #endif
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid())
 			return;
 		show();
@@ -459,7 +509,7 @@ void TimelineDock::setupActions() {
 #else
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_M));
 #endif
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid())
 			return;
 		show();
@@ -469,7 +519,7 @@ void TimelineDock::setupActions() {
 	Actions.add("timelineToggleTrackMuteAction", action);
 
 	action = new QAction(tr("Mute/Unmute Other Tracks"), this);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid())
 			return;
 		show();
@@ -480,14 +530,14 @@ void TimelineDock::setupActions() {
 
 	action = new QAction(tr("Blend/Unblend Selected Track"), this);
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_B));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid())
 			return;
 		show();
 		raise();
-		int trackIndex = currentTrack();
+		const int trackIndex = currentTrack();
 		if (trackIndex != model()->bottomVideoTrackIndex()) {
-			bool isComposite = model()->data(model()->index(trackIndex), MultitrackModel::IsCompositeRole).toBool();
+			const bool isComposite = model()->data(model()->index(trackIndex), MultitrackModel::IsCompositeRole).toBool();
 			setTrackComposite(trackIndex, !isComposite);
 		}
 	});
@@ -495,7 +545,7 @@ void TimelineDock::setupActions() {
 
 	action = new QAction(tr("Make Tracks Shorter"), this);
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Minus));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid() || !isVisible())
 			return;
 		m_model.setTrackHeight(std::max(10, m_model.trackHeight() - 20));
@@ -504,7 +554,7 @@ void TimelineDock::setupActions() {
 
 	action = new QAction(tr("Make Tracks Taller"), this);
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Plus));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid() || !isVisible())
 			return;
 		m_model.setTrackHeight(m_model.trackHeight() + 20);
@@ -513,7 +563,7 @@ void TimelineDock::setupActions() {
 
 	action = new QAction(tr("Reset Track Height"), this);
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Equal));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid() || !isVisible())
 			return;
 		m_model.setTrackHeight(50);
@@ -522,7 +572,7 @@ void TimelineDock::setupActions() {
 
 	action = new QAction(tr("Select All"), this);
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_A));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid())
 			return;
 		show();
@@ -533,7 +583,7 @@ void TimelineDock::setupActions() {
 
 	action = new QAction(tr("Select All On Current Track"), this);
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_A));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid())
 			return;
 		show();
@@ -544,7 +594,7 @@ void TimelineDock::setupActions() {
 
 	action = new QAction(tr("Select None"), this);
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_D));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid())
 			return;
 		show();
@@ -556,13 +606,13 @@ void TimelineDock::setupActions() {
 
 	action = new QAction(tr("Select Next Clip"), this);
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Right));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid() || !isVisible())
 			return;
 		if (selection().isEmpty()) {
 			selectClipUnderPlayhead();
 		} else if (selection().size() == 1) {
-			int newIndex = selection().first().x() + 1;
+			const int newIndex = selection().first().x() + 1;
 			if (newIndex < clipCount(-1))
 				setSelection(QList<QPoint>() << QPoint(newIndex, selection().first().y()));
 		}
@@ -571,13 +621,13 @@ void TimelineDock::setupActions() {
 
 	action = new QAction(tr("Select Previous Clip"), this);
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Left));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid() || !isVisible())
 			return;
 		if (selection().isEmpty()) {
 			selectClipUnderPlayhead();
 		} else if (selection().size() == 1) {
-			int newIndex = selection().first().x() - 1;
+			const int newIndex = selection().first().x() - 1;
 			if (newIndex >= 0)
 				setSelection(QList<QPoint>() << QPoint(newIndex, selection().first().y()));
 		}
@@ -586,15 +636,15 @@ void TimelineDock::setupActions() {
 
 	action = new QAction(tr("Select Clip Above"), this);
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Up));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid() || !isVisible())
 			return;
 		if (selection().isEmpty())
 			selectClipUnderPlayhead();
 		int newClipIndex = -1;
-		int trackIndex   = currentTrack() - 1;
+		const int trackIndex   = currentTrack() - 1;
 		if (!selection().isEmpty() && trackIndex > -1 && !selection().isEmpty()) {
-			int navigationPosition = centerOfClip(selection().first().y(), selection().first().x());
+			const int navigationPosition = centerOfClip(selection().first().y(), selection().first().x());
 			newClipIndex           = clipIndexAtPosition(trackIndex, navigationPosition);
 		}
 		incrementCurrentTrack(-1);
@@ -607,15 +657,15 @@ void TimelineDock::setupActions() {
 
 	action = new QAction(tr("Select Clip Below"), this);
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Down));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid() || !isVisible())
 			return;
 		if (selection().isEmpty())
 			selectClipUnderPlayhead();
 		int newClipIndex = -1;
-		int trackIndex   = currentTrack() + 1;
+		const int trackIndex   = currentTrack() + 1;
 		if (trackIndex < model()->trackList().count() && !selection().isEmpty()) {
-			int navigationPosition = centerOfClip(selection().first().y(), selection().first().x());
+			const int navigationPosition = centerOfClip(selection().first().y(), selection().first().x());
 			newClipIndex           = clipIndexAtPosition(trackIndex, navigationPosition);
 		}
 		incrementCurrentTrack(1);
@@ -628,7 +678,7 @@ void TimelineDock::setupActions() {
 
 	action = new QAction(tr("Set Current Track Above"), this);
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_Up));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid() || !isVisible())
 			return;
 		incrementCurrentTrack(-1);
@@ -637,7 +687,7 @@ void TimelineDock::setupActions() {
 
 	action = new QAction(tr("Set Current Track Below"), this);
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_Down));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid() || !isVisible())
 			return;
 		incrementCurrentTrack(1);
@@ -652,7 +702,7 @@ void TimelineDock::setupActions() {
 	clipUnderPlayheadShortcuts << QKeySequence(Qt::META | Qt::Key_Space);
 #endif
 	action->setShortcuts(clipUnderPlayheadShortcuts);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid() || !isVisible())
 			return;
 		selectClipUnderPlayhead();
@@ -665,16 +715,16 @@ void TimelineDock::setupActions() {
 	icon = QIcon::fromTheme("edit-cut", QIcon(":/icons/oxygen/32x32/actions/edit-cut.png"));
 	action->setIcon(icon);
 	action->setEnabled(false);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		show();
 		raise();
 		removeSelection(true);
 	});
-	connect(this, &TimelineDock::selectionChanged, action, [=]() {
+	connect(this, &TimelineDock::selectionChanged, action, [=]() -> void {
 		bool enabled = m_selection.selectedClips.length() > 0;
 		if (enabled && !selection().isEmpty()) {
-			int trackIndex = selection().first().y();
-			int clipIndex  = selection().first().x();
+			const int trackIndex = selection().first().y();
+			const int clipIndex  = selection().first().x();
 			enabled        = !isBlank(trackIndex, clipIndex) && !isTransition(trackIndex, clipIndex);
 		}
 		action->setEnabled(enabled);
@@ -690,7 +740,7 @@ void TimelineDock::setupActions() {
 	icon = QIcon::fromTheme("edit-copy", QIcon(":/icons/oxygen/32x32/actions/edit-copy.png"));
 	action->setIcon(icon);
 	action->setEnabled(false);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		show();
 		raise();
 		if (selection().isEmpty()) {
@@ -700,11 +750,11 @@ void TimelineDock::setupActions() {
 			copy(selected.y(), selected.x());
 		}
 	});
-	connect(this, &TimelineDock::selectionChanged, action, [=]() {
+	connect(this, &TimelineDock::selectionChanged, action, [this, action]() -> void {
 		bool enabled = m_selection.selectedClips.length() > 0;
 		if (enabled && !selection().isEmpty()) {
-			int trackIndex = selection().first().y();
-			int clipIndex  = selection().first().x();
+			const int trackIndex = selection().first().y();
+			const int clipIndex  = selection().first().x();
 			enabled        = !isBlank(trackIndex, clipIndex) && !isTransition(trackIndex, clipIndex);
 		}
 		action->setEnabled(enabled);
@@ -719,7 +769,7 @@ void TimelineDock::setupActions() {
 	action->setWhatsThis("https://forum.shotcut.org/t/cut-copy-and-paste-editing/12981/1");
 	icon = QIcon::fromTheme("edit-paste", QIcon(":/icons/oxygen/32x32/actions/edit-paste.png"));
 	action->setIcon(icon);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		show();
 		raise();
 		insert(-1);
@@ -730,11 +780,11 @@ void TimelineDock::setupActions() {
 	action->setShortcut(QKeySequence(Qt::Key_Period));
 	action->setEnabled(false);
 	action->setWhatsThis("https://forum.shotcut.org/t/nudge-tool/43158/1");
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		auto selectedClips = selection();
 		if (selectedClips.size() == 1) {
-			int  trackIndex = selectedClips.first().y();
-			int  clipIndex  = selectedClips.first().x();
+			const int trackIndex = selectedClips.first().y();
+			const int clipIndex  = selectedClips.first().x();
 			bool valid      = clipIndex > 0 && !isTransition(trackIndex, clipIndex) && !isBlank(trackIndex, clipIndex);
 			if (valid && !Settings.timelineRipple()) {
 				valid = (clipIndex == clipCount(trackIndex) - 1) || isBlank(trackIndex, clipIndex + 1);
@@ -747,7 +797,7 @@ void TimelineDock::setupActions() {
 			moveClip(trackIndex, trackIndex, clipIndex, clipInfo->start + 1, Settings.timelineRipple());
 		}
 	});
-	connect(this, &TimelineDock::selectionChanged, action, [=]() {
+	connect(this, &TimelineDock::selectionChanged, action, [this, action]() -> void {
 		auto selectedClips = selection();
 		bool enabled       = selectedClips.size() == 1;
 		if (enabled) {
@@ -762,11 +812,11 @@ void TimelineDock::setupActions() {
 	action->setShortcut(QKeySequence(Qt::Key_Comma));
 	action->setEnabled(false);
 	action->setWhatsThis("https://forum.shotcut.org/t/nudge-tool/43158/1");
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		auto selectedClips = selection();
 		if (selectedClips.size() == 1) {
-			int trackIndex = selectedClips.first().y();
-			int clipIndex  = selectedClips.first().x();
+			const int trackIndex = selectedClips.first().y();
+			const int clipIndex  = selectedClips.first().x();
 			if (clipIndex <= 0 || isTransition(trackIndex, clipIndex) || isBlank(trackIndex, clipIndex) ||
 			    !isBlank(trackIndex, clipIndex - 1)) {
 				emit showStatusMessage(tr("Nudge Backward is not available"));
@@ -776,7 +826,7 @@ void TimelineDock::setupActions() {
 			moveClip(trackIndex, trackIndex, clipIndex, clipInfo->start - 1, Settings.timelineRipple());
 		}
 	});
-	connect(this, &TimelineDock::selectionChanged, action, [=]() {
+	connect(this, &TimelineDock::selectionChanged, action, [this, action]() -> void {
 		auto selectedClips = selection();
 		bool enabled       = selectedClips.size() == 1;
 		if (enabled) {
@@ -791,7 +841,7 @@ void TimelineDock::setupActions() {
 	action->setShortcut(QKeySequence(Qt::Key_A));
 	icon = QIcon::fromTheme("list-add", QIcon(":/icons/oxygen/32x32/actions/list-add.png"));
 	action->setIcon(icon);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		show();
 		raise();
 		append(currentTrack());
@@ -806,7 +856,7 @@ void TimelineDock::setupActions() {
 	action->setShortcuts(deleteShortcuts);
 	icon = QIcon::fromTheme("list-remove", QIcon(":/icons/oxygen/32x32/actions/list-remove.png"));
 	action->setIcon(icon);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid())
 			return;
 		show();
@@ -824,7 +874,7 @@ void TimelineDock::setupActions() {
 	action->setShortcuts(liftShortcuts);
 	icon = QIcon::fromTheme("lift", QIcon(":/icons/oxygen/32x32/actions/lift.png"));
 	action->setIcon(icon);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid())
 			return;
 		show();
@@ -837,7 +887,7 @@ void TimelineDock::setupActions() {
 	action->setShortcut(QKeySequence(Qt::Key_B));
 	icon = QIcon::fromTheme("overwrite", QIcon(":/icons/oxygen/32x32/actions/overwrite.png"));
 	action->setIcon(icon);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid())
 			return;
 		show();
@@ -850,7 +900,7 @@ void TimelineDock::setupActions() {
 	action->setShortcut(QKeySequence(Qt::Key_S));
 	icon = QIcon::fromTheme("slice", QIcon(":/icons/oxygen/32x32/actions/slice.png"));
 	action->setIcon(icon);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid())
 			return;
 		show();
@@ -860,9 +910,9 @@ void TimelineDock::setupActions() {
 		std::vector<int> tracks;
 		std::vector<int> clips;
 		// First check if any clips are selected under the playhead
-		QList<QPoint> selected = selection();
+		QList<QPoint> const selected = selection();
 		if (selected.size() > 0) {
-			for (auto c : selected) {
+			for (const auto c : selected) {
 				clipIndex  = c.x();
 				trackIndex = c.y();
 				if (isTrackLocked(trackIndex)) {
@@ -911,7 +961,7 @@ void TimelineDock::setupActions() {
 
 	action = new QAction(tr("Split All Tracks At Playhead"), this);
 	action->setShortcut(QKeySequence(Qt::SHIFT | Qt::Key_S));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid())
 			return;
 		show();
@@ -919,7 +969,7 @@ void TimelineDock::setupActions() {
 		std::vector<int> tracks;
 		std::vector<int> clips;
 		for (int trackIndex = 0; trackIndex < m_model.rowCount(); trackIndex++) {
-			int clipIndex = clipIndexAtPosition(trackIndex, m_position);
+			const int clipIndex = clipIndexAtPosition(trackIndex, m_position);
 			if (clipIndex < 0 || isBlank(trackIndex, clipIndex)) {
 				continue;
 			}
@@ -945,7 +995,7 @@ void TimelineDock::setupActions() {
 
 	action = new QAction(tr("Replace"), this);
 	action->setShortcut(QKeySequence(Qt::Key_R));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid())
 			return;
 		show();
@@ -958,7 +1008,7 @@ void TimelineDock::setupActions() {
 		}
 	});
 	connect(this, &TimelineDock::selectionChanged, action,
-	        [=]() { action->setEnabled(m_selection.selectedClips.length() > 0); });
+			[action, this]() -> void { action->setEnabled(m_selection.selectedClips.length() > 0); });
 	Actions.add("timelineReplaceAction", action);
 
 	action = new QAction(tr("Create/Edit Marker"), this);
@@ -966,7 +1016,7 @@ void TimelineDock::setupActions() {
 	action->setWhatsThis("https://forum.shotcut.org/t/timeline-markers/30535/1");
 	icon = QIcon::fromTheme("marker", QIcon(":/icons/oxygen/32x32/actions/marker.png"));
 	action->setIcon(icon);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid())
 			return;
 		show();
@@ -980,7 +1030,7 @@ void TimelineDock::setupActions() {
 	action->setWhatsThis("https://forum.shotcut.org/t/timeline-markers/30535/1");
 	icon = QIcon::fromTheme("format-indent-less", QIcon(":/icons/oxygen/32x32/actions/format-indent-less.png"));
 	action->setIcon(icon);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid())
 			return;
 		show();
@@ -994,7 +1044,7 @@ void TimelineDock::setupActions() {
 	action->setWhatsThis("https://forum.shotcut.org/t/timeline-markers/30535/1");
 	icon = QIcon::fromTheme("format-indent-more", QIcon(":/icons/oxygen/32x32/actions/format-indent-more.png"));
 	action->setIcon(icon);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid())
 			return;
 		show();
@@ -1005,7 +1055,7 @@ void TimelineDock::setupActions() {
 
 	action = new QAction(tr("Delete Marker"), this);
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_M));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid())
 			return;
 		show();
@@ -1016,8 +1066,8 @@ void TimelineDock::setupActions() {
 
 	action = new QAction(tr("Cycle Marker Color"), this);
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_M));
-	connect(action, &QAction::triggered, this, [&]() {
-		int markerIndex = m_markersModel.markerIndexForPosition(m_position);
+	connect(action, &QAction::triggered, this, [&]() -> void {
+		const int markerIndex = m_markersModel.markerIndexForPosition(m_position);
 		if (markerIndex >= 0) {
 			auto marker     = m_markersModel.getMarker(markerIndex);
 			auto allColors  = m_markersModel.allColors();
@@ -1032,7 +1082,7 @@ void TimelineDock::setupActions() {
 
 	action = new QAction(tr("Create Marker Around Selected Clip"), this);
 	action->setShortcut(QKeySequence(Qt::ALT | Qt::Key_M));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isMultitrackValid())
 			return;
 		show();
@@ -1045,25 +1095,25 @@ void TimelineDock::setupActions() {
 	action->setCheckable(true);
 	action->setChecked(Settings.timelineRectangleSelect());
 	action->setWhatsThis("https://forum.shotcut.org/t/rectangle-selection/42202/1");
-	connect(action, &QAction::triggered, this, [&](bool checked) { Settings.setTimelineRectangleSelect(checked); });
+	connect(action, &QAction::triggered, this, [&](bool checked) -> void { Settings.setTimelineRectangleSelect(checked); });
 	connect(&Settings, &ShotcutSettings::timelineRectangleSelectChanged, action,
-	        [=]() { action->setChecked(Settings.timelineRectangleSelect()); });
+			[=]() -> void { action->setChecked(Settings.timelineRectangleSelect()); });
 	Actions.add("timelineRectangleSelectAction", action);
 
 	action = new QAction(tr("Adjust Clip Gain/Volume"), this);
 	action->setCheckable(true);
 	action->setChecked(Settings.timelineAdjustGain());
-	connect(action, &QAction::triggered, this, [&](bool checked) { Settings.setTimelineAdjustGain(checked); });
+	connect(action, &QAction::triggered, this, [&](bool checked) -> void { Settings.setTimelineAdjustGain(checked); });
 	connect(&Settings, &ShotcutSettings::timelineAdjustGainChanged, action,
-	        [=]() { action->setChecked(Settings.timelineAdjustGain()); });
+			[=]() -> void { action->setChecked(Settings.timelineAdjustGain()); });
 	Actions.add("timelineAdjustGainAction", action);
 
 	action = new QAction(tr("Automatically Add Tracks"), this);
 	action->setCheckable(true);
 	action->setChecked(Settings.timelineAutoAddTracks());
-	connect(action, &QAction::triggered, this, [&](bool checked) { Settings.setTimelineAutoAddTracks(checked); });
+	connect(action, &QAction::triggered, this, [&](bool checked) -> void { Settings.setTimelineAutoAddTracks(checked); });
 	connect(&Settings, &ShotcutSettings::timelineAutoAddTracksChanged, action,
-	        [=]() { action->setChecked(Settings.timelineAutoAddTracks()); });
+			[=]() -> void { action->setChecked(Settings.timelineAutoAddTracks()); });
 	Actions.add("timelineAutoAddTracksAction", action);
 
 	action = new QAction(tr("Snap"), this);
@@ -1072,9 +1122,9 @@ void TimelineDock::setupActions() {
 	action->setIcon(icon);
 	action->setCheckable(true);
 	action->setChecked(Settings.timelineSnap());
-	connect(action, &QAction::triggered, this, [&](bool checked) { Settings.setTimelineSnap(checked); });
+	connect(action, &QAction::triggered, this, [&](bool checked) -> void { Settings.setTimelineSnap(checked); });
 	connect(&Settings, &ShotcutSettings::timelineSnapChanged, action,
-	        [=]() { action->setChecked(Settings.timelineSnap()); });
+			[=]() -> void { action->setChecked(Settings.timelineSnap()); });
 	Actions.add("timelineSnapAction", action);
 
 	action = new QAction(tr("Scrub While Dragging"), this);
@@ -1082,9 +1132,9 @@ void TimelineDock::setupActions() {
 	action->setIcon(icon);
 	action->setCheckable(true);
 	action->setChecked(Settings.timelineDragScrub());
-	connect(action, &QAction::triggered, this, [&](bool checked) { Settings.setTimelineDragScrub(checked); });
+	connect(action, &QAction::triggered, this, [&](bool checked) -> void { Settings.setTimelineDragScrub(checked); });
 	connect(&Settings, &ShotcutSettings::timelineDragScrubChanged, action,
-	        [=]() { action->setChecked(Settings.timelineDragScrub()); });
+			[=]() -> void { action->setChecked(Settings.timelineDragScrub()); });
 	Actions.add("timelineScrubDragAction", action);
 
 	action = new QAction(tr("Ripple"), this);
@@ -1093,9 +1143,9 @@ void TimelineDock::setupActions() {
 	action->setIcon(icon);
 	action->setCheckable(true);
 	action->setChecked(Settings.timelineRipple());
-	connect(action, &QAction::triggered, this, [&](bool checked) { Settings.setTimelineRipple(checked); });
+	connect(action, &QAction::triggered, this, [&](bool checked) -> void { Settings.setTimelineRipple(checked); });
 	connect(&Settings, &ShotcutSettings::timelineRippleChanged, action,
-	        [=]() { action->setChecked(Settings.timelineRipple()); });
+			[=]() -> void { action->setChecked(Settings.timelineRipple()); });
 	Actions.add("timelineRippleAction", action);
 
 	action = new QAction(tr("Ripple All Tracks"), this);
@@ -1105,9 +1155,9 @@ void TimelineDock::setupActions() {
 	action->setIcon(icon);
 	action->setCheckable(true);
 	action->setChecked(Settings.timelineRippleAllTracks());
-	connect(action, &QAction::triggered, this, [&](bool checked) { Settings.setTimelineRippleAllTracks(checked); });
+	connect(action, &QAction::triggered, this, [&](bool checked) -> void { Settings.setTimelineRippleAllTracks(checked); });
 	connect(&Settings, &ShotcutSettings::timelineRippleAllTracksChanged, action,
-	        [=]() { action->setChecked(Settings.timelineRippleAllTracks()); });
+			[=]() -> void { action->setChecked(Settings.timelineRippleAllTracks()); });
 	Actions.add("timelineRippleAllTracksAction", action);
 
 	action = new QAction(tr("Ripple Markers"), this);
@@ -1117,14 +1167,14 @@ void TimelineDock::setupActions() {
 	action->setIcon(icon);
 	action->setCheckable(true);
 	action->setChecked(Settings.timelineRippleMarkers());
-	connect(action, &QAction::triggered, this, [&](bool checked) { Settings.setTimelineRippleMarkers(checked); });
+	connect(action, &QAction::triggered, this, [&](bool checked) -> void { Settings.setTimelineRippleMarkers(checked); });
 	connect(&Settings, &ShotcutSettings::timelineRippleMarkersChanged, action,
-	        [=]() { action->setChecked(Settings.timelineRippleMarkers()); });
+			[=]() -> void { action->setChecked(Settings.timelineRippleMarkers()); });
 	Actions.add("timelineRippleMarkersAction", action);
 
 	action = new QAction(tr("Toggle Ripple And All Tracks"), this);
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_R));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		Settings.setTimelineRippleAllTracks(!Settings.timelineRipple());
 		Settings.setTimelineRipple(!Settings.timelineRipple());
 	});
@@ -1132,7 +1182,7 @@ void TimelineDock::setupActions() {
 
 	action = new QAction(tr("Toggle Ripple, All Tracks, And Markers"), this);
 	action->setShortcut(QKeySequence(Qt::ALT | Qt::SHIFT | Qt::Key_R));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		Settings.setTimelineRippleAllTracks(!Settings.timelineRipple());
 		Settings.setTimelineRipple(!Settings.timelineRipple());
 		Settings.setTimelineRippleMarkers(!Settings.timelineRippleMarkers());
@@ -1142,20 +1192,20 @@ void TimelineDock::setupActions() {
 	action = new QAction(tr("Show Audio Waveforms"), this);
 	action->setCheckable(true);
 	action->setChecked(Settings.timelineShowWaveforms());
-	connect(action, &QAction::triggered, this, [&](bool checked) {
+	connect(action, &QAction::triggered, this, [&](bool checked) -> void {
 		Settings.setTimelineShowWaveforms(checked);
 		if (!isVisible() || !m_quickView.rootObject())
 			return;
 		emit refreshWaveforms();
 	});
 	connect(&Settings, &ShotcutSettings::timelineShowWaveformsChanged, action,
-	        [=]() { action->setChecked(Settings.timelineShowWaveforms()); });
+			[=]() -> void { action->setChecked(Settings.timelineShowWaveforms()); });
 	Actions.add("timelineShowWaveformsAction", action);
 
 	action = new QAction(tr("Use Higher Performance Waveforms"), this);
 	action->setCheckable(true);
 	action->setChecked(Settings.timelineFramebufferWaveform());
-	connect(action, &QAction::triggered, this, [&](bool checked) {
+	connect(action, &QAction::triggered, this, [&](bool checked) -> void {
 		Settings.setTimelineFramebufferWaveform(checked);
 		if (!isVisible() || !m_quickView.rootObject())
 			return;
@@ -1164,23 +1214,22 @@ void TimelineDock::setupActions() {
 		}
 	});
 	connect(&Settings, &ShotcutSettings::timelineFramebufferWaveformChanged, action,
-	        [=]() { action->setChecked(Settings.timelineFramebufferWaveform()); });
+			[=]() -> void { action->setChecked(Settings.timelineFramebufferWaveform()); });
 	Actions.add("timelinePerformanceWaveformsAction", action);
 
 	action = new QAction(tr("Show Video Thumbnails"), this);
 	action->setCheckable(true);
 	action->setChecked(Settings.timelineShowThumbnails());
-	connect(action, &QAction::triggered, this, [&](bool checked) { Settings.setTimelineShowThumbnails(checked); });
+	connect(action, &QAction::triggered, this, [&](bool checked) -> void { Settings.setTimelineShowThumbnails(checked); });
 	connect(&Settings, &ShotcutSettings::timelineShowThumbnailsChanged, action,
-	        [=]() { action->setChecked(Settings.timelineShowThumbnails()); });
+			[=]() -> void { action->setChecked(Settings.timelineShowThumbnails()); });
 	Actions.add("timelineShowThumbnailsAction", action);
 
 	action = new QAction(tr("No"), this);
 	action->setCheckable(true);
 	action->setChecked(ShotcutSettings::TimelineScrolling::NoScrolling == Settings.timelineScrolling());
-	connect(action, &QAction::triggered, this,
-	        [&]() { Settings.setTimelineScrolling(ShotcutSettings::TimelineScrolling::NoScrolling); });
-	connect(&Settings, &ShotcutSettings::timelineScrollingChanged, action, [=]() {
+	connect(action, &QAction::triggered, this, [&]() -> void { Settings.setTimelineScrolling(ShotcutSettings::TimelineScrolling::NoScrolling); });
+	connect(&Settings, &ShotcutSettings::timelineScrollingChanged, action, [=]() -> void {
 		if (ShotcutSettings::TimelineScrolling::NoScrolling == Settings.timelineScrolling())
 			action->setChecked(true);
 	});
@@ -1189,8 +1238,7 @@ void TimelineDock::setupActions() {
 	action = new QAction(tr("Page"), this);
 	action->setCheckable(true);
 	action->setChecked(ShotcutSettings::TimelineScrolling::PageScrolling == Settings.timelineScrolling());
-	connect(action, &QAction::triggered, this,
-	        [&]() { Settings.setTimelineScrolling(ShotcutSettings::TimelineScrolling::PageScrolling); });
+	connect(action, &QAction::triggered, this, [&]() -> void { Settings.setTimelineScrolling(ShotcutSettings::TimelineScrolling::PageScrolling); });
 	connect(&Settings, &ShotcutSettings::timelineScrollingChanged, action, [=]() {
 		if (ShotcutSettings::TimelineScrolling::PageScrolling == Settings.timelineScrolling())
 			action->setChecked(true);
@@ -1200,9 +1248,8 @@ void TimelineDock::setupActions() {
 	action = new QAction(tr("Smooth"), this);
 	action->setCheckable(true);
 	action->setChecked(ShotcutSettings::TimelineScrolling::SmoothScrolling == Settings.timelineScrolling());
-	connect(action, &QAction::triggered, this,
-	        [&]() { Settings.setTimelineScrolling(ShotcutSettings::TimelineScrolling::SmoothScrolling); });
-	connect(&Settings, &ShotcutSettings::timelineScrollingChanged, action, [=]() {
+	connect(action, &QAction::triggered, this, [&]() -> void { Settings.setTimelineScrolling(ShotcutSettings::TimelineScrolling::SmoothScrolling); });
+	connect(&Settings, &ShotcutSettings::timelineScrollingChanged, action, [=]() -> void {
 		if (ShotcutSettings::TimelineScrolling::SmoothScrolling == Settings.timelineScrolling())
 			action->setChecked(true);
 	});
@@ -1213,8 +1260,8 @@ void TimelineDock::setupActions() {
 	action->setCheckable(true);
 	action->setChecked(ShotcutSettings::TimelineScrolling::CenterPlayhead == Settings.timelineScrolling());
 	connect(action, &QAction::triggered, this,
-	        [&]() { Settings.setTimelineScrolling(ShotcutSettings::TimelineScrolling::CenterPlayhead); });
-	connect(&Settings, &ShotcutSettings::timelineScrollingChanged, action, [=]() {
+			[&]() -> void { Settings.setTimelineScrolling(ShotcutSettings::TimelineScrolling::CenterPlayhead); });
+	connect(&Settings, &ShotcutSettings::timelineScrollingChanged, action, [=]() -> void {
 		if (ShotcutSettings::TimelineScrolling::CenterPlayhead == Settings.timelineScrolling())
 			action->setChecked(true);
 	});
@@ -1224,16 +1271,15 @@ void TimelineDock::setupActions() {
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_P));
 	action->setCheckable(true);
 	action->setChecked(Settings.timelineScrollZoom());
-	connect(action, &QAction::triggered, this, [&](bool checked) { Settings.setTimelineScrollZoom(checked); });
-	connect(&Settings, &ShotcutSettings::timelineScrollZoomChanged, action,
-	        [=]() { action->setChecked(Settings.timelineScrollZoom()); });
+	connect(action, &QAction::triggered, this, [&](bool checked) -> void { Settings.setTimelineScrollZoom(checked); });
+	connect(&Settings, &ShotcutSettings::timelineScrollZoomChanged, action, [=]() -> void { action->setChecked(Settings.timelineScrollZoom()); });
 	Actions.add("timelineScrollZoomAction", action);
 
 	action = new QAction(tr("Zoom Timeline Out"), this);
 	action->setShortcut(QKeySequence(Qt::Key_Minus));
 	icon = QIcon::fromTheme("zoom-out", QIcon(":/icons/oxygen/32x32/actions/zoom-out.png"));
 	action->setIcon(icon);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_quickView.rootObject())
 			return;
 		emit zoomOut();
@@ -1244,7 +1290,7 @@ void TimelineDock::setupActions() {
 	action->setShortcut(QKeySequence(Qt::Key_Plus));
 	icon = QIcon::fromTheme("zoom-in", QIcon(":/icons/oxygen/32x32/actions/zoom-in.png"));
 	action->setIcon(icon);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible() || !m_quickView.rootObject())
 			return;
 		emit zoomIn();
@@ -1255,7 +1301,7 @@ void TimelineDock::setupActions() {
 	action->setShortcut(QKeySequence(Qt::Key_0));
 	icon = QIcon::fromTheme("zoom-fit-best", QIcon(":/icons/oxygen/32x32/actions/zoom-fit-best.png"));
 	action->setIcon(icon);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (!isVisible())
 			return;
 		emit zoomToFit();
@@ -1267,8 +1313,8 @@ void TimelineDock::setupActions() {
 	icon = QIcon::fromTheme("document-new", QIcon(":/icons/oxygen/32x32/actions/document-new.png"));
 	action->setIcon(icon);
 	{
-		QScopedPointer<Mlt::Properties> mltProducers(MLT.repository()->producers());
-		QScopedPointer<Mlt::Properties> mltFilters(MLT.repository()->filters());
+		QScopedPointer<Mlt::Properties> const mltProducers(MLT.repository()->producers());
+		QScopedPointer<Mlt::Properties> const mltFilters(MLT.repository()->filters());
 		auto                            menu = new QMenu;
 		if (mltProducers->get_data("color")) {
 			menu->addAction(tr("Color"), this, SLOT(addGenerator()))->setObjectName("color");
@@ -1304,28 +1350,28 @@ void TimelineDock::setupActions() {
 	action->setIcon(icon);
 	action->setCheckable(true);
 	action->setChecked(isRecording());
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (isRecording())
 			stopRecording();
 		else
 			recordAudio();
 	});
-	connect(this, &TimelineDock::isRecordingChanged, action, [=]() { action->setChecked(isRecording()); });
+	connect(this, &TimelineDock::isRecordingChanged, action, [action, this]() -> void { action->setChecked(isRecording()); });
 	Actions.add("timelineRecordAudioAction", action);
 
 	action = new QAction(tr("Properties"), this);
-	connect(action, &QAction::triggered, this, [&]() { openProperties(); });
-	connect(this, &TimelineDock::selectionChanged, action, [=]() { action->setEnabled(!blankIsSelected()); });
+	connect(action, &QAction::triggered, this, [&]() -> void { openProperties(); });
+	connect(this, &TimelineDock::selectionChanged, action, [action, this]() -> void { action->setEnabled(!blankIsSelected()); });
 	Actions.add("timelinePropertiesAction", action);
 
 	action = new QAction(tr("Rejoin With Next Clip"), this);
 	action->setEnabled(false);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (m_selection.selectedClips.length() == 1 && !selection().isEmpty()) {
 			mergeClipWithNext(selection().first().y(), selection().first().x(), false);
 		}
 	});
-	connect(this, &TimelineDock::selectionChanged, action, [=]() {
+	connect(this, &TimelineDock::selectionChanged, action, [this, action]() -> void {
 		bool enabled = false;
 		if (m_selection.selectedClips.length() == 1 && !selection().isEmpty()) {
 			enabled = mergeClipWithNext(selection().first().y(), selection().first().x(), true);
@@ -1336,18 +1382,18 @@ void TimelineDock::setupActions() {
 
 	action = new QAction(tr("Detach Audio"), this);
 	action->setEnabled(false);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (m_selection.selectedClips.length() == 1 && !selection().isEmpty()) {
 			detachAudio(selection().first().y(), selection().first().x());
 		}
 	});
-	connect(this, &TimelineDock::selectionChanged, action, [=]() {
+	connect(this, &TimelineDock::selectionChanged, action, [this, action]() -> void {
 		bool enabled = false;
 		if (m_selection.selectedClips.length() == 1 && !selection().isEmpty()) {
-			int trackIndex = selection().first().y();
-			int clipIndex  = selection().first().x();
+			const int trackIndex = selection().first().y();
+			const int clipIndex  = selection().first().x();
 			if (trackIndex >= 0 && clipIndex >= 0) {
-				QModelIndex modelIndex = m_model.index(clipIndex, 0, m_model.index(trackIndex));
+				QModelIndex const modelIndex = m_model.index(clipIndex, 0, m_model.index(trackIndex));
 				if (modelIndex.isValid()) {
 					enabled = !modelIndex.data(MultitrackModel::IsBlankRole).toBool() &&
 					          !modelIndex.data(MultitrackModel::IsTransitionRole).toBool() &&
@@ -1363,10 +1409,10 @@ void TimelineDock::setupActions() {
 
 	action = new QAction(tr("Freeze Frame"), this);
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_H));
-	connect(action, &QAction::triggered, this, [&] { freezeFrame(); });
+	connect(action, &QAction::triggered, this, [&] () -> void { freezeFrame(); });
 	Actions.add("timelineFreezeFrameAction", action);
 	action->setEnabled(false);
-	connect(this, &TimelineDock::selectionChanged, action, [=]() {
+	connect(this, &TimelineDock::selectionChanged, action, [this, action]() -> void {
 		bool enabled    = true;
 		auto clipIndex  = -1;
 		auto trackIndex = currentTrack();
@@ -1381,7 +1427,7 @@ void TimelineDock::setupActions() {
 
 			auto info = m_model.getClipInfo(trackIndex, clipIndex);
 			if (info) {
-				std::unique_ptr<Mlt::Link> link(MLT.getLink("timeremap", info->producer));
+				std::unique_ptr<Mlt::Link> const link(MLT.getLink("timeremap", info->producer));
 				enabled = !link && QString::fromLatin1(info->producer->get("mlt_service")).startsWith("avformat");
 			} else {
 				enabled = false;
@@ -1391,12 +1437,12 @@ void TimelineDock::setupActions() {
 	});
 	action = new QAction(tr("Align To Reference Track"), this);
 	action->setEnabled(false);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (m_selection.selectedClips.length() > 0) {
 			alignSelectedClips();
 		}
 	});
-	connect(this, &TimelineDock::selectionChanged, action, [=]() {
+	connect(this, &TimelineDock::selectionChanged, action, [this, action]() -> void {
 		bool enabled = false;
 		foreach (auto point, selection()) {
 			// At least one selected item must be a valid clip
@@ -1411,12 +1457,12 @@ void TimelineDock::setupActions() {
 
 	action = new QAction(tr("Apply Copied Filters"), this);
 	action->setEnabled(false);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (m_selection.selectedClips.length() > 0) {
 			applyCopiedFiltersToSelectdClips();
 		}
 	});
-	connect(this, &TimelineDock::selectionChanged, action, [=]() {
+	connect(this, &TimelineDock::selectionChanged, action, [this, action]() -> void {
 		bool enabled = false;
 		foreach (auto point, selection()) {
 			// At least one selected item must be a valid clip
@@ -1435,14 +1481,14 @@ void TimelineDock::setupActions() {
 
 	action = new QAction(tr("Update Thumbnails"), this);
 	action->setEnabled(false);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		foreach (auto point, selection()) {
 			if (!isBlank(point.y(), point.x()) && !isTransition(point.y(), point.x())) {
 				emit updateThumbnails(point.y(), point.x());
 			}
 		}
 	});
-	connect(this, &TimelineDock::selectionChanged, action, [=]() {
+	connect(this, &TimelineDock::selectionChanged, action, [this, action]() -> void {
 		bool enabled = false;
 		if (Settings.timelineShowThumbnails()) {
 			foreach (auto point, selection()) {
@@ -1459,14 +1505,14 @@ void TimelineDock::setupActions() {
 
 	action = new QAction(tr("Rebuild Audio Waveform"), this);
 	action->setEnabled(false);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		foreach (auto point, selection()) {
 			if (!isBlank(point.y(), point.x()) && !isTransition(point.y(), point.x())) {
 				remakeAudioLevels(point.y(), point.x());
 			}
 		}
 	});
-	connect(this, &TimelineDock::selectionChanged, action, [=]() {
+	connect(this, &TimelineDock::selectionChanged, action, [this, action]() -> void {
 		bool enabled = false;
 		if (Settings.timelineShowWaveforms()) {
 			foreach (auto point, selection()) {
@@ -1483,18 +1529,18 @@ void TimelineDock::setupActions() {
 
 	action = new QAction(tr("Ripple Trim Clip In"), this);
 	action->setShortcut(QKeySequence(Qt::SHIFT | Qt::Key_I));
-	connect(action, &QAction::triggered, this, [&]() { trimClipAtPlayhead(TimelineDock::TrimInPoint, true); });
+	connect(action, &QAction::triggered, this, [&]() -> void { trimClipAtPlayhead(TimelineDock::TrimInPoint, true); });
 	Actions.add("timelineRippleTrimClipInAction", action);
 
 	action = new QAction(tr("Ripple Trim Clip Out"), this);
 	action->setShortcut(QKeySequence(Qt::SHIFT | Qt::Key_O));
-	connect(action, &QAction::triggered, this, [&]() { trimClipAtPlayhead(TimelineDock::TrimOutPoint, true); });
+	connect(action, &QAction::triggered, this, [&]() -> void { trimClipAtPlayhead(TimelineDock::TrimOutPoint, true); });
 	Actions.add("timelineRippleTrimClipOutAction", action);
 
 	action = new QAction(tr("Group/Ungroup"), this);
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_G));
 	action->setEnabled(false);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		auto selectedClips = selection();
 		if (selectedClips.size() <= 1) {
 			LOG_ERROR() << "Not enough clips selected" << selectedClips.size();
@@ -1517,11 +1563,11 @@ void TimelineDock::setupActions() {
 			MAIN.undoStack()->push(groupCommand);
 		}
 	});
-	connect(this, &TimelineDock::selectionChanged, action, [=]() { action->setEnabled(selection().size() > 1); });
+	connect(this, &TimelineDock::selectionChanged, action, [action, this]() -> void { action->setEnabled(selection().size() > 1); });
 	Actions.add("timelineGroupAction", action);
 }
 
-int TimelineDock::addTrackIfNeeded(TrackType trackType) {
+auto TimelineDock::addTrackIfNeeded(TrackType trackType) -> int {
 	// See if current track matches with no clips at playhead and beyond
 	bool addTrack   = true;
 	auto trackIndex = currentTrack();
@@ -1579,7 +1625,7 @@ void TimelineDock::setPosition(int position) {
 	}
 }
 
-Mlt::Producer TimelineDock::producerForClip(int trackIndex, int clipIndex) {
+auto TimelineDock::producerForClip(int trackIndex, int clipIndex) -> Mlt::Producer {
 	Mlt::Producer result;
 	auto          info = m_model.getClipInfo(trackIndex, clipIndex);
 	if (info) {
@@ -1588,17 +1634,17 @@ Mlt::Producer TimelineDock::producerForClip(int trackIndex, int clipIndex) {
 	return result;
 }
 
-int TimelineDock::clipIndexAtPlayhead(int trackIndex) {
+auto TimelineDock::clipIndexAtPlayhead(int trackIndex) -> int {
 	return clipIndexAtPosition(trackIndex, m_position);
 }
 
-int TimelineDock::clipIndexAtPosition(int trackIndex, int position) {
+auto TimelineDock::clipIndexAtPosition(int trackIndex, int position) -> int {
 	int result = -1;
 	if (trackIndex < 0)
 		trackIndex = currentTrack();
 	if (trackIndex >= 0 && trackIndex < m_model.trackList().size()) {
-		int                           i = m_model.trackList().at(trackIndex).mlt_index;
-		QScopedPointer<Mlt::Producer> track(m_model.tractor()->track(i));
+		const int i = m_model.trackList().at(trackIndex).mlt_index;
+		QScopedPointer<Mlt::Producer> const track(m_model.tractor()->track(i));
 		if (track) {
 			Mlt::Playlist playlist(*track);
 			result = playlist.get_clip_index_at(position);
@@ -1609,32 +1655,32 @@ int TimelineDock::clipIndexAtPosition(int trackIndex, int position) {
 	return result;
 }
 
-bool TimelineDock::isBlank(int trackIndex, int clipIndex) {
+auto TimelineDock::isBlank(int trackIndex, int clipIndex) -> bool {
 	return trackIndex >= 0 && clipIndex >= 0 &&
 	       m_model.index(clipIndex, 0, m_model.index(trackIndex)).data(MultitrackModel::IsBlankRole).toBool();
 }
 
-bool TimelineDock::clipsAreSelected() {
+auto TimelineDock::clipsAreSelected() -> bool {
 	const QList<QPoint>& selection = m_selection.selectedClips;
 	return selection.size() > 0 && !isBlank(selection[0].y(), selection[0].x());
 }
 
-bool TimelineDock::blankIsSelected() {
+auto TimelineDock::blankIsSelected() -> bool {
 	const QList<QPoint>& selection = m_selection.selectedClips;
 	return selection.size() == 1 && isBlank(selection[0].y(), selection[0].x());
 }
 
-bool TimelineDock::nothingIsSelected() {
+auto TimelineDock::nothingIsSelected() -> bool {
 	const QList<QPoint>& selection = m_selection.selectedClips;
 	return selection.size() == 0 && !m_selection.isMultitrackSelected && m_selection.selectedTrack == -1;
 }
 
-bool TimelineDock::isTransition(int trackIndex, int clipIndex) {
+auto TimelineDock::isTransition(int trackIndex, int clipIndex) -> bool {
 	return trackIndex >= 0 && clipIndex >= 0 &&
 	       m_model.index(clipIndex, 0, m_model.index(trackIndex)).data(MultitrackModel::IsTransitionRole).toBool();
 }
 
-bool TimelineDock::isEmptyTrack(Mlt::Playlist& playlist) {
+auto TimelineDock::isEmptyTrack(Mlt::Playlist& playlist) -> bool {
 	return playlist.count() == 1 && playlist.is_blank(0);
 }
 
@@ -1660,7 +1706,7 @@ void TimelineDock::addTrackIfNeeded(int trackIndex, Mlt::Producer* srcTrack) {
 }
 
 void TimelineDock::chooseClipAtPosition(int position, int& trackIndex, int& clipIndex) {
-	QScopedPointer<Mlt::Producer> clip;
+	QScopedPointer<Mlt::Producer> const clip;
 
 	// Start by checking for a hit at the specified track
 	if (trackIndex != -1 && !isTrackLocked(trackIndex)) {
@@ -1700,12 +1746,12 @@ void TimelineDock::chooseClipAtPosition(int position, int& trackIndex, int& clip
 	clipIndex  = -1;
 }
 
-int TimelineDock::clipCount(int trackIndex) const {
+auto TimelineDock::clipCount(int trackIndex) const -> int {
 	if (trackIndex < 0)
 		trackIndex = currentTrack();
 	if (trackIndex >= 0 && trackIndex < m_model.trackList().size()) {
-		int                           i = m_model.trackList().at(trackIndex).mlt_index;
-		QScopedPointer<Mlt::Producer> track(m_model.tractor()->track(i));
+		const int i = m_model.trackList().at(trackIndex).mlt_index;
+		QScopedPointer<Mlt::Producer> const track(m_model.tractor()->track(i));
 		if (track) {
 			Mlt::Playlist playlist(*track);
 			return playlist.count();
@@ -1721,7 +1767,7 @@ void TimelineDock::setCurrentTrack(int currentTrack) {
 	}
 }
 
-int TimelineDock::currentTrack() const {
+auto TimelineDock::currentTrack() const -> int {
 	return qBound(0, m_currentTrack, m_model.trackList().isEmpty() ? 0 : m_model.trackList().size() - 1);
 }
 
@@ -1735,9 +1781,9 @@ void TimelineDock::setSelectionFromJS(const QVariantList& list) {
 
 void TimelineDock::setSelection(QList<QPoint> newSelection, int trackIndex, bool isMultitrack) {
 	if (newSelection != selection() || trackIndex != m_selection.selectedTrack ||
-	    isMultitrack != m_selection.isMultitrackSelected) {
+		isMultitrack != m_selection.isMultitrackSelected) {
 		LOG_DEBUG() << "Changing selection to" << newSelection << " trackIndex" << trackIndex << "isMultitrack"
-		            << isMultitrack;
+					<< isMultitrack;
 		m_selection.selectedClips        = newSelection;
 		m_selection.selectedTrack        = trackIndex;
 		m_selection.isMultitrackSelected = isMultitrack;
@@ -1747,20 +1793,20 @@ void TimelineDock::setSelection(QList<QPoint> newSelection, int trackIndex, bool
 	}
 }
 
-QVariantList TimelineDock::selectionForJS() const {
+auto TimelineDock::selectionForJS() const -> QVariantList {
 	QVariantList result;
 	foreach (auto point, selection())
 		result << QVariant(point);
 	return result;
 }
 
-const QList<QPoint> TimelineDock::selection() const {
+auto TimelineDock::selection() const -> const QList<QPoint> {
 	if (!m_quickView.rootObject())
 		return QList<QPoint>();
 	return m_selection.selectedClips;
 }
 
-const QVector<QUuid> TimelineDock::selectionUuids() {
+auto TimelineDock::selectionUuids() -> const QVector<QUuid> {
 	QVector<QUuid> result;
 	for (const auto& clip : selection()) {
 		auto info = m_model.getClipInfo(clip.y(), clip.x());
@@ -1773,15 +1819,15 @@ const QVector<QUuid> TimelineDock::selectionUuids() {
 	return result;
 }
 
-const QList<QPoint> TimelineDock::uuidsToSelection(QVector<QUuid> uuids) const {
+auto TimelineDock::uuidsToSelection(QVector<QUuid> uuids) const -> const QList<QPoint> {
 	QList<QPoint> points;
 	for (int trackIndex = 0; trackIndex < m_model.trackList().size() && uuids.size() > 0; trackIndex++) {
-		int                           i = m_model.trackList().at(trackIndex).mlt_index;
-		QScopedPointer<Mlt::Producer> track(m_model.tractor()->track(i));
+		const int i = m_model.trackList().at(trackIndex).mlt_index;
+		QScopedPointer<Mlt::Producer> const track(m_model.tractor()->track(i));
 		if (track) {
 			Mlt::Playlist playlist(*track);
 			for (int clipIndex = 0; clipIndex < playlist.count() && uuids.size() > 0; clipIndex++) {
-				Mlt::ClipInfo* info;
+				Mlt::ClipInfo const* info = nullptr;
 				if ((info = playlist.clip_info(clipIndex))) {
 					for (int i = 0; i < uuids.size(); i++) {
 						if (MLT.uuid(*info->producer) == uuids[i] || MLT.uuid(*info->cut) == uuids[i]) {
@@ -1799,21 +1845,21 @@ const QList<QPoint> TimelineDock::uuidsToSelection(QVector<QUuid> uuids) const {
 }
 
 void TimelineDock::saveAndClearSelection() {
-	m_savedSelectedTrack             = m_selection.selectedTrack;
-	m_savedIsMultitrackSelected      = m_selection.isMultitrackSelected;
-	m_savedSelectionUuids            = selectionUuids();
-	m_selection.selectedClips        = QList<QPoint>();
-	m_selection.selectedTrack        = -1;
+	m_savedSelectedTrack = m_selection.selectedTrack;
+	m_savedIsMultitrackSelected = m_selection.isMultitrackSelected;
+	m_savedSelectionUuids = selectionUuids();
+	m_selection.selectedClips = QList<QPoint>();
+	m_selection.selectedTrack = -1;
 	m_selection.isMultitrackSelected = false;
 	emit selectionChanged();
 }
 
 void TimelineDock::restoreSelection() {
-	QList<QPoint> restoredSelection = uuidsToSelection(m_savedSelectionUuids);
+	QList<QPoint> const restoredSelection = uuidsToSelection(m_savedSelectionUuids);
 	setSelection(restoredSelection, m_savedSelectedTrack, m_savedIsMultitrackSelected);
 }
 
-QVariantList TimelineDock::getGroupForClip(int trackIndex, int clipIndex) {
+auto TimelineDock::getGroupForClip(int trackIndex, int clipIndex) -> QVariantList {
 	QVariantList result;
 
 	auto info = m_model.getClipInfo(trackIndex, clipIndex);
@@ -1823,14 +1869,14 @@ QVariantList TimelineDock::getGroupForClip(int trackIndex, int clipIndex) {
 	if (!info->cut->property_exists(kShotcutGroupProperty)) {
 		result << QPoint(clipIndex, trackIndex);
 	} else {
-		int group = info->cut->get_int(kShotcutGroupProperty);
+		const int group = info->cut->get_int(kShotcutGroupProperty);
 		for (int trackIndex = 0; trackIndex < m_model.trackList().size(); trackIndex++) {
-			int                           i = m_model.trackList().at(trackIndex).mlt_index;
-			QScopedPointer<Mlt::Producer> track(m_model.tractor()->track(i));
+			const int i = m_model.trackList().at(trackIndex).mlt_index;
+			QScopedPointer<Mlt::Producer> const track(m_model.tractor()->track(i));
 			if (track) {
 				Mlt::Playlist playlist(*track);
 				for (int clipIndex = 0; clipIndex < playlist.count(); clipIndex++) {
-					QScopedPointer<Mlt::ClipInfo> info(playlist.clip_info(clipIndex));
+					QScopedPointer<Mlt::ClipInfo> const info(playlist.clip_info(clipIndex));
 					if (info && info->cut && info->cut->property_exists(kShotcutGroupProperty) &&
 					    info->cut->get_int(kShotcutGroupProperty) == group) {
 						result << QPoint(clipIndex, trackIndex);
@@ -1850,7 +1896,7 @@ void TimelineDock::selectClipUnderPlayhead() {
 			emit warnTrackLocked(currentTrack());
 			return;
 		}
-		int idx = clipIndexAtPlayhead(-1);
+		const int idx = clipIndexAtPlayhead(-1);
 		if (idx == -1)
 			setSelection();
 		else
@@ -1864,16 +1910,16 @@ void TimelineDock::selectClipUnderPlayhead() {
 	}
 }
 
-int TimelineDock::centerOfClip(int trackIndex, int clipIndex) {
+auto TimelineDock::centerOfClip(int trackIndex, int clipIndex) -> int {
 	auto clip = m_model.getClipInfo(trackIndex, clipIndex);
 	return clip ? clip->start + clip->frame_count / 2 : -1;
 }
 
-bool TimelineDock::isTrackLocked(int trackIndex) const {
+auto TimelineDock::isTrackLocked(int trackIndex) const -> bool {
 	if (trackIndex < 0 || trackIndex >= m_model.trackList().size())
 		return false;
-	int                           i = m_model.trackList().at(trackIndex).mlt_index;
-	QScopedPointer<Mlt::Producer> track(m_model.tractor()->track(i));
+	const int i = m_model.trackList().at(trackIndex).mlt_index;
+	QScopedPointer<Mlt::Producer> const track(m_model.tractor()->track(i));
 	return track->get_int(kTrackLockProperty);
 }
 
@@ -1884,8 +1930,8 @@ void TimelineDock::trimClipAtPlayhead(TrimLocation location, bool ripple) {
 		return;
 	setCurrentTrack(trackIndex);
 
-	int                           i = m_model.trackList().at(trackIndex).mlt_index;
-	QScopedPointer<Mlt::Producer> track(m_model.tractor()->track(i));
+	const int i = m_model.trackList().at(trackIndex).mlt_index;
+	QScopedPointer<Mlt::Producer> const track(m_model.tractor()->track(i));
 	if (!track)
 		return;
 
@@ -1952,7 +1998,7 @@ void TimelineDock::insertVideoTrack() {
 
 void TimelineDock::removeTrack() {
 	if (m_model.trackList().size() > 0) {
-		int trackIndex = currentTrack();
+		const int trackIndex = currentTrack();
 		MAIN.undoStack()->push(new Timeline::RemoveTrackCommand(m_model, trackIndex));
 		if (trackIndex >= m_model.trackList().count())
 			setCurrentTrack(m_model.trackList().count() - 1);
@@ -1978,7 +2024,7 @@ void TimelineDock::moveTrack(int fromTrackIndex, int toTrackIndex) {
 }
 
 void TimelineDock::moveTrackUp() {
-	int              trackIndex = currentTrack();
+	const int trackIndex = currentTrack();
 	const TrackList& trackList  = m_model.trackList();
 	if (trackIndex >= trackList.size()) {
 		LOG_DEBUG() << "Track Index out of bounds" << trackIndex;
@@ -2033,7 +2079,7 @@ void TimelineDock::moveTrackDown() {
 	setCurrentTrack(trackIndex + 1);
 }
 
-bool TimelineDock::mergeClipWithNext(int trackIndex, int clipIndex, bool dryrun) {
+auto TimelineDock::mergeClipWithNext(int trackIndex, int clipIndex, bool dryrun) -> bool {
 	if (dryrun)
 		return m_model.mergeClipWithNext(trackIndex, clipIndex, true);
 
@@ -2052,24 +2098,24 @@ void TimelineDock::onProducerChanged(Mlt::Producer* after) {
 		emit warnTrackLocked(trackIndex);
 		return;
 	}
-	auto                          resetRippleAll = true;
-	int                           i              = m_model.trackList().at(trackIndex).mlt_index;
-	QScopedPointer<Mlt::Producer> track(m_model.tractor()->track(i));
+	auto resetRippleAll = true;
+	const int i = m_model.trackList().at(trackIndex).mlt_index;
+	QScopedPointer<Mlt::Producer> const track(m_model.tractor()->track(i));
 	if (track) {
 		// Ensure the new XML has same in/out point as selected clip by making
 		// a copy of the changed producer and copying the in/out from timeline.
-		Mlt::Playlist                 playlist(*track);
-		int                           clipIndex = selection().first().x();
-		QScopedPointer<Mlt::ClipInfo> info(playlist.clip_info(clipIndex));
+		Mlt::Playlist playlist(*track);
+		const int clipIndex = selection().first().x();
+		QScopedPointer<Mlt::ClipInfo> const info(playlist.clip_info(clipIndex));
 		if (info) {
-			QString oldServiceName = info->producer->get("mlt_service");
-			QString newServiceName = after->get("mlt_service");
+			QString const oldServiceName = info->producer->get("mlt_service");
+			QString const newServiceName = after->get("mlt_service");
 			if (oldServiceName == "timewarp" || newServiceName == "timewarp") {
-				double oldSpeed   = oldServiceName != "timewarp" ? 1.0 : info->producer->get_double("warp_speed");
-				double newSpeed   = newServiceName != "timewarp" ? 1.0 : after->get_double("warp_speed");
-				double speedRatio = oldSpeed / newSpeed;
-				int    length     = qRound(info->length * speedRatio);
-				int    in         = qMin(qRound(info->frame_in * speedRatio), length - 1);
+				const double oldSpeed   = oldServiceName != "timewarp" ? 1.0 : info->producer->get_double("warp_speed");
+				const double newSpeed   = newServiceName != "timewarp" ? 1.0 : after->get_double("warp_speed");
+				const double speedRatio = oldSpeed / newSpeed;
+				const int    length     = qRound(info->length * speedRatio);
+				const int    in         = qMin(qRound(info->frame_in * speedRatio), length - 1);
 				int    out        = qMin(qRound(info->frame_out * speedRatio), length - 1);
 				if (!Settings.timelineRipple() && (clipIndex + 1) < playlist.count()) {
 					// limit the out point to what fits before the next clip
@@ -2085,11 +2131,11 @@ void TimelineDock::onProducerChanged(Mlt::Producer* after) {
 				                      info->frame_out - out, 0);
 				resetRippleAll = false;
 			} else if (newServiceName == "qimage" || newServiceName == "pixbuf") {
-				int oldLength   = info->frame_out - info->frame_in;
-				int newLength   = after->get_out() - after->get_in();
-				int lengthDelta = newLength - oldLength;
+				const int oldLength   = info->frame_out - info->frame_in;
+				const int newLength   = after->get_out() - after->get_in();
+				const int lengthDelta = newLength - oldLength;
 				if (lengthDelta != 0) {
-					int in  = after->get_in();
+					const int in  = after->get_in();
 					int out = after->get_out();
 					if (!Settings.timelineRipple() && (clipIndex + 1) < playlist.count()) {
 						// limit the out point to what fits before the next clip
@@ -2108,7 +2154,7 @@ void TimelineDock::onProducerChanged(Mlt::Producer* after) {
 			}
 		}
 	}
-	QString xmlAfter = MLT.XML(after);
+	QString const xmlAfter = MLT.XML(after);
 	m_updateCommand->SetXmlAfter(xmlAfter);
 	if (resetRippleAll)
 		m_updateCommand->SetRippleAllTracks(false);
@@ -2116,14 +2162,14 @@ void TimelineDock::onProducerChanged(Mlt::Producer* after) {
 	MAIN.undoStack()->push(m_updateCommand.release());
 }
 
-int TimelineDock::addAudioTrack() {
+auto TimelineDock::addAudioTrack() -> int {
 	if (m_selection.selectedTrack != -1)
 		setSelection();
 	MAIN.undoStack()->push(new Timeline::AddTrackCommand(m_model, false));
 	return m_model.trackList().size() - 1;
 }
 
-int TimelineDock::addVideoTrack() {
+auto TimelineDock::addVideoTrack() -> int {
 	if (m_selection.selectedTrack != -1)
 		setSelection();
 	MAIN.undoStack()->push(new Timeline::AddTrackCommand(m_model, true));
@@ -2229,11 +2275,11 @@ void TimelineDock::append(int trackIndex) {
 			Mlt::Tractor  tractor(producer);
 			Mlt::ClipInfo info;
 			MAIN.undoStack()->beginMacro(tr("Append multiple to timeline"));
-			Mlt::Controller::RefreshBlocker blocker;
+			Mlt::Controller::RefreshBlocker const blocker;
 
 			// Loop over each source track
 			for (int mltTrackIndex = 0; mltTrackIndex < tractor.count(); mltTrackIndex++) {
-				QScopedPointer<Mlt::Producer> srcTrack(tractor.track(mltTrackIndex));
+				QScopedPointer<Mlt::Producer> const srcTrack(tractor.track(mltTrackIndex));
 				if (srcTrack) {
 					const auto trackIndex = currentTrack() + mltTrackIndex;
 					addTrackIfNeeded(trackIndex, srcTrack.get());
@@ -2245,7 +2291,7 @@ void TimelineDock::append(int trackIndex) {
 							playlist.clip_info(mltClipIndex, &info);
 							Mlt::Producer clip(info.producer);
 							clip.set_in_and_out(info.frame_in, info.frame_out);
-							bool lastClip =
+							const bool lastClip =
 							    mltTrackIndex == tractor.count() - 1 && mltClipIndex == playlist.count() - 1;
 							MAIN.undoStack()->push(
 							    new Timeline::AppendCommand(m_model, trackIndex, MLT.XML(&clip), false, lastClip));
@@ -2411,10 +2457,10 @@ void TimelineDock::liftSelection() {
 		selectClipUnderPlayhead();
 	if (selection().isEmpty())
 		return;
-	int n = selection().size();
+	const int n = selection().size();
 	if (n > 1)
 		MAIN.undoStack()->beginMacro(tr("Lift %1 from timeline").arg(n));
-	int trackIndex, clipIndex;
+	int trackIndex = 0, clipIndex = 0;
 	for (const auto& uuid : selectionUuids()) {
 		m_model.findClipByUuid(uuid, trackIndex, clipIndex);
 		lift(trackIndex, clipIndex, n > 1);
@@ -2500,13 +2546,13 @@ void TimelineDock::copy(int trackIndex, int clipIndex) {
 
 			// Add the clips to the tracks
 			if (clipIndices.size() > 0) {
-				int                           prevEnd   = minStart;
-				auto                          mlt_index = m_model.trackList()[trackIndex].mlt_index;
-				QScopedPointer<Mlt::Producer> sourceTrack(m_model.tractor()->track(mlt_index));
+				int prevEnd = minStart;
+				auto mlt_index = m_model.trackList()[trackIndex].mlt_index;
+				QScopedPointer<Mlt::Producer> const sourceTrack(m_model.tractor()->track(mlt_index));
 				if (sourceTrack) {
 					Mlt::Playlist sourcePlaylist(*sourceTrack);
 					Mlt::ClipInfo info;
-					for (auto clipIndex : clipIndices) {
+					for (const auto clipIndex : clipIndices) {
 						sourcePlaylist.clip_info(clipIndex, &info);
 						playlist.blank(info.start - prevEnd - 1);
 						playlist.append(*info.producer, info.frame_in, info.frame_out);
@@ -2533,8 +2579,8 @@ void TimelineDock::emitSelectedFromSelection() {
 		// We need to set these special properties so time-based filters
 		// can get information about the cut while still applying filters
 		// to the cut parent.
-		int  trackIndex = clip.y();
-		int  clipIndex  = clip.x();
+		const int  trackIndex = clip.y();
+		const int  clipIndex  = clip.x();
 		auto info       = m_model.getClipInfo(trackIndex, clipIndex);
 		if (!info)
 			continue;
@@ -2567,7 +2613,7 @@ void TimelineDock::emitSelectedFromSelection() {
 
 	if (selection().isEmpty() && m_selection.selectedTrack > -1 &&
 	    m_selection.selectedTrack < m_model.trackList().count()) {
-		int                            i = m_model.trackList().at(m_selection.selectedTrack).mlt_index;
+		const int i = m_model.trackList().at(m_selection.selectedTrack).mlt_index;
 		std::unique_ptr<Mlt::Producer> producer(m_model.tractor()->track(i));
 		if (producer && producer->is_valid()) {
 			producer->set(kTrackIndexProperty, m_selection.selectedTrack);
@@ -2582,11 +2628,11 @@ void TimelineDock::emitSelectedFromSelection() {
 		return;
 	}
 
-	int  trackIndex = selection().isEmpty() ? currentTrack() : selection().first().y();
-	int  clipIndex  = selection().isEmpty() ? 0 : selection().first().x();
+	const int trackIndex = selection().isEmpty() ? currentTrack() : selection().first().y();
+	const int clipIndex  = selection().isEmpty() ? 0 : selection().first().x();
 	auto info       = m_model.getClipInfo(trackIndex, clipIndex);
 	if (info && info->producer && info->producer->is_valid()) {
-		m_updateCommand.reset(new Timeline::UpdateCommand(*this, trackIndex, clipIndex, info->start));
+		m_updateCommand = std::make_unique<Timeline::UpdateCommand>(*this, trackIndex, clipIndex, info->start);
 		m_ignoreNextPositionChange = true;
 		emit selected(info->producer);
 	}
@@ -2597,7 +2643,7 @@ void TimelineDock::emitSelectedFromSelection() {
 
 void TimelineDock::remakeAudioLevels(int trackIndex, int clipIndex, bool force) {
 	if (Settings.timelineShowWaveforms()) {
-		QModelIndex modelIndex = m_model.index(clipIndex, 0, m_model.index(trackIndex));
+		QModelIndex const modelIndex = m_model.index(clipIndex, 0, m_model.index(trackIndex));
 		auto        info       = m_model.getClipInfo(trackIndex, clipIndex);
 		if (info)
 			AudioLevelsTask::start(*info->producer, &m_model, modelIndex, force);
@@ -2619,7 +2665,7 @@ void TimelineDock::onRowsInserted(const QModelIndex& parent, int first, int last
 	// Adjust selected clips for changed indices.
 	if (-1 == m_selection.selectedTrack) {
 		QList<QPoint> newSelection;
-		int           n = last - first + 1;
+		const int n = last - first + 1;
 		if (parent.isValid()) {
 			foreach (auto i, m_selection.selectedClips) {
 				if (parent.row() != i.y()) {
@@ -2650,7 +2696,7 @@ void TimelineDock::onRowsRemoved(const QModelIndex& parent, int first, int last)
 	// Adjust selected clips for changed indices.
 	if (-1 == m_selection.selectedTrack) {
 		QList<QPoint> newSelection;
-		int           n = last - first + 1;
+		const int n = last - first + 1;
 		if (parent.isValid()) {
 			foreach (auto i, m_selection.selectedClips) {
 				if (parent.row() != i.y()) {
@@ -2718,7 +2764,7 @@ void TimelineDock::selectAll() {
 }
 
 void TimelineDock::selectAllOnCurrentTrack() {
-	int           y = currentTrack();
+	const int y = currentTrack();
 	QList<QPoint> selection;
 	if (y > -1 && y < m_model.rowCount()) {
 		for (int x = 0; x < m_model.rowCount(m_model.index(y)); x++) {
@@ -2756,7 +2802,7 @@ void TimelineDock::replace(int trackIndex, int clipIndex, const QString& xml) {
 	}
 	if (MLT.isSeekableClip() || MLT.savedProducer() || !xml.isEmpty()) {
 		Q_ASSERT(trackIndex >= 0 && clipIndex >= 0);
-		QString xmlToUse = !xml.isEmpty() ? xml : MLT.XML(MLT.isClip() ? nullptr : MLT.savedProducer());
+		QString const xmlToUse = !xml.isEmpty() ? xml : MLT.XML(MLT.isClip() ? nullptr : MLT.savedProducer());
 		MAIN.undoStack()->push(new Timeline::ReplaceCommand(m_model, trackIndex, clipIndex, xmlToUse));
 	} else if (!MLT.isSeekableClip()) {
 		emitNonSeekableWarning();
@@ -2766,7 +2812,7 @@ void TimelineDock::replace(int trackIndex, int clipIndex, const QString& xml) {
 void TimelineDock::createOrEditMarker() {
 	if (!m_model.trackList().count() || MLT.producer()->get_length() <= 1)
 		return;
-	int index = m_markersModel.markerIndexForPosition(m_position);
+	const int index = m_markersModel.markerIndexForPosition(m_position);
 	if (index >= 0) {
 		editMarker(index);
 		return;
@@ -2787,7 +2833,7 @@ void TimelineDock::createOrEditSelectionMarker() {
 	getSelectionRange(&start, &end);
 
 	if (start > -1) {
-		int index = m_markersModel.markerIndexForRange(start, end);
+		const int index = m_markersModel.markerIndexForRange(start, end);
 		if (index >= 0) {
 			editMarker(index);
 			return;
@@ -2807,7 +2853,7 @@ void TimelineDock::createOrEditSelectionMarker() {
 void TimelineDock::createMarker() {
 	if (!m_model.trackList().count() || MLT.producer()->get_length() <= 1)
 		return;
-	int index = m_markersModel.markerIndexForPosition(m_position);
+	const int index = m_markersModel.markerIndexForPosition(m_position);
 	if (index >= 0) {
 		return;
 	}
@@ -2845,7 +2891,7 @@ void TimelineDock::deleteMarker(int markerIndex) {
 }
 
 void TimelineDock::seekNextMarker() {
-	int nextPos = m_markersModel.nextMarkerPosition(m_position);
+	const int nextPos = m_markersModel.nextMarkerPosition(m_position);
 	if (nextPos >= 0) {
 		setPosition(nextPos);
 		emit markerSeeked(m_markersModel.markerIndexForPosition(nextPos));
@@ -2853,7 +2899,7 @@ void TimelineDock::seekNextMarker() {
 }
 
 void TimelineDock::seekPrevMarker() {
-	int prevPos = m_markersModel.prevMarkerPosition(m_position);
+	const int prevPos = m_markersModel.prevMarkerPosition(m_position);
 	if (prevPos >= 0) {
 		setPosition(prevPos);
 		emit markerSeeked(m_markersModel.markerIndexForPosition(prevPos));
@@ -2892,7 +2938,7 @@ void TimelineDock::handleDrop(int trackIndex, int position, QString xmlOrUrls) {
 		}
 
 		// Use QTimer to workaround stupid drag from Windows Explorer bug
-		QTimer::singleShot(0, this, [=]() {
+		QTimer::singleShot(0, this, [xmlOrUrls, urls, this, trackIndex, position]() -> void {
 			auto xml = xmlOrUrls;
 			int  i = 0, count = urls.size();
 
@@ -3015,7 +3061,7 @@ void TimelineDock::freezeFrame() {
 
 	auto info = m_model.getClipInfo(trackIndex, clipIndex);
 	if (info && m_position >= info->start && m_position < info->start + info->frame_count) {
-		std::unique_ptr<Mlt::Link> linkExists(MLT.getLink("timeremap", info->producer));
+		std::unique_ptr<Mlt::Link> const linkExists(MLT.getLink("timeremap", info->producer));
 		if (linkExists || !QString::fromLatin1(info->producer->get("mlt_service")).startsWith("avformat")) {
 			emit showStatusMessage(tr("Freeze Frame is not available."));
 			return;
@@ -3023,7 +3069,7 @@ void TimelineDock::freezeFrame() {
 
 		setCurrentTrack(trackIndex);
 
-		QString       xml = MLT.XML(info->producer);
+		QString const xml = MLT.XML(info->producer);
 		Mlt::Producer p(MLT.profile(), "xml-string", xml.toUtf8().constData());
 		const auto    fps = qRound(MLT.profile().fps());
 
@@ -3080,7 +3126,7 @@ void TimelineDock::toggleTrackMute(int trackIndex) {
 }
 
 void TimelineDock::toggleOtherTracksMute(int trackIndex) {
-	int trackCount = m_model.rowCount();
+	const int trackCount = m_model.rowCount();
 	if (trackCount == 1 || trackIndex < 0 || trackIndex >= trackCount) {
 		return;
 	}
@@ -3098,7 +3144,7 @@ void TimelineDock::toggleTrackHidden(int trackIndex) {
 }
 
 void TimelineDock::toggleOtherTracksHidden(int trackIndex) {
-	int trackCount = m_model.rowCount();
+	const int trackCount = m_model.rowCount();
 	if (trackCount == 1 || trackIndex < 0 || trackIndex >= trackCount) {
 		return;
 	}
@@ -3119,7 +3165,7 @@ void TimelineDock::setTrackLock(int trackIndex, bool lock) {
 	MAIN.undoStack()->push(new Timeline::LockTrackCommand(m_model, trackIndex, lock));
 }
 
-bool TimelineDock::moveClip(int fromTrack, int toTrack, int clipIndex, int position, bool ripple) {
+auto TimelineDock::moveClip(int fromTrack, int toTrack, int clipIndex, int position, bool ripple) -> bool {
 	if (toTrack >= 0 && clipIndex >= 0) {
 		int                           length = 0;
 		int                           i      = m_model.trackList().at(fromTrack).mlt_index;
@@ -3167,7 +3213,7 @@ bool TimelineDock::moveClip(int fromTrack, int toTrack, int clipIndex, int posit
 }
 
 void TimelineDock::onClipMoved(int fromTrack, int toTrack, int clipIndex, int position, bool ripple) {
-	int n = selection().size();
+	const int n = selection().size();
 	if (n > 0) {
 		// determine the position delta
 		for (const auto& clip : selection()) {
@@ -3193,7 +3239,7 @@ void TimelineDock::onClipMoved(int fromTrack, int toTrack, int clipIndex, int po
 	}
 }
 
-bool TimelineDock::trimClipIn(int trackIndex, int clipIndex, int oldClipIndex, int delta, bool ripple, bool roll) {
+auto TimelineDock::trimClipIn(int trackIndex, int clipIndex, int oldClipIndex, int delta, bool ripple, bool roll) -> bool {
 	emit trimStarted();
 	if (dynamic_cast<Timeline::RemoveTransitionByTrimInCommand*>(m_trimCommand.get())) {
 		if (delta < 0) {
@@ -3212,14 +3258,14 @@ bool TimelineDock::trimClipIn(int trackIndex, int clipIndex, int oldClipIndex, i
 	if (!ripple && !roll && m_model.addTransitionByTrimInValid(trackIndex, clipIndex, delta)) {
 		clipIndex = m_model.addTransitionByTrimIn(trackIndex, clipIndex, delta);
 		m_transitionDelta += delta;
-		m_trimCommand.reset(new Timeline::AddTransitionByTrimInCommand(*this, trackIndex, clipIndex - 1,
-		                                                               m_transitionDelta, m_trimDelta, false));
+		m_trimCommand = std::make_unique<Timeline::AddTransitionByTrimInCommand>(*this, trackIndex, clipIndex - 1,
+																	   m_transitionDelta, m_trimDelta, false);
 		if (m_updateCommand && m_updateCommand->TrackIndex() == trackIndex && m_updateCommand->ClipIndex() == clipIndex)
 			m_updateCommand->SetPosition(trackIndex, clipIndex, -1);
 	} else if (!ripple && !roll && m_model.removeTransitionByTrimInValid(trackIndex, clipIndex, delta)) {
 		Q_ASSERT(trackIndex >= 0 && clipIndex >= 0);
 		std::unique_ptr<Mlt::ClipInfo> clipInfo = m_model.getClipInfo(trackIndex, clipIndex - 1);
-		QString                        xml      = MLT.XML(clipInfo->producer);
+		QString const xml = MLT.XML(clipInfo->producer);
 		m_model.liftClip(trackIndex, clipIndex - 1);
 		if (delta < 0) {
 			m_model.trimClipIn(trackIndex, clipIndex, -clipInfo->length, false, false);
@@ -3228,17 +3274,17 @@ bool TimelineDock::trimClipIn(int trackIndex, int clipIndex, int oldClipIndex, i
 			m_model.trimClipOut(trackIndex, clipIndex - 2, -clipInfo->length, false, false);
 			m_transitionDelta = 0;
 		}
-		m_trimCommand.reset(
-		    new Timeline::RemoveTransitionByTrimInCommand(m_model, trackIndex, clipIndex - 1, m_trimDelta, xml, false));
+		m_trimCommand = std::make_unique<Timeline::RemoveTransitionByTrimInCommand>(
+			m_model, trackIndex, clipIndex - 1, m_trimDelta, xml, false);
 		if (m_updateCommand && m_updateCommand->TrackIndex() == trackIndex && m_updateCommand->ClipIndex() == clipIndex)
 			m_updateCommand->SetPosition(trackIndex, clipIndex - 1, -1);
 	} else if (!ripple && !roll && m_model.trimTransitionOutValid(trackIndex, clipIndex, delta)) {
 		m_model.trimTransitionOut(trackIndex, clipIndex, delta);
 		m_trimDelta += delta;
-		m_trimCommand.reset(new Timeline::TrimTransitionOutCommand(m_model, trackIndex, clipIndex, m_trimDelta, false));
+		m_trimCommand = std::make_unique<Timeline::TrimTransitionOutCommand>(m_model, trackIndex, clipIndex, m_trimDelta, false);
 	} else if (m_model.trimClipInValid(trackIndex, clipIndex, delta, ripple || roll)) {
 		if (!m_undoHelper) {
-			m_undoHelper.reset(new UndoHelper(m_model));
+			m_undoHelper = std::make_unique<UndoHelper>(m_model);
 			if (!ripple) {
 				m_undoHelper->SetHints(UndoHelper::SkipXML);
 			} else {
@@ -3256,8 +3302,8 @@ bool TimelineDock::trimClipIn(int trackIndex, int clipIndex, int oldClipIndex, i
 		}
 
 		m_trimDelta += delta;
-		m_trimCommand.reset(new Timeline::TrimClipInCommand(m_model, m_markersModel, trackIndex, oldClipIndex,
-		                                                    m_trimDelta, ripple, false));
+		m_trimCommand = std::make_unique<Timeline::TrimClipInCommand>(m_model, m_markersModel, trackIndex, oldClipIndex,
+															m_trimDelta, ripple, false);
 		if (m_updateCommand && m_updateCommand->TrackIndex() == trackIndex && m_updateCommand->ClipIndex() == clipIndex)
 			m_updateCommand->SetPosition(trackIndex, clipIndex, m_updateCommand->Position() + delta);
 	} else
@@ -3271,7 +3317,7 @@ bool TimelineDock::trimClipIn(int trackIndex, int clipIndex, int oldClipIndex, i
 	return true;
 }
 
-bool TimelineDock::trimClipOut(int trackIndex, int clipIndex, int delta, bool ripple, bool roll) {
+auto TimelineDock::trimClipOut(int trackIndex, int clipIndex, int delta, bool ripple, bool roll) -> bool {
 	emit trimStarted();
 	if (dynamic_cast<Timeline::RemoveTransitionByTrimOutCommand*>(m_trimCommand.get())) {
 		if (delta < 0) {
@@ -3289,14 +3335,14 @@ bool TimelineDock::trimClipOut(int trackIndex, int clipIndex, int delta, bool ri
 	if (!ripple && !roll && m_model.addTransitionByTrimOutValid(trackIndex, clipIndex, delta)) {
 		m_model.addTransitionByTrimOut(trackIndex, clipIndex, delta);
 		m_transitionDelta += delta;
-		m_trimCommand.reset(new Timeline::AddTransitionByTrimOutCommand(m_model, trackIndex, clipIndex,
-		                                                                m_transitionDelta, m_trimDelta, false));
+		m_trimCommand = std::make_unique<Timeline::AddTransitionByTrimOutCommand>(m_model, trackIndex, clipIndex,
+																		m_transitionDelta, m_trimDelta, false);
 		if (m_updateCommand && m_updateCommand->TrackIndex() == trackIndex && m_updateCommand->ClipIndex() == clipIndex)
 			m_updateCommand->SetPosition(trackIndex, clipIndex, -1);
 	} else if (!ripple && !roll && m_model.removeTransitionByTrimOutValid(trackIndex, clipIndex, delta)) {
 		Q_ASSERT(trackIndex >= 0 && clipIndex >= 0);
 		std::unique_ptr<Mlt::ClipInfo> clipInfo = m_model.getClipInfo(trackIndex, clipIndex + 1);
-		QString                        xml      = MLT.XML(clipInfo->producer);
+		QString const xml      = MLT.XML(clipInfo->producer);
 		m_model.liftClip(trackIndex, clipIndex + 1);
 		if (delta < 0) {
 			m_model.trimClipOut(trackIndex, clipIndex, -clipInfo->length, false, false);
@@ -3305,17 +3351,17 @@ bool TimelineDock::trimClipOut(int trackIndex, int clipIndex, int delta, bool ri
 			m_model.trimClipIn(trackIndex, clipIndex + 2, -clipInfo->length, false, false);
 			m_transitionDelta = 0;
 		}
-		m_trimCommand.reset(new Timeline::RemoveTransitionByTrimOutCommand(m_model, trackIndex, clipIndex + 1,
-		                                                                   m_trimDelta, xml, false));
+		m_trimCommand = std::make_unique<Timeline::RemoveTransitionByTrimOutCommand>(m_model, trackIndex, clipIndex + 1,
+																		   m_trimDelta, xml, false);
 		if (m_updateCommand && m_updateCommand->TrackIndex() == trackIndex && m_updateCommand->ClipIndex() == clipIndex)
 			m_updateCommand->SetPosition(trackIndex, clipIndex, -1);
 	} else if (!ripple && !roll && m_model.trimTransitionInValid(trackIndex, clipIndex, delta)) {
 		m_model.trimTransitionIn(trackIndex, clipIndex, delta);
 		m_trimDelta += delta;
-		m_trimCommand.reset(new Timeline::TrimTransitionInCommand(m_model, trackIndex, clipIndex, m_trimDelta, false));
+		m_trimCommand = std::make_unique<Timeline::TrimTransitionInCommand>(m_model, trackIndex, clipIndex, m_trimDelta, false);
 	} else if (m_model.trimClipOutValid(trackIndex, clipIndex, delta, ripple || roll)) {
 		if (!m_undoHelper) {
-			m_undoHelper.reset(new UndoHelper(m_model));
+			m_undoHelper = std::make_unique<UndoHelper>(m_model);
 			if (!ripple)
 				m_undoHelper->SetHints(UndoHelper::SkipXML);
 			m_undoHelper->RecordBeforeState();
@@ -3329,8 +3375,8 @@ bool TimelineDock::trimClipOut(int trackIndex, int clipIndex, int delta, bool ri
 		}
 
 		m_trimDelta += delta;
-		m_trimCommand.reset(new Timeline::TrimClipOutCommand(m_model, m_markersModel, trackIndex, clipIndex,
-		                                                     m_trimDelta, ripple, false));
+		m_trimCommand = std::make_unique<Timeline::TrimClipOutCommand>(m_model, m_markersModel, trackIndex, clipIndex,
+															 m_trimDelta, ripple, false);
 		if (m_updateCommand && m_updateCommand->TrackIndex() == trackIndex && m_updateCommand->ClipIndex() == clipIndex)
 			m_updateCommand->SetPosition(trackIndex, clipIndex, -1);
 	} else
@@ -3402,11 +3448,11 @@ void TimelineDock::insert(int trackIndex, int position, const QString& xml, bool
 			Mlt::Tractor  tractor(producer);
 			Mlt::ClipInfo info;
 			MAIN.undoStack()->beginMacro(tr("Insert multiple into timeline"));
-			Mlt::Controller::RefreshBlocker blocker;
+			Mlt::Controller::RefreshBlocker const blocker;
 
 			// Loop over each source track
 			for (int mltTrackIndex = 0; mltTrackIndex < tractor.count(); mltTrackIndex++) {
-				QScopedPointer<Mlt::Producer> srcTrack(tractor.track(mltTrackIndex));
+				QScopedPointer<Mlt::Producer> const srcTrack(tractor.track(mltTrackIndex));
 				if (srcTrack) {
 					const auto trackIndex = currentTrack() + mltTrackIndex;
 					addTrackIfNeeded(trackIndex, srcTrack.get());
@@ -3418,7 +3464,7 @@ void TimelineDock::insert(int trackIndex, int position, const QString& xml, bool
 							playlist.clip_info(mltClipIndex, &info);
 							Mlt::Producer clip(info.producer);
 							clip.set_in_and_out(info.frame_in, info.frame_out);
-							bool lastClip =
+							const bool lastClip =
 							    mltTrackIndex == tractor.count() - 1 && mltClipIndex == playlist.count() - 1;
 							MAIN.undoStack()->push(new Timeline::InsertCommand(m_model, m_markersModel, trackIndex,
 							                                                   position + info.start, MLT.XML(&clip),
@@ -3534,11 +3580,11 @@ void TimelineDock::overwrite(int trackIndex, int position, const QString& xml, b
 			Mlt::Tractor  tractor(producer);
 			Mlt::ClipInfo info;
 			MAIN.undoStack()->beginMacro(tr("Overwrite multiple onto timeline"));
-			Mlt::Controller::RefreshBlocker blocker;
+			Mlt::Controller::RefreshBlocker const blocker;
 
 			// Loop over each source track
 			for (int mltTrackIndex = 0; mltTrackIndex < tractor.count(); mltTrackIndex++) {
-				QScopedPointer<Mlt::Producer> srcTrack(tractor.track(mltTrackIndex));
+				QScopedPointer<Mlt::Producer> const srcTrack(tractor.track(mltTrackIndex));
 				if (srcTrack) {
 					const auto trackIndex = currentTrack() + mltTrackIndex;
 					addTrackIfNeeded(trackIndex, srcTrack.get());
@@ -3581,8 +3627,8 @@ void TimelineDock::appendFromPlaylist(Mlt::Playlist* playlist, bool skipProxy, b
 	int trackIndex = currentTrack();
 	if (trackIndex >= 0 && emptyTrack) {
 		if (trackIndex < m_model.trackList().size()) {
-			int                           i = m_model.trackList().at(trackIndex).mlt_index;
-			QScopedPointer<Mlt::Producer> producer(m_model.tractor()->track(i));
+			const int i = m_model.trackList().at(trackIndex).mlt_index;
+			QScopedPointer<Mlt::Producer> const producer(m_model.tractor()->track(i));
 			if (producer) {
 				Mlt::Playlist track(*producer);
 				if (!isEmptyTrack(track)) {
@@ -3619,7 +3665,7 @@ void TimelineDock::appendFromPlaylist(Mlt::Playlist* playlist, bool skipProxy, b
 	m_model.checkForEmptyTracks(trackIndex);
 }
 
-bool TimelineDock::changeGain(int trackIndex, int clipIndex, double gain) {
+auto TimelineDock::changeGain(int trackIndex, int clipIndex, double gain) -> bool {
 	if (isTrackLocked(trackIndex)) {
 		emit warnTrackLocked(trackIndex);
 		return false;
@@ -3627,7 +3673,7 @@ bool TimelineDock::changeGain(int trackIndex, int clipIndex, double gain) {
 	Q_ASSERT(trackIndex >= 0 && clipIndex >= 0);
 
 	// ignore request and return false if there are keyframes
-	auto                         producer = producerForClip(trackIndex, clipIndex);
+	auto producer = producerForClip(trackIndex, clipIndex);
 	std::unique_ptr<Mlt::Filter> filter(MLT.getFilter("audioGain", &producer));
 	if (filter && filter->is_valid()) {
 		Mlt::Animation anim = filter->get_animation("level");
@@ -3671,9 +3717,9 @@ void TimelineDock::seekPreviousEdit() {
 		return;
 
 	int newPosition = -1;
-	int n           = m_model.tractor()->count();
+	const int n = m_model.tractor()->count();
 	for (int i = 0; i < n; i++) {
-		QScopedPointer<Mlt::Producer> track(m_model.tractor()->track(i));
+		QScopedPointer<Mlt::Producer> const track(m_model.tractor()->track(i));
 		if (track) {
 			Mlt::Playlist playlist(*track);
 			// Skip empty tracks (tracks with only one blank clip)
@@ -3697,7 +3743,7 @@ void TimelineDock::seekNextEdit() {
 		return;
 
 	int newPosition = std::numeric_limits<int>::max();
-	int n           = m_model.tractor()->count();
+	const int n = m_model.tractor()->count();
 	for (int i = 0; i < n; i++) {
 		QScopedPointer<Mlt::Producer> track(m_model.tractor()->track(i));
 		if (track) {
@@ -3705,7 +3751,7 @@ void TimelineDock::seekNextEdit() {
 			// Skip empty tracks (tracks with only one blank clip)
 			if (isEmptyTrack(playlist))
 				continue;
-			int clipIndex = playlist.get_clip_index_at(m_position) + 1;
+			const int clipIndex = playlist.get_clip_index_at(m_position) + 1;
 			if (clipIndex < playlist.count())
 				newPosition = qMin(newPosition, playlist.clip_start(clipIndex));
 			else if (clipIndex == playlist.count())
@@ -3724,8 +3770,8 @@ void TimelineDock::seekInPoint(int clipIndex) {
 	if (clipIndex < 0)
 		return;
 
-	int                           mltTrackIndex = m_model.trackList().at(currentTrack()).mlt_index;
-	QScopedPointer<Mlt::Producer> track(m_model.tractor()->track(mltTrackIndex));
+	const int mltTrackIndex = m_model.trackList().at(currentTrack()).mlt_index;
+	QScopedPointer<Mlt::Producer> const track(m_model.tractor()->track(mltTrackIndex));
 	if (track) {
 		Mlt::Playlist playlist(*track);
 		if (m_position != playlist.clip_start(clipIndex))
@@ -3752,7 +3798,7 @@ void TimelineDock::dragLeaveEvent(QDragLeaveEvent* event) {
 
 void TimelineDock::dropEvent(QDropEvent* event) {
 	if (event->mimeData()->hasFormat(Mlt::XmlMimeType)) {
-		int trackIndex = currentTrack();
+		const int trackIndex = currentTrack();
 		if (trackIndex >= 0) {
 			emit dropAccepted(QString::fromUtf8(event->mimeData()->data(Mlt::XmlMimeType)));
 			event->acceptProposedAction();
@@ -3761,8 +3807,8 @@ void TimelineDock::dropEvent(QDropEvent* event) {
 	emit dropped();
 }
 
-bool TimelineDock::event(QEvent* event) {
-	bool result = QDockWidget::event(event);
+auto TimelineDock::event(QEvent* event) -> bool {
+	const bool result = QDockWidget::event(event);
 	if (event->type() == QEvent::PaletteChange || event->type() == QEvent::StyleChange)
 		load(true);
 	return result;
@@ -3843,7 +3889,7 @@ void TimelineDock::addGenerator(QWidget* widget) {
 	vlayout->addWidget(buttonBox);
 	connect(buttonBox, &QDialogButtonBox::accepted, dialog, &QDialog::accept);
 	connect(buttonBox, &QDialogButtonBox::rejected, dialog, &QDialog::reject);
-	connect(dialog, &QDialog::finished, this, [=](int result) {
+	connect(dialog, &QDialog::finished, this, [widget, this](int result) -> void {
 		if (QDialog::Rejected == result)
 			return;
 		const auto name   = widget->objectName();
@@ -3913,81 +3959,81 @@ class FindProducersByHashParser : public Mlt::Parser {
 	FindProducersByHashParser(const QString& hash) : Mlt::Parser(), m_hash(hash) {
 	}
 
-	QList<Mlt::Producer>& producers() {
+	auto producers() -> QList<Mlt::Producer>& {
 		return m_producers;
 	}
 
-	int on_start_filter(Mlt::Filter*) {
+	auto on_start_filter(Mlt::Filter*) -> int override {
 		return 0;
 	}
 
-	int on_start_producer(Mlt::Producer* producer) {
+	auto on_start_producer(Mlt::Producer* producer) -> int override {
 		if (producer->is_cut() && Util::getHash(producer->parent()) == m_hash)
 			m_producers << Mlt::Producer(producer);
 		return 0;
 	}
 
-	int on_end_producer(Mlt::Producer*) {
+	auto on_end_producer(Mlt::Producer*) -> int override {
 		return 0;
 	}
 
-	int on_start_playlist(Mlt::Playlist*) {
+	auto on_start_playlist(Mlt::Playlist*) -> int override {
 		return 0;
 	}
 
-	int on_end_playlist(Mlt::Playlist*) {
+	auto on_end_playlist(Mlt::Playlist*) -> int override {
 		return 0;
 	}
 
-	int on_start_tractor(Mlt::Tractor*) {
+	auto on_start_tractor(Mlt::Tractor*) -> int override {
 		return 0;
 	}
 
-	int on_end_tractor(Mlt::Tractor*) {
+	auto on_end_tractor(Mlt::Tractor*) -> int override {
 		return 0;
 	}
 
-	int on_start_multitrack(Mlt::Multitrack*) {
+	auto on_start_multitrack(Mlt::Multitrack*) -> int override {
 		return 0;
 	}
 
-	int on_end_multitrack(Mlt::Multitrack*) {
+	auto on_end_multitrack(Mlt::Multitrack*) -> int override {
 		return 0;
 	}
 
-	int on_start_track() {
+	auto on_start_track() -> int override {
 		return 0;
 	}
 
-	int on_end_track() {
+	auto on_end_track() -> int override {
 		return 0;
 	}
 
-	int on_end_filter(Mlt::Filter*) {
+	auto on_end_filter(Mlt::Filter*) -> int override {
 		return 0;
 	}
 
-	int on_start_transition(Mlt::Transition*) {
+	auto on_start_transition(Mlt::Transition*) -> int override {
 		return 0;
 	}
 
-	int on_end_transition(Mlt::Transition*) {
+	auto on_end_transition(Mlt::Transition*) -> int override {
 		return 0;
 	}
 
-	int on_start_chain(Mlt::Chain*) {
+	auto on_start_chain(Mlt::Chain*) -> int override {
 		return 0;
 	}
 
-	int on_end_chain(Mlt::Chain*) {
+	auto on_end_chain(Mlt::Chain*) -> int override {
 		return 0;
 	}
 
-	int on_start_link(Mlt::Link*) {
+	auto on_start_link(Mlt::Link*) -> int override {
 		return 0;
 	}
 
-	int on_end_link(Mlt::Link*) {
+	auto on_end_link(Mlt::Link*) -> int override {
 		return 0;
 	}
 };
@@ -4089,7 +4135,7 @@ void TimelineDock::recordAudio() {
 	args << "-flush_packets"
 	     << "1"
 	     << "-y" << filename;
-	m_recordJob.reset(new FfmpegJob("vo", args, false, QThread::HighPriority));
+	m_recordJob = std::make_unique<FfmpegJob>("vo", args, false, QThread::HighPriority);
 #endif
 	m_recordJob->setTarget(filename);
 	connect(m_recordJob.get(), SIGNAL(started()), SLOT(onRecordStarted()));
@@ -4155,7 +4201,7 @@ void TimelineDock::stopRecording() {
 			// Wait for ffmpeg to flush the recording.
 			LongUiTask longTask(tr("Record Audio"));
 			longTask.setMinimumDuration(500);
-			QFuture<int> future = QtConcurrent::run([]() {
+			QFuture<int> const future = QtConcurrent::run([]() -> int {
 				QThread::msleep(3000);
 				return 0;
 			});

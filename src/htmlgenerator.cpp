@@ -15,21 +15,48 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "htmlgenerator.hpp"
-
 #include "Logger.hpp"
 #include "settings.hpp"
 
+// Qt
 #include <QDir>
 #include <QFile>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QNetworkReply>
 #include <QUrl>
+#include <qcborcommon.h>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qlatin1stringview.h>
+#include <qlist.h>
+#include <qnetworkaccessmanager.h>
+#include <qnetworkrequest.h>
+#include <qobject.h>
+#include <qprocess.h>
+#include <qsize.h>
+#include <qtimer.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qwebsocket.h>
+#include <qwebsocketprotocol.h>
 
-HtmlGenerator::HtmlGenerator(QObject* parent)
-    : QObject(parent), m_webSocket(new QWebSocket(QString(), QWebSocketProtocol::VersionLatest, this)),
-      m_networkManager(new QNetworkAccessManager(this)), m_messageId(1), m_chromeProcess(new QProcess(this)) {
+// STL
+#include <algorithm>
+#include <cmath>
+#include <utility>
+
+// Number constants
+constexpr double setFrameIntervalNumber{1000.0};
+constexpr int setSingleShotNumber{100};
+constexpr int setSingleShotScreenshotNumber{10000};
+constexpr int setWaitForStartedNumber{5000};
+constexpr int setWaitForFinishedNumber{2000};
+
+HtmlGenerator::HtmlGenerator(QObject* parent) : QObject(parent), m_webSocket(new QWebSocket(QString(), QWebSocketProtocol::VersionLatest, this)), m_networkManager(new QNetworkAccessManager(this)), m_messageId(1), m_chromeProcess(new QProcess(this)) {
 	connect(m_webSocket, &QWebSocket::connected, this, &HtmlGenerator::onWebSocketConnected);
 	connect(m_webSocket, &QWebSocket::textMessageReceived, this, &HtmlGenerator::onMessageReceived);
 	connect(m_webSocket, &QWebSocket::disconnected, this, &HtmlGenerator::onWebSocketDisconnected);
@@ -38,21 +65,20 @@ HtmlGenerator::HtmlGenerator(QObject* parent)
 HtmlGenerator::~HtmlGenerator() {
 	if (m_chromeProcess && m_chromeProcess->state() == QProcess::Running) {
 		m_chromeProcess->terminate();
-		m_chromeProcess->waitForFinished(2000);
+		m_chromeProcess->waitForFinished(setWaitForFinishedNumber);
 		m_chromeProcess->kill();
 	}
 }
 
 void HtmlGenerator::setAnimationParameters(double fps, int duration) {
-	m_fps           = fps;
-	m_duration      = duration;
+	m_fps = fps;
+	m_duration = duration;
 	m_animationMode = (fps > 0 && duration > 0);
 }
 
-void HtmlGenerator::launchBrowser(const QString& executablePath, const QString& url, const QSize& viewport,
-                                  const QString& outputPath) {
-	m_url        = url;
-	m_viewport   = viewport;
+void HtmlGenerator::launchBrowser(const QString& executablePath, const QString& url, const QSize& viewport, const QString& outputPath) {
+	m_url = url;
+	m_viewport = viewport;
 	m_outputPath = outputPath;
 
 	// Start browser with appropriate arguments
@@ -81,34 +107,34 @@ void HtmlGenerator::launchBrowser(const QString& executablePath, const QString& 
 	LOG_DEBUG() << executablePath + " " + arguments.join(' ');
 	m_chromeProcess->start(executablePath, arguments);
 
-	if (!m_chromeProcess->waitForStarted(5000)) {
+	if (!m_chromeProcess->waitForStarted(setWaitForStartedNumber)) {
 		LOG_ERROR() << "Failed to start browser process";
 		Settings.setChromiumPath(QString());
 		return;
 	}
 
 	// Wait a bit for browser to start up
-	QTimer::singleShot(2000, this, &HtmlGenerator::connectToBrowser);
+	QTimer::singleShot(setWaitForFinishedNumber, this, &HtmlGenerator::connectToBrowser);
 }
 
 void HtmlGenerator::connectToBrowser() {
 	// Get the list of pages from Chrome
-	QNetworkRequest request(QUrl("http://localhost:9222/json/list"));
-	QNetworkReply*  reply = m_networkManager->get(request);
+	QNetworkRequest const request(QUrl("http://localhost:9222/json/list"));
+	QNetworkReply* reply = m_networkManager->get(request);
 
-	connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+	connect(reply, &QNetworkReply::finished, this, [this, reply]() -> void {
 		if (reply->error() != QNetworkReply::NoError) {
 			LOG_ERROR() << "Failed to get Chrome debug info:" << reply->errorString();
 			Settings.setChromiumPath(QString());
 			return;
 		}
 
-		QJsonDocument doc   = QJsonDocument::fromJson(reply->readAll());
-		QJsonArray    pages = doc.array();
+		QJsonDocument const doc = QJsonDocument::fromJson(reply->readAll());
+		QJsonArray pages = doc.array();
 
 		QString webSocketUrl;
 		// Look for an existing page or create a new one
-		for (auto pageValue : std::as_const(pages)) {
+		for (const auto pageValue : std::as_const(pages)) {
 			const auto page = pageValue.toObject();
 			if (page["type"].toString() == "page") {
 				webSocketUrl = page["webSocketDebuggerUrl"].toString();
@@ -129,17 +155,17 @@ void HtmlGenerator::connectToBrowser() {
 }
 
 void HtmlGenerator::createNewPage() {
-	QNetworkRequest request(QUrl("http://localhost:9222/json/new"));
-	auto*           reply = m_networkManager->get(request);
+	QNetworkRequest const request(QUrl("http://localhost:9222/json/new"));
+	auto* reply = m_networkManager->get(request);
 
-	connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+	connect(reply, &QNetworkReply::finished, this, [this, reply]() -> void {
 		if (reply->error() != QNetworkReply::NoError) {
 			LOG_ERROR() << "Failed to create new page:" << reply->errorString();
 			return;
 		}
 
-		const auto doc          = QJsonDocument::fromJson(reply->readAll());
-		const auto page         = doc.object();
+		const auto doc = QJsonDocument::fromJson(reply->readAll());
+		const auto page = doc.object();
 		const auto webSocketUrl = page["webSocketDebuggerUrl"].toString();
 
 		if (webSocketUrl.isEmpty()) {
@@ -166,11 +192,11 @@ void HtmlGenerator::onWebSocketConnected() {
 	sendCommand("Emulation.setDefaultBackgroundColorOverride", params);
 
 	// Set viewport
-	params                      = QJsonObject();
-	params["width"]             = m_viewport.width();
-	params["height"]            = m_viewport.height();
+	params = QJsonObject();
+	params["width"] = m_viewport.width();
+	params["height"] = m_viewport.height();
 	params["deviceScaleFactor"] = 1;
-	params["mobile"]            = false;
+	params["mobile"] = false;
 	sendCommand("Emulation.setDeviceMetricsOverride", params);
 
 	// Navigate to the URL
@@ -179,7 +205,7 @@ void HtmlGenerator::onWebSocketConnected() {
 	sendCommand("Page.navigate", navParams);
 
 	// Set a timeout for taking screenshot in case page load event doesn't fire
-	QTimer::singleShot(10000, this, &HtmlGenerator::takeScreenshot);
+	QTimer::singleShot(setSingleShotScreenshotNumber, this, &HtmlGenerator::takeScreenshot);
 }
 
 void HtmlGenerator::onMessageReceived(const QString& message) {
@@ -244,9 +270,9 @@ void HtmlGenerator::startAnimationCapture() {
 	}
 
 	// Calculate animation parameters
-	const auto frameInterval = 1000.0 / m_fps; // milliseconds per frame
-	m_totalFrames            = static_cast<int>(std::ceil(m_duration / frameInterval));
-	m_currentFrame           = 0;
+	const auto frameInterval = setFrameIntervalNumber / m_fps; // milliseconds per frame
+	m_totalFrames = static_cast<int>(std::ceil(m_duration / frameInterval));
+	m_currentFrame = 0;
 
 	LOG_DEBUG() << QString("Capturing %1 frames at %2 fps over %3ms...").arg(m_totalFrames).arg(m_fps).arg(m_duration);
 
@@ -267,10 +293,10 @@ void HtmlGenerator::captureAnimationFrame() {
 	m_pendingScreenshot = true;
 
 	QJsonObject params;
-	params["format"]                = "png";
-	params["omitBackground"]        = true;
+	params["format"] = "png";
+	params["omitBackground"] = true;
 	params["captureBeyondViewport"] = false;
-	m_screenshotMessageId           = sendCommand("Page.captureScreenshot", params);
+	m_screenshotMessageId = sendCommand("Page.captureScreenshot", params);
 }
 
 void HtmlGenerator::handleAnimationFrame(const QJsonObject& result) {
@@ -281,7 +307,7 @@ void HtmlGenerator::handleAnimationFrame(const QJsonObject& result) {
 
 	// Save frame with zero-padded filename
 	const auto frameNumber = QString("%1").arg(m_currentFrame, 4, 10, QLatin1Char('0'));
-	const auto filename    = QDir(m_outputPath).filePath(QString("frame_%1.png").arg(frameNumber));
+	const auto filename = QDir(m_outputPath).filePath(QString("frame_%1.png").arg(frameNumber));
 
 	QFile file(filename);
 	if (file.open(QIODevice::WriteOnly)) {
@@ -299,11 +325,10 @@ void HtmlGenerator::handleAnimationFrame(const QJsonObject& result) {
 	// Schedule next frame
 	if (m_currentFrame < m_totalFrames) {
 		// Calculate when the next frame should be captured
-		const auto frameInterval = 1000.0 / m_fps;
-		const auto targetTime    = static_cast<qint64>(m_currentFrame * frameInterval);
-		const auto currentTime   = m_animationElapsed.elapsed();
-
-		int delay = std::max(0LL, targetTime - currentTime);
+		const auto frameInterval = setFrameIntervalNumber / m_fps;
+		const auto targetTime = static_cast<qint64>(m_currentFrame * frameInterval);
+		const auto currentTime = m_animationElapsed.elapsed();
+		const int delay = std::max(0LL, targetTime - currentTime);
 		if (delay == 0)
 			LOG_DEBUG() << "frame duration" << frameInterval << "delay" << targetTime - currentTime << "ms";
 		QTimer::singleShot(delay, this, &HtmlGenerator::captureAnimationFrame);
@@ -337,7 +362,7 @@ void HtmlGenerator::takeScreenshot() {
 	m_pendingScreenshot = true;
 
 	QJsonObject params;
-	params["format"]         = "png";
+	params["format"] = "png";
 	params["omitBackground"] = true;
 
 	m_screenshotMessageId = sendCommand("Page.captureScreenshot", params);
@@ -349,7 +374,7 @@ void HtmlGenerator::handleScreenshotResult(const QJsonObject& result) {
 
 	const auto base64Data = result["data"].toString();
 	const auto imageData  = QByteArray::fromBase64(base64Data.toUtf8());
-	bool       success    = false;
+	bool success = false;
 
 	QFile file(m_outputPath);
 	if (file.open(QIODevice::WriteOnly)) {
@@ -363,7 +388,7 @@ void HtmlGenerator::handleScreenshotResult(const QJsonObject& result) {
 
 	// Close the browser and exit
 	sendCommand("Browser.close");
-	QTimer::singleShot(100, m_chromeProcess, [=]() {
+	QTimer::singleShot(setSingleShotNumber, m_chromeProcess, [this]() -> void {
 		m_webSocket->close();
 		if (m_chromeProcess && m_chromeProcess->state() == QProcess::Running)
 			m_chromeProcess->terminate();
@@ -372,16 +397,16 @@ void HtmlGenerator::handleScreenshotResult(const QJsonObject& result) {
 		emit imageReady(m_outputPath);
 }
 
-int HtmlGenerator::sendCommand(const QString& method, const QJsonObject& params) {
+auto HtmlGenerator::sendCommand(const QString& method, const QJsonObject& params) -> int {
 	QJsonObject command;
-	command["id"]     = m_messageId;
+	command["id"] = m_messageId;
 	command["method"] = method;
 	if (!params.isEmpty()) {
 		command["params"] = params;
 	}
 
 	const QJsonDocument doc(command);
-	const QString       message = doc.toJson(QJsonDocument::Compact);
+	const QString message = doc.toJson(QJsonDocument::Compact);
 
 	// LOG_DEBUG() << "Sending command:" << message;
 	m_webSocket->sendTextMessage(message);

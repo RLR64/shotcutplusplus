@@ -15,16 +15,36 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "widgets/frameratewidget.h"
-
 #include "util.hpp"
 
+// Qt
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QHBoxLayout>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
+
+// Number constants
+constexpr int setComboBoxSizeNumber{20};
+constexpr int setComboBoxMaximumSizeNumber{16777215};
+
+constexpr double setFpsSpinnerNumber24FPS{23.98};
+constexpr double setFpsSpinnerSecondNumber24FPS{23.976};
+constexpr double setFpsSpinnerNumber30FPS{29.97};
+constexpr double setFpsSpinnerNumber48FPS{47.95};
+constexpr double setFpsSpinnerNumber59FPS{59.94};
+
+constexpr int showFrameRateDialog24FPS{24000};
+constexpr int showFrameRateDialog30FPS{30000};
+constexpr int showFrameRateDialog48FPS{48000};
+constexpr int showFrameRateDialog60FPS{60000};
+
 
 FrameRateWidget::FrameRateWidget(QWidget* parent) : QWidget(parent), m_fps(0.0) {
-	QHBoxLayout* layout = new QHBoxLayout(this);
+	auto* layout = new QHBoxLayout(this);
 	layout->setContentsMargins(0, 0, 0, 0);
 	layout->setSpacing(0);
 
@@ -37,7 +57,7 @@ FrameRateWidget::FrameRateWidget(QWidget* parent) : QWidget(parent), m_fps(0.0) 
 	layout->addWidget(m_fpsSpinner);
 
 	m_fpsComboBox = new QComboBox();
-	m_fpsComboBox->setMaximumSize(20, 16777215);
+	m_fpsComboBox->setMaximumSize(setComboBoxSizeNumber, setComboBoxMaximumSizeNumber);
 	m_fpsComboBox->addItem("");
 	m_fpsComboBox->addItem("23.976024");
 	m_fpsComboBox->addItem("24");
@@ -53,7 +73,7 @@ FrameRateWidget::FrameRateWidget(QWidget* parent) : QWidget(parent), m_fps(0.0) 
 	layout->addWidget(m_fpsComboBox);
 }
 
-double FrameRateWidget::fps() {
+auto FrameRateWidget::fps() -> double {
 	return m_fpsSpinner->value();
 }
 
@@ -64,14 +84,14 @@ void FrameRateWidget::setFps(double fps) {
 void FrameRateWidget::on_fpsSpinner_editingFinished() {
 	if (m_fpsSpinner->value() != m_fps) {
 		const QString caption(tr("Convert Frames/sec"));
-		if (m_fpsSpinner->value() == 23.98 || m_fpsSpinner->value() == 23.976) {
-			Util::showFrameRateDialog(caption, 24000, m_fpsSpinner, this);
-		} else if (m_fpsSpinner->value() == 29.97) {
-			Util::showFrameRateDialog(caption, 30000, m_fpsSpinner, this);
-		} else if (m_fpsSpinner->value() == 47.95) {
-			Util::showFrameRateDialog(caption, 48000, m_fpsSpinner, this);
-		} else if (m_fpsSpinner->value() == 59.94) {
-			Util::showFrameRateDialog(caption, 60000, m_fpsSpinner, this);
+		if (m_fpsSpinner->value() == setFpsSpinnerNumber24FPS || m_fpsSpinner->value() == setFpsSpinnerSecondNumber24FPS) {
+			Util::showFrameRateDialog(caption, showFrameRateDialog24FPS, m_fpsSpinner, this);
+		} else if (m_fpsSpinner->value() == setFpsSpinnerNumber30FPS) {
+			Util::showFrameRateDialog(caption, showFrameRateDialog30FPS, m_fpsSpinner, this);
+		} else if (m_fpsSpinner->value() == setFpsSpinnerNumber48FPS) {
+			Util::showFrameRateDialog(caption, showFrameRateDialog48FPS, m_fpsSpinner, this);
+		} else if (m_fpsSpinner->value() == setFpsSpinnerNumber59FPS) {
+			Util::showFrameRateDialog(caption, showFrameRateDialog60FPS, m_fpsSpinner, this);
 		}
 		m_fps = m_fpsSpinner->value();
 		emit fpsChanged(m_fps);

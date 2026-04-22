@@ -18,15 +18,24 @@
 #ifndef SCOPEWIDGET_H
 #define SCOPEWIDGET_H
 
+// Local
 #include "Logger.hpp"
 #include "dataqueue.hpp"
 #include "sharedframe.hpp"
 
+// Qt
 #include <QFuture>
 #include <QMutex>
 #include <QString>
 #include <QThread>
 #include <QWidget>
+#include <qhashfunctions.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qsize.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 /*!
   \class ScopeWidget
@@ -67,7 +76,7 @@ class ScopeWidget : public QWidget {
 	explicit ScopeWidget(const QString& name);
 
 	//! Destructs a ScopeWidget.
-	virtual ~ScopeWidget();
+	~ScopeWidget() override;
 
 	/*!
 	  Returns the title of the scope to be displayed by the application.
@@ -119,14 +128,14 @@ class ScopeWidget : public QWidget {
 
   private:
 	Q_INVOKABLE virtual void onRefreshThreadComplete() Q_DECL_FINAL;
-	virtual void             refreshInThread() Q_DECL_FINAL;
-	QFuture<void>            m_future;
-	bool                     m_refreshPending;
+	virtual void refreshInThread() Q_DECL_FINAL;
+	QFuture<void> m_future;
+	bool m_refreshPending;
 
 	// Members accessed in multiple threads (mutex protected).
 	QMutex m_mutex;
-	bool   m_forceRefresh;
-	QSize  m_size;
+	bool m_forceRefresh;
+	QSize m_size;
 };
 
 #endif // SCOPEWIDGET_H

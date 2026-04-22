@@ -15,13 +15,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "markersmodel.hpp"
-
 #include "Logger.hpp"
 #include "commands/markercommands.hpp"
 #include "mainwindow.hpp"
 #include "settings.hpp"
 #include "shotcut_mlt_properties.hpp"
+#include <MltProducer.h>
+#include <framework/mlt_types.h>
+
+// Qt
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qscopedpointer.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+
+// STL
+#include <utility>
 
 enum Columns { COLUMN_COLOR = 0, COLUMN_NAME, COLUMN_START, COLUMN_END, COLUMN_DURATION, COLUMN_COUNT };
 
@@ -37,15 +53,14 @@ static void propertiesToMarker(Mlt::Properties* properties, Markers::Marker& mar
 	marker.text     = QString::fromUtf8(properties->get("text"));
 	marker.start    = producer->time_to_frames(properties->get("start"));
 	marker.end      = producer->time_to_frames(properties->get("end"));
-	mlt_color color = properties->get_color("color");
+	mlt_color const color = properties->get_color("color");
 	marker.color    = QColor::fromRgb(color.r, color.g, color.b, 0xFF);
 }
 
 MarkersModel::MarkersModel(QObject* parent) : QAbstractItemModel(parent), m_producer(nullptr) {
 }
 
-MarkersModel::~MarkersModel() {
-}
+MarkersModel::~MarkersModel() = default;
 
 void MarkersModel::load(Mlt::Producer* producer) {
 	beginResetModel();
@@ -54,12 +69,12 @@ void MarkersModel::load(Mlt::Producer* producer) {
 	if (m_producer) {
 		Mlt::Properties* markerList = m_producer->get_props(kShotcutMarkersProperty);
 		if (markerList && markerList->is_valid()) {
-			int count = markerList->count();
+			const int count = markerList->count();
 			for (int i = 0; i < count; i++) {
 				Mlt::Properties* markerProperties = markerList->get_props_at(i);
 				if (markerProperties && markerProperties->is_valid()) {
-					char* key    = markerList->get_name(i);
-					int   intKey = QString(key).toInt();
+					char const* key    = markerList->get_name(i);
+					const int   intKey = QString(key).toInt();
 					m_keys << intKey;
 					Markers::Marker marker;
 					propertiesToMarker(markerProperties, marker, producer);
@@ -73,7 +88,7 @@ void MarkersModel::load(Mlt::Producer* producer) {
 	endResetModel();
 }
 
-Markers::Marker MarkersModel::getMarker(int markerIndex) {
+auto MarkersModel::getMarker(int markerIndex) -> Markers::Marker {
 	Markers::Marker  retMarker;
 	Mlt::Properties* markerProperties = getMarkerProperties(markerIndex);
 	if (!markerProperties || !markerProperties->is_valid()) {
@@ -104,7 +119,7 @@ void MarkersModel::doRemove(int markerIndex) {
 		LOG_ERROR() << "No producer";
 		return;
 	}
-	QModelIndex modelIndex = index(markerIndex, 0);
+	QModelIndex const modelIndex = index(markerIndex, 0);
 	if (!modelIndex.isValid()) {
 		LOG_ERROR() << "Invalid Index: " << markerIndex;
 		return;
@@ -159,7 +174,7 @@ void MarkersModel::doInsert(int markerIndex, const Markers::Marker& marker) {
 	markerToProperties(marker, &markerProperties, m_producer);
 
 	beginInsertRows(QModelIndex(), modelIndex.row(), modelIndex.row());
-	int key = uniqueKey();
+	const int key = uniqueKey();
 	markersListProperties->set(qUtf8Printable(QString::number(key)), markerProperties);
 	m_keys.insert(modelIndex.row(), key);
 	endInsertRows();
@@ -196,9 +211,9 @@ void MarkersModel::doAppend(const Markers::Marker& marker) {
 	Mlt::Properties markerProperties;
 	markerToProperties(marker, &markerProperties, m_producer);
 
-	int count = markerCount();
+	const int count = markerCount();
 	beginInsertRows(QModelIndex(), count, count);
-	int key = uniqueKey();
+	const int key = uniqueKey();
 	markersListProperties->set(qUtf8Printable(QString::number(key)), markerProperties);
 	m_keys.append(key);
 	updateRecentColors(marker.color);
@@ -226,8 +241,8 @@ void MarkersModel::update(int markerIndex, const Markers::Marker& marker) {
 }
 
 void MarkersModel::doUpdate(int markerIndex, const Markers::Marker& marker) {
-	QModelIndex startIndex = index(markerIndex, 0);
-	QModelIndex endIndex   = index(markerIndex, COLUMN_COUNT - 1);
+	QModelIndex const startIndex = index(markerIndex, 0);
+	QModelIndex const endIndex   = index(markerIndex, COLUMN_COUNT - 1);
 	if (!startIndex.isValid() || !endIndex.isValid()) {
 		LOG_ERROR() << "Invalid Index: " << startIndex << endIndex;
 		return;
@@ -297,12 +312,12 @@ void MarkersModel::doShift(int shiftPosition, int shiftAmount) {
 		LOG_ERROR() << "No producer";
 		return;
 	}
-	int                             minIndex = -1;
-	int                             maxIndex = -1;
-	QScopedPointer<Mlt::Properties> markerList(m_producer->get_props(kShotcutMarkersProperty));
+	int minIndex = -1;
+	int maxIndex = -1;
+	QScopedPointer<Mlt::Properties> const markerList(m_producer->get_props(kShotcutMarkersProperty));
 	if (markerList && markerList->is_valid()) {
 		for (const auto i : std::as_const(m_keys)) {
-			QScopedPointer<Mlt::Properties> markerProperties(markerList->get_props(qUtf8Printable(QString::number(i))));
+			QScopedPointer<Mlt::Properties> const markerProperties(markerList->get_props(qUtf8Printable(QString::number(i))));
 			if (markerProperties && markerProperties->is_valid()) {
 				Markers::Marker marker;
 				propertiesToMarker(markerProperties.data(), marker, m_producer);
@@ -310,7 +325,7 @@ void MarkersModel::doShift(int shiftPosition, int shiftAmount) {
 					marker.start += shiftAmount;
 					marker.end += shiftAmount;
 					markerToProperties(marker, markerProperties.data(), m_producer);
-					int markerIndex = m_keys[i];
+					const int markerIndex = m_keys[i];
 					if (minIndex == -1 || markerIndex < minIndex)
 						minIndex = markerIndex;
 					if (maxIndex == -1 || markerIndex > maxIndex)
@@ -321,11 +336,11 @@ void MarkersModel::doShift(int shiftPosition, int shiftAmount) {
 	}
 
 	if (minIndex != -1) {
-		QModelIndex startIndex = index(minIndex, COLUMN_START);
-		QModelIndex endIndex   = index(maxIndex, COLUMN_END);
-		emit        dataChanged(startIndex, endIndex, QVector<int>() << Qt::DisplayRole << StartRole << EndRole);
-		emit        modified();
-		emit        rangesChanged();
+		QModelIndex const startIndex = index(minIndex, COLUMN_START);
+		QModelIndex const endIndex   = index(maxIndex, COLUMN_END);
+		emit dataChanged(startIndex, endIndex, QVector<int>() << Qt::DisplayRole << StartRole << EndRole);
+		emit modified();
+		emit rangesChanged();
 	}
 }
 
@@ -373,7 +388,7 @@ void MarkersModel::clear() {
 		delete markersListProperties;
 		return;
 	} else {
-		int                    count = markersListProperties->count();
+		const int count = markersListProperties->count();
 		QList<Markers::Marker> markerList;
 		for (int i = 0; i < count; i++) {
 			Mlt::Properties* markerProperties = markersListProperties->get_props_at(i);
@@ -390,14 +405,14 @@ void MarkersModel::clear() {
 	delete markersListProperties;
 }
 
-int MarkersModel::markerCount() const {
+auto MarkersModel::markerCount() const -> int {
 	if (!m_producer) {
 		return 0;
 	}
 	return m_keys.count();
 }
 
-int MarkersModel::keyIndex(int key) const {
+auto MarkersModel::keyIndex(int key) const -> int {
 	int index = -1;
 	for (int i = 0; i < m_keys.size(); i++) {
 		if (m_keys[i] == key) {
@@ -408,7 +423,7 @@ int MarkersModel::keyIndex(int key) const {
 	return index;
 }
 
-int MarkersModel::uniqueKey() const {
+auto MarkersModel::uniqueKey() const -> int {
 	int key = 0;
 	while (keyIndex(key) >= 0) {
 		key++;
@@ -416,11 +431,11 @@ int MarkersModel::uniqueKey() const {
 	return key;
 }
 
-int MarkersModel::markerIndexForPosition(int position) {
-	QScopedPointer<Mlt::Properties> markerList(m_producer->get_props(kShotcutMarkersProperty));
+auto MarkersModel::markerIndexForPosition(int position) -> int {
+	QScopedPointer<Mlt::Properties> const markerList(m_producer->get_props(kShotcutMarkersProperty));
 	if (markerList && markerList->is_valid()) {
 		for (const auto i : std::as_const(m_keys)) {
-			QScopedPointer<Mlt::Properties> marker(markerList->get_props(qUtf8Printable(QString::number(i))));
+			QScopedPointer<Mlt::Properties> const marker(markerList->get_props(qUtf8Printable(QString::number(i))));
 			if (marker && marker->is_valid()) {
 				if (position == m_producer->time_to_frames(marker->get("start")) ||
 				    position == m_producer->time_to_frames(marker->get("end")))
@@ -431,11 +446,11 @@ int MarkersModel::markerIndexForPosition(int position) {
 	return -1;
 }
 
-int MarkersModel::markerIndexForRange(int start, int end) {
-	QScopedPointer<Mlt::Properties> markerList(m_producer->get_props(kShotcutMarkersProperty));
+auto MarkersModel::markerIndexForRange(int start, int end) -> int {
+	QScopedPointer<Mlt::Properties> const markerList(m_producer->get_props(kShotcutMarkersProperty));
 	if (markerList && markerList->is_valid()) {
 		for (const auto i : std::as_const(m_keys)) {
-			QScopedPointer<Mlt::Properties> marker(markerList->get_props(qUtf8Printable(QString::number(i))));
+			QScopedPointer<Mlt::Properties> const marker(markerList->get_props(qUtf8Printable(QString::number(i))));
 			if (marker && marker->is_valid()) {
 				if (start == m_producer->time_to_frames(marker->get("start")) &&
 				    end == m_producer->time_to_frames(marker->get("end")))
@@ -446,14 +461,14 @@ int MarkersModel::markerIndexForRange(int start, int end) {
 	return -1;
 }
 
-int MarkersModel::rangeMarkerIndexForPosition(int position) {
-	QScopedPointer<Mlt::Properties> markerList(m_producer->get_props(kShotcutMarkersProperty));
+auto MarkersModel::rangeMarkerIndexForPosition(int position) -> int {
+	QScopedPointer<Mlt::Properties> const markerList(m_producer->get_props(kShotcutMarkersProperty));
 	if (markerList && markerList->is_valid()) {
 		for (const auto i : std::as_const(m_keys)) {
-			QScopedPointer<Mlt::Properties> marker(markerList->get_props(qUtf8Printable(QString::number(i))));
+			QScopedPointer<Mlt::Properties> const marker(markerList->get_props(qUtf8Printable(QString::number(i))));
 			if (marker && marker->is_valid()) {
-				int start = m_producer->time_to_frames(marker->get("start"));
-				int end   = m_producer->time_to_frames(marker->get("end"));
+				const int start = m_producer->time_to_frames(marker->get("start"));
+				const int end   = m_producer->time_to_frames(marker->get("end"));
 				if (position >= start && position <= end && start != end)
 					return keyIndex(i);
 			}
@@ -462,16 +477,16 @@ int MarkersModel::rangeMarkerIndexForPosition(int position) {
 	return -1;
 }
 
-int MarkersModel::nextMarkerPosition(int position) {
+auto MarkersModel::nextMarkerPosition(int position) -> int {
 	int nextPosition = -1;
 	if (!m_producer) {
 		LOG_ERROR() << "No producer";
 		return nextPosition;
 	}
-	QScopedPointer<Mlt::Properties> markerList(m_producer->get_props(kShotcutMarkersProperty));
+	QScopedPointer<Mlt::Properties> const markerList(m_producer->get_props(kShotcutMarkersProperty));
 	if (markerList && markerList->is_valid()) {
 		for (const auto i : std::as_const(m_keys)) {
-			QScopedPointer<Mlt::Properties> marker(markerList->get_props(qUtf8Printable(QString::number(i))));
+			QScopedPointer<Mlt::Properties> const marker(markerList->get_props(qUtf8Printable(QString::number(i))));
 			if (marker && marker->is_valid()) {
 				int markerPosition = m_producer->time_to_frames(marker->get("start"));
 				if (markerPosition > position && (nextPosition == -1 || markerPosition < nextPosition)) {
@@ -487,16 +502,16 @@ int MarkersModel::nextMarkerPosition(int position) {
 	return nextPosition;
 }
 
-int MarkersModel::prevMarkerPosition(int position) {
+auto MarkersModel::prevMarkerPosition(int position) -> int {
 	int prevPosition = -1;
 	if (!m_producer) {
 		LOG_ERROR() << "No producer";
 		return prevPosition;
 	}
-	QScopedPointer<Mlt::Properties> markerList(m_producer->get_props(kShotcutMarkersProperty));
+	QScopedPointer<Mlt::Properties> const markerList(m_producer->get_props(kShotcutMarkersProperty));
 	if (markerList && markerList->is_valid()) {
 		for (const auto i : std::as_const(m_keys)) {
-			QScopedPointer<Mlt::Properties> marker(markerList->get_props(qUtf8Printable(QString::number(i))));
+			QScopedPointer<Mlt::Properties> const marker(markerList->get_props(qUtf8Printable(QString::number(i))));
 			if (marker && marker->is_valid()) {
 				int markerPosition = m_producer->time_to_frames(marker->get("start"));
 				if (markerPosition < position && (prevPosition == -1 || markerPosition > prevPosition)) {
@@ -512,16 +527,16 @@ int MarkersModel::prevMarkerPosition(int position) {
 	return prevPosition;
 }
 
-QModelIndex MarkersModel::modelIndexForRow(int row) {
+auto MarkersModel::modelIndexForRow(int row) -> QModelIndex {
 	return index(row, 0);
 }
 
-QMap<int, QString> MarkersModel::ranges() {
-	QMap<int, QString>              result;
-	QScopedPointer<Mlt::Properties> markerList(m_producer->get_props(kShotcutMarkersProperty));
+auto MarkersModel::ranges() -> QMap<int, QString> {
+	QMap<int, QString> result;
+	QScopedPointer<Mlt::Properties> const markerList(m_producer->get_props(kShotcutMarkersProperty));
 	if (markerList && markerList->is_valid()) {
 		for (const auto i : std::as_const(m_keys)) {
-			QScopedPointer<Mlt::Properties> marker(markerList->get_props(qUtf8Printable(QString::number(i))));
+			QScopedPointer<Mlt::Properties> const marker(markerList->get_props(qUtf8Printable(QString::number(i))));
 			if (marker && marker->is_valid()) {
 				Markers::Marker m;
 				propertiesToMarker(marker.get(), m, m_producer);
@@ -534,18 +549,18 @@ QMap<int, QString> MarkersModel::ranges() {
 	return result;
 }
 
-QStringList MarkersModel::recentColors() {
+auto MarkersModel::recentColors() -> QStringList {
 	return m_recentColors.values();
 }
 
-QList<Markers::Marker> MarkersModel::getMarkers() const {
+auto MarkersModel::getMarkers() const -> QList<Markers::Marker> {
 	QList<Markers::Marker> markers;
 	if (!m_producer || !m_producer->is_valid())
 		return markers;
-	QScopedPointer<Mlt::Properties> markerList(m_producer->get_props(kShotcutMarkersProperty));
+	QScopedPointer<Mlt::Properties> const markerList(m_producer->get_props(kShotcutMarkersProperty));
 	if (markerList && markerList->is_valid()) {
 		for (const auto i : std::as_const(m_keys)) {
-			QScopedPointer<Mlt::Properties> marker(markerList->get_props(qUtf8Printable(QString::number(i))));
+			QScopedPointer<Mlt::Properties> const marker(markerList->get_props(qUtf8Printable(QString::number(i))));
 			if (marker && marker->is_valid()) {
 				Markers::Marker m;
 				propertiesToMarker(marker.get(), m, m_producer);
@@ -556,7 +571,7 @@ QList<Markers::Marker> MarkersModel::getMarkers() const {
 	return markers;
 }
 
-QList<QColor> MarkersModel::allColors() const {
+auto MarkersModel::allColors() const -> QList<QColor> {
 	QList<QColor> result;
 	for (auto& m : getMarkers()) {
 		if (!result.contains(m.color)) {
@@ -566,13 +581,13 @@ QList<QColor> MarkersModel::allColors() const {
 	return result;
 }
 
-Mlt::Properties* MarkersModel::getMarkerProperties(int markerIndex) {
+auto MarkersModel::getMarkerProperties(int markerIndex) -> Mlt::Properties* {
 	Mlt::Properties* markerProperties = nullptr;
 	if (!m_producer) {
 		LOG_ERROR() << "No producer";
 		return markerProperties;
 	}
-	QModelIndex modelIndex = index(markerIndex, 0);
+	QModelIndex const modelIndex = index(markerIndex, 0);
 	if (!modelIndex.isValid()) {
 		LOG_ERROR() << "Invalid Index: " << markerIndex;
 		return markerProperties;
@@ -598,17 +613,17 @@ void MarkersModel::updateRecentColors(const QColor& color) {
 	emit recentColorsChanged();
 }
 
-int MarkersModel::rowCount(const QModelIndex& parent) const {
+auto MarkersModel::rowCount(const QModelIndex& parent) const -> int {
 	Q_UNUSED(parent)
 	return markerCount();
 }
 
-int MarkersModel::columnCount(const QModelIndex& parent) const {
+auto MarkersModel::columnCount(const QModelIndex& parent) const -> int {
 	Q_UNUSED(parent)
 	return COLUMN_COUNT;
 }
 
-QVariant MarkersModel::data(const QModelIndex& index, int role) const {
+auto MarkersModel::data(const QModelIndex& index, int role) const -> QVariant {
 	QVariant result;
 
 	switch (role) {
@@ -707,7 +722,7 @@ QVariant MarkersModel::data(const QModelIndex& index, int role) const {
 	return result;
 }
 
-QVariant MarkersModel::headerData(int section, Qt::Orientation orientation, int role) const {
+auto MarkersModel::headerData(int section, Qt::Orientation orientation, int role) const -> QVariant {
 	if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
 		switch (section) {
 		case COLUMN_COLOR:
@@ -724,22 +739,22 @@ QVariant MarkersModel::headerData(int section, Qt::Orientation orientation, int 
 			break;
 		}
 	}
-	return QVariant();
+	return {};
 }
 
-QModelIndex MarkersModel::index(int row, int column, const QModelIndex& parent) const {
+auto MarkersModel::index(int row, int column, const QModelIndex& parent) const -> QModelIndex {
 	Q_UNUSED(parent)
 	if (column < 0 || column >= COLUMN_COUNT || row < 0 || row >= markerCount())
-		return QModelIndex();
+		return {};
 	return createIndex(row, column, (int)0);
 }
 
-QModelIndex MarkersModel::parent(const QModelIndex& index) const {
+auto MarkersModel::parent(const QModelIndex& index) const -> QModelIndex {
 	Q_UNUSED(index)
-	return QModelIndex();
+	return {};
 }
 
-QHash<int, QByteArray> MarkersModel::roleNames() const {
+auto MarkersModel::roleNames() const -> QHash<int, QByteArray> {
 	QHash<int, QByteArray> roles = QAbstractItemModel::roleNames();
 	roles[TextRole]              = "text";
 	roles[StartRole]             = "start";

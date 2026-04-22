@@ -18,10 +18,15 @@
 #ifndef MLTCLIPPRODUCERWIDGET_H
 #define MLTCLIPPRODUCERWIDGET_H
 
+// Local
 #include "abstractproducerwidget.hpp"
 
+// Qt
+#include <MltProducer.h>
 #include <MltService.h>
 #include <QWidget>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class QLabel;
 
@@ -29,12 +34,12 @@ class MltClipProducerWidget : public QWidget, public AbstractProducerWidget {
 	Q_OBJECT
 
   public:
-	explicit MltClipProducerWidget(QWidget* parent = 0);
-	~MltClipProducerWidget();
+	explicit MltClipProducerWidget(QWidget* parent = nullptr);
+	~MltClipProducerWidget() override;
 
 	// AbstractProducerWidget overrides
-	Mlt::Producer* newProducer(Mlt::Profile&);
-	void           setProducer(Mlt::Producer*);
+	Mlt::Producer* newProducer(Mlt::Profile&) override;
+	void setProducer(Mlt::Producer*) override;
 
   private:
 	QLabel* m_nameLabel;

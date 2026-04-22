@@ -15,14 +15,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "abstractjob.hpp"
-
 #include "Logger.hpp"
 #include "postjobaction.hpp"
 
+// Qt
 #include <QAction>
 #include <QApplication>
 #include <QTimer>
+#include <debugapi.h>
+#include <handleapi.h>
+#include <minwindef.h>
+#include <processthreadsapi.h>
+#include <qcontainerfwd.h>
+#include <qdatetime.h>
+#include <qobjectdefs.h>
+#include <qprocess.h>
+#include <qthread.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <winnt.h>
 
 #ifdef Q_OS_WIN
 #include <windows.h>
@@ -30,8 +43,11 @@
 #include <signal.h>
 #endif
 
+// Number constants
+constexpr int singleShotNumber{2000};
+
 AbstractJob::AbstractJob(const QString& name, QThread::Priority priority)
-    : QProcess(0), m_item(0), m_ran(false), m_killed(false), m_label(name), m_startingPercent(0), m_priority(priority),
+	: QProcess(nullptr), m_item(nullptr), m_ran(false), m_killed(false), m_label(name), m_startingPercent(0), m_priority(priority),
       m_isPaused(false) {
 	setObjectName(name);
 	connect(this, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(onFinished(int, QProcess::ExitStatus)));
@@ -47,7 +63,7 @@ AbstractJob::AbstractJob(const QString& name, QThread::Priority priority)
 
 	connect(m_actionPause, &QAction::triggered, this, &AbstractJob::pause);
 	connect(m_actionResume, &QAction::triggered, this, &AbstractJob::resume);
-	connect(this, &AbstractJob::finished, this, [this]() {
+	connect(this, &AbstractJob::finished, this, [this]() -> void {
 		m_actionPause->setEnabled(false);
 		m_actionResume->setEnabled(false);
 	});
@@ -65,15 +81,15 @@ void AbstractJob::setStandardItem(QStandardItem* item) {
 	m_item = item;
 }
 
-QStandardItem* AbstractJob::standardItem() {
+auto AbstractJob::standardItem() -> QStandardItem* {
 	return m_item;
 }
 
-bool AbstractJob::ran() const {
+auto AbstractJob::ran() const -> bool {
 	return m_ran;
 }
 
-bool AbstractJob::stopped() const {
+auto AbstractJob::stopped() const -> bool {
 	return m_killed;
 }
 
@@ -83,7 +99,7 @@ void AbstractJob::appendToLog(const QString& s) {
 	}
 }
 
-QString AbstractJob::log() const {
+auto AbstractJob::log() const -> QString {
 	return m_log;
 }
 
@@ -91,10 +107,10 @@ void AbstractJob::setLabel(const QString& label) {
 	m_label = label;
 }
 
-QTime AbstractJob::estimateRemaining(int percent) {
+auto AbstractJob::estimateRemaining(int percent) -> QTime {
 	QTime result;
 	if (percent) {
-		int averageMs = m_estimateTime.elapsed() / qMax(1, percent - qMax(0, m_startingPercent));
+		const int averageMs = m_estimateTime.elapsed() / qMax(1, percent - qMax(0, m_startingPercent));
 		result        = QTime::fromMSecsSinceStartOfDay(averageMs * (100 - percent));
 	}
 	return result;
@@ -104,13 +120,13 @@ void AbstractJob::setPostJobAction(PostJobAction* action) {
 	m_postJobAction.reset(action);
 }
 
-bool AbstractJob::paused() const {
+auto AbstractJob::paused() const -> bool {
 	return m_isPaused;
 }
 
 void AbstractJob::start(const QString& program, const QStringList& arguments) {
-	QString     prog = program;
-	QStringList args = arguments;
+	QString const& prog = program;
+	QStringList const& args = arguments;
 #ifndef Q_OS_WIN
 	if (m_priority == QThread::LowPriority || m_priority == QThread::HighPriority) {
 		args.prepend(program);
@@ -136,7 +152,7 @@ void AbstractJob::stop() {
 	}
 	closeWriteChannel();
 	terminate();
-	QTimer::singleShot(2000, this, SLOT(kill()));
+	QTimer::singleShot(singleShotNumber, this, SLOT(kill()));
 	m_killed = true;
 	m_actionPause->setEnabled(false);
 	m_actionResume->setEnabled(false);
@@ -207,7 +223,7 @@ void AbstractJob::onReadyRead() {
 
 void AbstractJob::onStarted() {
 #ifdef Q_OS_WIN
-	qint64 processId     = QProcess::processId();
+	qint64 const processId = QProcess::processId();
 	HANDLE processHandle = OpenProcess(PROCESS_SET_INFORMATION, FALSE, processId);
 	if (processHandle) {
 		switch (m_priority) {

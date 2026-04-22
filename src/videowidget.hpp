@@ -18,16 +18,28 @@
 #ifndef VIDEOWIDGET_HPP
 #define VIDEOWIDGET_HPP
 
+// Local
 #include "mltcontroller.hpp"
 #include "settings.hpp"
 #include "sharedframe.hpp"
 
+// Qt
+#include <MltEvent.h>
+#include <MltProducer.h>
 #include <QMutex>
 #include <QQuickWidget>
 #include <QRectF>
 #include <QSemaphore>
 #include <QThread>
 #include <QTimer>
+#include <framework/mlt_events.h>
+#include <framework/mlt_types.h>
+#include <qevent.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+
+// STL
+#include <memory>
 
 class QmlFilter;
 class QmlMetadata;
@@ -52,7 +64,7 @@ class VideoWidget : public QQuickWidget, public Controller {
 
   public:
 	VideoWidget(QObject* parent = nullptr);
-	virtual ~VideoWidget();
+	~VideoWidget() override;
 
 	int  setProducer(Mlt::Producer*, bool isMulti = false) override;
 	void createThread(RenderThread** thread, thread_function_t function, void* data);
@@ -76,16 +88,16 @@ class VideoWidget : public QQuickWidget, public Controller {
 
 	void refreshConsumer(bool scrubAudio = false) override;
 
-	void pause(int position = -1) override {
+	void pause(int  /*position*/ = -1) override {
 		Controller::pause();
 		emit paused();
 	}
 
-	int displayWidth() const override {
+	[[nodiscard]] int displayWidth() const override {
 		return m_rect.width();
 	}
 
-	int displayHeight() const override {
+	[[nodiscard]] int displayHeight() const override {
 		return m_rect.height();
 	}
 
@@ -93,46 +105,45 @@ class VideoWidget : public QQuickWidget, public Controller {
 		return this;
 	}
 
-	QRectF rect() const {
+	[[nodiscard]] QRectF rect() const {
 		return m_rect;
 	}
 
-	int grid() const {
+	[[nodiscard]] int grid() const {
 		return m_grid;
 	}
 
-	float zoom() const {
+	[[nodiscard]] float zoom() const {
 		return m_zoom * MLT.profile().width() / m_rect.width();
 	}
 
-	QPoint offset() const;
-	QImage image() const;
-	bool   imageIsProxy() const;
-	void   requestImage() const;
+	[[nodiscard]] QPoint offset() const;
+	[[nodiscard]] QImage image() const;
+	[[nodiscard]] bool imageIsProxy() const;
+	void requestImage() const;
 
-	bool snapToGrid() const {
+	[[nodiscard]] bool snapToGrid() const {
 		return m_snapToGrid;
 	}
 
-	int maxTextureSize() const {
+	[[nodiscard]] int maxTextureSize() const {
 		return m_maxTextureSize;
 	}
 
 	void toggleVuiDisplay();
 
   public slots:
-	void         setGrid(int grid);
-	void         setZoom(float zoom);
-	void         setOffsetX(int x);
-	void         setOffsetY(int y);
-	void         setBlankScene();
-	void         setCurrentFilter(QmlFilter* filter, QmlMetadata* meta);
-	void         setSnapToGrid(bool snap);
+	void setGrid(int grid);
+	void setZoom(float zoom);
+	void setOffsetX(int x);
+	void setOffsetY(int y);
+	void setBlankScene();
+	void setCurrentFilter(QmlFilter* filter, QmlMetadata* meta);
+	void setSnapToGrid(bool snap);
 	virtual void initialize();
 	virtual void beforeRendering() {};
 	virtual void renderVideo();
 	virtual void onFrameDisplayed(const SharedFrame& frame);
-
   signals:
 	void frameDisplayed(const SharedFrame& frame);
 	void dragStarted();
@@ -149,27 +160,26 @@ class VideoWidget : public QQuickWidget, public Controller {
 	void snapToGridChanged();
 	void toggleZoom(bool);
 	void stepZoom(float, float);
-
   private:
-	QRectF                        m_rect;
-	int                           m_grid;
-	QPoint                        m_dragStart;
-	QSemaphore                    m_initSem;
-	bool                          m_isInitialized;
-	std::unique_ptr<Filter>       m_glslManager;
-	std::unique_ptr<Event>        m_threadStartEvent;
-	std::unique_ptr<Event>        m_threadStopEvent;
-	std::unique_ptr<Event>        m_threadCreateEvent;
-	std::unique_ptr<Event>        m_threadJoinEvent;
-	FrameRenderer*                m_frameRenderer;
-	float                         m_zoom;
-	QPoint                        m_offset;
-	QUrl                          m_savedQmlSource;
-	bool                          m_hideVui;
-	bool                          m_snapToGrid;
-	QTimer                        m_refreshTimer;
-	bool                          m_scrubAudio;
-	QPoint                        m_mousePosition;
+	QRectF m_rect;
+	int m_grid;
+	QPoint m_dragStart;
+	QSemaphore m_initSem;
+	bool m_isInitialized;
+	std::unique_ptr<Filter> m_glslManager;
+	std::unique_ptr<Event> m_threadStartEvent;
+	std::unique_ptr<Event> m_threadStopEvent;
+	std::unique_ptr<Event> m_threadCreateEvent;
+	std::unique_ptr<Event> m_threadJoinEvent;
+	FrameRenderer* m_frameRenderer;
+	float m_zoom;
+	QPoint m_offset;
+	QUrl m_savedQmlSource;
+	bool m_hideVui;
+	bool m_snapToGrid;
+	QTimer m_refreshTimer;
+	bool m_scrubAudio;
+	QPoint m_mousePosition;
 	std::unique_ptr<RenderThread> m_renderThread;
 
 	static void on_frame_show(mlt_consumer, VideoWidget* widget, mlt_event_data);
@@ -187,24 +197,24 @@ class VideoWidget : public QQuickWidget, public Controller {
 	bool event(QEvent* event) override;
 	void createShader();
 
-	int         m_maxTextureSize;
+	int m_maxTextureSize;
 	SharedFrame m_sharedFrame;
-	QMutex      m_mutex;
+	QMutex m_mutex;
 };
 
 class RenderThread : public QThread {
 	Q_OBJECT
   public:
 	RenderThread(thread_function_t function, void* data);
-	~RenderThread();
+	~RenderThread() override;
 
   protected:
-	void run();
+	void run() override;
 
   private:
-	thread_function_t                  m_function;
-	void*                              m_data;
-	std::unique_ptr<QOpenGLContext>    m_context;
+	thread_function_t m_function;
+	void* m_data;
+	std::unique_ptr<QOpenGLContext> m_context;
 	std::unique_ptr<QOffscreenSurface> m_surface;
 };
 
@@ -212,17 +222,17 @@ class FrameRenderer : public QThread {
 	Q_OBJECT
   public:
 	FrameRenderer();
-	~FrameRenderer();
+	~FrameRenderer() override;
 
 	QSemaphore* semaphore() {
 		return &m_semaphore;
 	}
 
-	SharedFrame      getDisplayFrame();
+	SharedFrame getDisplayFrame();
 	Q_INVOKABLE void showFrame(Mlt::Frame frame);
-	void             requestImage();
+	void requestImage();
 
-	QImage image() const {
+	[[nodiscard]] QImage image() const {
 		return m_image;
 	}
 
@@ -231,10 +241,10 @@ class FrameRenderer : public QThread {
 	void imageReady();
 
   private:
-	QSemaphore  m_semaphore;
+	QSemaphore m_semaphore;
 	SharedFrame m_displayFrame;
-	bool        m_imageRequested;
-	QImage      m_image;
+	bool m_imageRequested;
+	QImage m_image;
 };
 
 } // namespace Mlt

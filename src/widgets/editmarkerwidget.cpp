@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "editmarkerwidget.h"
-
 #include "mltcontroller.hpp"
 #include "qmltypes/colordialog.hpp"
 #include "qmltypes/qmlapplication.hpp"
@@ -24,6 +24,7 @@
 #include "util.hpp"
 #include "widgets/timespinbox.h"
 
+// Qt
 #include <QDebug>
 #include <QGridLayout>
 #include <QHBoxLayout>
@@ -31,11 +32,14 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QSignalBlocker>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
 
 EditMarkerWidget::EditMarkerWidget(QWidget* parent, const QString& text, const QColor& color, int start, int end,
                                    int maxEnd)
-    : QWidget(parent) {
-	QGridLayout* grid = new QGridLayout();
+	: QWidget(parent) {
+	auto* grid = new QGridLayout();
 	setLayout(grid);
 	grid->setColumnMinimumWidth(0, 125);
 	grid->setColumnMinimumWidth(1, 125);
@@ -77,30 +81,29 @@ EditMarkerWidget::EditMarkerWidget(QWidget* parent, const QString& text, const Q
 	grid->addWidget(m_durationLabel, 4, 1);
 }
 
-EditMarkerWidget::~EditMarkerWidget() {
-}
+EditMarkerWidget::~EditMarkerWidget() = default;
 
-QString EditMarkerWidget::getText() {
+auto EditMarkerWidget::getText() -> QString {
 	return m_textField->text();
 }
 
-QColor EditMarkerWidget::getColor() {
-	return QColor(m_colorLabel->text());
+auto EditMarkerWidget::getColor() -> QColor {
+	return {m_colorLabel->text()};
 }
 
-int EditMarkerWidget::getStart() {
+auto EditMarkerWidget::getStart() -> int {
 	return m_startSpinner->value();
 }
 
-int EditMarkerWidget::getEnd() {
+auto EditMarkerWidget::getEnd() -> int {
 	return m_endSpinner->value();
 }
 
 void EditMarkerWidget::setValues(const QString& text, const QColor& color, int start, int end, int maxEnd) {
-	QSignalBlocker textBlocker(m_textField);
-	QSignalBlocker colorBlocker(m_colorLabel);
-	QSignalBlocker startBlocker(m_startSpinner);
-	QSignalBlocker endBlocker(m_endSpinner);
+	QSignalBlocker const textBlocker(m_textField);
+	QSignalBlocker const colorBlocker(m_colorLabel);
+	QSignalBlocker const startBlocker(m_startSpinner);
+	QSignalBlocker const endBlocker(m_endSpinner);
 	m_textField->setText(text);
 	m_colorLabel->setText(color.name(QColor::HexRgb));
 	m_colorLabel->setStyleSheet(
@@ -116,8 +119,8 @@ void EditMarkerWidget::setValues(const QString& text, const QColor& color, int s
 }
 
 void EditMarkerWidget::on_colorButton_clicked() {
-	QColor color    = QColor(m_colorLabel->text());
-	auto   newColor = ColorDialog::getColor(color, this, QString(), false);
+	QColor const color    = QColor(m_colorLabel->text());
+	auto newColor = ColorDialog::getColor(color, this, QString(), false);
 
 	if (newColor.isValid()) {
 		m_colorLabel->setText(newColor.name(QColor::HexRgb));
@@ -142,7 +145,7 @@ void EditMarkerWidget::on_endSpinner_valueChanged(int value) {
 
 void EditMarkerWidget::updateDuration() {
 	if (MLT.producer()) {
-		int duration = m_endSpinner->value() - m_startSpinner->value() + 1;
+		const int duration = m_endSpinner->value() - m_startSpinner->value() + 1;
 		m_durationLabel->setText(MLT.producer()->frames_to_time(duration, Settings.timeFormat()));
 	} else {
 		m_durationLabel->setText("--:--:--:--");

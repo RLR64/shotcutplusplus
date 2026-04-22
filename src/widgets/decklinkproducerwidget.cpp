@@ -15,12 +15,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "decklinkproducerwidget.h"
-
+#include "abstractproducerwidget.hpp"
 #include "mltcontroller.hpp"
 #include "shotcut_mlt_properties.hpp"
 #include "ui_decklinkproducerwidget.h"
 #include "util.hpp"
+
+// Qt
+#include <MltProfile.h>
+#include <qcoreapplication.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 DecklinkProducerWidget::DecklinkProducerWidget(QWidget* parent) : QWidget(parent), ui(new Ui::DecklinkProducerWidget) {
 	ui->setupUi(this);
@@ -47,13 +54,13 @@ DecklinkProducerWidget::DecklinkProducerWidget(QWidget* parent) : QWidget(parent
 	ui->profileCombo->addItem("UHD 2160p 59.94 fps", "uhd_2160p_5994");
 	ui->profileCombo->addItem("UHD 2160p 60 fps", "uhd_2160p_60");
 
-	Mlt::Profile  profile;
+	Mlt::Profile profile;
 	Mlt::Producer p(profile, "decklink:");
 	if (p.is_valid()) {
 		p.set("list_devices", 1);
-		int n = p.get_int("devices");
+		const int n = p.get_int("devices");
 		for (int i = 0; i < n; ++i) {
-			QString device(p.get(QStringLiteral("device.%1").arg(i).toLatin1().constData()));
+			QString const device(p.get(QStringLiteral("device.%1").arg(i).toLatin1().constData()));
 			if (!device.isEmpty())
 				ui->deviceCombo->addItem(device);
 		}
@@ -64,19 +71,18 @@ DecklinkProducerWidget::~DecklinkProducerWidget() {
 	delete ui;
 }
 
-Mlt::Producer* DecklinkProducerWidget::newProducer(Mlt::Profile& profile) {
-	Mlt::Producer* p = new Mlt::Producer(
+auto DecklinkProducerWidget::newProducer(Mlt::Profile& profile) -> Mlt::Producer* {
+	auto* p = new Mlt::Producer(
 	    profile, QStringLiteral("consumer:decklink:%1").arg(ui->deviceCombo->currentIndex()).toLatin1().constData());
 	if (p->is_valid()) {
-		p->set("profile",
-		       ui->profileCombo->itemData(ui->profileCombo->currentIndex()).toString().toLatin1().constData());
+		p->set("profile",ui->profileCombo->itemData(ui->profileCombo->currentIndex()).toString().toLatin1().constData());
 		p->set(kBackgroundCaptureProperty, 2);
 		p->set(kShotcutCaptionProperty, tr("SDI/HDMI").toUtf8().constData());
 	}
 	return p;
 }
 
-Mlt::Properties DecklinkProducerWidget::getPreset() const {
+auto DecklinkProducerWidget::getPreset() const -> Mlt::Properties {
 	Mlt::Properties p;
 	p.set("card", ui->deviceCombo->currentIndex());
 	p.set("profile", ui->profileCombo->currentIndex());
@@ -96,8 +102,8 @@ void DecklinkProducerWidget::loadPreset(Mlt::Properties& p) {
 void DecklinkProducerWidget::on_deviceCombo_activated(int /*index*/) {
 	if (m_producer) {
 		MLT.close();
-		AbstractProducerWidget::setProducer(0);
-		emit producerChanged(0);
+		AbstractProducerWidget::setProducer(nullptr);
+		emit producerChanged(nullptr);
 		QCoreApplication::processEvents();
 
 		Mlt::Producer* p = newProducer(MLT.profile());

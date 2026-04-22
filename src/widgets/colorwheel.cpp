@@ -18,9 +18,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "colorwheel.h"
 
+// Qt
+#include <qbrush.h>
+#include <qevent.h>
 #include <qmath.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qpainter.h>
+#include <qpoint.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+
+// STl
+#include <cmath>
 
 ColorWheel::ColorWheel(QWidget* parent)
     : QWidget(parent), m_initialSize(300, 300), m_isMouseDown(false), m_margin(5), m_sliderWidth(30),
@@ -31,7 +46,7 @@ ColorWheel::ColorWheel(QWidget* parent)
 	setCursor(Qt::CrossCursor);
 }
 
-QColor ColorWheel::color() {
+auto ColorWheel::color() -> QColor {
 	return m_color;
 }
 
@@ -39,40 +54,40 @@ void ColorWheel::setColor(const QColor& color) {
 	m_color = color;
 }
 
-int ColorWheel::wheelSize() const {
+auto ColorWheel::wheelSize() const -> int {
 	return qMin(width() - m_sliderWidth, height());
 }
 
-QColor ColorWheel::colorForPoint(const QPoint& point) {
+auto ColorWheel::colorForPoint(const QPoint& point) -> QColor {
 	if (!m_image.valid(point))
-		return QColor();
+		return {};
 	if (m_isInWheel) {
-		qreal w     = wheelSize();
-		qreal xf    = qreal(point.x()) / w;
-		qreal yf    = 1.0 - qreal(point.y()) / w;
-		qreal xp    = 2.0 * xf - 1.0;
-		qreal yp    = 2.0 * yf - 1.0;
-		qreal rad   = qMin(hypot(xp, yp), 1.0);
+		const qreal w = wheelSize();
+		const qreal xf = qreal(point.x()) / w;
+		const qreal yf = 1.0 - qreal(point.y()) / w;
+		const qreal xp = 2.0 * xf - 1.0;
+		const qreal yp = 2.0 * yf - 1.0;
+		const qreal rad = qMin(hypot(xp, yp), 1.0);
 		qreal theta = qAtan2(yp, xp);
 		theta -= 105.0 / 360.0 * 2.0 * M_PI;
 		if (theta < 0.0)
 			theta += 2.0 * M_PI;
-		qreal hue = (theta * 180.0 / M_PI) / 360.0;
+		const qreal hue = (theta * 180.0 / M_PI) / 360.0;
 		return QColor::fromHsvF(hue, rad, m_color.valueF());
 	}
 	if (m_isInSquare) {
-		qreal value = 1.0 - qreal(point.y() - m_margin) / (wheelSize() - m_margin * 2);
+		const qreal value = 1.0 - qreal(point.y() - m_margin) / (wheelSize() - m_margin * 2);
 		return QColor::fromHsvF(m_color.hueF(), m_color.saturationF(), value);
 	}
-	return QColor();
+	return {};
 }
 
-QSize ColorWheel::sizeHint() const {
-	return QSize(height(), height());
+auto ColorWheel::sizeHint() const -> QSize {
+	return {height(), height()};
 }
 
-QSize ColorWheel::minimumSizeHint() const {
-	return QSize(100, 100);
+auto ColorWheel::minimumSizeHint() const -> QSize {
+	return {100, 100};
 }
 
 void ColorWheel::mousePressEvent(QMouseEvent* event) {
@@ -80,12 +95,12 @@ void ColorWheel::mousePressEvent(QMouseEvent* event) {
 	if (m_wheelRegion.contains(m_lastPoint)) {
 		m_isInWheel  = true;
 		m_isInSquare = false;
-		QColor color = colorForPoint(m_lastPoint);
+		QColor const color = colorForPoint(m_lastPoint);
 		changeColor(color);
 	} else if (m_sliderRegion.contains(m_lastPoint)) {
 		m_isInWheel  = false;
 		m_isInSquare = true;
-		QColor color = colorForPoint(m_lastPoint);
+		QColor const color = colorForPoint(m_lastPoint);
 		changeColor(color);
 	}
 	m_isMouseDown = true;
@@ -96,10 +111,10 @@ void ColorWheel::mouseMoveEvent(QMouseEvent* event) {
 	if (!m_isMouseDown)
 		return;
 	if (m_wheelRegion.contains(m_lastPoint) && m_isInWheel) {
-		QColor color = colorForPoint(m_lastPoint);
+		QColor const color = colorForPoint(m_lastPoint);
 		changeColor(color);
 	} else if (m_sliderRegion.contains(m_lastPoint) && m_isInSquare) {
-		QColor color = colorForPoint(m_lastPoint);
+		QColor const color = colorForPoint(m_lastPoint);
 		changeColor(color);
 	}
 }
@@ -133,7 +148,7 @@ void ColorWheel::paintEvent(QPaintEvent* event) {
 }
 
 void ColorWheel::drawWheel() {
-	int      r = wheelSize();
+	const int r = wheelSize();
 	QPainter painter(&m_image);
 	painter.setRenderHint(QPainter::Antialiasing);
 	m_image.fill(0); // transparent
@@ -154,12 +169,12 @@ void ColorWheel::drawWheel() {
 	painter.translate(r / 2, r / 2);
 	painter.rotate(-105);
 
-	QBrush hueBrush(conicalGradient);
+	QBrush const hueBrush(conicalGradient);
 	painter.setPen(Qt::NoPen);
 	painter.setBrush(hueBrush);
 	painter.drawEllipse(QPoint(0, 0), r / 2 - m_margin, r / 2 - m_margin);
 
-	QBrush saturationBrush(radialGradient);
+	QBrush const saturationBrush(radialGradient);
 	painter.setBrush(saturationBrush);
 	painter.drawEllipse(QPoint(0, 0), r / 2 - m_margin, r / 2 - m_margin);
 
@@ -170,14 +185,14 @@ void ColorWheel::drawWheel() {
 void ColorWheel::drawSlider() {
 	QPainter painter(&m_image);
 	painter.setRenderHint(QPainter::Antialiasing);
-	int             ws    = wheelSize();
-	qreal           scale = qreal(ws + m_sliderWidth) / maximumWidth();
-	int             w     = m_sliderWidth * scale;
-	int             h     = ws - m_margin * 2;
+	const int ws = wheelSize();
+	const qreal scale = qreal(ws + m_sliderWidth) / maximumWidth();
+	const int w = m_sliderWidth * scale;
+	const int h = ws - m_margin * 2;
 	QLinearGradient gradient(0, 0, w, h);
 	gradient.setColorAt(0.0, Qt::white);
 	gradient.setColorAt(1.0, Qt::black);
-	QBrush brush(gradient);
+	QBrush const brush(gradient);
 	painter.setPen(Qt::NoPen);
 	painter.setBrush(brush);
 	painter.translate(ws, m_margin);
@@ -186,7 +201,7 @@ void ColorWheel::drawSlider() {
 }
 
 void ColorWheel::drawWheelDot(QPainter& painter) {
-	int  r = wheelSize() / 2;
+	const int r = wheelSize() / 2;
 	QPen pen(Qt::white);
 	pen.setWidth(2);
 	painter.setPen(pen);
@@ -200,12 +215,12 @@ void ColorWheel::drawWheelDot(QPainter& painter) {
 }
 
 void ColorWheel::drawSliderBar(QPainter& painter) {
-	qreal value = 1.0 - m_color.valueF();
-	int   ws    = wheelSize();
-	qreal scale = qreal(ws + m_sliderWidth) / maximumWidth();
-	int   w     = m_sliderWidth * scale;
-	int   h     = ws - m_margin * 2;
-	QPen  pen(Qt::white);
+	const qreal value = 1.0 - m_color.valueF();
+	const int ws = wheelSize();
+	const qreal scale = qreal(ws + m_sliderWidth) / maximumWidth();
+	const int w = m_sliderWidth * scale;
+	const int h = ws - m_margin * 2;
+	QPen pen(Qt::white);
 	pen.setWidth(2);
 	painter.setPen(pen);
 	painter.setBrush(Qt::black);

@@ -18,11 +18,16 @@
 #ifndef PLAYLISTCOMMANDS_HPP
 #define PLAYLISTCOMMANDS_HPP
 
+// Local
 #include "models/playlistmodel.hpp"
 
+// Qt
+#include <MltProperties.h>
 #include <QString>
 #include <QUndoCommand>
 #include <QUuid>
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
 
 class QTreeWidget;
 
@@ -32,7 +37,7 @@ enum { UndoIdTrimClipIn = 0, UndoIdTrimClipOut, UndoIdUpdate };
 
 class AppendCommand : public QUndoCommand {
   public:
-	AppendCommand(PlaylistModel& Model, const QString& Xml, bool EmitModified = true, QUndoCommand* Parent = nullptr);
+	AppendCommand(PlaylistModel& Model, QString  Xml, bool EmitModified = true, QUndoCommand* Parent = nullptr);
 	void Redo();
 	void Undo();
 
@@ -45,7 +50,7 @@ class AppendCommand : public QUndoCommand {
 
 class InsertCommand : public QUndoCommand {
   public:
-	InsertCommand(PlaylistModel& Model, const QString& Xml, int Row, QUndoCommand* Parent = nullptr);
+	InsertCommand(PlaylistModel& Model, QString  Xml, int Row, QUndoCommand* Parent = nullptr);
 	void Redo();
 	void Undo();
 
@@ -58,16 +63,16 @@ class InsertCommand : public QUndoCommand {
 
 class UpdateCommand : public QUndoCommand {
   public:
-	UpdateCommand(PlaylistModel& Model, const QString& Xml, int Row, QUndoCommand* Parent = nullptr);
+	UpdateCommand(PlaylistModel& Model, QString  Xml, int Row, QUndoCommand* Parent = nullptr);
 	void Redo();
 	void Undo();
 
   protected:
-	int Id() const {
+	[[nodiscard]] auto id() const -> int override {
 		return UndoIdUpdate;
 	}
 
-	bool MergeWith(const QUndoCommand* Other);
+	auto mergeWith(const QUndoCommand* Other) -> bool override;
 
   private:
 	PlaylistModel& m_model;
@@ -135,11 +140,11 @@ class TrimClipInCommand : public QUndoCommand {
 	void Undo();
 
   protected:
-	int Id() const {
+	[[nodiscard]] auto id() const -> int override {
 		return UndoIdTrimClipIn;
 	}
 
-	bool MergeWith(const QUndoCommand* Other);
+	auto mergeWith(const QUndoCommand* Other) -> bool override;
 
   private:
 	PlaylistModel& m_model;
@@ -156,11 +161,11 @@ class TrimClipOutCommand : public QUndoCommand {
 	void Undo();
 
   protected:
-	int Id() const {
+	[[nodiscard]] auto id() const -> int override {
 		return UndoIdTrimClipOut;
 	}
 
-	bool MergeWith(const QUndoCommand* Other);
+	auto mergeWith(const QUndoCommand* Other) -> bool override;
 
   private:
 	PlaylistModel& m_model;
@@ -172,7 +177,7 @@ class TrimClipOutCommand : public QUndoCommand {
 
 class ReplaceCommand : public QUndoCommand {
   public:
-	ReplaceCommand(PlaylistModel& Model, const QString& Xml, int Row, QUndoCommand* Parent = nullptr);
+	ReplaceCommand(PlaylistModel& Model, QString  Xml, int Row, QUndoCommand* Parent = nullptr);
 	void Redo();
 	void Undo();
 

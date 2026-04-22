@@ -19,9 +19,15 @@
 #ifndef NETWORKPRODUCERWIDGET_H
 #define NETWORKPRODUCERWIDGET_H
 
+// Local
 #include "abstractproducerwidget.hpp"
 
+// Qt
+#include <MltProducer.h>
+#include <MltProperties.h>
 #include <QWidget>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 namespace Ui {
 class NetworkProducerWidget;
@@ -31,14 +37,14 @@ class NetworkProducerWidget : public QWidget, public AbstractProducerWidget {
 	Q_OBJECT
 
   public:
-	explicit NetworkProducerWidget(QWidget* parent = 0);
-	~NetworkProducerWidget();
+	explicit NetworkProducerWidget(QWidget* parent = nullptr);
+	~NetworkProducerWidget() override;
 
 	// AbstractProducerWidget overrides
-	Mlt::Producer*  newProducer(Mlt::Profile&);
-	Mlt::Properties getPreset() const;
-	void            loadPreset(Mlt::Properties&);
-	void            setProducer(Mlt::Producer*);
+	Mlt::Producer*  newProducer(Mlt::Profile&) override;
+	[[nodiscard]] Mlt::Properties getPreset() const override;
+	void loadPreset(Mlt::Properties&) override;
+	void setProducer(Mlt::Producer*) override;
 
   private slots:
 	void on_preset_selected(void* p);
@@ -46,7 +52,7 @@ class NetworkProducerWidget : public QWidget, public AbstractProducerWidget {
 
   private:
 	Ui::NetworkProducerWidget* ui;
-	void                       on_applyButton_clicked();
+	void on_applyButton_clicked();
 };
 
 #endif // NETWORKPRODUCERWIDGET_H

@@ -18,7 +18,10 @@
 #ifndef TRANSCODEDIALOG_HPP
 #define TRANSCODEDIALOG_HPP
 
+// Qt
 #include <QDialog>
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 namespace Ui {
 class TranscodeDialog;
@@ -29,27 +32,27 @@ class TranscodeDialog : public QDialog {
 
   public:
 	explicit TranscodeDialog(const QString& message, bool isProgressive, QWidget* parent = nullptr);
-	~TranscodeDialog();
+	~TranscodeDialog() override;
 
-	int format() const {
+	[[nodiscard]] constexpr auto format() -> int const {
 		return m_format;
 	}
 
 	void showCheckBox();
 
-	bool isCheckBoxChecked() const {
+	[[nodiscard]] auto isCheckBoxChecked() -> bool const {
 		return m_isChecked;
 	}
 
-	bool    deinterlace() const;
-	bool    fpsOverride() const;
-	double  fps() const;
-	QString frc() const;
-	bool    get709Convert();
+	[[nodiscard]] auto    deinterlace() const -> bool;
+	[[nodiscard]] auto    fpsOverride() const -> bool;
+	[[nodiscard]] auto  fps() const -> double;
+	[[nodiscard]] auto frc() const -> QString;
+	auto    get709Convert() -> bool;
 	void    set709Convert(bool enable);
-	QString sampleRate() const;
+	[[nodiscard]] auto sampleRate() const -> QString;
 	void    showSubClipCheckBox();
-	bool    isSubClip() const;
+	[[nodiscard]] auto    isSubClip() const -> bool;
 	void    setSubClipChecked(bool checked);
 	void    setFrameRate(double fps);
 

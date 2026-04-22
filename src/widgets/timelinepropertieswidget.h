@@ -18,8 +18,12 @@
 #ifndef TIMELINEPROPERTIESWIDGET_H
 #define TIMELINEPROPERTIESWIDGET_H
 
+// Qt
 #include <MltService.h>
 #include <QWidget>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 namespace Ui {
 class TimelinePropertiesWidget;
@@ -29,15 +33,15 @@ class TimelinePropertiesWidget : public QWidget {
 	Q_OBJECT
 
   public:
-	explicit TimelinePropertiesWidget(Mlt::Service& service, QWidget* parent = 0);
-	~TimelinePropertiesWidget();
+	explicit TimelinePropertiesWidget(Mlt::Service& service, QWidget* parent = nullptr);
+	~TimelinePropertiesWidget() override;
 
   signals:
 	void editProfile();
 
   private:
 	Ui::TimelinePropertiesWidget* ui;
-	Mlt::Service                  m_service;
+	Mlt::Service m_service;
 };
 
 #endif // TIMELINEPROPERTIESWIDGET_H

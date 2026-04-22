@@ -15,11 +15,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "videoqualityjob.hpp"
-
 #include "dialogs/textviewerdialog.hpp"
+#include "meltjob.hpp"
 #include "mainwindow.hpp"
 
+// Qt
 #include <QAction>
 #include <QDesktopServices>
 #include <QDomDocument>
@@ -27,11 +29,11 @@
 #include <QFileInfo>
 #include <QTextStream>
 #include <QUrl>
+#include <qobjectdefs.h>
 
-VideoQualityJob::VideoQualityJob(const QString& name, const QString& xml, const QString& reportPath, int frameRateNum,
-                                 int frameRateDen)
+VideoQualityJob::VideoQualityJob(const QString& name, const QString& xml, const QString& reportPath, int frameRateNum, int frameRateDen)
     : MeltJob(name, xml, frameRateNum, frameRateDen), m_reportPath(reportPath) {
-	QAction* action = new QAction(tr("Open"), this);
+	auto* action = new QAction(tr("Open"), this);
 	action->setData("Open");
 	action->setToolTip(tr("Open original and encoded side-by-side in the Shotcut player"));
 	connect(action, SIGNAL(triggered()), this, SLOT(onOpenTiggered()));
@@ -62,7 +64,7 @@ void VideoQualityJob::onOpenTiggered() {
 	file.close();
 
 	// Locate the VQM transition.
-	QDomNodeList transitions = dom.elementsByTagName("transition");
+	QDomNodeList const transitions = dom.elementsByTagName("transition");
 	for (int i = 0; i < transitions.length(); i++) {
 		QDomElement property = transitions.at(i).firstChildElement("property");
 		while (!property.isNull()) {
@@ -89,7 +91,7 @@ void VideoQualityJob::onViewReportTriggered() {
 	dialog.setWindowTitle(tr("Video Quality Measurement"));
 	QFile f(m_reportPath);
 	f.open(QIODevice::ReadOnly);
-	QString s(f.readAll());
+	QString const s(f.readAll());
 	f.close();
 	dialog.setText(s);
 	dialog.exec();

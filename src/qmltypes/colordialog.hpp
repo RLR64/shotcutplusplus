@@ -18,8 +18,11 @@
 #ifndef COLORDIALOG_HPP
 #define COLORDIALOG_HPP
 
+// Qt
 #include <QColor>
 #include <QObject>
+#include <qnamespace.h>
+#include <qtmetamacros.h>
 
 class ColorDialog : public QObject {
 	Q_OBJECT
@@ -33,8 +36,8 @@ class ColorDialog : public QObject {
 	Q_INVOKABLE void open();
 
 	// Static convenience method for non-QML usage
-	static QColor getColor(const QColor& initial = Qt::white, QWidget* parent = nullptr,
-	                       const QString& title = QString(), bool showAlpha = true);
+	static auto getColor(const QColor& initial = Qt::white, QWidget* parent = nullptr,
+						   const QString& title = QString(), bool showAlpha = true) -> QColor;
 
   signals:
 	void selectedColorChanged(const QColor& color);
@@ -47,19 +50,19 @@ class ColorDialog : public QObject {
 	QString m_title;
 	bool    m_showAlpha = true;
 
-	QColor selectedColor() const {
+	[[nodiscard]] auto selectedColor() const -> QColor {
 		return m_color;
 	}
 
 	void setSelectedColor(const QColor& color);
 
-	QString title() const {
+	[[nodiscard]] auto title() const -> QString {
 		return m_title;
 	}
 
 	void setTitle(const QString& title);
 
-	bool showAlpha() const {
+	[[nodiscard]] auto showAlpha() const -> bool {
 		return m_showAlpha;
 	}
 

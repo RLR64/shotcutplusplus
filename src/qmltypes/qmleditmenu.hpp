@@ -18,7 +18,9 @@
 #ifndef QMLEDITMENU_HPP
 #define QMLEDITMENU_HPP
 
+// Qt
 #include <QObject>
+#include <qtmetamacros.h>
 
 class QmlEditMenu : public QObject {
 	Q_OBJECT

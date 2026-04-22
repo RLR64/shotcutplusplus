@@ -18,15 +18,20 @@
 #ifndef DOCKERPULLJOB_HPP
 #define DOCKERPULLJOB_HPP
 
+// Local
 #include "abstractjob.hpp"
+#include "settings.hpp"
 
+// Qt
 #include <QString>
+#include <qthread.h>
+#include <qtmetamacros.h>
 
 class DockerPullJob : public AbstractJob {
 	Q_OBJECT
   public:
 	DockerPullJob(const QString& imageRef, QThread::Priority priority = Settings.jobPriority());
-	virtual ~DockerPullJob();
+	~DockerPullJob() override;
 
   public slots:
 	void start() override;

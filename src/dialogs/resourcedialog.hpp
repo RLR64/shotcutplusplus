@@ -18,7 +18,10 @@
 #ifndef RESOURCEDIALOG_HPP
 #define RESOURCEDIALOG_HPP
 
+// Qt
 #include <QDialog>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class ResourceWidget;
 
@@ -34,15 +37,15 @@ class ResourceDialog : public QDialog {
 	void          search(Mlt::Producer* producer);
 	void          add(Mlt::Producer* producer);
 	void          selectTroubleClips();
-	bool          hasTroubleClips();
-	int           producerCount();
-	Mlt::Producer producer(int index);
+	auto          hasTroubleClips() -> bool;
+	auto           producerCount() -> int;
+	auto producer(int index) -> Mlt::Producer;
 
   private slots:
 	void convert();
 
   protected:
-	virtual void showEvent(QShowEvent* event) override;
+	void showEvent(QShowEvent* event) override;
 
   private:
 	ResourceWidget* m_resourceWidget;

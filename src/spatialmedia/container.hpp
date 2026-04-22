@@ -22,24 +22,29 @@
 // MPEG processing classes.
 //
 // Functions for loading MPEG files and manipulating boxes.
+
+// Local
 #include "box.hpp"
 
+// STL
+#include <cstdint>
+#include <fstream>
 #include <vector>
 
 class Container : public Box {
   public:
 	Container(uint32_t iPadding = 0);
-	virtual ~Container();
+	~Container() override;
 
 	static Box*              load(std::fstream&, uint32_t iPos, uint32_t iEnd);
 	static std::vector<Box*> load_multiple(std::fstream&, uint32_t iPos, uint32_t iEnd);
 
 	void         resize();
-	virtual void print_structure(const char*);
+	void print_structure(const char*) override;
 	void         remove(const char*);
 	bool         add(Box*);
 	bool         merge(Box*);
-	virtual void save(std::fstream&, std::fstream&, int32_t);
+	void save(std::fstream&, std::fstream&, int32_t) override;
 
   public:
 	uint32_t          m_iPadding;

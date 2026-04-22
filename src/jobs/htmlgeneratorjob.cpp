@@ -15,15 +15,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "htmlgeneratorjob.hpp"
-
 #include "Logger.hpp"
+#include "htmlgenerator.hpp"
+#include "jobs/abstractjob.hpp"
+#include "jobs/postjobaction.hpp"
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"
 #include "settings.hpp"
 #include "shotcut_mlt_properties.hpp"
 #include "widgets/htmlgeneratorwidget.h"
 
+// Qt
+#include <MltProducer.h>
 #include <QAction>
 #include <QApplication>
 #include <QDir>
@@ -31,8 +36,21 @@
 #include <QRegularExpression>
 #include <QStandardPaths>
 #include <QTemporaryFile>
+#include <qcontainerfwd.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qprocess.h>
+#include <qsize.h>
+#include <qtemporarydir.h>
+#include <qthread.h>
+#include <qtimer.h>
+#include <qtmetamacros.h>
 
-static double fps() {
+// STL
+#include <algorithm>
+#include <memory>
+
+static auto fps() -> double {
 	return std::min(15.0, MLT.profile().fps());
 }
 
@@ -44,7 +62,7 @@ HtmlGeneratorJob::HtmlGeneratorJob(const QString& name, const QString& html, con
 
 	// Create temporary directory for animation frames
 	const auto outDir = QFileInfo(m_outputPath).dir();
-	m_tempDir.reset(new QTemporaryDir(outDir.filePath("shotcut-htmlgen-XXXXXX")));
+	m_tempDir = std::make_unique<QTemporaryDir>(outDir.filePath("shotcut-htmlgen-XXXXXX"));
 	if (!m_tempDir->isValid()) {
 		LOG_ERROR() << "Failed to create temp directory for HTML animation frames:" << m_tempDir->path();
 	}
@@ -105,7 +123,7 @@ void HtmlGeneratorJob::onAnimationFramesReady() {
 	}
 
 	// Now start FFmpeg process
-	const auto      shotcutPath = qApp->applicationDirPath();
+	const auto shotcutPath = qApp->applicationDirPath();
 	const QFileInfo ffmpegPath(shotcutPath, "ffmpeg");
 
 	QStringList args;
@@ -138,12 +156,12 @@ void HtmlGeneratorJob::onReadyRead() {
 		// Look for progress information in FFmpeg output
 		if (msg.contains("frame=")) {
 			// Extract frame number from FFmpeg output
-			static QRegularExpression frameRegex("frame=\\s*(\\d+)");
+			static QRegularExpression const frameRegex("frame=\\s*(\\d+)");
 			const auto                match = frameRegex.match(msg);
 			if (match.hasMatch()) {
-				int currentFrame = match.captured(1).toInt();
-				int totalFrames  = qRound((m_duration / 1000.0) * fps());
-				int percent      = 80 + qRound((currentFrame * 80.0) / totalFrames); // 80-100%
+				const int currentFrame = match.captured(1).toInt();
+				const int totalFrames  = qRound((m_duration / 1000.0) * fps());
+				const int percent      = 80 + qRound((currentFrame * 80.0) / totalFrames); // 80-100%
 				if (percent != m_previousPercent) {
 					emit progressUpdated(m_item, percent);
 					m_previousPercent = percent;

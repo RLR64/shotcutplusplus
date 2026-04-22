@@ -18,15 +18,20 @@
 #ifndef FILTERCONTROLLER_HPP
 #define FILTERCONTROLLER_HPP
 
+// Local
 #include "models/attachedfiltersmodel.hpp"
 #include "models/metadatamodel.hpp"
 #include "models/motiontrackermodel.hpp"
 #include "qmltypes/qmlfilter.hpp"
 #include "qmltypes/qmlmetadata.hpp"
 
+// Qt
+#include <MltProducer.h>
 #include <QFuture>
 #include <QObject>
 #include <QScopedPointer>
+#include <qcontainerfwd.h>
+#include <qtmetamacros.h>
 
 class QTimerEvent;
 
@@ -34,26 +39,26 @@ class FilterController : public QObject {
 	Q_OBJECT
 
   public:
-	explicit FilterController(QObject* parent = 0);
-	MetadataModel* metadataModel();
+	explicit FilterController(QObject* parent = nullptr);
+	auto metadataModel() -> MetadataModel*;
 
-	MotionTrackerModel* motionTrackerModel() {
+	auto motionTrackerModel() -> MotionTrackerModel* {
 		return &m_motionTrackerModel;
 	}
 
-	AttachedFiltersModel* attachedModel();
+	auto attachedModel() -> AttachedFiltersModel*;
 
-	QmlMetadata* metadata(const QString& id);
-	QmlMetadata* metadataForService(Mlt::Service* service);
+	auto metadata(const QString& id) -> QmlMetadata*;
+	auto metadataForService(Mlt::Service* service) -> QmlMetadata*;
 
-	QmlFilter* currentFilter() const {
+	auto currentFilter() const -> QmlFilter* {
 		return m_currentFilter.data();
 	}
 
-	bool isOutputTrackSelected() const;
+	auto isOutputTrackSelected() const -> bool;
 	void onUndoOrRedo(Mlt::Service& service);
 
-	int currentIndex() const {
+	auto currentIndex() const -> int {
 		return m_currentFilterIndex;
 	}
 
@@ -61,7 +66,7 @@ class FilterController : public QObject {
 	void setTrackTransitionService(const QString& service);
 
   protected:
-	void timerEvent(QTimerEvent*);
+	void timerEvent(QTimerEvent*) override;
 
   signals:
 	void currentFilterChanged(QmlFilter* filter, QmlMetadata* meta, int index);
@@ -70,13 +75,13 @@ class FilterController : public QObject {
 	void undoOrRedo();
 
   public slots:
-	void setProducer(Mlt::Producer* producer = 0);
+	void setProducer(Mlt::Producer* producer = nullptr);
 	void setCurrentFilter(int attachedIndex);
 	void onFadeInChanged();
 	void onFadeOutChanged();
 	void onGainChanged();
-	void onServiceInChanged(int delta, Mlt::Service* service = 0);
-	void onServiceOutChanged(int delta, Mlt::Service* service = 0);
+	void onServiceInChanged(int delta, Mlt::Service* service = nullptr);
+	void onServiceOutChanged(int delta, Mlt::Service* service = nullptr);
 	void removeCurrent();
 	void onProducerChanged();
 	void pauseUndoTracking();

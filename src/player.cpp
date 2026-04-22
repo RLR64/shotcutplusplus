@@ -15,42 +15,100 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "player.hpp"
-
 #include "Logger.hpp"
 #include "actions.hpp"
 #include "dialogs/durationdialog.hpp"
 #include "mainwindow.hpp"
+#include "mltcontroller.hpp"
 #include "proxymanager.hpp"
 #include "scrubbar.hpp"
 #include "settings.hpp"
+#include "sharedframe.hpp"
 #include "widgets/audioscale.h"
 #include "widgets/docktoolbar.h"
 #include "widgets/newprojectfolder.h"
 #include "widgets/statuslabelwidget.h"
 #include "widgets/timespinbox.h"
 
+// Qt
 #include <QtWidgets>
+#include <framework/mlt_types.h>
+#include <qabstractslider.h>
+#include <qassert.h>
+#include <qboxlayout.h>
+#include <qcontainerfwd.h>
+#include <qdialog.h>
+#include <qfontmetrics.h>
+#include <qforeach.h>
+#include <qgridlayout.h>
+#include <qhashfunctions.h>
+#include <qlayoutitem.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsysinfo.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
+
+// STL
 #include <limits>
 
-#define VOLUME_KNEE (88)
-#define SEEK_INACTIVE (-1)
-#define VOLUME_SLIDER_HEIGHT (300)
+// Number constants
+static constexpr double kFps30DF{30000.0 / 1001.0};
+static constexpr double kFps60DF{60000.0 / 1001.0};
+
+// Iec scale
+static constexpr float kIecScale60{0.025f};
+static constexpr float kIecScale50{0.075f};
+static constexpr float kIecScale40{0.15f};
+static constexpr float kIecScale30{0.3f};
+static constexpr float kIecScale20{0.5f};
+
+static constexpr float kIecDiv60{0.0025f};
+static constexpr float kIecDiv50{0.005f};
+static constexpr float kIecDiv40{0.0075f};
+static constexpr float kIecDiv30{0.015f};
+static constexpr float kIecDiv20{0.02f};
+static constexpr float kIecDiv0{0.025f};
+
+static constexpr float kIecdB60{-70.0f};
+static constexpr float kIecdB50{-60.0f};
+static constexpr float kIecdB40{-50.0f};
+static constexpr float kIecdB30{-40.0f};
+static constexpr float kIecdB20{-30.0f};
+static constexpr float kIecdB0{-20.0f};
+
+static constexpr float kIecEpsilon{0.001f};
+
+// Grid layout
+static constexpr int kGrid16{16};
+static constexpr int kGrid20Pixel{10020};
+static constexpr int kGrid10Pixel{10010};
+static constexpr int kGrid8090Safe{8090};
+static constexpr int kGridEbuR95Safe{95};
+
+static constexpr int VOLUME_KNEE{88};
+static constexpr int SEEK_INACTIVE{-1};
+static constexpr int VOLUME_SLIDER_HEIGHT{300};
 
 class NoWheelTabBar : public QTabBar {
-	void wheelEvent(QWheelEvent* event) {
+	void wheelEvent(QWheelEvent* event) override {
 		event->ignore();
 	};
 };
 
-QString blankTime() {
+static auto blankTime() -> QString {
 	switch (Settings.timeFormat()) {
 	case mlt_time_frames:
 		return "--------";
 	case mlt_time_clock:
 		return "--:--:--.---";
 	case mlt_time_smpte_df:
-		if (MLT.profile().fps() == 30000.0 / 1001.0 || MLT.profile().fps() == 60000.0 / 1001.0)
+		if (MLT.profile().fps() == kFps30DF || MLT.profile().fps() == kFps60DF)
 			return "--:--:--;--";
 	// Fallthrough on purpose
 	default:
@@ -71,7 +129,7 @@ Player::Player(QWidget* parent)
 	setWhatsThis("https://forum.shotcut.org/t/source-vs-project-player/12576/1");
 
 	// Create a layout.
-	QVBoxLayout* vlayout = new QVBoxLayout(this);
+	auto* vlayout = new QVBoxLayout(this);
 	vlayout->setObjectName("playerLayout");
 	vlayout->setContentsMargins(0, 0, 0, 0);
 	vlayout->setSpacing(4);
@@ -84,7 +142,7 @@ Player::Player(QWidget* parent)
 	m_tabs->addTab(tr("Project"));
 	m_tabs->setTabEnabled(SourceTabIndex, false);
 	m_tabs->setTabEnabled(ProjectTabIndex, false);
-	QHBoxLayout* tabLayout = new QHBoxLayout;
+	auto* tabLayout = new QHBoxLayout;
 	tabLayout->setSpacing(8);
 	tabLayout->addWidget(m_tabs);
 	connect(m_tabs, &QTabBar::tabBarClicked, this, &Player::onTabBarClicked);
@@ -103,7 +161,7 @@ Player::Player(QWidget* parent)
 	m_videoScrollWidget = new QWidget;
 	m_videoLayout->addWidget(m_videoScrollWidget, 10);
 	m_videoLayout->addStretch();
-	QGridLayout* glayout = new QGridLayout(m_videoScrollWidget);
+	auto* glayout = new QGridLayout(m_videoScrollWidget);
 	glayout->setSpacing(0);
 	glayout->setContentsMargins(0, 0, 0, 0);
 
@@ -125,11 +183,11 @@ Player::Player(QWidget* parent)
 	vlayout->addStretch();
 
 	// Add the volume and signal level meter
-	m_volumePopup              = new QFrame(this, Qt::Popup);
-	QVBoxLayout* volumeLayoutV = new QVBoxLayout(m_volumePopup);
+	m_volumePopup = new QFrame(this, Qt::Popup);
+	auto* volumeLayoutV = new QVBoxLayout(m_volumePopup);
 	volumeLayoutV->setContentsMargins(0, 0, 0, 0);
 	volumeLayoutV->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding));
-	QBoxLayout* volumeLayoutH = new QHBoxLayout;
+	auto* volumeLayoutH = new QHBoxLayout;
 	volumeLayoutH->setSpacing(0);
 	volumeLayoutH->setContentsMargins(0, 0, 0, 0);
 	volumeLayoutH->addWidget(new AudioScale);
@@ -191,7 +249,7 @@ Player::Player(QWidget* parent)
 	m_durationLabel = new QLabel(this);
 	m_durationLabel->setToolTip(tr("Total Duration"));
 	m_durationLabel->setText(blankTime());
-	QFontMetrics fm(m_durationLabel->font());
+	QFontMetrics const fm(m_durationLabel->font());
 	m_durationLabel->setFixedWidth(fm.boundingRect("00:00:00:.000").width() + 2);
 	m_durationLabel->setFixedHeight(m_positionSpinner->sizeHint().height());
 	m_currentDurationToolBar->addWidget(m_durationLabel);
@@ -213,8 +271,8 @@ Player::Player(QWidget* parent)
 	m_optionsToolBar->setContentsMargins(0, 0, 0, 0);
 	m_optionsToolBar->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 	// Pause button
-	QToolButton* loopButton = new QToolButton;
-	QMenu*       loopMenu   = new QMenu(this);
+	auto* loopButton = new QToolButton;
+	auto* loopMenu = new QMenu(this);
 	loopMenu->addAction(Actions["playerLoopRangeAllAction"]);
 	loopMenu->addAction(Actions["playerLoopRangeMarkerAction"]);
 	loopMenu->addAction(Actions["playerLoopRangeSelectionAction"]);
@@ -225,7 +283,7 @@ Player::Player(QWidget* parent)
 	m_optionsToolBar->addWidget(loopButton);
 	// Zoom button
 	m_zoomButton = new QToolButton;
-	m_zoomMenu   = new QMenu(this);
+	m_zoomMenu = new QMenu(this);
 	m_zoomMenu
 	    ->addAction(QIcon::fromTheme("zoom-fit-best", QIcon(":/icons/oxygen/32x32/actions/zoom-fit-best")),
 	                tr("Zoom Fit"), this, SLOT(onZoomTriggered()))
@@ -270,6 +328,7 @@ Player::Player(QWidget* parent)
 	    ->addAction(QIcon::fromTheme("zoom-in", QIcon(":/icons/oxygen/32x32/actions/zoom-in")), tr("Zoom 1000%"), this,
 	                SLOT(onZoomTriggered()))
 	    ->setData(10.0f);
+
 	connect(m_zoomButton, SIGNAL(toggled(bool)), SLOT(toggleZoom(bool)));
 	m_zoomButton->setMenu(m_zoomMenu);
 	m_zoomButton->setPopupMode(QToolButton::MenuButtonPopup);
@@ -278,10 +337,10 @@ Player::Player(QWidget* parent)
 	m_optionsToolBar->addWidget(m_zoomButton);
 	toggleZoom(false);
 	// Add grid display button to toolbar.
-	m_gridButton      = new QToolButton;
-	QMenu* gridMenu   = new QMenu(this);
+	m_gridButton = new QToolButton;
+	auto* gridMenu = new QMenu(this);
 	m_gridActionGroup = new QActionGroup(this);
-	QAction* action   = gridMenu->addAction(tr("2x2 Grid"), this, SLOT(onGridToggled()));
+	auto* action = gridMenu->addAction(tr("2x2 Grid"), this, SLOT(onGridToggled()));
 	action->setCheckable(true);
 	action->setData(2);
 	m_gridDefaultAction = action;
@@ -296,23 +355,23 @@ Player::Player(QWidget* parent)
 	m_gridActionGroup->addAction(action);
 	action = gridMenu->addAction(tr("16x16 Grid"), this, SLOT(onGridToggled()));
 	action->setCheckable(true);
-	action->setData(16);
+	action->setData(kGrid16);
 	m_gridActionGroup->addAction(action);
 	action = gridMenu->addAction(tr("20 Pixel Grid"), this, SLOT(onGridToggled()));
 	action->setCheckable(true);
-	action->setData(10020);
+	action->setData(kGrid20Pixel);
 	m_gridActionGroup->addAction(action);
 	action = gridMenu->addAction(tr("10 Pixel Grid"), this, SLOT(onGridToggled()));
 	action->setCheckable(true);
-	action->setData(10010);
+	action->setData(kGrid10Pixel);
 	m_gridActionGroup->addAction(action);
 	action = gridMenu->addAction(tr("80/90% Safe Areas"), this, SLOT(onGridToggled()));
 	action->setCheckable(true);
-	action->setData(8090);
+	action->setData(kGrid8090Safe);
 	m_gridActionGroup->addAction(action);
 	action = gridMenu->addAction(tr("EBU R95 Safe Areas"), this, SLOT(onGridToggled()));
 	action->setCheckable(true);
-	action->setData(95);
+	action->setData(kGridEbuR95Safe);
 	m_gridActionGroup->addAction(action);
 	gridMenu->addSeparator();
 	action = gridMenu->addAction(tr("Snapping"));
@@ -381,7 +440,7 @@ Player::Player(QWidget* parent)
 	connect(MLT.videoWidget(), SIGNAL(offsetChanged(const QPoint&)), SLOT(onOffsetChanged(const QPoint&)));
 	connect(MLT.videoWidget(), SIGNAL(stepZoom(float, float)), SLOT(stepZoom(float, float)));
 
-	connect(&Settings, &ShotcutSettings::timeFormatChanged, this, [&]() {
+	connect(&Settings, &ShotcutSettings::timeFormatChanged, this, [&]() -> void {
 		updateSelection();
 		if (MLT.isSeekable()) {
 			onDurationChanged();
@@ -408,7 +467,7 @@ void Player::connectTransport(const TransportControllable* receiver) {
 }
 
 void Player::setupActions() {
-	QIcon    icon;
+	QIcon icon;
 	QAction* action;
 
 	m_playIcon =
@@ -422,7 +481,7 @@ void Player::setupActions() {
 	action->setIcon(m_playIcon);
 	action->setDisabled(true);
 	action->setToolTip(tr("Toggle play or pause"));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (Actions["playerPlayPauseAction"]->icon().cacheKey() == m_playIcon.cacheKey())
 			play();
 		else if (m_isSeekable)
@@ -438,12 +497,12 @@ void Player::setupActions() {
 	    QIcon::fromTheme("media-playback-loop", QIcon(":/icons/oxygen/32x32/actions/media-playback-loop.png")));
 	action->setCheckable(true);
 	action->setToolTip(tr("Toggle player looping"));
-	connect(action, &QAction::toggled, this, [&]() { setLoopRange(m_loopStart, m_loopEnd); });
+	connect(action, &QAction::toggled, this, [&]() -> void { setLoopRange(m_loopStart, m_loopEnd); });
 	Actions.add("playerLoopAction", action);
 
 	action = new QAction(tr("Loop All"), this);
 	action->setToolTip(tr("Loop back to the beginning when the end is reached"));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		Actions["playerLoopAction"]->setChecked(true);
 		setLoopRange(0, m_duration);
 	});
@@ -451,7 +510,7 @@ void Player::setupActions() {
 
 	action = new QAction(tr("Loop Marker"), this);
 	action->setToolTip(tr("Loop around the marker under the cursor in the timeline"));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		int start, end;
 		MAIN.getMarkerRange(m_position, &start, &end);
 		if (start >= 0) {
@@ -463,7 +522,7 @@ void Player::setupActions() {
 
 	action = new QAction(tr("Loop Selection"), this);
 	action->setToolTip(tr("Loop around the selected clips"));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		int start, end;
 		MAIN.getSelectionRange(&start, &end);
 		if (start >= 0) {
@@ -477,10 +536,10 @@ void Player::setupActions() {
 
 	action = new QAction(tr("Loop Around Cursor"), this);
 	action->setToolTip(tr("Loop around the current cursor position"));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		Actions["playerLoopAction"]->setChecked(true);
 		// Set the range one second before and after the cursor
-		int fps = qRound(MLT.profile().fps());
+		const int fps = qRound(MLT.profile().fps());
 		if (m_duration <= fps * 2) {
 			setLoopRange(0, m_duration);
 		} else {
@@ -505,9 +564,9 @@ void Player::setupActions() {
 	action->setIcon(icon);
 	action->setDisabled(true);
 	action->setToolTip(tr("Skip to the next point"));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (m_scrubber->markers().size() > 0) {
-			foreach (int x, m_scrubber->markers()) {
+			foreach (const int x, m_scrubber->markers()) {
 				if (x > m_position) {
 					emit seeked(x);
 					return;
@@ -527,10 +586,10 @@ void Player::setupActions() {
 	action->setIcon(icon);
 	action->setDisabled(true);
 	action->setToolTip(tr("Skip to the previous point"));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (m_scrubber->markers().size() > 0) {
 			QList<int> markers = m_scrubber->markers();
-			int        n       = markers.count();
+			int n = markers.count();
 			while (n--) {
 				if (markers[n] < m_position) {
 					emit seeked(markers[n]);
@@ -565,12 +624,12 @@ void Player::setupActions() {
 
 	action = new QAction(tr("Seek Start"), this);
 	action->setShortcut(QKeySequence(Qt::Key_Home));
-	connect(action, &QAction::triggered, this, [&]() { seek(0); });
+	connect(action, &QAction::triggered, this, [&]() -> void { seek(0); });
 	Actions.add("playerSeekStartAction", action);
 
 	action = new QAction(tr("Seek End"), this);
 	action->setShortcut(QKeySequence(Qt::Key_End));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (MLT.producer()) {
 			pause(MLT.producer()->get_length());
 			seek(MLT.producer()->get_length());
@@ -592,59 +651,57 @@ void Player::setupActions() {
 
 	action = new QAction(tr("Forward One Second"), this);
 	action->setShortcut(QKeySequence(Qt::Key_PageDown));
-	connect(action, &QAction::triggered, this, [&]() { seekBy(qRound(MLT.profile().fps())); });
+	connect(action, &QAction::triggered, this, [&]() -> void { seekBy(qRound(MLT.profile().fps())); });
 	Actions.add("playerForwardOneSecondAction", action);
 
 	action = new QAction(tr("Backward One Second"), this);
 	action->setShortcut(QKeySequence(Qt::Key_PageUp));
-	connect(action, &QAction::triggered, this, [&]() { seekBy(-qRound(MLT.profile().fps())); });
+	connect(action, &QAction::triggered, this, [&]() -> void { seekBy(-qRound(MLT.profile().fps())); });
 	Actions.add("playerBackwardOneSecondAction", action);
 
 	action = new QAction(tr("Forward Two Seconds"), this);
 	action->setShortcut(QKeySequence(Qt::SHIFT | Qt::Key_PageDown));
-	connect(action, &QAction::triggered, this, [&]() { seekBy(2 * qRound(MLT.profile().fps())); });
+	connect(action, &QAction::triggered, this, [&]() -> void { seekBy(2 * qRound(MLT.profile().fps())); });
 	Actions.add("playerForwardTwoSecondsAction", action);
 
 	action = new QAction(tr("Backward Two Seconds"), this);
 	action->setShortcut(QKeySequence(Qt::SHIFT | Qt::Key_PageUp));
-	connect(action, &QAction::triggered, this, [&]() { seekBy(-2 * qRound(MLT.profile().fps())); });
+	connect(action, &QAction::triggered, this, [&]() -> void { seekBy(-2 * qRound(MLT.profile().fps())); });
 	Actions.add("playerBackwardTwoAction", action);
 
 	action = new QAction(tr("Forward Five Seconds"), this);
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_PageDown));
-	connect(action, &QAction::triggered, this, [&]() { seekBy(5 * qRound(MLT.profile().fps())); });
+	connect(action, &QAction::triggered, this, [&]() -> void { seekBy(5 * qRound(MLT.profile().fps())); });
 	Actions.add("playerForwardFiveSecondsAction", action);
 
 	action = new QAction(tr("Backward Five Seconds"), this);
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_PageUp));
-	connect(action, &QAction::triggered, this, [&]() { seekBy(-5 * qRound(MLT.profile().fps())); });
+	connect(action, &QAction::triggered, this, [&]() -> void { seekBy(-5 * qRound(MLT.profile().fps())); });
 	Actions.add("playerBackwardFiveSecondsAction", action);
 
 	action = new QAction(tr("Forward Ten Seconds"), this);
 	action->setShortcut(QKeySequence(Qt::SHIFT | Qt::CTRL | Qt::Key_PageDown));
-	connect(action, &QAction::triggered, this, [&]() { seekBy(10 * qRound(MLT.profile().fps())); });
+	connect(action, &QAction::triggered, this, [&]() -> void { seekBy(10 * qRound(MLT.profile().fps())); });
 	Actions.add("playerForwardTenSecondsAction", action);
 
 	action = new QAction(tr("Backward Ten Seconds"), this);
 	action->setShortcut(QKeySequence(Qt::SHIFT | Qt::CTRL | Qt::Key_PageUp));
-	connect(action, &QAction::triggered, this, [&]() { seekBy(-10 * qRound(MLT.profile().fps())); });
+	connect(action, &QAction::triggered, this, [&]() -> void { seekBy(-10 * qRound(MLT.profile().fps())); });
 	Actions.add("playerBackwardTenSecondsAction", action);
 
 	action = new QAction(tr("Forward Jump"), this);
 	action->setShortcut(QKeySequence(Qt::ALT | Qt::Key_PageDown));
-	connect(action, &QAction::triggered, this,
-	        [&]() { seekBy(qRound(MLT.profile().fps() * Settings.playerJumpSeconds())); });
+	connect(action, &QAction::triggered, this, [&]() -> void { seekBy(qRound(MLT.profile().fps() * Settings.playerJumpSeconds())); });
 	Actions.add("playerForwardJumpAction", action);
 
 	action = new QAction(tr("Backward Jump"), this);
 	action->setShortcut(QKeySequence(Qt::ALT | Qt::Key_PageUp));
-	connect(action, &QAction::triggered, this,
-	        [&]() { seekBy(-qRound(MLT.profile().fps() * Settings.playerJumpSeconds())); });
+	connect(action, &QAction::triggered, this, [&]() -> void { seekBy(-qRound(MLT.profile().fps() * Settings.playerJumpSeconds())); });
 	Actions.add("playerBackwardJumpAction", action);
 
 	action = new QAction(tr("Set Jump Time"), this);
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_J));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		DurationDialog dialog(this);
 		dialog.setDuration(qRound(MLT.profile().fps() * Settings.playerJumpSeconds()));
 		if (dialog.exec() == QDialog::Accepted) {
@@ -655,10 +712,10 @@ void Player::setupActions() {
 
 	action = new QAction(tr("Trim Clip In"), this);
 	action->setShortcut(QKeySequence(Qt::Key_I));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (tabIndex() == Player::SourceTabIndex && MLT.isSeekableClip()) {
 			setIn(position());
-			int  delta = position() - MLT.producer()->get_in();
+			const int delta = position() - MLT.producer()->get_in();
 			emit inChanged(delta);
 		} else if (tabIndex() == Player::ProjectTabIndex) {
 			emit trimIn();
@@ -668,10 +725,10 @@ void Player::setupActions() {
 
 	action = new QAction(tr("Trim Clip Out"), this);
 	action->setShortcut(QKeySequence(Qt::Key_O));
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (tabIndex() == Player::SourceTabIndex && MLT.isSeekableClip()) {
 			setOut(position());
-			int  delta = position() - MLT.producer()->get_out();
+			const int delta = position() - MLT.producer()->get_out();
 			emit outChanged(delta);
 		} else if (tabIndex() == Player::ProjectTabIndex) {
 			emit trimOut();
@@ -681,13 +738,13 @@ void Player::setupActions() {
 
 	action = new QAction(tr("Set Time Position"), this);
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_T));
-	connect(action, &QAction::triggered, this, [&]() { m_positionSpinner->setFocus(Qt::ShortcutFocusReason); });
+	connect(action, &QAction::triggered, this, [&]() -> void { m_positionSpinner->setFocus(Qt::ShortcutFocusReason); });
 	Actions.add("playerSetPositionAction", action);
 
 	action = new QAction(tr("Switch Source/Project"), this);
 	action->setShortcut(QKeySequence(Qt::Key_P));
 	addAction(action);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		if (MLT.isPlaylist()) {
 			if (MAIN.isMultitrackValid())
 				onTabBarClicked(Player::ProjectTabIndex);
@@ -713,12 +770,12 @@ void Player::setupActions() {
 
 	action = new QAction(tr("Focus Player"), this);
 	action->setProperty(Actions.hardKeyProperty, "Shift+Esc");
-	connect(action, &QAction::triggered, this, [&]() { setFocus(); });
+	connect(action, &QAction::triggered, this, [&]() -> void { setFocus(); });
 	Actions.add("playerFocus", action, tr("Player"));
 
 	action = new QAction(tr("Toggle Filter Overlay"), this);
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_Q));
-	connect(action, &QAction::triggered, this, [&]() { emit toggleVuiRequested(); });
+	connect(action, &QAction::triggered, this, [&]() -> void { emit toggleVuiRequested(); });
 	Actions.add("playerToggleVui", action, tr("Player"));
 }
 
@@ -746,15 +803,15 @@ void Player::setMarkers(const QList<int>& markers) {
 	m_scrubber->setMarkers(markers);
 }
 
-QSize Player::videoSize() const {
+auto Player::videoSize() const -> QSize {
 	return m_videoWidget->size();
 }
 
 void Player::resizeEvent(QResizeEvent*) {
 	MLT.onWindowResize();
 	if (Settings.playerZoom() > 0.0f) {
-		float horizontal = float(m_horizontalScroll->value()) / m_horizontalScroll->maximum();
-		float vertical   = float(m_verticalScroll->value()) / m_verticalScroll->maximum();
+		const float horizontal = float(m_horizontalScroll->value()) / m_horizontalScroll->maximum();
+		const float vertical = float(m_verticalScroll->value()) / m_verticalScroll->maximum();
 		adjustScrollBars(horizontal, vertical);
 	} else {
 		m_horizontalScroll->hide();
@@ -763,8 +820,8 @@ void Player::resizeEvent(QResizeEvent*) {
 	layoutToolbars();
 }
 
-bool Player::event(QEvent* event) {
-	bool result = QWidget::event(event);
+auto Player::event(QEvent* event) -> bool {
+	const bool result = QWidget::event(event);
 	if (event->type() == QEvent::PaletteChange) {
 		m_videoScrollWidget->hide();
 		m_videoScrollWidget->show();
@@ -885,7 +942,7 @@ void Player::onProducerOpened(bool play) {
 	if (play || (MLT.isClip() && !MLT.isClosedClip())) {
 		if (m_pauseAfterOpen) {
 			m_pauseAfterOpen = false;
-			QTimer::singleShot(500, this, [=]() {
+			QTimer::singleShot(500, this, [this]() -> void {
 				if (MLT.producer())
 					pause(MLT.producer()->position());
 			});
@@ -932,8 +989,8 @@ void Player::onFrameDisplayed(const SharedFrame& frame) {
 		// This can happen if the profile changes. Reload the properties from the producer.
 		onProducerOpened(false);
 	}
-	int  position = frame.get_position();
-	bool loop     = position >= (m_loopEnd - 1) && Actions["playerLoopAction"]->isChecked();
+	int position = frame.get_position();
+	const bool loop = position >= (m_loopEnd - 1) && Actions["playerLoopAction"]->isChecked();
 	if (position > MLT.producer()->get_length()) {
 		position = MLT.producer()->get_length();
 	}
@@ -972,7 +1029,7 @@ void Player::updateSelection() {
 
 void Player::onInChanged(int in) {
 	if (in != m_previousIn && in >= 0) {
-		int delta = in - MLT.producer()->get_in();
+		const int delta = in - MLT.producer()->get_in();
 		MLT.setIn(in);
 		emit inChanged(delta);
 	}
@@ -982,7 +1039,7 @@ void Player::onInChanged(int in) {
 
 void Player::onOutChanged(int out) {
 	if (out != m_previousOut && out >= 0) {
-		int delta = out - MLT.producer()->get_out();
+		const int delta = out - MLT.producer()->get_out();
 		MLT.setOut(out);
 		emit outChanged(delta);
 	}
@@ -1071,7 +1128,7 @@ void Player::adjustScrollBars(float horizontal, float vertical) {
 		emit m_horizontalScroll->valueChanged(m_horizontalScroll->value());
 		m_horizontalScroll->show();
 	} else {
-		int  max = MLT.profile().width() * m_zoomToggleFactor - m_videoWidget->width();
+		const int max = MLT.profile().width() * m_zoomToggleFactor - m_videoWidget->width();
 		emit m_horizontalScroll->valueChanged(qRound(0.5 * max));
 		m_horizontalScroll->hide();
 	}
@@ -1083,13 +1140,13 @@ void Player::adjustScrollBars(float horizontal, float vertical) {
 		emit m_verticalScroll->valueChanged(m_verticalScroll->value());
 		m_verticalScroll->show();
 	} else {
-		int  max = MLT.profile().height() * m_zoomToggleFactor - m_videoWidget->height();
+		const int max = MLT.profile().height() * m_zoomToggleFactor - m_videoWidget->height();
 		emit m_verticalScroll->valueChanged(qRound(0.5 * max));
 		m_verticalScroll->hide();
 	}
 }
 
-double Player::setVolume(int volume) {
+auto Player::setVolume(int volume) -> double {
 	const double gain = double(volume) / VOLUME_KNEE;
 	MLT.setVolume(gain);
 	return gain;
@@ -1097,7 +1154,7 @@ double Player::setVolume(int volume) {
 
 void Player::setLoopRange(int start, int end) {
 	m_loopStart = start;
-	m_loopEnd   = end;
+	m_loopEnd = end;
 	if (Actions["playerLoopAction"]->isChecked()) {
 		m_scrubber->setLoopRange(m_loopStart, m_loopEnd);
 		emit loopChanged(m_loopStart, m_loopEnd);
@@ -1108,9 +1165,8 @@ void Player::setLoopRange(int start, int end) {
 }
 
 void Player::layoutToolbars() {
-	int  totalWidth   = m_currentDurationToolBar->sizeHint().width() + m_controlsToolBar->sizeHint().width() +
-	                    m_optionsToolBar->sizeHint().width() + m_inSelectedToolBar->sizeHint().width() + 20;
-	bool twoRowsInUse = m_toolRow2->count() > 0;
+	const int totalWidth = m_currentDurationToolBar->sizeHint().width() + m_controlsToolBar->sizeHint().width() + m_optionsToolBar->sizeHint().width() + m_inSelectedToolBar->sizeHint().width() + 20;
+	const bool twoRowsInUse = m_toolRow2->count() > 0;
 
 	if (m_toolRow1->count() > 0) {
 		if (totalWidth <= this->width() && !twoRowsInUse) {
@@ -1125,14 +1181,14 @@ void Player::layoutToolbars() {
 	// Remove all the widgets from the tool bar area
 	QLayoutItem* child;
 	while ((child = m_toolRow1->takeAt(0)) != nullptr) {
-		QWidget* widget = child->widget();
+		QWidget const* widget = child->widget();
 		if (widget->objectName().startsWith("spacer")) {
 			delete widget;
 		}
 		delete child;
 	}
 	while ((child = m_toolRow2->takeAt(0)) != nullptr) {
-		QWidget* widget = child->widget();
+		QWidget const* widget = child->widget();
 		if (widget->objectName().startsWith("spacer")) {
 			delete widget;
 		}
@@ -1229,41 +1285,37 @@ void Player::setPauseAfterOpen(bool pause) {
 	m_pauseAfterOpen = pause;
 }
 
-Player::TabIndex Player::tabIndex() const {
+auto Player::tabIndex() const -> Player::TabIndex {
 	return TabIndex(m_tabs->currentIndex());
 }
 
-//----------------------------------------------------------------------------
 // IEC standard dB scaling -- as borrowed from meterbridge (c) Steve Harris
 
-static inline float IEC_dB(float fScale) {
+static inline auto IEC_dB(float fScale) -> float {
 	float dB = 0.0f;
-
-	if (fScale < 0.025f) // IEC_Scale(-60.0f)
-		dB = (fScale / 0.0025f) - 70.0f;
-	else if (fScale < 0.075f) // IEC_Scale(-50.0f)
-		dB = (fScale - 0.025f) / 0.005f - 60.0f;
-	else if (fScale < 0.15f) // IEC_Scale(-40.0f)
-		dB = (fScale - 0.075f) / 0.0075f - 50.0f;
-	else if (fScale < 0.3f) // IEC_Scale(-30.0f)
-		dB = (fScale - 0.15f) / 0.015f - 40.0f;
-	else if (fScale < 0.5f) // IEC_Scale(-20.0f)
-		dB = (fScale - 0.3f) / 0.02f - 30.0f;
-	else /* if (fScale < 1.0f)  // IED_Scale(0.0f)) */
-		dB = (fScale - 0.5f) / 0.025f - 20.0f;
-
-	return (dB > -0.001f && dB < 0.001f ? 0.0f : dB);
+	if (fScale < kIecScale60)
+		dB = (fScale / kIecDiv60) + kIecdB60;
+	else if (fScale < kIecScale50)
+		dB = (fScale - kIecScale60) / kIecDiv50 + kIecdB50;
+	else if (fScale < kIecScale40)
+		dB = (fScale - kIecScale50) / kIecDiv40 + kIecdB40;
+	else if (fScale < kIecScale30)
+		dB = (fScale - kIecScale40) / kIecDiv30 + kIecdB30;
+	else if (fScale < kIecScale20)
+		dB = (fScale - kIecScale30) / kIecDiv20 + kIecdB20;
+	else
+		dB = (fScale - kIecScale20) / kIecDiv0  + kIecdB0;
+	return (dB > -kIecEpsilon && dB < kIecEpsilon ? 0.0f : dB);
 }
 
 void Player::onVolumeChanged(int volume) {
 	const double gain = setVolume(volume);
-	emit         showStatusMessage(QStringLiteral("%L1 dB").arg(IEC_dB(gain)));
+	emit showStatusMessage(QStringLiteral("%L1 dB").arg(IEC_dB(gain)));
 	Settings.setPlayerVolume(volume);
 	Settings.setPlayerMuted(false);
 	m_muteButton->setChecked(false);
 	m_volumeButton->setIcon(QIcon::fromTheme("player-volume", QIcon(":/icons/oxygen/32x32/actions/player-volume.png")));
-	m_muteButton->setIcon(
-	    QIcon::fromTheme("audio-volume-muted", QIcon(":/icons/oxygen/32x32/status/audio-volume-muted.png")));
+	m_muteButton->setIcon(QIcon::fromTheme("audio-volume-muted", QIcon(":/icons/oxygen/32x32/status/audio-volume-muted.png")));
 	m_muteButton->setToolTip(tr("Mute"));
 }
 
@@ -1274,8 +1326,8 @@ void Player::onCaptureStateChanged(bool active) {
 void Player::onVolumeTriggered() {
 	// We must show first to realizes the volume popup geometry.
 	m_volumePopup->show();
-	int x = (m_volumeButton->width() - m_volumePopup->width()) / 2;
-	int y = m_volumeButton->height() - m_volumePopup->height();
+	const int x = (m_volumeButton->width() - m_volumePopup->width()) / 2;
+	const int y = m_volumeButton->height() - m_volumePopup->height();
 	m_volumePopup->move(m_volumeButton->mapToGlobal(QPoint(x, y)));
 	m_volumeButton->hide();
 	m_volumeButton->show();
@@ -1340,8 +1392,8 @@ void Player::stepZoom(float step, float fit) {
 	}
 	// Find a suitable icon
 	QIcon icon;
-	foreach (QAction* a, m_zoomMenu->actions()) {
-		float actionFactor = a->data().toFloat();
+	foreach (QAction const* a, m_zoomMenu->actions()) {
+		const float actionFactor = a->data().toFloat();
 		if (actionFactor == 0.0) {
 			continue;
 		}
@@ -1355,12 +1407,12 @@ void Player::stepZoom(float step, float fit) {
 }
 
 void Player::onZoomTriggered() {
-	QAction* action = qobject_cast<QAction*>(sender());
+	QAction const* action = qobject_cast<QAction*>(sender());
 	setZoom(action->data().toFloat(), action->icon());
 }
 
 void Player::toggleZoom(bool checked) {
-	foreach (QAction* a, m_zoomMenu->actions()) {
+	foreach (QAction const* a, m_zoomMenu->actions()) {
 		if ((!checked || m_zoomToggleFactor == 0.0f) && a->data().toFloat() == 0.0f) {
 			setZoom(0.0f, a->icon());
 			break;

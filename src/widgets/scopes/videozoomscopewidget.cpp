@@ -15,46 +15,62 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "videozoomscopewidget.h"
-
+#include "Logger.hpp"
+#include "mltcontroller.hpp"
+#include "sharedframe.hpp"
 #include "videowidget.hpp"
 #include "videozoomwidget.h"
+#include "widgets/scopes/scopewidget.h"
 
+// Qt
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QToolButton>
 #include <QToolTip>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qtpreprocessorsupport.h>
+#include <qvariant.h>
+#include <qwidget.h>
+
+// STL
 #include <cmath>
 
-QWidget* getSeparator() {
+static auto getSeparator() -> QWidget* {
 	// Create a 1 pixel wide line separator with a contrasting color
-	QWidget* separator = new QWidget();
+	auto* separator = new QWidget();
 	separator->setGeometry(0, 0, 300, 300);
 	separator->setMinimumSize(1, 1);
-	QPalette pal = separator->palette();
-	//    pal.setColor(QPalette::Background, pal.color(QPalette::WindowText));
+	QPalette const pal = separator->palette();
+	// pal.setColor(QPalette::Background, pal.color(QPalette::WindowText));
 	separator->setAutoFillBackground(true);
 	separator->setPalette(pal);
 	return separator;
 }
 
-QRect getPlayerBoundingRect(Mlt::VideoWidget* videoWidget) {
+static auto getPlayerBoundingRect(Mlt::VideoWidget* videoWidget) -> QRect {
 	// Get the global rectangle of the player that contains image.
 	// This function assumes that the player is zoomed to best fit the image
 	// so that all of the image is available and it fills the widget in one
 	// direction.
-	QRect  rect;
-	double widgetAr = (double)videoWidget->width() / (double)videoWidget->height();
-	double vidAr    = MLT.profile().dar();
+	QRect rect;
+	const double widgetAr = (double)videoWidget->width() / (double)videoWidget->height();
+	const double vidAr = MLT.profile().dar();
 	if (widgetAr > vidAr) {
-		double width = (double)videoWidget->height() * vidAr;
+		const double width = (double)videoWidget->height() * vidAr;
 		rect.setX((round((double)videoWidget->width() - width) / 2));
 		rect.setY(0);
 		rect.setWidth(round(width));
 		rect.setHeight(videoWidget->height());
 	} else {
-		double height = videoWidget->width() / vidAr;
+		const double height = videoWidget->width() / vidAr;
 		rect.setX(0);
 		rect.setY((round((double)videoWidget->height() - height) / 2));
 		rect.setWidth(videoWidget->width());
@@ -63,20 +79,20 @@ QRect getPlayerBoundingRect(Mlt::VideoWidget* videoWidget) {
 	return QRect(videoWidget->mapToGlobal(rect.topLeft()), rect.size());
 }
 
-QPoint pixelToPlayerPos(const QRect& playerRect, const QPoint& pixel) {
+static auto pixelToPlayerPos(const QRect& playerRect, const QPoint& pixel) -> QPoint {
 	// Convert a pixel index to the corresponding global screen position of that
 	// pixel in the player.
-	double xOffset = (double)playerRect.width() * (double)pixel.x() / (double)MLT.profile().width();
-	double yOffset = (double)playerRect.height() * (double)pixel.y() / (double)MLT.profile().height();
+	const double xOffset = (double)playerRect.width() * (double)pixel.x() / (double)MLT.profile().width();
+	const double yOffset = (double)playerRect.height() * (double)pixel.y() / (double)MLT.profile().height();
 	return playerRect.topLeft() + QPoint(round(xOffset), round(yOffset));
 }
 
-QPoint playerPosToPixel(const QRect& playerRect, const QPoint& pos) {
+static auto playerPosToPixel(const QRect& playerRect, const QPoint& pos) -> QPoint {
 	// Convert the global position of a point in the player to the corresponding
 	// pixel index.
-	QPoint offset  = pos - playerRect.topLeft();
-	double xOffset = (double)MLT.profile().width() * (double)offset.x() / (double)playerRect.width();
-	double yOffset = (double)MLT.profile().height() * (double)offset.y() / (double)playerRect.height();
+	QPoint const offset  = pos - playerRect.topLeft();
+	const double xOffset = (double)MLT.profile().width() * (double)offset.x() / (double)playerRect.width();
+	const double yOffset = (double)MLT.profile().height() * (double)offset.y() / (double)playerRect.height();
 	return QPoint(round(xOffset), round(yOffset));
 }
 
@@ -87,8 +103,8 @@ VideoZoomScopeWidget::VideoZoomScopeWidget()
       m_vLabel(new QLabel(this)), m_lockButton(new QToolButton(this)) {
 	LOG_DEBUG() << "begin";
 	setWhatsThis("https://forum.shotcut.org/t/video-zoom-scope/15654/1");
-	QFont font     = QWidget::font();
-	int   fontSize = font.pointSize() - (font.pointSize() > 10 ? 2 : (font.pointSize() > 8 ? 1 : 0));
+	QFont font = QWidget::font();
+	const int fontSize = font.pointSize() - (font.pointSize() > 10 ? 2 : (font.pointSize() > 8 ? 1 : 0));
 	font.setPointSize(fontSize);
 	QWidget::setFont(font);
 
@@ -126,13 +142,13 @@ VideoZoomScopeWidget::VideoZoomScopeWidget()
 	onZoomChanged(m_zoomWidget->getZoom());
 
 	// Add HBoxLayout for tool buttons
-	QHBoxLayout* toolLayout = new QHBoxLayout();
+	auto* toolLayout = new QHBoxLayout();
 	toolLayout->setContentsMargins(0, 0, 0, 0);
 	toolLayout->setSpacing(0);
 	glayout->addLayout(toolLayout, 13, 0, 1, 2);
 
 	// Add pixel picker button
-	QToolButton* pickButton = new QToolButton(this);
+	auto* pickButton = new QToolButton(this);
 	pickButton->setToolTip(tr("Pick a pixel from the source player"));
 	pickButton->setIcon(QIcon::fromTheme("zoom-select", QIcon(":/icons/oxygen/32x32/actions/zoom-select")));
 	toolLayout->addWidget(pickButton);
@@ -149,9 +165,9 @@ VideoZoomScopeWidget::VideoZoomScopeWidget()
 	toolLayout->addStretch();
 
 	// Set minimum size for the grid layout.
-	QRect col1Size = fontMetrics().boundingRect("X ");
+	QRect const col1Size = fontMetrics().boundingRect("X ");
 	glayout->setColumnMinimumWidth(0, col1Size.width());
-	QRect col2Size = fontMetrics().boundingRect("9999");
+	QRect const col2Size = fontMetrics().boundingRect("9999");
 	glayout->setColumnMinimumWidth(1, col2Size.width());
 
 	hlayout->addLayout(glayout);
@@ -175,7 +191,7 @@ void VideoZoomScopeWidget::onScreenSelectStarted() {
 	videoWidget->toggleZoom(false);
 
 	// Get the global rectangle in the player that has the image in it.
-	QRect boundingRect = getPlayerBoundingRect(videoWidget);
+	QRect const boundingRect = getPlayerBoundingRect(videoWidget);
 	m_selector.setBoundingRect(boundingRect);
 
 	// Calculate the size of the zoom window to show over the image.
@@ -189,14 +205,14 @@ void VideoZoomScopeWidget::onScreenSelectStarted() {
 	m_selector.setFixedSize(selectionSize);
 
 	// Calculate the global position of the zoom window.
-	QRect zoomRect = m_zoomWidget->getPixelRect();
+	QRect const zoomRect = m_zoomWidget->getPixelRect();
 	QRect selectedRect;
 	selectedRect.setTopLeft(pixelToPlayerPos(boundingRect, zoomRect.topLeft()));
 	selectedRect.setBottomRight(pixelToPlayerPos(boundingRect, zoomRect.bottomRight()));
 	m_selector.setSelectedRect(selectedRect);
 
 	// Calculate the global position of the selected pixel.
-	QPoint startPoint = pixelToPlayerPos(boundingRect, m_zoomWidget->getSelectedPixel());
+	QPoint const startPoint = pixelToPlayerPos(boundingRect, m_zoomWidget->getSelectedPixel());
 	m_selector.startSelection(startPoint);
 }
 
@@ -211,16 +227,16 @@ void VideoZoomScopeWidget::onLockToggled(bool enabled) {
 }
 
 void VideoZoomScopeWidget::onScreenRectSelected(const QRect& rect) {
-	auto*  videoWidget  = qobject_cast<Mlt::VideoWidget*>(MLT.videoWidget());
-	QRect  boundingRect = getPlayerBoundingRect(videoWidget);
-	QPoint pixel        = playerPosToPixel(boundingRect, rect.topLeft());
+	auto* videoWidget = qobject_cast<Mlt::VideoWidget*>(MLT.videoWidget());
+	QRect const boundingRect = getPlayerBoundingRect(videoWidget);
+	QPoint const pixel = playerPosToPixel(boundingRect, rect.topLeft());
 	m_zoomWidget->setOffset(pixel);
 }
 
 void VideoZoomScopeWidget::onScreenPointSelected(const QPoint& point) {
-	auto*  videoWidget  = qobject_cast<Mlt::VideoWidget*>(MLT.videoWidget());
-	QRect  boundingRect = getPlayerBoundingRect(videoWidget);
-	QPoint pixel        = playerPosToPixel(boundingRect, point);
+	auto* videoWidget = qobject_cast<Mlt::VideoWidget*>(MLT.videoWidget());
+	QRect const boundingRect = getPlayerBoundingRect(videoWidget);
+	QPoint const pixel = playerPosToPixel(boundingRect, point);
 	m_zoomWidget->setSelectedPixel(pixel);
 }
 
@@ -250,10 +266,10 @@ void VideoZoomScopeWidget::refreshScope(const QSize& size, bool full) {
 }
 
 void VideoZoomScopeWidget::updateLabels() {
-	QPoint selectedPixel = m_zoomWidget->getSelectedPixel();
+	QPoint const selectedPixel = m_zoomWidget->getSelectedPixel();
 
 	if (selectedPixel.x() >= 0) {
-		VideoZoomWidget::PixelValues values = m_zoomWidget->getPixelValues(selectedPixel);
+		VideoZoomWidget::PixelValues const values = m_zoomWidget->getPixelValues(selectedPixel);
 		m_pixelXLabel->setText(QString::number(selectedPixel.x() + 1));
 		m_pixelYLabel->setText(QString::number(selectedPixel.y() + 1));
 		m_rLabel->setText(QString::number(values.r));
@@ -274,6 +290,6 @@ void VideoZoomScopeWidget::updateLabels() {
 	}
 }
 
-QString VideoZoomScopeWidget::getTitle() {
+auto VideoZoomScopeWidget::getTitle() -> QString {
 	return tr("Video Zoom");
 }

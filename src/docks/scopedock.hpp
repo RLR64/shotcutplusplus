@@ -18,10 +18,15 @@
 #ifndef SCOPEDOCK_HPP
 #define SCOPEDOCK_HPP
 
+// Local
 #include "widgets/scopes/scopewidget.h"
 
+// Qt
 #include <QDockWidget>
 #include <QObject>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class ScopeController;
 

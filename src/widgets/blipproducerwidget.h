@@ -18,9 +18,17 @@
 #ifndef BLIPPRODUCERWIDGET_H
 #define BLIPPRODUCERWIDGET_H
 
+// Local
 #include "abstractproducerwidget.hpp"
 
+// Qt
+#include <MltProducer.h>
+#include <MltProperties.h>
 #include <QWidget>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 namespace Ui {
 class BlipProducerWidget;
@@ -30,13 +38,13 @@ class BlipProducerWidget : public QWidget, public AbstractProducerWidget {
 	Q_OBJECT
 
   public:
-	explicit BlipProducerWidget(QWidget* parent = 0);
-	~BlipProducerWidget();
+	explicit BlipProducerWidget(QWidget* parent = nullptr);
+	~BlipProducerWidget() override;
 
 	// AbstractProducerWidget overrides
-	Mlt::Producer*  newProducer(Mlt::Profile&);
-	Mlt::Properties getPreset() const;
-	void            loadPreset(Mlt::Properties&);
+	Mlt::Producer*  newProducer(Mlt::Profile&) override;
+	[[nodiscard]] Mlt::Properties getPreset() const override;
+	void loadPreset(Mlt::Properties&) override;
 
   signals:
 	void producerChanged(Mlt::Producer*);
@@ -47,7 +55,7 @@ class BlipProducerWidget : public QWidget, public AbstractProducerWidget {
 	void on_preset_saveClicked();
 
   private:
-	QString                 detail() const;
+	[[nodiscard]] QString detail() const;
 	Ui::BlipProducerWidget* ui;
 };
 

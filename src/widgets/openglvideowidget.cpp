@@ -18,14 +18,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "openglvideowidget.h"
-
 #include "Logger.hpp"
 #include "mainwindow.hpp"
+#include "mltcontroller.hpp"
+#include "sharedframe.hpp"
+#include "videowidget.hpp"
 
+// Qt
+#include <GL/gl.h>
 #include <QOpenGLFunctions_1_1>
 #include <QOpenGLFunctions_3_2_Core>
 #include <QOpenGLVersionFunctionsFactory>
+#include <MltProfile.h>
+#include <framework/mlt_types.h>
+#include <qassert.h>
+#include <qbytearrayalgorithms.h>
+#include <qcontainerfwd.h>
+#include <qdebug.h>
+#include <qobject.h>
+#include <qopenglext.h>
+#include <qopenglshaderprogram.h>
+
+// STL
+#include <cstdint>
+#include <memory>
 #include <utility>
 
 // clang-format off
@@ -36,7 +54,7 @@
 #else
 #define check_error(fn)                                                                                                \
 	{                                                                                                                  \
-		int err = fn->glGetError();                                                                                    \
+		int err = (fn)->glGetError();                                                                                    \
 		if (err != GL_NO_ERROR) {                                                                                      \
 			LOG_ERROR() << "GL error" << Qt::hex << err << Qt::dec << "at" << __FILE__ << ":" << __LINE__;             \
 		}                                                                                                              \
@@ -99,7 +117,7 @@ void OpenGLVideoWidget::initialize() {
 }
 
 void OpenGLVideoWidget::createShader() {
-	m_shader.reset(new QOpenGLShaderProgram);
+	m_shader = std::make_unique<QOpenGLShaderProgram>();
 	m_shader->addShaderFromSourceCode(QOpenGLShader::Vertex, "uniform highp mat4 projection;"
 	                                                         "uniform highp mat4 modelView;"
 	                                                         "attribute highp vec4 vertex;"
@@ -149,8 +167,8 @@ void OpenGLVideoWidget::createShader() {
 }
 
 static void uploadTextures(QOpenGLContext* context, const SharedFrame& frame, GLuint texture[]) {
-	int               width  = frame.get_image_width();
-	int               height = frame.get_image_height();
+	const int width  = frame.get_image_width();
+	const int height = frame.get_image_height();
 	const uint8_t*    image  = frame.get_image(mlt_image_yuv420p);
 	QOpenGLFunctions* f      = context->functions();
 
@@ -327,7 +345,7 @@ void OpenGLVideoWidget::renderVideo() {
 
 void OpenGLVideoWidget::onFrameDisplayed(const SharedFrame& frame) {
 	if (m_isThreadedOpenGL && !m_context) {
-		m_context.reset(new QOpenGLContext);
+		m_context = std::make_unique<QOpenGLContext>();
 		if (m_context) {
 			m_context->setFormat(m_quickContext->format());
 			m_context->setShareContext(m_quickContext);

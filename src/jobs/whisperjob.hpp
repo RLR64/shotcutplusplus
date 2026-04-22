@@ -18,23 +18,29 @@
 #ifndef WHISPERJOB_HPP
 #define WHISPERJOB_HPP
 
+// Local
 #include "abstractjob.hpp"
+#include "jobs/postjobaction.hpp"
+#include "settings.hpp"
 
+// Qt
 #include <QTemporaryFile>
+#include <qthread.h>
+#include <qtmetamacros.h>
 
 class WhisperJob : public AbstractJob {
 	Q_OBJECT
   public:
 	WhisperJob(const QString& name, const QString& iWavFile, const QString& oSrtFile, const QString& lang,
 	           bool translate, int maxLength, QThread::Priority priority = Settings.jobPriority());
-	virtual ~WhisperJob();
+	~WhisperJob() override;
 
   public slots:
-	void start();
+	void start() override;
 	void onViewSrtTriggered();
 
   protected slots:
-	void onReadyRead();
+	void onReadyRead() override;
 
   private:
 	const QString m_iWavFile;

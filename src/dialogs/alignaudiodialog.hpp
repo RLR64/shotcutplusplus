@@ -18,10 +18,16 @@
 #ifndef ALIGNAUDIODIALOG_HPP
 #define ALIGNAUDIODIALOG_HPP
 
+// Local
 #include "models/alignclipsmodel.hpp"
 
+// Qt
 #include <QDialog>
 #include <QUuid>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class QComboBox;
 class QDialogButtonBox;
@@ -38,9 +44,9 @@ class LongUiTask;
 class AlignAudioDialog : public QDialog {
 	Q_OBJECT
   public:
-	explicit AlignAudioDialog(QString title, MultitrackModel* model, const QVector<QUuid>& uuids,
+	explicit AlignAudioDialog(const QString& title, MultitrackModel* model, const QVector<QUuid>& uuids,
 	                          QWidget* parent = nullptr);
-	virtual ~AlignAudioDialog();
+	~AlignAudioDialog() override;
 
   private slots:
 	void rebuildClipList();

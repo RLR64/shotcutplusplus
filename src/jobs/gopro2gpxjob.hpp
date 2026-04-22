@@ -18,16 +18,21 @@
 #ifndef GOPRO2GPXJOB_HPP
 #define GOPRO2GPXJOB_HPP
 
+// Local
 #include "abstractjob.hpp"
+#include "jobs/postjobaction.hpp"
 
+// Qt
 #include <QStringList>
+#include <qcontainerfwd.h>
+#include <qtmetamacros.h>
 
 class GoPro2GpxJob : public AbstractJob {
 	Q_OBJECT
   public:
 	GoPro2GpxJob(const QString& name, const QStringList& args);
-	virtual ~GoPro2GpxJob() {};
-	void start();
+	~GoPro2GpxJob() override = default;
+	void start() override;
 
   private:
 	QStringList m_args;

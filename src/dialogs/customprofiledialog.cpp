@@ -15,16 +15,39 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "customprofiledialog.hpp"
-
 #include "mltcontroller.hpp"
 #include "settings.hpp"
 #include "ui_customprofiledialog.h"
 #include "util.hpp"
 
+// Qt
+#include <MltProperties.h>
 #include <QDesktopServices>
 #include <QDir>
 #include <QRegularExpression>
+#include <qdialog.h>
+#include <qobject.h>
+
+// Number constants
+// Color spec
+static constexpr int setColorSpaceNumberA{601};
+static constexpr int setColorSpaceNumberB{709};
+static constexpr int setColorSpaceNumberC{2020};
+
+// FPS
+static constexpr double kFps2398{23.98};
+static constexpr double kFps23976{23.976};
+static constexpr double kFps2997{29.97};
+static constexpr double kFps4795{47.95};
+static constexpr double kFps5994{59.94};
+
+static constexpr int setShowFrameRateDialog24K{24000};
+static constexpr int setShowFrameRateDialog30K{30000};
+static constexpr int setShowFrameRateDialog48K{48000};
+static constexpr int setShowFrameRateDialog60K{60000};
+
 
 CustomProfileDialog::CustomProfileDialog(QWidget* parent)
     : QDialog(parent), ui(new Ui::CustomProfileDialog), m_fps(0.0) {
@@ -36,10 +59,10 @@ CustomProfileDialog::CustomProfileDialog(QWidget* parent)
 	ui->fpsSpinner->setValue(MLT.profile().fps());
 	ui->scanModeCombo->setCurrentIndex(MLT.profile().progressive());
 	switch (MLT.profile().colorspace()) {
-	case 601:
+	case setColorSpaceNumberA:
 		ui->colorspaceCombo->setCurrentIndex(0);
 		break;
-	case 2020:
+	case setColorSpaceNumberC:
 		ui->colorspaceCombo->setCurrentIndex(2);
 		break;
 	default:
@@ -52,10 +75,10 @@ CustomProfileDialog::~CustomProfileDialog() {
 	delete ui;
 }
 
-QString CustomProfileDialog::profileName() const {
+auto CustomProfileDialog::profileName() const -> QString {
 	// Replace characters that are not allowed in Windows file names
-	QString                   filename = ui->nameEdit->text();
-	static QRegularExpression re("[" + QRegularExpression::escape("\\/:*?\"<>|") + "]");
+	QString filename = ui->nameEdit->text();
+	static QRegularExpression const re("[" + QRegularExpression::escape("\\/:*?\"<>|") + "]");
 	filename = filename.replace(re, QStringLiteral("_"));
 	return filename;
 }
@@ -65,8 +88,7 @@ void CustomProfileDialog::on_buttonBox_accepted() {
 	MLT.profile().set_width(ui->widthSpinner->value());
 	MLT.profile().set_height(ui->heightSpinner->value());
 	MLT.profile().set_display_aspect(ui->aspectNumSpinner->value(), ui->aspectDenSpinner->value());
-	QSize sar(ui->aspectNumSpinner->value() * ui->heightSpinner->value(),
-	          ui->aspectDenSpinner->value() * ui->widthSpinner->value());
+	QSize const sar(ui->aspectNumSpinner->value() * ui->heightSpinner->value(), ui->aspectDenSpinner->value() * ui->widthSpinner->value());
 	auto  gcd = Util::greatestCommonDivisor(sar.width(), sar.height());
 	MLT.profile().set_sample_aspect(sar.width() / gcd, sar.height() / gcd);
 	int numerator, denominator;
@@ -75,13 +97,13 @@ void CustomProfileDialog::on_buttonBox_accepted() {
 	MLT.profile().set_progressive(ui->scanModeCombo->currentIndex());
 	switch (ui->colorspaceCombo->currentIndex()) {
 	case 0:
-		MLT.profile().set_colorspace(601);
+		MLT.profile().set_colorspace(setColorSpaceNumberA);
 		break;
 	case 2:
-		MLT.profile().set_colorspace(2020);
+		MLT.profile().set_colorspace(setColorSpaceNumberC);
 		break;
 	default:
-		MLT.profile().set_colorspace(709);
+		MLT.profile().set_colorspace(setColorSpaceNumberB);
 		break;
 	}
 	MLT.updatePreviewProfile();
@@ -89,8 +111,8 @@ void CustomProfileDialog::on_buttonBox_accepted() {
 
 	// Save it to a file
 	if (!ui->nameEdit->text().isEmpty()) {
-		QDir    dir(Settings.appDataLocation());
-		QString subdir("profiles");
+		QDir dir(Settings.appDataLocation());
+		QString const subdir("profiles");
 		if (!dir.exists())
 			dir.mkpath(dir.path());
 		if (!dir.cd(subdir)) {
@@ -123,14 +145,14 @@ void CustomProfileDialog::on_heightSpinner_editingFinished() {
 void CustomProfileDialog::on_fpsSpinner_editingFinished() {
 	if (ui->fpsSpinner->value() != m_fps) {
 		const QString caption(tr("Video Mode Frames/sec"));
-		if (ui->fpsSpinner->value() == 23.98 || ui->fpsSpinner->value() == 23.976) {
-			Util::showFrameRateDialog(caption, 24000, ui->fpsSpinner, this);
-		} else if (ui->fpsSpinner->value() == 29.97) {
-			Util::showFrameRateDialog(caption, 30000, ui->fpsSpinner, this);
-		} else if (ui->fpsSpinner->value() == 47.95) {
-			Util::showFrameRateDialog(caption, 48000, ui->fpsSpinner, this);
-		} else if (ui->fpsSpinner->value() == 59.94) {
-			Util::showFrameRateDialog(caption, 60000, ui->fpsSpinner, this);
+		if (ui->fpsSpinner->value() == kFps2398 || ui->fpsSpinner->value() == kFps23976) {
+			Util::showFrameRateDialog(caption, setShowFrameRateDialog24K, ui->fpsSpinner, this);
+		} else if (ui->fpsSpinner->value() == kFps2997) {
+			Util::showFrameRateDialog(caption, setShowFrameRateDialog30K, ui->fpsSpinner, this);
+		} else if (ui->fpsSpinner->value() == kFps4795) {
+			Util::showFrameRateDialog(caption, setShowFrameRateDialog48K, ui->fpsSpinner, this);
+		} else if (ui->fpsSpinner->value() == kFps5994) {
+			Util::showFrameRateDialog(caption, setShowFrameRateDialog60K, ui->fpsSpinner, this);
 		}
 		m_fps = ui->fpsSpinner->value();
 	}

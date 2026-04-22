@@ -18,9 +18,15 @@
 #ifndef LISSAJOUSWIDGET_H
 #define LISSAJOUSWIDGET_H
 
+// Local
 #include "abstractproducerwidget.hpp"
 
+// Qt
+#include <MltProducer.h>
+#include <MltProperties.h>
 #include <QWidget>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 namespace Mlt {
 class Producer;
@@ -34,13 +40,13 @@ class LissajousWidget : public QWidget, public AbstractProducerWidget {
 	Q_OBJECT
 
   public:
-	explicit LissajousWidget(QWidget* parent = 0);
-	~LissajousWidget();
+	explicit LissajousWidget(QWidget* parent = nullptr);
+	~LissajousWidget() override;
 
 	// AbstractProducerWidget overrides
-	Mlt::Producer*  newProducer(Mlt::Profile&);
-	Mlt::Properties getPreset() const;
-	void            loadPreset(Mlt::Properties&);
+	Mlt::Producer* newProducer(Mlt::Profile&) override;
+	[[nodiscard]] Mlt::Properties getPreset() const override;
+	void loadPreset(Mlt::Properties&) override;
 
   signals:
 	void producerChanged(Mlt::Producer*);

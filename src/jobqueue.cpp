@@ -15,27 +15,49 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "jobqueue.hpp"
-
 #include "Logger.hpp"
+#include "jobs/abstractjob.hpp"
+#include "jobs/postjobaction.hpp"
 
+// Qt
 #include <QtWidgets>
+#include <qalgorithms.h>
+#include <qdir.h>
+#include <qfontdatabase.h>
+#include <qforeach.h>
+#include <qguiapplication.h>
+#include <qlist.h>
+#include <qmutex.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qprocess.h>
+#include <qstandarditemmodel.h>
+#include <qtmetamacros.h>
+#include <qtversionchecks.h>
+
+// STL
+#include <utility>
+
+// clang-format off
 #if defined(Q_OS_WIN) && (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 #include "windowstools.h"
 #endif
+// clang-on
 
 JobQueue::JobQueue(QObject* parent) : QStandardItemModel(0, COLUMN_COUNT, parent), m_paused(false) {
 }
 
-JobQueue& JobQueue::singleton(QObject* parent) {
-	static JobQueue* instance = 0;
+auto JobQueue::singleton(QObject* parent) -> JobQueue& {
+	static JobQueue* instance = nullptr;
 	if (!instance)
 		instance = new JobQueue(parent);
 	return *instance;
 }
 
 void JobQueue::cleanup() {
-	QMutexLocker locker(&m_mutex);
+	QMutexLocker const locker(&m_mutex);
 	foreach (AbstractJob* job, m_jobs) {
 		if (job->state() == QProcess::Running) {
 			job->stop();
@@ -45,13 +67,13 @@ void JobQueue::cleanup() {
 	qDeleteAll(m_jobs);
 }
 
-AbstractJob* JobQueue::add(AbstractJob* job) {
+auto JobQueue::add(AbstractJob* job) -> AbstractJob* {
 	QList<QStandardItem*> items;
-	QIcon                 icon = QIcon::fromTheme("run-build", QIcon(":/icons/oxygen/32x32/actions/run-build.png"));
+	QIcon const icon = QIcon::fromTheme("run-build", QIcon(":/icons/oxygen/32x32/actions/run-build.png"));
 	items << new QStandardItem(icon, "");
-	QStandardItem* item = new QStandardItem(job->label());
+	auto* item = new QStandardItem(job->label());
 	items << item;
-	item       = new QStandardItem(tr("pending"));
+	item = new QStandardItem(tr("pending"));
 	QFont font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
 	font.setPointSize(QGuiApplication::font().pointSize());
 	item->setFont(font);
@@ -101,7 +123,7 @@ void JobQueue::onProgressUpdated(QStandardItem* standardItem, int percent) {
 #endif
 }
 
-void JobQueue::onFinished(AbstractJob* job, bool isSuccess, QString time) {
+void JobQueue::onFinished(AbstractJob* job, bool isSuccess, const QString& time) {
 	QStandardItem* item = job->standardItem();
 	if (item) {
 		QIcon icon;
@@ -138,7 +160,7 @@ void JobQueue::onFinished(AbstractJob* job, bool isSuccess, QString time) {
 void JobQueue::startNextJob() {
 	if (m_paused)
 		return;
-	QMutexLocker locker(&m_mutex);
+	QMutexLocker const locker(&m_mutex);
 	if (!m_jobs.isEmpty()) {
 		foreach (AbstractJob* job, m_jobs) {
 			// if there is already a job started or running, then exit
@@ -153,7 +175,7 @@ void JobQueue::startNextJob() {
 	}
 }
 
-AbstractJob* JobQueue::jobFromIndex(const QModelIndex& index) const {
+auto JobQueue::jobFromIndex(const QModelIndex& index) const -> AbstractJob* {
 	return m_jobs.at(index.row());
 }
 
@@ -162,7 +184,7 @@ void JobQueue::pause() {
 }
 
 void JobQueue::pauseCurrent() {
-	for (auto job : m_jobs) {
+	for (const auto job : std::as_const(m_jobs)) {
 		if (job->state() == QProcess::Running) {
 			job->pause();
 			break;
@@ -176,7 +198,7 @@ void JobQueue::resume() {
 }
 
 void JobQueue::resumeCurrent() {
-	for (auto job : m_jobs) {
+	for (const auto job : std::as_const(m_jobs)) {
 		if (job->state() == QProcess::Running) {
 			job->resume();
 			break;
@@ -184,12 +206,12 @@ void JobQueue::resumeCurrent() {
 	}
 }
 
-bool JobQueue::isPaused() const {
+auto JobQueue::isPaused() const -> bool {
 	return m_paused;
 }
 
-bool JobQueue::hasIncomplete() const {
-	foreach (AbstractJob* job, m_jobs) {
+auto JobQueue::hasIncomplete() const -> bool {
+	foreach (AbstractJob const* job, m_jobs) {
 		if (!job->ran() || job->state() == QProcess::Running)
 			return true;
 	}
@@ -197,11 +219,11 @@ bool JobQueue::hasIncomplete() const {
 }
 
 void JobQueue::remove(const QModelIndex& index) {
-	int row = index.row();
+	const int row = index.row();
 	removeRow(index.row());
 	m_mutex.lock();
 
-	AbstractJob* job = m_jobs.at(row);
+	AbstractJob const* job = m_jobs.at(row);
 	m_jobs.removeOne(job);
 	delete job;
 
@@ -209,9 +231,9 @@ void JobQueue::remove(const QModelIndex& index) {
 }
 
 void JobQueue::removeFinished() {
-	QMutexLocker locker(&m_mutex);
-	auto         row = 0;
-	foreach (AbstractJob* job, m_jobs) {
+	QMutexLocker const locker(&m_mutex);
+	auto row = 0;
+	foreach (AbstractJob const* job, m_jobs) {
 		if (job->isFinished()) {
 			removeRow(row);
 			m_jobs.removeOne(job);
@@ -222,7 +244,7 @@ void JobQueue::removeFinished() {
 	}
 }
 
-bool JobQueue::targetIsInProgress(const QString& target) {
+auto JobQueue::targetIsInProgress(const QString& target) -> bool {
 	if (!m_jobs.isEmpty() && !target.isEmpty()) {
 		foreach (AbstractJob* job, m_jobs) {
 			if (!job->isFinished() && job->target() == target) {

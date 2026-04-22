@@ -18,9 +18,17 @@
 #ifndef TRANSCRIBEAUDIODIALOG_HPP
 #define TRANSCRIBEAUDIODIALOG_HPP
 
+// Local
 #include "models/extensionmodel.hpp"
 
+// Qt
 #include <QDialog>
+#include <qabstractitemmodel.h>
+#include <qdir.h>
+#include <qlist.h>
+#include <qpoint.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class QAbstractButton;
 class QCheckBox;
@@ -36,15 +44,15 @@ class TranscribeAudioDialog : public QDialog {
 
   public:
 	explicit TranscribeAudioDialog(const QString& trackName, QWidget* parent);
-	QString    name();
-	QString    language();
-	QList<int> tracks();
-	bool       translate();
-	int        maxLineLength();
-	bool       includeNonspoken();
+	auto    name() -> QString;
+	auto    language() -> QString;
+	auto	tracks() -> QList<int>;
+	auto    translate() -> bool;
+	auto    maxLineLength() -> int;
+	auto    includeNonspoken() -> bool;
 
   protected:
-	virtual void showEvent(QShowEvent* event) override;
+	void showEvent(QShowEvent* event) override;
 
   private slots:
 	void onButtonClicked(QAbstractButton* button);

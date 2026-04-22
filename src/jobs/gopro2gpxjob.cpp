@@ -15,17 +15,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "gopro2gpxjob.hpp"
-
 #include "Logger.hpp"
 #include "dialogs/textviewerdialog.hpp"
+#include "jobs/abstractjob.hpp"
+#include "jobs/postjobaction.hpp"
 #include "mainwindow.hpp"
 #include "util.hpp"
 
+// Qt
 #include <QAction>
 #include <QApplication>
 #include <QDir>
 #include <QFileInfo>
+#include <qcontainerfwd.h>
+#include <qprocess.h>
 
 GoPro2GpxJob::GoPro2GpxJob(const QString& name, const QStringList& args) : AbstractJob(name) {
 	m_args.append(args);
@@ -33,8 +38,8 @@ GoPro2GpxJob::GoPro2GpxJob(const QString& name, const QStringList& args) : Abstr
 }
 
 void GoPro2GpxJob::start() {
-	QString   shotcutPath = qApp->applicationDirPath();
-	QFileInfo gopro2gpxPath(shotcutPath, "gopro2gpx");
+	QString const shotcutPath = qApp->applicationDirPath();
+	QFileInfo const gopro2gpxPath(shotcutPath, "gopro2gpx");
 	setReadChannel(QProcess::StandardOutput);
 	LOG_DEBUG() << gopro2gpxPath.absoluteFilePath() + " " + m_args.join(' ');
 	AbstractJob::start(gopro2gpxPath.absoluteFilePath(), m_args);

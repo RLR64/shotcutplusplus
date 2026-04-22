@@ -15,12 +15,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
+#include "abstractjob.hpp"
 #include "dockerpulljob.hpp"
-
 #include "Logger.hpp"
+#include "jobs/postjobaction.hpp"
 #include "settings.hpp"
 
+// Qt
 #include <QRegularExpression>
+#include <qcontainerfwd.h>
+#include <qminmax.h>
+#include <qobject.h>
+#include <qprocess.h>
+#include <qthread.h>
+#include <qtmetamacros.h>
+
+// Number constants
+constexpr int progressUpdatedNumber{100};
 
 DockerPullJob::DockerPullJob(const QString& imageRef, QThread::Priority priority)
     : AbstractJob(QObject::tr("docker pull %1").arg(imageRef), priority), m_imageRef(imageRef) {
@@ -38,8 +50,8 @@ DockerPullJob::~DockerPullJob() {
 }
 
 void DockerPullJob::start() {
-	QString     docker = Settings.dockerPath();
-	QStringList args{QStringLiteral("pull"), m_imageRef};
+	QString const docker = Settings.dockerPath();
+	QStringList const args{QStringLiteral("pull"), m_imageRef};
 	setProcessChannelMode(QProcess::MergedChannels);
 	LOG_DEBUG() << docker + " " + args.join(' ');
 	AbstractJob::start(docker, args);
@@ -60,13 +72,13 @@ void DockerPullJob::onReadyRead() {
 			static int totalComplete = 0;
 			if (msg.contains("Pull complete")) {
 				++totalComplete;
-				int percent = qMin(99, totalComplete * 5); // heuristic
+				const int percent = qMin(99, totalComplete * 5); // heuristic
 				if (percent != m_previousPercent) {
 					emit progressUpdated(m_item, percent);
 					m_previousPercent = percent;
 				}
 			} else if (msg.startsWith("Status: ")) {
-				emit progressUpdated(m_item, 100);
+				emit progressUpdated(m_item, progressUpdatedNumber);
 			}
 		}
 	} while (!msg.isEmpty());

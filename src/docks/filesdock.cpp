@@ -15,13 +15,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "filesdock.hpp"
-
 #include "Logger.hpp"
 #include "actions.hpp"
 #include "database.hpp"
 #include "dialogs/listselectiondialog.hpp"
 #include "mainwindow.hpp"
+#include "mltcontroller.hpp"
 #include "models/playlistmodel.hpp"
 #include "qmltypes/qmlapplication.hpp"
 #include "settings.hpp"
@@ -33,6 +34,8 @@
 #include "widgets/playlistlistview.h"
 #include "widgets/playlisttable.h"
 
+// Qt
+#include <MltFilter.h>
 #include <QActionGroup>
 #include <QClipboard>
 #include <QDesktopServices>
@@ -54,12 +57,38 @@
 #include <QStyledItemDelegate>
 #include <QThreadPool>
 #include <QToolButton>
+#include <qabstractitemdelegate.h>
+#include <qcryptographichash.h>
+#include <qdialog.h>
+#include <qfilesystemmodel.h>
+#include <qfont.h>
+#include <qlatin1stringview.h>
+#include <qlineedit.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qset.h>
+#include <qstyle.h>
+#include <qstyleoption.h>
+#include <qtmetamacros.h>
+#include <qtoolbar.h>
+#include <qtpreprocessorsupport.h>
+#include <qvariant.h>
 
-static constexpr int       kTilePaddingPx   = {10};
-static constexpr int       kTreeViewWidthPx = {150};
-static const auto          kDetailedMode    = QLatin1String("detailed");
-static const auto          kIconsMode       = QLatin1String("icons");
-static const auto          kTiledMode       = QLatin1String("tiled");
+// STL
+#include <algorithm>
+#include <memory>
+#include <utility>
+
+static constexpr int kTilePaddingPx{10};
+static constexpr int kTreeViewWidthPx{150};
+static constexpr const auto kDetailedMode = QLatin1String("detailed");
+static constexpr const auto kIconsMode = QLatin1String("icons");
+static constexpr const auto kTiledMode = QLatin1String("tiled");
+
 static const QSet<QString> kAudioExtensions{
     QLatin1String("m4a"), QLatin1String("wav"),  QLatin1String("mp3"), QLatin1String("ac3"), QLatin1String("flac"),
     QLatin1String("oga"), QLatin1String("opus"), QLatin1String("wma"), QLatin1String("mka"),
@@ -96,7 +125,7 @@ class FilesMediaTypeTask : public QRunnable {
 	}
 
   public:
-	void run() {
+	void run() override {
 		static Mlt::Profile profile{"atsc_720p_60"};
 		Mlt::Producer       producer(profile, m_filePath.toUtf8().constData());
 		auto                mediaType = PlaylistModel::Other;
@@ -128,14 +157,14 @@ class FilesThumbnailTask : public QRunnable {
 	    : QRunnable(), m_model(model), m_filePath(filePath), m_index(index) {
 	}
 
-	static QString cacheKey(const QString& filePath) {
+	static auto cacheKey(const QString& filePath) -> QString {
 		QCryptographicHash hash(QCryptographicHash::Sha1);
 		hash.addData(filePath.toUtf8());
 		return hash.result().toHex();
 	}
 
   private:
-	bool isValidService(Mlt::Producer& producer) const {
+	auto isValidService(Mlt::Producer& producer) const -> bool {
 		if (producer.is_valid()) {
 			auto service = QString::fromLatin1(producer.get("mlt_service"));
 			return (service.startsWith("avformat") || service == "qimage" || service == "pixbuf" ||
@@ -145,7 +174,7 @@ class FilesThumbnailTask : public QRunnable {
 	}
 
   public:
-	void run() {
+	void run() override {
 		LOG_DEBUG() << "Mlt::Producer" << m_filePath;
 		QImage              image;
 		static Mlt::Profile profile{"atsc_720p_60"};
@@ -180,11 +209,11 @@ class FilesModel : public QFileSystemModel {
 	explicit FilesModel(FilesDock* parent = nullptr) : QFileSystemModel(parent), m_dock(parent) {
 	}
 
-	QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override {
+	[[nodiscard]] auto data(const QModelIndex& index, int role = Qt::DisplayRole) const -> QVariant override {
 		const auto info  = fileInfo(index);
 		const auto isDir = info.isDir();
 		if (MediaTypeStringRole == role || (index.column() == 2 && Qt::DisplayRole == role)) {
-			QString names[] = {
+			QString const names[] = {
 			    tr("Video"), tr("Image"), tr("Audio"), tr("Other"), QLatin1String(""),
 			};
 			auto i = isDir ? 4 : mediaType(index);
@@ -225,7 +254,7 @@ class FilesModel : public QFileSystemModel {
   private:
 	FilesDock* m_dock;
 
-	int mediaType(const QModelIndex& index) const {
+	[[nodiscard]] auto mediaType(const QModelIndex& index) const -> int {
 		auto path      = filePath(index);
 		auto mediaType = m_dock->getCacheMediaType(path);
 
@@ -263,7 +292,7 @@ class FilesModel : public QFileSystemModel {
 	}
 
 	void cacheThumbnail(const QString& filePath, QImage& image, const QModelIndex& index) {
-		bool updateModel = !image.isNull();
+		const bool updateModel = !image.isNull();
 		if (image.isNull()) {
 			image = QImage(64, 64, QImage::Format_ARGB32);
 			image.fill(Qt::transparent);
@@ -297,8 +326,8 @@ class FilesTileDelegate : public QStyledItemDelegate {
 		connect(&Settings, SIGNAL(playlistThumbnailsChanged()), SLOT(emitSizeHintChanged()));
 	}
 
-	void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
-		const QImage thumb      = index.data(FilesModel::ThumbnailRole).value<QImage>();
+	void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
+		const auto thumb      = index.data(FilesModel::ThumbnailRole).value<QImage>();
 		const int    lineHeight = painter->fontMetrics().height();
 		const auto   fileInfo   = QFileInfo(index.data(Qt::ToolTipRole).toString());
 		const QFont  oldFont    = painter->font();
@@ -346,10 +375,10 @@ class FilesTileDelegate : public QStyledItemDelegate {
 		}
 	}
 
-	QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const {
+	[[nodiscard]] auto sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const -> QSize override {
 		Q_UNUSED(option);
 		Q_UNUSED(index);
-		return QSize(m_view->viewport()->width(), PlaylistModel::THUMBNAIL_HEIGHT + kTilePaddingPx);
+		return {m_view->viewport()->width(), PlaylistModel::THUMBNAIL_HEIGHT + kTilePaddingPx};
 	}
 
   private slots:
@@ -373,7 +402,7 @@ class FilesProxyModel : public QSortFilterProxyModel {
 	}
 
   protected:
-	bool filterAcceptsRow(int row, const QModelIndex& parent) const override {
+	[[nodiscard]] auto filterAcceptsRow(int row, const QModelIndex& parent) const -> bool override {
 		const auto index = sourceModel()->index(row, 0, parent);
 		const auto model = qobject_cast<const QFileSystemModel*>(sourceModel());
 
@@ -387,7 +416,7 @@ class FilesProxyModel : public QSortFilterProxyModel {
 		return index.data(QFileSystemModel::FileNameRole).toString().contains(filterRegularExpression());
 	}
 
-	bool lessThan(const QModelIndex& left, const QModelIndex& right) const override {
+	[[nodiscard]] auto lessThan(const QModelIndex& left, const QModelIndex& right) const -> bool override {
 		const auto model = qobject_cast<const QFileSystemModel*>(sourceModel());
 		if (model->isDir(left) && model->isDir(right)) {
 			if (left.column() == 3)
@@ -412,7 +441,7 @@ class FilesProxyModel : public QSortFilterProxyModel {
 FilesDock::FilesDock(QWidget* parent) : QDockWidget(parent), ui(new Ui::FilesDock) {
 	LOG_DEBUG() << "begin";
 	ui->setupUi(this);
-	QIcon icon = QIcon::fromTheme("system-file-manager", QIcon(":/icons/oxygen/32x32/apps/system-file-manager.png"));
+	QIcon const icon = QIcon::fromTheme("system-file-manager", QIcon(":/icons/oxygen/32x32/apps/system-file-manager.png"));
 	toggleViewAction()->setIcon(icon);
 
 	const auto ls = QStandardPaths::standardLocations(QStandardPaths::HomeLocation);
@@ -439,11 +468,11 @@ FilesDock::FilesDock(QWidget* parent) : QDockWidget(parent), ui(new Ui::FilesDoc
 	ui->removeLocationButton->setDisabled(true);
 	auto n = ui->locationsCombo->count();
 	connect(ui->locationsCombo, &QComboBox::currentIndexChanged, this,
-	        [=](int index) { ui->removeLocationButton->setEnabled(index >= n); });
+			[this, n](int index) -> void { ui->removeLocationButton->setEnabled(index >= n); });
 
 	// Add from Settings
 	auto locations = Settings.filesLocations();
-	for (const auto& name : locations) {
+	for (const auto& name : std::as_const(locations)) {
 		auto path = Settings.filesLocationPath(name);
 		ui->locationsCombo->addItem(name, path);
 	}
@@ -465,7 +494,7 @@ FilesDock::FilesDock(QWidget* parent) : QDockWidget(parent), ui(new Ui::FilesDoc
 	m_selectionModel = new QItemSelectionModel(m_filesProxyModel, this);
 	connect(m_selectionModel, &QItemSelectionModel::selectionChanged, this, &FilesDock::selectionChanged);
 
-	m_dirsModel.reset(new QFileSystemModel);
+	m_dirsModel = std::make_unique<QFileSystemModel>();
 	m_dirsModel->setReadOnly(true);
 	m_dirsModel->setRootPath(QString());
 	m_dirsModel->setOption(QFileSystemModel::DontUseCustomDirectoryIcons);
@@ -485,12 +514,12 @@ FilesDock::FilesDock(QWidget* parent) : QDockWidget(parent), ui(new Ui::FilesDoc
 	ui->treeView->setExpanded(homeIndex, true);
 	ui->treeView->scrollTo(homeIndex);
 	ui->treeView->setCurrentIndex(homeIndex);
-	QTimer::singleShot(0, this, [=]() { ui->treeView->setVisible(Settings.filesFoldersOpen()); });
-	connect(ui->treeView, &QWidget::customContextMenuRequested, this, [=](const QPoint& pos) {
+	QTimer::singleShot(0, this, [this]() -> void { ui->treeView->setVisible(Settings.filesFoldersOpen()); });
+	connect(ui->treeView, &QWidget::customContextMenuRequested, this, [this](const QPoint& pos) -> void {
 		QMenu menu(this);
 		menu.exec(mapToGlobal(pos));
 	});
-	connect(ui->treeView, &QAbstractItemView::clicked, this, [=](const QModelIndex& index) {
+	connect(ui->treeView, &QAbstractItemView::clicked, this, [this](const QModelIndex& index) -> void {
 		auto filePath = m_dirsModel->filePath(index);
 		LOG_DEBUG() << "clicked" << filePath;
 		auto sourceIndex = m_filesModel->setRootPath(filePath);
@@ -512,7 +541,7 @@ FilesDock::FilesDock(QWidget* parent) : QDockWidget(parent), ui(new Ui::FilesDoc
 	selectMenu->addAction(Actions["filesSelectAllAction"]);
 	selectMenu->addAction(Actions["filesSelectNoneAction"]);
 
-	DockToolBar* toolbar = new DockToolBar(tr("Files Controls"));
+	auto* toolbar = new DockToolBar(tr("Files Controls"));
 	toolbar->setAreaHint(Qt::BottomToolBarArea);
 	QToolButton* menuButton = new QToolButton();
 	menuButton->setIcon(QIcon::fromTheme("show-menu", QIcon(":/icons/oxygen/32x32/actions/show-menu.png")));
@@ -548,7 +577,7 @@ FilesDock::FilesDock(QWidget* parent) : QDockWidget(parent), ui(new Ui::FilesDoc
 	ui->locationsLayout->insertWidget(1, toolbar);
 
 	auto    toolbar2   = new QToolBar(tr("Files Filters"));
-	QString styleSheet = QStringLiteral("QToolButton {"
+	QString const styleSheet = QStringLiteral("QToolButton {"
 	                                    "    background-color: palette(background);"
 	                                    "    border-style: solid;"
 	                                    "    border-width: 1px;"
@@ -569,7 +598,7 @@ FilesDock::FilesDock(QWidget* parent) : QDockWidget(parent), ui(new Ui::FilesDoc
 	m_searchField = new LineEditClear(this);
 	m_searchField->setToolTip(tr("Only show files whose name contains some text"));
 	m_searchField->setPlaceholderText(tr("search"));
-	connect(m_searchField, &QLineEdit::textChanged, this, [=](const QString& search) {
+	connect(m_searchField, &QLineEdit::textChanged, this, [this](const QString& search) -> void {
 		m_filesProxyModel->setFilterFixedString(search);
 		if (search.isEmpty()) {
 			changeFilesDirectory(m_filesProxyModel->mapFromSource(m_filesModel->index(m_filesModel->rootPath())));
@@ -591,7 +620,7 @@ FilesDock::FilesDock(QWidget* parent) : QDockWidget(parent), ui(new Ui::FilesDoc
 	ui->tableView->sortByColumn(0, Qt::AscendingOrder);
 	ui->tableView->horizontalHeader()->setSectionsMovable(true);
 	ui->tableView->setColumnWidth(1, 100);
-	connect(ui->tableView, &QAbstractItemView::activated, this, [=](const QModelIndex& index) {
+	connect(ui->tableView, &QAbstractItemView::activated, this, [this](const QModelIndex& index) -> void {
 		const auto sourceIndex = m_filesProxyModel->mapToSource(index);
 		auto       filePath    = m_filesModel->filePath(sourceIndex);
 		auto       info        = m_filesModel->fileInfo(sourceIndex);
@@ -609,7 +638,7 @@ FilesDock::FilesDock(QWidget* parent) : QDockWidget(parent), ui(new Ui::FilesDoc
 			openClip(filePath);
 	});
 	connect(ui->tableView->horizontalHeader(), &QHeaderView::sortIndicatorChanged, this,
-	        [=](int column, Qt::SortOrder order) {
+			[this](int column, Qt::SortOrder order) -> void {
 		        LOG_DEBUG() << "sort by column" << column;
 		        ui->tableView->sortByColumn(column, order);
 	        });
@@ -620,7 +649,7 @@ FilesDock::FilesDock(QWidget* parent) : QDockWidget(parent), ui(new Ui::FilesDoc
 	views << ui->tableView;
 	views << ui->listView;
 	views << m_iconsView;
-	for (auto view : views) {
+	for (auto view : std::as_const(views)) {
 		view->setDragDropMode(QAbstractItemView::DragOnly);
 		view->setAcceptDrops(false);
 		view->setAlternatingRowColors(true);
@@ -643,8 +672,8 @@ FilesDock::~FilesDock() {
 	delete ui;
 }
 
-int FilesDock::getCacheMediaType(const QString& key) {
-	QMutexLocker<QMutex> m_lock(&m_cacheMutex);
+auto FilesDock::getCacheMediaType(const QString& key) -> int {
+	QMutexLocker<QMutex> const m_lock(&m_cacheMutex);
 	auto                 x = m_cache.find(key);
 	if (x == m_cache.end())
 		return -1;
@@ -652,14 +681,14 @@ int FilesDock::getCacheMediaType(const QString& key) {
 }
 
 void FilesDock::setCacheMediaType(const QString& key, int mediaType) {
-	QMutexLocker<QMutex> m_lock(&m_cacheMutex);
+	QMutexLocker<QMutex> const m_lock(&m_cacheMutex);
 	m_cache[key].mediaType = mediaType;
 }
 
 void FilesDock::setupActions() {
 	QIcon         icon;
-	QAction*      action;
-	QActionGroup* modeGroup = new QActionGroup(this);
+	QAction*     action;
+	auto* modeGroup = new QActionGroup(this);
 	modeGroup->setExclusive(true);
 
 	action = new QAction(tr("Tiles"), this);
@@ -667,7 +696,7 @@ void FilesDock::setupActions() {
 	icon = QIcon::fromTheme("view-list-details", QIcon(":/icons/oxygen/32x32/actions/view-list-details.png"));
 	action->setIcon(icon);
 	action->setCheckable(true);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		Settings.setFilesViewMode(kTiledMode);
 		updateViewMode();
 	});
@@ -679,7 +708,7 @@ void FilesDock::setupActions() {
 	icon = QIcon::fromTheme("view-list-icons", QIcon(":/icons/oxygen/32x32/actions/view-list-icons.png"));
 	action->setIcon(icon);
 	action->setCheckable(true);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		Settings.setFilesViewMode(kIconsMode);
 		updateViewMode();
 	});
@@ -691,7 +720,7 @@ void FilesDock::setupActions() {
 	icon = QIcon::fromTheme("view-list-text", QIcon(":/icons/oxygen/32x32/actions/view-list-text.png"));
 	action->setIcon(icon);
 	action->setCheckable(true);
-	connect(action, &QAction::triggered, this, [&]() {
+	connect(action, &QAction::triggered, this, [&]() -> void {
 		Settings.setFilesViewMode(kDetailedMode);
 		updateViewMode();
 	});
@@ -703,12 +732,12 @@ void FilesDock::setupActions() {
 	action->setEnabled(false);
 	connect(action, &QAction::triggered, this, &FilesDock::onOpenActionTriggered);
 	connect(m_selectionModel, &QItemSelectionModel::selectionChanged, action,
-	        [=]() { action->setEnabled(!m_selectionModel->selection().isEmpty()); });
+			[action, this]() -> void { action->setEnabled(!m_selectionModel->selection().isEmpty()); });
 	Actions.add("filesOpenAction", action);
 
 	action = new QAction(tr("System Default"), this);
 	action->setEnabled(false);
-	connect(action, &QAction::triggered, this, [=]() {
+	connect(action, &QAction::triggered, this, [this]() -> void {
 		auto filePath = firstSelectedFilePath();
 		if (filePath.isEmpty())
 			filePath = m_filesModel->rootPath();
@@ -716,27 +745,27 @@ void FilesDock::setupActions() {
 		openClip(filePath);
 	});
 	connect(m_selectionModel, &QItemSelectionModel::selectionChanged, action,
-	        [=]() { action->setEnabled(!m_selectionModel->selection().isEmpty()); });
+			[action, this]() -> void { action->setEnabled(!m_selectionModel->selection().isEmpty()); });
 	Actions.add("filesOpenDefaultAction", action);
 
 #ifdef EXTERNAL_LAUNCHERS
 	action = new QAction(tr("Other..."), this);
 	action->setEnabled(false);
 	connect(m_selectionModel, &QItemSelectionModel::selectionChanged, action,
-	        [=]() { action->setEnabled(!m_selectionModel->selection().isEmpty()); });
+			[action, this]() -> void { action->setEnabled(!m_selectionModel->selection().isEmpty()); });
 	connect(action, &QAction::triggered, this, &FilesDock::onOpenOtherAdd);
 	Actions.add("filesOpenWithOtherAction", action);
 
 	action = new QAction(tr("Remove..."), this);
 	action->setEnabled(false);
 	connect(m_selectionModel, &QItemSelectionModel::selectionChanged, action,
-	        [=]() { action->setEnabled(!m_selectionModel->selection().isEmpty()); });
+			[action, this]() -> void { action->setEnabled(!m_selectionModel->selection().isEmpty()); });
 	connect(action, &QAction::triggered, this, &FilesDock::onOpenOtherRemove);
 	Actions.add("filesOpenWithRemoveAction", action);
 #endif
 
 	action = new QAction(tr("Show In File Manager"), this);
-	connect(action, &QAction::triggered, this, [=]() {
+	connect(action, &QAction::triggered, this, [this]() -> void {
 		auto filePath = firstSelectedFilePath();
 		if (filePath.isEmpty())
 			filePath = m_filesModel->rootPath();
@@ -749,48 +778,48 @@ void FilesDock::setupActions() {
 	action->setEnabled(false);
 	connect(action, &QAction::triggered, this, &FilesDock::onUpdateThumbnailsActionTriggered);
 	connect(m_selectionModel, &QItemSelectionModel::selectionChanged, action,
-	        [=]() { action->setEnabled(!m_selectionModel->selection().isEmpty()); });
+			[action, this]() -> void { action->setEnabled(!m_selectionModel->selection().isEmpty()); });
 	Actions.add("filesUpdateThumbnailsAction", action);
 
 	action = new QAction(tr("Select All"), this);
 	// action->setShortcut(QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_A));
 	connect(action, &QAction::triggered, this, &FilesDock::onSelectAllActionTriggered);
 	connect(m_filesProxyModel, &QAbstractItemModel::rowsInserted, this,
-	        [=]() { action->setEnabled(m_filesProxyModel->rowCount() > 0); });
+			[action, this]() -> void { action->setEnabled(m_filesProxyModel->rowCount() > 0); });
 	connect(m_filesProxyModel, &QAbstractItemModel::rowsRemoved, this,
-	        [=]() { action->setEnabled(m_filesProxyModel->rowCount() > 0); });
+			[action, this]() -> void { action->setEnabled(m_filesProxyModel->rowCount() > 0); });
 	Actions.add("filesSelectAllAction", action);
 
 	action = new QAction(tr("Select None"), this);
 	// action->setShortcut(QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_D));
-	connect(action, &QAction::triggered, this, [=]() {
+	connect(action, &QAction::triggered, this, [this]() -> void {
 		m_view->setCurrentIndex(QModelIndex());
 		m_selectionModel->clearSelection();
 	});
 	connect(m_selectionModel, &QItemSelectionModel::selectionChanged, action,
-	        [=]() { action->setEnabled(!m_selectionModel->selection().isEmpty()); });
+			[action, this]() -> void { action->setEnabled(!m_selectionModel->selection().isEmpty()); });
 	Actions.add("filesSelectNoneAction", action);
 
 	action = new QAction(tr("Open Previous"), this);
 	// action->setShortcut(QKeySequence(Qt::ALT | Qt::Key_Up));
 	action->setEnabled(false);
-	connect(action, &QAction::triggered, this, [=]() {
+	connect(action, &QAction::triggered, this, [this]() -> void {
 		raise();
 		incrementIndex(-1);
 	});
 	connect(m_selectionModel, &QItemSelectionModel::selectionChanged, action,
-	        [=]() { action->setEnabled(!m_selectionModel->selection().isEmpty()); });
+			[action, this]() -> void { action->setEnabled(!m_selectionModel->selection().isEmpty()); });
 	Actions.add("filesOpenPreviousAction", action);
 
 	action = new QAction(tr("Open Next"), this);
 	// action->setShortcut(QKeySequence(Qt::ALT | Qt::Key_Down));
 	action->setEnabled(false);
-	connect(action, &QAction::triggered, this, [=]() {
+	connect(action, &QAction::triggered, this, [this]() -> void {
 		raise();
 		incrementIndex(1);
 	});
 	connect(m_selectionModel, &QItemSelectionModel::selectionChanged, action,
-	        [=]() { action->setEnabled(!m_selectionModel->selection().isEmpty()); });
+			[action, this]() -> void { action->setEnabled(!m_selectionModel->selection().isEmpty()); });
 	Actions.add("filesOpenNextAction", action);
 
 	action = new QAction(tr("Video"), this);
@@ -823,7 +852,7 @@ void FilesDock::setupActions() {
 	action->setIcon(icon);
 	action->setCheckable(true);
 	action->setChecked(Settings.filesFoldersOpen());
-	connect(action, &QAction::triggered, this, [=](bool checked) {
+	connect(action, &QAction::triggered, this, [this](bool checked) -> void {
 		ui->treeView->setVisible(checked);
 		Settings.setFilesFoldersOpen(checked);
 	});
@@ -834,7 +863,7 @@ void FilesDock::setupActions() {
 	action->setShortcut({Qt::ALT | Qt::Key_Backspace});
 	icon = QIcon::fromTheme("lift", QIcon(":/icons/oxygen/32x32/actions/lift.png"));
 	action->setIcon(icon);
-	connect(action, &QAction::triggered, this, [=]() {
+	connect(action, &QAction::triggered, this, [this]() -> void {
 		auto dir = QDir(m_filesModel->rootPath());
 		dir.cdUp();
 		const auto filePath = dir.absolutePath();
@@ -851,9 +880,9 @@ void FilesDock::setupActions() {
 	action = new QAction(tr("Refresh Folders"), this);
 	icon   = QIcon::fromTheme("view-refresh", QIcon(":/icons/oxygen/32x32/actions/view-refresh.png"));
 	action->setIcon(icon);
-	connect(action, &QAction::triggered, this, [=]() {
+	connect(action, &QAction::triggered, this, [this]() -> void {
 		const auto cd = m_dirsModel->filePath(ui->treeView->currentIndex());
-		m_dirsModel.reset(new QFileSystemModel);
+		m_dirsModel = std::make_unique<QFileSystemModel>();
 		m_dirsModel->setReadOnly(true);
 		m_dirsModel->setRootPath(QString());
 		m_dirsModel->setOption(QFileSystemModel::DontUseCustomDirectoryIcons);
@@ -871,7 +900,7 @@ void FilesDock::setupActions() {
 
 	action = new QAction(tr("Search"), this);
 	action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_F));
-	connect(action, &QAction::triggered, this, [=]() {
+	connect(action, &QAction::triggered, this, [this]() -> void {
 		setVisible(true);
 		raise();
 		m_searchField->setFocus();
@@ -897,8 +926,8 @@ void FilesDock::addOpenWithMenu(QMenu* menu) {
 	subMenu->addSeparator();
 	// custom options
 	auto programs = Settings.filesOpenOther(firstSelectedMediaType());
-	for (const auto& program : programs) {
-		auto action = subMenu->addAction(QFileInfo(program).baseName(), this, [=]() {
+	for (const auto& program : std::as_const(programs)) {
+		auto action = subMenu->addAction(QFileInfo(program).baseName(), this, [this, program]() -> void {
 			const auto filePath = firstSelectedFilePath();
 			LOG_DEBUG() << program << filePath;
 			Util::startDetached(program, {QDir::toNativeSeparators(filePath)});
@@ -912,7 +941,7 @@ void FilesDock::addOpenWithMenu(QMenu* menu) {
 #endif
 }
 
-QString FilesDock::firstSelectedFilePath() {
+auto FilesDock::firstSelectedFilePath() -> QString {
 	QString result;
 	if (!m_view->selectionModel()->selectedIndexes().isEmpty()) {
 		const auto index = m_view->selectionModel()->selectedIndexes().first();
@@ -927,7 +956,7 @@ QString FilesDock::firstSelectedFilePath() {
 	return result;
 }
 
-QString FilesDock::firstSelectedMediaType() {
+auto FilesDock::firstSelectedMediaType() -> QString {
 	QString result;
 	if (!m_view->selectionModel()->selectedIndexes().isEmpty()) {
 		const auto index = m_view->selectionModel()->selectedIndexes().first();
@@ -972,7 +1001,7 @@ void FilesDock::onOpenActionTriggered() {
 
 void FilesDock::changeDirectory(const QString& filePath, bool updateLocation) {
 	LOG_DEBUG() << filePath;
-	QFileInfo info(filePath);
+	QFileInfo const info(filePath);
 	auto      path  = info.isDir() ? filePath : info.path();
 	auto      index = m_dirsModel->index(path);
 	ui->treeView->setExpanded(index, true);
@@ -1012,7 +1041,7 @@ void FilesDock::changeFilesDirectory(const QModelIndex& index) {
 }
 
 void FilesDock::viewCustomContextMenuRequested(const QPoint& pos) {
-	QModelIndex index = m_view->currentIndex();
+	QModelIndex const index = m_view->currentIndex();
 	if (index.isValid()) {
 		QMenu menu(this);
 		menu.addAction(Actions["filesOpenAction"]);
@@ -1029,12 +1058,12 @@ void FilesDock::updateViewMode() {
 	m_iconsView->hide();
 
 	if (ui->listView->itemDelegate()) {
-		QAbstractItemDelegate* delegate = ui->listView->itemDelegate();
+		QAbstractItemDelegate const* const delegate = ui->listView->itemDelegate();
 		ui->listView->setItemDelegate(nullptr);
 		delete delegate;
 	}
 
-	QString mode = Settings.filesViewMode();
+	QString const mode = Settings.filesViewMode();
 	if (mode == kDetailedMode) {
 		m_view = ui->tableView;
 	} else if (mode == kTiledMode) {

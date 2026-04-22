@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "markersdock.hpp"
-
 #include "Logger.hpp"
 #include "actions.hpp"
 #include "mainwindow.hpp"
@@ -26,6 +26,7 @@
 #include "widgets/docktoolbar.h"
 #include "widgets/editmarkerwidget.h"
 
+// Qt
 #include <QAction>
 #include <QDebug>
 #include <QHBoxLayout>
@@ -42,6 +43,20 @@
 #include <QTreeView>
 #include <QVBoxLayout>
 #include <QtWidgets/QScrollArea>
+#include <qabstractbutton.h>
+#include <qabstractitemmodel.h>
+#include <qabstractitemview.h>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <qdockwidget.h>
+#include <qframe.h>
+#include <qitemselectionmodel.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qstyleoption.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
 
 class ColorItemDelegate : public QStyledItemDelegate {
 	Q_OBJECT
@@ -49,7 +64,7 @@ class ColorItemDelegate : public QStyledItemDelegate {
 	ColorItemDelegate(QAbstractItemView* view, QWidget* parent = nullptr) : QStyledItemDelegate(parent), m_view(view) {
 	}
 
-	void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
+	void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
 		const auto color = index.data(MarkersModel::ColorRole).value<QColor>();
 		const auto textColor(Util::textColor(color));
 		painter->fillRect(option.rect, color);
@@ -59,7 +74,7 @@ class ColorItemDelegate : public QStyledItemDelegate {
 		painter->drawText(point, color.name());
 	}
 
-	QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const {
+	[[nodiscard]] auto sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const -> QSize override {
 		Q_UNUSED(index);
 		return QSize(m_view->viewport()->width(), option.fontMetrics.height() + 2 * m_view->devicePixelRatioF());
 	}
@@ -84,7 +99,7 @@ class MarkerTreeView : public QTreeView {
 	void markerSelected(QModelIndex& index);
 
   protected:
-	void selectionChanged(const QItemSelection& selected, const QItemSelection& deselected) {
+	void selectionChanged(const QItemSelection& selected, const QItemSelection& deselected) override {
 		QTreeView::selectionChanged(selected, deselected);
 		if (!m_blockSelectionEvent) {
 			QModelIndex     signalIndex;
@@ -96,9 +111,9 @@ class MarkerTreeView : public QTreeView {
 		}
 	}
 
-	void mouseReleaseEvent(QMouseEvent* event) {
+	void mouseReleaseEvent(QMouseEvent* event) override {
 		QTreeView::mouseReleaseEvent(event);
-		QModelIndex signalIndex = indexAt(event->pos());
+		QModelIndex const signalIndex = indexAt(event->pos());
 		if (signalIndex.isValid()) {
 			emit rowClicked(signalIndex);
 		}
@@ -117,11 +132,11 @@ MarkersDock::MarkersDock(QWidget* parent)
 
 	setObjectName("MarkersDock");
 	QDockWidget::setWindowTitle(tr("Markers"));
-	QIcon icon = QIcon::fromTheme("marker", QIcon(":/icons/oxygen/32x32/actions/marker.png"));
+	QIcon const icon = QIcon::fromTheme("marker", QIcon(":/icons/oxygen/32x32/actions/marker.png"));
 	toggleViewAction()->setIcon(icon);
 	setWhatsThis("https://forum.shotcut.org/t/timeline-markers/30535/1");
 
-	QScrollArea* scrollArea = new QScrollArea();
+	auto* scrollArea = new QScrollArea();
 	scrollArea->setFrameShape(QFrame::NoFrame);
 	scrollArea->setWidgetResizable(true);
 	QDockWidget::setWidget(scrollArea);
@@ -139,7 +154,7 @@ MarkersDock::MarkersDock(QWidget* parent)
 	connect(m_treeView, SIGNAL(rowClicked(const QModelIndex&)), this, SLOT(onRowClicked(const QModelIndex&)));
 	vboxLayout->addWidget(m_treeView, 1);
 
-	QMenu* mainMenu = new QMenu("Markers", this);
+	auto* mainMenu = new QMenu("Markers", this);
 	mainMenu->addAction(Actions["timelineMarkerAction"]);
 	mainMenu->addAction(Actions["timelinePrevMarkerAction"]);
 	mainMenu->addAction(Actions["timelineNextMarkerAction"]);
@@ -147,8 +162,8 @@ MarkersDock::MarkersDock(QWidget* parent)
 	mainMenu->addAction(Actions["timelineMarkSelectedClipAction"]);
 	mainMenu->addAction(Actions["timelineCycleMarkerColorAction"]);
 	mainMenu->addAction(tr("Remove All Markers"), this, SLOT(onRemoveAllRequested()));
-	QAction* action;
-	QMenu*   columnsMenu = new QMenu(tr("Columns"), this);
+	QAction* action = nullptr;
+	auto*   columnsMenu = new QMenu(tr("Columns"), this);
 	action               = columnsMenu->addAction(tr("Color"), this, SLOT(onColorColumnToggled(bool)));
 	action->setCheckable(true);
 	action->setChecked(Settings.markersShowColumn("color"));
@@ -167,9 +182,9 @@ MarkersDock::MarkersDock(QWidget* parent)
 	mainMenu->addMenu(columnsMenu);
 	Actions.loadFromMenu(mainMenu);
 
-	DockToolBar* toolbar = new DockToolBar(tr("Markers Controls"));
+	auto* toolbar = new DockToolBar(tr("Markers Controls"));
 	toolbar->setAreaHint(Qt::BottomToolBarArea);
-	QToolButton* menuButton = new QToolButton(this);
+	auto* menuButton = new QToolButton(this);
 	menuButton->setIcon(QIcon::fromTheme("show-menu", QIcon(":/icons/oxygen/32x32/actions/show-menu.png")));
 	menuButton->setToolTip(tr("Markers Menu"));
 	menuButton->setAutoRaise(true);
@@ -228,8 +243,7 @@ MarkersDock::MarkersDock(QWidget* parent)
 	LOG_DEBUG() << "end";
 }
 
-MarkersDock::~MarkersDock() {
-}
+MarkersDock::~MarkersDock() = default;
 
 void MarkersDock::setModel(MarkersModel* model) {
 	m_treeView->blockSelectionEvent(true);
@@ -255,8 +269,8 @@ void MarkersDock::setModel(MarkersModel* model) {
 }
 
 void MarkersDock::onMarkerSelectionRequest(int markerIndex) {
-	QModelIndex sourceIndex   = m_model->modelIndexForRow(markerIndex);
-	QModelIndex insertedIndex = m_proxyModel->mapFromSource(sourceIndex);
+	QModelIndex const sourceIndex   = m_model->modelIndexForRow(markerIndex);
+	QModelIndex const insertedIndex = m_proxyModel->mapFromSource(sourceIndex);
 	if (insertedIndex.isValid()) {
 		m_treeView->setCurrentIndex(insertedIndex);
 	}
@@ -264,12 +278,12 @@ void MarkersDock::onMarkerSelectionRequest(int markerIndex) {
 
 void MarkersDock::onSelectionChanged(QModelIndex& index) {
 	if (m_model && m_proxyModel && MAIN.multitrack() && index.isValid()) {
-		QModelIndex realIndex = m_proxyModel->mapToSource(index);
+		QModelIndex const realIndex = m_proxyModel->mapToSource(index);
 		if (realIndex.isValid()) {
-			Markers::Marker marker = m_model->getMarker(realIndex.row());
+			Markers::Marker const marker = m_model->getMarker(realIndex.row());
 			enableButtons(true);
 			m_editMarkerWidget->setVisible(true);
-			QSignalBlocker editBlocker(m_editMarkerWidget);
+			QSignalBlocker const editBlocker(m_editMarkerWidget);
 			m_editMarkerWidget->setValues(marker.text, marker.color, marker.start, marker.end,
 			                              MAIN.multitrack()->get_length() - 1);
 			return;
@@ -281,9 +295,9 @@ void MarkersDock::onSelectionChanged(QModelIndex& index) {
 
 void MarkersDock::onRowClicked(const QModelIndex& index) {
 	if (m_model && m_proxyModel && MAIN.multitrack() && index.isValid()) {
-		QModelIndex realIndex = m_proxyModel->mapToSource(index);
+		QModelIndex const realIndex = m_proxyModel->mapToSource(index);
 		if (realIndex.isValid()) {
-			Markers::Marker marker = m_model->getMarker(realIndex.row());
+			Markers::Marker const marker = m_model->getMarker(realIndex.row());
 			emit            seekRequested(marker.start);
 		}
 	}
@@ -297,7 +311,7 @@ void MarkersDock::onRemoveRequested() {
 	if (m_model && m_proxyModel) {
 		QModelIndexList indices = m_treeView->selectedIndexes();
 		if (indices.size() > 0) {
-			QModelIndex realIndex = m_proxyModel->mapToSource(indices[0]);
+			QModelIndex const realIndex = m_proxyModel->mapToSource(indices[0]);
 			if (realIndex.isValid()) {
 				m_model->remove(realIndex.row());
 			}
@@ -348,8 +362,8 @@ void MarkersDock::onDurationColumnToggled(bool checked) {
 void MarkersDock::onRowsInserted(const QModelIndex& parent, int first, int last) {
 	Q_UNUSED(parent);
 	Q_UNUSED(last);
-	QModelIndex sourceIndex   = m_model->modelIndexForRow(first);
-	QModelIndex insertedIndex = m_proxyModel->mapFromSource(sourceIndex);
+	QModelIndex const sourceIndex   = m_model->modelIndexForRow(first);
+	QModelIndex const insertedIndex = m_proxyModel->mapFromSource(sourceIndex);
 	m_treeView->setCurrentIndex(insertedIndex);
 }
 
@@ -360,11 +374,11 @@ void MarkersDock::onDataChanged(const QModelIndex& topLeft, const QModelIndex& b
 	if (m_model && m_proxyModel && !m_editInProgress) {
 		QModelIndexList indices = m_treeView->selectedIndexes();
 		if (indices.size() > 0) {
-			QModelIndex realIndex = m_proxyModel->mapToSource(indices[0]);
+			QModelIndex const realIndex = m_proxyModel->mapToSource(indices[0]);
 			if (realIndex.isValid()) {
-				Markers::Marker marker = m_model->getMarker(realIndex.row());
+				Markers::Marker const marker = m_model->getMarker(realIndex.row());
 				m_editMarkerWidget->setVisible(true);
-				QSignalBlocker editBlocker(m_editMarkerWidget);
+				QSignalBlocker const editBlocker(m_editMarkerWidget);
 				m_editMarkerWidget->setValues(marker.text, marker.color, marker.start, marker.end,
 				                              MAIN.multitrack()->get_length() - 1);
 				return;
@@ -377,7 +391,7 @@ void MarkersDock::onValuesChanged() {
 	if (m_model && m_proxyModel) {
 		QModelIndexList indices = m_treeView->selectedIndexes();
 		if (indices.size() > 0) {
-			QModelIndex realIndex = m_proxyModel->mapToSource(indices[0]);
+			QModelIndex const realIndex = m_proxyModel->mapToSource(indices[0]);
 			if (realIndex.isValid()) {
 				Markers::Marker marker;
 				marker.text      = m_editMarkerWidget->getText();

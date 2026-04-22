@@ -21,29 +21,33 @@
 #ifndef AUTOSAVEFILE_HPP
 #define AUTOSAVEFILE_HPP
 
+// Qt
 #include <QtCore/QFile>
 #include <QtCore/QString>
+#include <qobject.h>
+#include <qtclasshelpermacros.h>
+#include <qtmetamacros.h>
 
 class AutoSaveFile : public QFile {
 	Q_OBJECT
   public:
-	explicit AutoSaveFile(const QString& filename, QObject* parent = 0);
-	~AutoSaveFile();
+	explicit AutoSaveFile(const QString& filename, QObject* parent = nullptr);
+	~AutoSaveFile() override;
 
-	QString managedFileName() const {
+	[[nodiscard]] QString managedFileName() const {
 		return m_managedFile;
 	}
 
 	void changeManagedFile(const QString& filename);
 
-	virtual bool         open(OpenMode openmode);
+	bool open(OpenMode openmode) override;
 	static AutoSaveFile* getFile(const QString& filename);
-	static QString       path();
+	static QString path();
 
   private:
 	Q_DISABLE_COPY(AutoSaveFile)
 	QString m_managedFile;
-	bool    m_managedFileNameChanged;
+	bool m_managedFileNameChanged;
 };
 
 #endif // AUTOSAVEFILE_HPP

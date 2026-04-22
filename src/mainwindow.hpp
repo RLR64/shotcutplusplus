@@ -18,9 +18,14 @@
 #ifndef MAINWINDOW_HPP
 #define MAINWINDOW_HPP
 
+// Local
 #include "mltcontroller.hpp"
 #include "mltxmlchecker.hpp"
+#include "settings.hpp"
 
+// Qt
+#include <MltPlaylist.h>
+#include <MltProducer.h>
 #include <QDateTime>
 #include <QMainWindow>
 #include <QMutex>
@@ -29,9 +34,19 @@
 #include <QSharedPointer>
 #include <QTimer>
 #include <QUrl>
+#include <qcontainerfwd.h>
+#include <qfileinfo.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
-#define EXIT_RESTART (42)
-#define EXIT_RESET (43)
+// STL
+#include <memory>
+
+// Number constants
+static constexpr int EXIT_RESTART{42};
+static constexpr int EXIT_RESET{43};
+
 #define MAIN MainWindow::singleton()
 
 namespace Ui {
@@ -64,59 +79,58 @@ class MainWindow : public QMainWindow {
 	enum LayoutMode { Custom = 0, Logging, Editing, Effects, Color, Audio, PlayerOnly };
 
 	static MainWindow& singleton();
-	~MainWindow();
-	void        open(Mlt::Producer* producer, bool play = true);
-	bool        continueModified();
-	bool        continueJobsRunning();
-	QUndoStack* undoStack() const;
+	~MainWindow() override;
+	void open(Mlt::Producer* producer, bool play = true);
+	bool continueModified();
+	bool continueJobsRunning();
+	[[nodiscard]] QUndoStack* undoStack() const;
 	bool        saveXML(const QString& filename, bool withRelativePaths = true);
 	static void changeTheme(const QString& theme);
 
-	PlaylistDock* playlistDock() const {
+	[[nodiscard]] PlaylistDock* playlistDock() const {
 		return m_playlistDock;
 	}
 
-	TimelineDock* timelineDock() const {
+	[[nodiscard]] TimelineDock* timelineDock() const {
 		return m_timelineDock;
 	}
 
-	FilterController* filterController() const {
+	[[nodiscard]] FilterController* filterController() const {
 		return m_filterController;
 	}
 
-	Mlt::Playlist* playlist() const;
-	bool           isPlaylistValid() const;
-	Mlt::Producer* multitrack() const;
-	bool           isMultitrackValid() const;
-	void           doAutosave();
-	void           setFullScreen(bool isFullScreen);
-	QString        untitledFileName() const;
-	void           setProfile(const QString& profile_name);
+	[[nodiscard]] Mlt::Playlist* playlist() const;
+	[[nodiscard]] bool isPlaylistValid() const;
+	[[nodiscard]] Mlt::Producer* multitrack() const;
+	[[nodiscard]] bool isMultitrackValid() const;
+	void doAutosave();
+	void setFullScreen(bool isFullScreen);
+	[[nodiscard]] QString untitledFileName() const;
+	void setProfile(const QString& profile_name);
 
-	QString fileName() const {
+	[[nodiscard]] QString fileName() const {
 		return m_currentFile;
 	}
 
 	bool isSourceClipMyProject(QString resource = MLT.resource(), bool withDialog = true);
-	bool keyframesDockIsVisible() const;
+	[[nodiscard]] bool keyframesDockIsVisible() const;
 
-	void keyPressEvent(QKeyEvent*);
-	void keyReleaseEvent(QKeyEvent*);
+	void keyPressEvent(QKeyEvent*) override;
+	void keyReleaseEvent(QKeyEvent*) override;
 	void hideSetDataDirectory();
 
-	QMenu* customProfileMenu() const {
+	[[nodiscard]] QMenu* customProfileMenu() const {
 		return m_customProfileMenu;
 	}
 
-	QAction* actionAddCustomProfile() const;
-	QAction* actionProfileRemove() const;
+	[[nodiscard]] QAction* actionAddCustomProfile() const;
+	[[nodiscard]] QAction* actionProfileRemove() const;
 
-	QActionGroup* profileGroup() const {
+	[[nodiscard]] QActionGroup* profileGroup() const {
 		return m_profileGroup;
 	}
 
-	void  buildVideoModeMenu(QMenu* topMenu, QMenu*& customMenu, QActionGroup* group, QAction* addAction,
-	                         QAction* removeAction);
+	void  buildVideoModeMenu(QMenu* topMenu, QMenu*& customMenu, QActionGroup* group, QAction* addAction, QAction* removeAction);
 	void  newProject(const QString& filename, bool isProjectFolder = false);
 	void  addCustomProfile(const QString& name, QMenu* menu, QAction* action, QActionGroup* group);
 	void  removeCustomProfiles(const QStringList& profiles, QDir& dir, QMenu* menu, QAction* action);
@@ -124,18 +138,18 @@ class MainWindow : public QMainWindow {
 	void  replaceInTimeline(const QUuid& uuid, Mlt::Producer& producer);
 	void  replaceAllByHash(const QString& hash, Mlt::Producer& producer, bool isProxy = false);
 
-	bool isClipboardNewer() const {
+	[[nodiscard]] bool isClipboardNewer() const {
 		return m_clipboardUpdatedAt > m_sourceUpdatedAt;
 	}
 
-	int            mltIndexForTrack(int trackIndex) const;
-	int            bottomVideoTrackIndex() const;
-	void           cropSource(const QRectF& rect);
-	void           getMarkerRange(int position, int* start, int* end);
-	void           getSelectionRange(int* start, int* end);
+	[[nodiscard]] int mltIndexForTrack(int trackIndex) const;
+	[[nodiscard]] int bottomVideoTrackIndex() const;
+	void cropSource(const QRectF& rect);
+	void getMarkerRange(int position, int* start, int* end);
+	void getSelectionRange(int* start, int* end);
 	Mlt::Playlist* binPlaylist();
-	void           showInFiles(const QString& filePath);
-	void           turnOffHardwareDecoder();
+	void showInFiles(const QString& filePath);
+	void turnOffHardwareDecoder();
 
   signals:
 	void audioChannelsChanged();
@@ -150,128 +164,127 @@ class MainWindow : public QMainWindow {
 
   protected:
 	MainWindow();
-	bool eventFilter(QObject* target, QEvent* event);
-	void dragEnterEvent(QDragEnterEvent*);
-	void dropEvent(QDropEvent*);
-	void closeEvent(QCloseEvent*);
-	void showEvent(QShowEvent*);
-	void hideEvent(QHideEvent* event);
+	bool eventFilter(QObject* target, QEvent* event) override;
+	void dragEnterEvent(QDragEnterEvent*) override;
+	void dropEvent(QDropEvent*) override;
+	void closeEvent(QCloseEvent*) override;
+	void showEvent(QShowEvent*) override;
+	void hideEvent(QHideEvent* event) override;
 
   private:
-	void     connectFocusSignals();
-	void     registerDebugCallback();
-	void     connectUISignals();
-	void     setupAndConnectUndoStack();
-	void     setupAndConnectPlayerWidget();
-	void     setupLayoutSwitcher();
-	void     centerLayoutInRemainingToolbarSpace();
-	void     setupAndConnectDocks();
-	void     setupMenuFile();
-	void     setupMenuView();
-	void     connectVideoWidgetSignals();
-	void     setupSettingsMenu();
-	void     setupOpenOtherMenu();
-	void     setupActions();
+	void connectFocusSignals();
+	void registerDebugCallback();
+	void connectUISignals();
+	void setupAndConnectUndoStack();
+	void setupAndConnectPlayerWidget();
+	void setupLayoutSwitcher();
+	void centerLayoutInRemainingToolbarSpace();
+	void setupAndConnectDocks();
+	void setupMenuFile();
+	void setupMenuView();
+	void connectVideoWidgetSignals();
+	void setupSettingsMenu();
+	void setupOpenOtherMenu();
+	void setupActions();
 	QAction* addProfile(QActionGroup* actionGroup, const QString& desc, const QString& name);
 	QAction* addLayout(QActionGroup* actionGroup, const QString& name);
-	void     readPlayerSettings();
-	void     readWindowSettings();
-	void     writeSettings();
-	void     configureVideoWidget();
-	void     setCurrentFile(const QString& filename);
-	void     updateWindowTitle();
-	void     changeAudioChannels(bool checked, int channels);
-	void     changeDeinterlacer(bool checked, const char* method);
-	void     changeInterpolation(bool checked, const char* method);
-	bool     checkAutoSave(QString& url);
-	bool     saveConvertedXmlFile(MltXmlChecker& checker, QString& fileName);
-	bool     saveRepairedXmlFile(MltXmlChecker& checker, QString& fileName);
-	void     setAudioChannels(int channels);
-	void     setProcessingMode(ShotcutSettings::ProcessingMode mode);
-	void     showSaveError();
-	void     setPreviewScale(int scale);
-	void     setVideoModeMenu();
-	void     resetVideoModeMenu();
-	void     resetDockCorners();
-	void     showIncompatibleProjectMessage(const QString& shotcutVersion);
-	void     restartAfterChangeTheme();
-	void     backup();
-	void     backupPeriodically();
-	bool     confirmProfileChange();
-	bool     confirmRestartExternalMonitor();
-	void     resetFilterMenuIfNeeded();
+	void readPlayerSettings();
+	void readWindowSettings();
+	void writeSettings();
+	void configureVideoWidget();
+	void setCurrentFile(const QString& filename);
+	void updateWindowTitle();
+	void changeAudioChannels(bool checked, int channels);
+	void changeDeinterlacer(bool checked, const char* method);
+	void changeInterpolation(bool checked, const char* method);
+	bool checkAutoSave(QString& url);
+	bool saveConvertedXmlFile(MltXmlChecker& checker, QString& fileName);
+	bool saveRepairedXmlFile(MltXmlChecker& checker, QString& fileName);
+	void setAudioChannels(int channels);
+	void setProcessingMode(ShotcutSettings::ProcessingMode mode);
+	void showSaveError();
+	void setPreviewScale(int scale);
+	void setVideoModeMenu();
+	void resetVideoModeMenu();
+	void resetDockCorners();
+	void showIncompatibleProjectMessage(const QString& shotcutVersion);
+	void restartAfterChangeTheme();
+	void backup();
+	void backupPeriodically();
+	bool confirmProfileChange();
+	bool confirmRestartExternalMonitor();
+	void resetFilterMenuIfNeeded();
 
-	Ui::MainWindow*              ui;
-	Player*                      m_player;
-	QDockWidget*                 m_propertiesDock;
-	RecentDock*                  m_recentDock;
-	EncodeDock*                  m_encodeDock;
-	JobsDock*                    m_jobsDock;
-	PlaylistDock*                m_playlistDock;
-	TimelineDock*                m_timelineDock;
-	QString                      m_currentFile;
-	bool                         m_isKKeyPressed;
-	QUndoStack*                  m_undoStack;
-	QDockWidget*                 m_historyDock;
-	QActionGroup*                m_profileGroup;
-	QActionGroup*                m_externalGroup;
-	QActionGroup*                m_decklinkGammaGroup{nullptr};
-	QActionGroup*                m_keyerGroup;
-	QActionGroup*                m_layoutGroup;
-	QActionGroup*                m_previewScaleGroup;
-	FiltersDock*                 m_filtersDock;
-	FilterController*            m_filterController;
-	ScopeController*             m_scopeController;
-	QMenu*                       m_customProfileMenu;
-	QMenu*                       m_decklinkGammaMenu{nullptr};
-	QMenu*                       m_keyerMenu;
-	QStringList                  m_multipleFiles;
-	bool                         m_multipleFilesLoading;
-	bool                         m_isPlaylistLoaded;
-	QActionGroup*                m_languagesGroup;
+	Ui::MainWindow* ui;
+	Player* m_player;
+	QDockWidget* m_propertiesDock;
+	RecentDock* m_recentDock;
+	EncodeDock* m_encodeDock;
+	JobsDock* m_jobsDock;
+	PlaylistDock* m_playlistDock;
+	TimelineDock* m_timelineDock;
+	QString m_currentFile;
+	bool m_isKKeyPressed;
+	QUndoStack* m_undoStack;
+	QDockWidget* m_historyDock;
+	QActionGroup* m_profileGroup;
+	QActionGroup* m_externalGroup;
+	QActionGroup* m_decklinkGammaGroup{nullptr};
+	QActionGroup* m_keyerGroup;
+	QActionGroup* m_layoutGroup;
+	QActionGroup* m_previewScaleGroup;
+	FiltersDock* m_filtersDock;
+	FilterController* m_filterController;
+	ScopeController* m_scopeController;
+	QMenu* m_customProfileMenu;
+	QMenu* m_decklinkGammaMenu{nullptr};
+	QMenu* m_keyerMenu;
+	QStringList m_multipleFiles;
+	bool m_multipleFilesLoading;
+	bool m_isPlaylistLoaded;
+	QActionGroup* m_languagesGroup;
 	QSharedPointer<AutoSaveFile> m_autosaveFile;
-	QMutex                       m_autosaveMutex;
-	QTimer                       m_autosaveTimer;
-	int                          m_exitCode;
-	QScopedPointer<QAction>      m_statusBarAction;
-	QNetworkAccessManager        m_network;
-	QString                      m_upgradeUrl;
-	KeyframesDock*               m_keyframesDock;
-	QDateTime                    m_clipboardUpdatedAt;
-	QDateTime                    m_sourceUpdatedAt;
-	MarkersDock*                 m_markersDock;
-	NotesDock*                   m_notesDock;
-	SubtitlesDock*               m_subtitlesDock;
-	std::unique_ptr<QWidget>     m_producerWidget;
-	FilesDock*                   m_filesDock;
-	ScreenCapture*               m_screenCapture;
+	QMutex m_autosaveMutex;
+	QTimer m_autosaveTimer;
+	int m_exitCode;
+	QScopedPointer<QAction> m_statusBarAction;
+	QNetworkAccessManager m_network;
+	QString m_upgradeUrl;
+	KeyframesDock* m_keyframesDock;
+	QDateTime m_clipboardUpdatedAt;
+	QDateTime m_sourceUpdatedAt;
+	MarkersDock* m_markersDock;
+	NotesDock* m_notesDock;
+	SubtitlesDock* m_subtitlesDock;
+	std::unique_ptr<QWidget> m_producerWidget;
+	FilesDock* m_filesDock;
+	ScreenCapture* m_screenCapture;
 
   public slots:
-	bool     isCompatibleWithGpuMode(MltXmlChecker& checker, QString& fileName);
-	bool     isXmlRepaired(MltXmlChecker& checker, QString& fileName);
-	bool     open(QString url, const Mlt::Properties* = nullptr, bool play = true, bool skipConvert = false);
-	void     openMultiple(const QStringList& paths);
-	void     openMultiple(const QList<QUrl>& urls);
-	void     openVideo();
-	void     openCut(Mlt::Producer* producer, bool play = false);
-	void     hideProducer();
-	void     closeProducer();
-	void     showStatusMessage(QAction* action, int timeoutSeconds = 5);
-	void     showStatusMessage(const QString& message, int timeoutSeconds = 5,
-	                           QPalette::ColorRole role = QPalette::ToolTipBase);
-	void     onStatusMessageClicked();
-	void     seekPlaylist(int start);
-	void     seekTimeline(int position, bool seekPlayer = true);
-	void     seekKeyframes(int position);
+	bool isCompatibleWithGpuMode(MltXmlChecker& checker, QString& fileName);
+	bool isXmlRepaired(MltXmlChecker& checker, QString& fileName);
+	bool open(QString url, const Mlt::Properties* = nullptr, bool play = true, bool skipConvert = false);
+	void openMultiple(const QStringList& paths);
+	void openMultiple(const QList<QUrl>& urls);
+	void openVideo();
+	void openCut(Mlt::Producer* producer, bool play = false);
+	void hideProducer();
+	void closeProducer();
+	void showStatusMessage(QAction* action, int timeoutSeconds = 5);
+	void showStatusMessage(const QString& message, int timeoutSeconds = 5, QPalette::ColorRole role = QPalette::ToolTipBase);
+	void onStatusMessageClicked();
+	void seekPlaylist(int start);
+	void seekTimeline(int position, bool seekPlayer = true);
+	void seekKeyframes(int position);
 	QWidget* loadProducerWidget(Mlt::Producer* producer);
-	void     onProducerOpened(bool withReopen = true);
-	void     onGpuNotSupported();
-	void     onShuttle(float x);
-	void     onPropertiesDockTriggered(bool checked = true);
-	void     onFiltersDockTriggered(bool checked = true);
-	bool     on_actionSave_triggered();
-	void     onCreateOrEditFilterOnOutput(Mlt::Filter* filter, const QStringList& key_properties);
-	void     showSettingsMenu() const;
+	void onProducerOpened(bool withReopen = true);
+	void onGpuNotSupported();
+	void onShuttle(float x);
+	void onPropertiesDockTriggered(bool checked = true);
+	void onFiltersDockTriggered(bool checked = true);
+	bool on_actionSave_triggered();
+	void onCreateOrEditFilterOnOutput(Mlt::Filter* filter, const QStringList& key_properties);
+	void showSettingsMenu() const;
 
   private slots:
 	void showUpgradePrompt();

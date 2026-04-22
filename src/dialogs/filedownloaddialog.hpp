@@ -18,8 +18,13 @@
 #ifndef FILEDOWNLOADDIALOG_HPP
 #define FILEDOWNLOADDIALOG_HPP
 
+// Qt
 #include <QProgressDialog>
 #include <QSslError>
+#include <qlist.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 
 class QFile;
 class QNetworkReply;
@@ -27,10 +32,10 @@ class QNetworkReply;
 class FileDownloadDialog : public QProgressDialog {
   public:
 	explicit FileDownloadDialog(const QString& title, QWidget* parent = nullptr);
-	~FileDownloadDialog();
+	~FileDownloadDialog() override;
 	void setSrc(const QString& src);
 	void setDst(const QString& dst);
-	bool start();
+	auto start() -> bool;
   private slots:
 	void onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal);
 	void onReadyRead();

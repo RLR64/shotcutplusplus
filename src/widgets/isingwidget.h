@@ -18,9 +18,15 @@
 #ifndef ISINGWIDGET_H
 #define ISINGWIDGET_H
 
+// Local
 #include "abstractproducerwidget.hpp"
 
+// Qt
+#include <MltProducer.h>
+#include <MltProperties.h>
 #include <QWidget>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 namespace Ui {
 class IsingWidget;
@@ -30,13 +36,13 @@ class IsingWidget : public QWidget, public AbstractProducerWidget {
 	Q_OBJECT
 
   public:
-	explicit IsingWidget(QWidget* parent = 0);
-	~IsingWidget();
+	explicit IsingWidget(QWidget* parent = nullptr);
+	~IsingWidget() override;
 
 	// AbstractProducerWidget overrides
-	Mlt::Producer*  newProducer(Mlt::Profile&);
-	Mlt::Properties getPreset() const;
-	void            loadPreset(Mlt::Properties&);
+	Mlt::Producer* newProducer(Mlt::Profile&) override;
+	[[nodiscard]] Mlt::Properties getPreset() const override;
+	void loadPreset(Mlt::Properties&) override;
 
   signals:
 	void producerChanged(Mlt::Producer*);

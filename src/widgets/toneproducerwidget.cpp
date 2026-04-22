@@ -15,13 +15,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "toneproducerwidget.h"
-
 #include "shotcut_mlt_properties.hpp"
 #include "ui_toneproducerwidget.h"
 #include "util.hpp"
 
+// Qt
 #include <MltProfile.h>
+#include <qtmetamacros.h>
 
 ToneProducerWidget::ToneProducerWidget(QWidget* parent) : QWidget(parent), ui(new Ui::ToneProducerWidget) {
 	ui->setupUi(this);
@@ -34,8 +36,8 @@ ToneProducerWidget::~ToneProducerWidget() {
 	delete ui;
 }
 
-Mlt::Producer* ToneProducerWidget::newProducer(Mlt::Profile& profile) {
-	Mlt::Producer* p = new Mlt::Producer(profile, "tone:");
+auto ToneProducerWidget::newProducer(Mlt::Profile& profile) -> Mlt::Producer* {
+	auto* p = new Mlt::Producer(profile, "tone:");
 	p->set("frequency", ui->frequencySpinBox->value());
 	p->set("level", ui->levelSpinBox->value());
 	p->set(kShotcutCaptionProperty, ui->nameLabel->text().toUtf8().constData());
@@ -43,7 +45,7 @@ Mlt::Producer* ToneProducerWidget::newProducer(Mlt::Profile& profile) {
 	return p;
 }
 
-Mlt::Properties ToneProducerWidget::getPreset() const {
+auto ToneProducerWidget::getPreset() const -> Mlt::Properties {
 	Mlt::Properties p;
 	p.set("frequency", ui->frequencySpinBox->value());
 	p.set("level", ui->levelSpinBox->value());
@@ -73,7 +75,7 @@ void ToneProducerWidget::on_levelSpinBox_valueChanged(int value) {
 }
 
 void ToneProducerWidget::on_preset_selected(void* p) {
-	Mlt::Properties* properties = (Mlt::Properties*)p;
+	auto* properties = (Mlt::Properties*)p;
 	loadPreset(*properties);
 	delete properties;
 }
@@ -82,6 +84,6 @@ void ToneProducerWidget::on_preset_saveClicked() {
 	ui->preset->savePreset(getPreset());
 }
 
-QString ToneProducerWidget::detail() const {
+auto ToneProducerWidget::detail() const -> QString {
 	return tr("Tone: %1Hz %2dB").arg(ui->frequencySpinBox->value()).arg(ui->levelSpinBox->value());
 }

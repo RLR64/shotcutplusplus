@@ -18,7 +18,14 @@
 #ifndef DOCKTOOLBAR_H
 #define DOCKTOOLBAR_H
 
+// Qt
 #include <QToolBar>
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class DockToolBar : public QToolBar {
 	Q_OBJECT

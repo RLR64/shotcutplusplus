@@ -19,8 +19,17 @@
 #ifndef COLORWHEELITEM_HPP
 #define COLORWHEELITEM_HPP
 
+// Qt
 #include <QImage>
 #include <QQuickPaintedItem>
+#include <qcolor.h>
+#include <qevent.h>
+#include <qpoint.h>
+#include <qquickitem.h>
+#include <qregion.h>
+#include <qsize.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 
 class ColorWheelItem : public QQuickPaintedItem {
 	Q_OBJECT
@@ -55,12 +64,12 @@ class ColorWheelItem : public QQuickPaintedItem {
 	void colorChanged(const QColor& color);
 
   protected:
-	void mousePressEvent(QMouseEvent* event);
-	void mouseMoveEvent(QMouseEvent* event);
-	void mouseReleaseEvent(QMouseEvent* event);
-	void hoverMoveEvent(QHoverEvent* event);
-	void wheelEvent(QWheelEvent* event);
-	void paint(QPainter* painter);
+	void mousePressEvent(QMouseEvent* event) override;
+	void mouseMoveEvent(QMouseEvent* event) override;
+	void mouseReleaseEvent(QMouseEvent* event) override;
+	void hoverMoveEvent(QHoverEvent* event) override;
+	void wheelEvent(QWheelEvent* event) override;
+	void paint(QPainter* painter) override;
 
   private:
 	QImage  m_image;
@@ -75,7 +84,7 @@ class ColorWheelItem : public QQuickPaintedItem {
 	bool    m_isInSquare;
 	qreal   m_step;
 
-	int    wheelSize() const;
+	[[nodiscard]] int    wheelSize() const;
 	QColor colorForPoint(const QPoint& point);
 	void   drawWheel();
 	void   drawWheelDot(QPainter& painter);

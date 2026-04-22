@@ -15,20 +15,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "encodejob.hpp"
-
 #include "Logger.hpp"
 #include "dialogs/listselectiondialog.hpp"
 #include "docks/timelinedock.hpp"
 #include "jobqueue.hpp"
+#include "jobs/meltjob.hpp"
+#include "jobs/postjobaction.hpp"
 #include "jobs/videoqualityjob.hpp"
 #include "mainwindow.hpp"
+#include "mltcontroller.hpp"
 #include "qmltypes/qmlapplication.hpp"
 #include "qmltypes/qmlutilities.hpp"
 #include "settings.hpp"
 #include "spatialmedia/spatialmedia.hpp"
 #include "util.hpp"
 
+// Qt
+#include <MltTractor.h>
 #include <QAction>
 #include <QDesktopServices>
 #include <QDir>
@@ -39,11 +44,23 @@
 #include <QTemporaryFile>
 #include <QTextStream>
 #include <QUrl>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <qdialog.h>
+#include <qjsvalue.h>
+#include <qobjectdefs.h>
+#include <qprocess.h>
+#include <qscopedpointer.h>
+#include <qstringconverter_base.h>
+#include <qthread.h>
+
+// STL
+#include <algorithm>
 
 EncodeJob::EncodeJob(const QString& name, const QString& xml, int frameRateNum, int frameRateDen,
                      QThread::Priority priority)
     : MeltJob(name, xml, frameRateNum, frameRateDen, priority) {
-	QAction* action = new QAction(tr("Open"), this);
+	auto* action = new QAction(tr("Open"), this);
 	action->setData("Open");
 	action->setToolTip(tr("Open the output file in the Shotcut player"));
 	connect(action, SIGNAL(triggered()), this, SLOT(onOpenTiggered()));
@@ -74,13 +91,13 @@ EncodeJob::EncodeJob(const QString& name, const QString& xml, int frameRateNum, 
 
 void EncodeJob::onVideoQualityTriggered() {
 	// Get the location and file name for the report.
-	QString directory  = Settings.encodePath();
-	QString caption    = tr("Video Quality Report");
-	QString nameFilter = tr("Text Documents (*.txt);;All Files (*)");
+	QString const directory  = Settings.encodePath();
+	QString const caption    = tr("Video Quality Report");
+	QString const nameFilter = tr("Text Documents (*.txt);;All Files (*)");
 	QString reportPath =
 	    QFileDialog::getSaveFileName(&MAIN, caption, directory, nameFilter, nullptr, Util::getFileDialogOptions());
 	if (!reportPath.isEmpty()) {
-		QFileInfo fi(reportPath);
+		QFileInfo const fi(reportPath);
 		if (fi.suffix().isEmpty())
 			reportPath += ".txt";
 
@@ -88,7 +105,7 @@ void EncodeJob::onVideoQualityTriggered() {
 			return;
 
 		// Get temp file for the new XML.
-		QScopedPointer<QTemporaryFile> tmp(Util::writableTemporaryFile(reportPath));
+		QScopedPointer<QTemporaryFile> const tmp(Util::writableTemporaryFile(reportPath));
 		if (!tmp->open()) {
 			LOG_ERROR() << "Failed to create temporary file" << tmp->fileName();
 			return;
@@ -118,7 +135,7 @@ void EncodeJob::onVideoQualityTriggered() {
 			f1.close();
 
 			QDomElement  consumerNode = dom.createElement("consumer");
-			QDomNodeList profiles     = dom.elementsByTagName("profile");
+			QDomNodeList const profiles     = dom.elementsByTagName("profile");
 			if (profiles.isEmpty())
 				dom.documentElement().insertAfter(consumerNode, dom.documentElement());
 			else
@@ -136,11 +153,11 @@ void EncodeJob::onVideoQualityTriggered() {
 
 void EncodeJob::onSpatialMediaTriggered() {
 	// Get the location and file name for the output file.
-	QString   caption = tr("Set Equirectangular Projection");
-	QFileInfo info(objectName());
-	QString   directory =
+	QString const caption = tr("Set Equirectangular Projection");
+	QFileInfo const info(objectName());
+	QString const directory =
 	    QStringLiteral("%1/%2 - ERP.%3").arg(Settings.encodePath()).arg(info.completeBaseName()).arg(info.suffix());
-	QString filePath =
+	QString const filePath =
 	    QFileDialog::getSaveFileName(&MAIN, caption, directory, QString(), nullptr, Util::getFileDialogOptions());
 	if (!filePath.isEmpty()) {
 		if (SpatialMedia::injectSpherical(objectName().toStdString(), filePath.toStdString())) {
@@ -157,7 +174,7 @@ void EncodeJob::onEmbedChapters() {
 	if (uniqueColors.isEmpty()) {
 		return;
 	}
-	std::sort(uniqueColors.begin(), uniqueColors.end(), [=](const QColor& a, const QColor& b) {
+	std::sort(uniqueColors.begin(), uniqueColors.end(), [=](const QColor& a, const QColor& b) -> bool {
 		if (a.hue() == b.hue()) {
 			if (a.saturation() == b.saturation()) {
 				return a.value() <= b.value();
@@ -193,11 +210,11 @@ void EncodeJob::onEmbedChapters() {
 	Settings.setExportRangeMarkers(selection.contains(rangesOption));
 
 	// Get the location and file name for the output file.
-	QString   caption = tr("Embed Chapters");
-	QFileInfo info(objectName());
-	QString   directory =
+	QString const caption = tr("Embed Chapters");
+	QFileInfo const info(objectName());
+	QString const directory =
 	    QStringLiteral("%1/%2 - Chapters.%3").arg(Settings.encodePath(), info.completeBaseName(), info.suffix());
-	QString filePath =
+	QString const filePath =
 	    QFileDialog::getSaveFileName(&MAIN, caption, directory, QString(), nullptr, Util::getFileDialogOptions());
 	if (!filePath.isEmpty()) {
 		if (Util::warnIfNotWritable(filePath, &MAIN, caption))
@@ -213,7 +230,7 @@ void EncodeJob::onEmbedChapters() {
 			QTextStream stream(&scriptFile);
 			stream.setEncoding(QStringConverter::Utf8);
 			stream.setAutoDetectUnicode(true);
-			QString contents = stream.readAll();
+			QString const contents = stream.readAll();
 			scriptFile.close();
 
 			// Evaluate JavaScript.
@@ -232,7 +249,7 @@ void EncodeJob::onEmbedChapters() {
 					array.setProperty(i, selection[i].toUpper());
 				options.setProperty("colors", array);
 				QJSValueList args;
-				args << MLT.XML(0, true, true) << options;
+				args << MLT.XML(nullptr, true, true) << options;
 				result = result.call(args);
 				if (!result.isError()) {
 					// Save the result with the export file name.
@@ -277,7 +294,7 @@ void EncodeJob::onFinished(int exitCode, QProcess::ExitStatus exitStatus) {
 		m_xml->close();
 
 		// Locate the consumer element.
-		QDomNodeList consumers = dom.elementsByTagName("consumer");
+		QDomNodeList const consumers = dom.elementsByTagName("consumer");
 		for (int i = 0; i < consumers.length(); i++) {
 			QDomElement consumer = consumers.at(i).toElement();
 			// If real_time is set for parallel.

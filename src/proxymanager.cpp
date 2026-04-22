@@ -15,11 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "proxymanager.hpp"
-
 #include "Logger.hpp"
 #include "dialogs/longuitask.hpp"
 #include "jobqueue.hpp"
+#include "jobs/abstractjob.hpp"
 #include "jobs/ffmpegjob.hpp"
 #include "jobs/qimagejob.hpp"
 #include "mltcontroller.hpp"
@@ -27,24 +28,46 @@
 #include "shotcut_mlt_properties.hpp"
 #include "util.hpp"
 
+// Qt
+#include <MltChain.h>
+#include <MltLink.h>
+#include <MltParser.h>
 #include <QFile>
 #include <QImageReader>
 #include <QObject>
 #include <QVector>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
+#include <qbytearrayalgorithms.h>
+#include <qcontainerfwd.h>
+#include <qdir.h>
+#include <qnumeric.h>
+
+// STL
+#include <sys/utime.h>
 #include <utime.h>
 
-static constexpr char    kProxySubfolder[]             = "proxies";
-static constexpr char    kProxyVideoExtension[]        = ".mp4";
-static constexpr char    kGoProProxyVideoExtension[]   = ".LRV";
-static constexpr char    kDJIProxyVideoExtension[]     = ".LRF";
-static constexpr char    kProxyPendingVideoExtension[] = ".pending.mp4";
-static constexpr char    kProxyImageExtension[]        = ".jpg";
-static constexpr char    kProxyPendingImageExtension[] = ".pending.jpg";
-static constexpr float   kProxyResolutionRatio         = {1.3f};
-static constexpr int     kFallbackProxyResolution      = {540};
-static const QStringList kPixFmtsWithAlpha             = {
+// Number constants
+
+// Color spec
+static constexpr int setColorSpaceNumberResolution{576};
+static constexpr int setColorSpaceNumberA{601};
+static constexpr int setColorSpaceNumberB{170};
+static constexpr int setColorSpaceNumberC{240};
+static constexpr int setColorSpaceNumberD{470};
+static constexpr int setColorSpaceNumberE{2020};
+
+static constexpr char kProxySubfolder[]             = "proxies";
+static constexpr char kProxyVideoExtension[]        = ".mp4";
+static constexpr char kGoProProxyVideoExtension[]   = ".LRV";
+static constexpr char kDJIProxyVideoExtension[]     = ".LRF";
+static constexpr char kProxyPendingVideoExtension[] = ".pending.mp4";
+static constexpr char kProxyImageExtension[]        = ".jpg";
+static constexpr char kProxyPendingImageExtension[] = ".pending.jpg";
+static constexpr float kProxyResolutionRatio{1.3f};
+static constexpr int kFallbackProxyResolution{540};
+
+static const QStringList kPixFmtsWithAlpha{
     "pal8",         "argb",         "rgba",         "abgr",         "bgra",         "yuva420p",     "yuva422p",
     "yuva444p",     "yuva420p9be",  "yuva420p9le",  "yuva422p9be",  "yuva422p9le",  "yuva444p9be",  "yuva444p9le",
     "yuva420p10be", "yuva420p10le", "yuva422p10be", "yuva422p10le", "yuva444p10be", "yuva444p10le", "yuva420p16be",
@@ -53,7 +76,7 @@ static const QStringList kPixFmtsWithAlpha             = {
     "gbrap16be",    "ayuv64le",     "ayuv64be",     "gbrap12le",    "gbrap12be",    "gbrap10le",    "gbrap10be",
     "gbrapf32be",   "gbrapf32le",   "yuva422p12be", "yuva422p12le", "yuva444p12be", "yuva444p12le"};
 
-QDir ProxyManager::dir() {
+auto ProxyManager::dir() -> QDir {
 	// Use project folder + "/proxies" if using project folder and enabled
 	QDir dir(MLT.projectFolder());
 	if (!MLT.projectFolder().isEmpty() && dir.exists() && Settings.proxyUseProjectFolder()) {
@@ -68,7 +91,7 @@ QDir ProxyManager::dir() {
 	return dir;
 }
 
-QString ProxyManager::resource(Mlt::Service& producer) {
+auto ProxyManager::resource(Mlt::Service& producer) -> QString {
 	QString resource = QString::fromUtf8(producer.get("resource"));
 	if (producer.get_int(kIsProxyProperty) && producer.get(kOriginalResourceProperty)) {
 		resource = QString::fromUtf8(producer.get(kOriginalResourceProperty));
@@ -81,13 +104,13 @@ QString ProxyManager::resource(Mlt::Service& producer) {
 void ProxyManager::generateVideoProxy(Mlt::Producer& producer, bool fullRange, ScanMode scanMode,
                                       const QPoint& aspectRatio, bool replace) {
 	// Always regenerate per preview scaling or 540 if not specified
-	QString     resource = ProxyManager::resource(producer);
+	QString const resource = ProxyManager::resource(producer);
 	QStringList args;
-	QString     hash     = Util::getHash(producer);
-	QString     fileName = ProxyManager::dir().filePath(hash + kProxyPendingVideoExtension);
-	QString     filters;
-	auto        hwCodecs = Settings.encodeHardware();
-	QString     hwFilters;
+	QString const hash     = Util::getHash(producer);
+	QString const fileName = ProxyManager::dir().filePath(hash + kProxyPendingVideoExtension);
+	QString filters;
+	auto hwCodecs = Settings.encodeHardware();
+	QString hwFilters;
 
 	if (JOBS.targetIsInProgress(fileName)) {
 		LOG_ERROR() << "A job is already in progress for" << fileName;
@@ -154,8 +177,8 @@ void ProxyManager::generateVideoProxy(Mlt::Producer& producer, bool fullRange, S
 		     << "mpeg";
 	}
 	switch (producer.get_int("meta.media.colorspace")) {
-	case 601:
-		if (producer.get_int("meta.media.height") == 576) {
+	case setColorSpaceNumberA:
+		if (producer.get_int("meta.media.height") == setColorSpaceNumberResolution) {
 			args << "-color_primaries"
 			     << "bt470bg";
 			args << "-color_trc"
@@ -171,7 +194,7 @@ void ProxyManager::generateVideoProxy(Mlt::Producer& producer, bool fullRange, S
 			     << "smpte170m";
 		}
 		break;
-	case 170:
+	case setColorSpaceNumberB:
 		args << "-color_primaries"
 		     << "smpte170m";
 		args << "-color_trc"
@@ -179,7 +202,7 @@ void ProxyManager::generateVideoProxy(Mlt::Producer& producer, bool fullRange, S
 		args << "-colorspace"
 		     << "smpte170m";
 		break;
-	case 240:
+	case setColorSpaceNumberC:
 		args << "-color_primaries"
 		     << "smpte240m";
 		args << "-color_trc"
@@ -187,7 +210,7 @@ void ProxyManager::generateVideoProxy(Mlt::Producer& producer, bool fullRange, S
 		args << "-colorspace"
 		     << "smpte240m";
 		break;
-	case 470:
+	case setColorSpaceNumberD:
 		args << "-color_primaries"
 		     << "bt470bg";
 		args << "-color_trc"
@@ -195,7 +218,7 @@ void ProxyManager::generateVideoProxy(Mlt::Producer& producer, bool fullRange, S
 		args << "-colorspace"
 		     << "bt470bg";
 		break;
-	case 2020:
+	case setColorSpaceNumberE:
 		args << "-color_primaries"
 		     << "bt2020";
 		args << "-colorspace"
@@ -364,9 +387,9 @@ void ProxyManager::generateVideoProxy(Mlt::Producer& producer, bool fullRange, S
 
 void ProxyManager::generateImageProxy(Mlt::Producer& producer, bool replace) {
 	// Always regenerate per preview scaling or 540 if not specified
-	QString resource = ProxyManager::resource(producer);
-	QString hash     = Util::getHash(producer);
-	QString fileName = ProxyManager::dir().filePath(hash + kProxyPendingImageExtension);
+	QString const resource = ProxyManager::resource(producer);
+	QString const hash     = Util::getHash(producer);
+	QString const fileName = ProxyManager::dir().filePath(hash + kProxyPendingImageExtension);
 
 	// Touch file to make it in progress
 	QFile file(fileName);
@@ -443,7 +466,7 @@ static void processProperties(QXmlStreamWriter& newXml, QVector<MltProperty>& pr
 	properties.clear();
 }
 
-bool ProxyManager::filterXML(QString& xmlString, QString root) {
+auto ProxyManager::filterXML(QString& xmlString, QString root) -> bool {
 	QString              output;
 	QXmlStreamReader     xml(xmlString);
 	QXmlStreamWriter     newXml(&output);
@@ -525,10 +548,10 @@ bool ProxyManager::filterXML(QString& xmlString, QString root) {
 	return false;
 }
 
-bool ProxyManager::fileExists(Mlt::Producer& producer) {
-	QDir    proxyDir(Settings.proxyFolder());
-	QDir    projectDir(MLT.projectFolder());
-	QString service = QString::fromLatin1(producer.get("mlt_service"));
+auto ProxyManager::fileExists(Mlt::Producer& producer) -> bool {
+	QDir const proxyDir(Settings.proxyFolder());
+	QDir projectDir(MLT.projectFolder());
+	QString const service = QString::fromLatin1(producer.get("mlt_service"));
 	QString fileName;
 	if (service.startsWith("avformat")) {
 		if (QFile::exists(GoProProxyFilePath(producer.get("resource")))) {
@@ -546,10 +569,10 @@ bool ProxyManager::fileExists(Mlt::Producer& producer) {
 	return (projectDir.cd(kProxySubfolder) && projectDir.exists(fileName)) || proxyDir.exists(fileName);
 }
 
-bool ProxyManager::filePending(Mlt::Producer& producer) {
-	QDir    proxyDir(Settings.proxyFolder());
-	QDir    projectDir(MLT.projectFolder());
-	QString service = QString::fromLatin1(producer.get("mlt_service"));
+auto ProxyManager::filePending(Mlt::Producer& producer) -> bool {
+	QDir const proxyDir(Settings.proxyFolder());
+	QDir projectDir(MLT.projectFolder());
+	QString const service = QString::fromLatin1(producer.get("mlt_service"));
 	QString fileName;
 	if (service.startsWith("avformat")) {
 		fileName = Util::getHash(producer) + kProxyPendingVideoExtension;
@@ -561,8 +584,8 @@ bool ProxyManager::filePending(Mlt::Producer& producer) {
 	return (projectDir.cd(kProxySubfolder) && projectDir.exists(fileName)) || proxyDir.exists(fileName);
 }
 
-bool ProxyManager::isValidImage(Mlt::Producer& producer) {
-	QString service = QString::fromLatin1(producer.get("mlt_service"));
+auto ProxyManager::isValidImage(Mlt::Producer& producer) -> bool {
+	QString const service = QString::fromLatin1(producer.get("mlt_service"));
 	if ((service == "qimage" || service == "pixbuf") && !producer.get_int(kShotcutSequenceProperty)) {
 		QImageReader reader;
 		reader.setDecideFormatFromContent(true);
@@ -572,9 +595,9 @@ bool ProxyManager::isValidImage(Mlt::Producer& producer) {
 	return false;
 }
 
-bool ProxyManager::isValidVideo(Mlt::Producer producer) {
+auto ProxyManager::isValidVideo(Mlt::Producer producer) -> bool {
 	QString service     = QString::fromLatin1(producer.get("mlt_service"));
-	int     video_index = producer.get_int("video_index");
+	const int video_index = producer.get_int("video_index");
 	// video_index -1 means no video
 	if (video_index < 0)
 		return false;
@@ -584,16 +607,16 @@ bool ProxyManager::isValidVideo(Mlt::Producer producer) {
 		producer.set("video_index", video_index);
 	}
 	if (service == "avformat") {
-		QString key     = QStringLiteral("meta.media.%1.codec.pix_fmt").arg(video_index);
-		QString pix_fmt = QString::fromLatin1(producer.get(key.toLatin1().constData()));
+		QString key = QStringLiteral("meta.media.%1.codec.pix_fmt").arg(video_index);
+		QString const pix_fmt = QString::fromLatin1(producer.get(key.toLatin1().constData()));
 		// Cover art is usually 90000 fps and should not be proxied
-		key                = QStringLiteral("meta.media.%1.codec.frame_rate").arg(video_index);
-		QString frame_rate = producer.get(key.toLatin1().constData());
-		key                = QStringLiteral("meta.media.%1.codec.name").arg(video_index);
-		QString codec_name = producer.get(key.toLatin1().constData());
-		bool    coverArt   = codec_name == "mjpeg" && frame_rate == "90000";
-		key                = QStringLiteral("meta.attr.%1.stream.alpha_mode.markup").arg(video_index);
-		bool alpha_mode    = producer.get_int(key.toLatin1().constData());
+		key = QStringLiteral("meta.media.%1.codec.frame_rate").arg(video_index);
+		QString const frame_rate = producer.get(key.toLatin1().constData());
+		key = QStringLiteral("meta.media.%1.codec.name").arg(video_index);
+		QString const codec_name = producer.get(key.toLatin1().constData());
+		const bool coverArt = codec_name == "mjpeg" && frame_rate == "90000";
+		key = QStringLiteral("meta.attr.%1.stream.alpha_mode.markup").arg(video_index);
+		const bool alpha_mode = producer.get_int(key.toLatin1().constData());
 		LOG_DEBUG() << "pix_fmt =" << pix_fmt << " codec.frame_rate =" << frame_rate << " alpha_mode =" << alpha_mode;
 		return !kPixFmtsWithAlpha.contains(pix_fmt) && !alpha_mode && !coverArt;
 	}
@@ -601,14 +624,14 @@ bool ProxyManager::isValidVideo(Mlt::Producer producer) {
 }
 
 // Returns true if the producer exists and was updated with proxy info
-bool ProxyManager::generateIfNotExists(Mlt::Producer& producer, bool replace) {
+auto ProxyManager::generateIfNotExists(Mlt::Producer& producer, bool replace) -> bool {
 	if (Settings.proxyEnabled() && producer.is_valid() && !producer.get_int(kDisableProxyProperty) &&
 	    !producer.get_int(kIsProxyProperty)) {
 		if (ProxyManager::fileExists(producer)) {
-			QString service = QString::fromLatin1(producer.get("mlt_service"));
-			QDir    projectDir(MLT.projectFolder());
+			QString const service = QString::fromLatin1(producer.get("mlt_service"));
+			QDir const projectDir(MLT.projectFolder());
 			QString fileName = Util::getHash(producer) + kProxyVideoExtension;
-			QDir    proxyDir(Settings.proxyFolder());
+			QDir const proxyDir(Settings.proxyFolder());
 			if (service.startsWith("avformat")) {
 				auto gopro = GoProProxyFilePath(producer.get("resource"));
 				auto dji   = DJIProxyFilePath(producer.get("resource"));
@@ -670,23 +693,23 @@ bool ProxyManager::generateIfNotExists(Mlt::Producer& producer, bool replace) {
 	return false;
 }
 
-const char* ProxyManager::videoFilenameExtension() {
+auto ProxyManager::videoFilenameExtension() -> const char* {
 	return kProxyVideoExtension;
 }
 
-const char* ProxyManager::pendingVideoExtension() {
+auto ProxyManager::pendingVideoExtension() -> const char* {
 	return kProxyPendingVideoExtension;
 }
 
-const char* ProxyManager::imageFilenameExtension() {
+auto ProxyManager::imageFilenameExtension() -> const char* {
 	return kProxyImageExtension;
 }
 
-const char* ProxyManager::pendingImageExtension() {
+auto ProxyManager::pendingImageExtension() -> const char* {
 	return kProxyImageExtension;
 }
 
-int ProxyManager::resolution() {
+auto ProxyManager::resolution() -> int {
 	return Settings.playerPreviewScale() ? Settings.playerPreviewScale() : kFallbackProxyResolution;
 }
 
@@ -699,90 +722,90 @@ class FindNonProxyProducersParser : public Mlt::Parser {
 	FindNonProxyProducersParser() : Mlt::Parser() {
 	}
 
-	QList<Mlt::Producer>& producers() {
+	auto producers() -> QList<Mlt::Producer>& {
 		return m_producers;
 	}
 
-	int on_start_filter(Mlt::Filter*) {
+	auto on_start_filter(Mlt::Filter*) -> int override {
 		return 0;
 	}
 
-	int on_start_producer(Mlt::Producer* producer) {
+	auto on_start_producer(Mlt::Producer* producer) -> int override {
 		if (!producer->parent().get_int(kIsProxyProperty))
 			m_producers << Mlt::Producer(producer);
 		return 0;
 	}
 
-	int on_end_producer(Mlt::Producer*) {
+	auto on_end_producer(Mlt::Producer*) -> int override {
 		return 0;
 	}
 
-	int on_start_playlist(Mlt::Playlist*) {
+	auto on_start_playlist(Mlt::Playlist*) -> int override {
 		return 0;
 	}
 
-	int on_end_playlist(Mlt::Playlist*) {
+	auto on_end_playlist(Mlt::Playlist*) -> int override {
 		return 0;
 	}
 
-	int on_start_tractor(Mlt::Tractor*) {
+	auto on_start_tractor(Mlt::Tractor*) -> int override {
 		return 0;
 	}
 
-	int on_end_tractor(Mlt::Tractor*) {
+	auto on_end_tractor(Mlt::Tractor*) -> int override {
 		return 0;
 	}
 
-	int on_start_multitrack(Mlt::Multitrack*) {
+	auto on_start_multitrack(Mlt::Multitrack*) -> int override {
 		return 0;
 	}
 
-	int on_end_multitrack(Mlt::Multitrack*) {
+	auto on_end_multitrack(Mlt::Multitrack*) -> int override {
 		return 0;
 	}
 
-	int on_start_track() {
+	auto on_start_track() -> int override {
 		return 0;
 	}
 
-	int on_end_track() {
+	auto on_end_track() -> int override {
 		return 0;
 	}
 
-	int on_end_filter(Mlt::Filter*) {
+	auto on_end_filter(Mlt::Filter*) -> int override {
 		return 0;
 	}
 
-	int on_start_transition(Mlt::Transition*) {
+	auto on_start_transition(Mlt::Transition*) -> int override {
 		return 0;
 	}
 
-	int on_end_transition(Mlt::Transition*) {
+	auto on_end_transition(Mlt::Transition*) -> int override {
 		return 0;
 	}
 
-	int on_start_chain(Mlt::Chain* chain) {
+	auto on_start_chain(Mlt::Chain* chain) -> int override {
 		if (!chain->parent().get_int(kIsProxyProperty))
 			m_producers << Mlt::Producer(chain);
 		return 0;
 	}
 
-	int on_end_chain(Mlt::Chain*) {
+	auto on_end_chain(Mlt::Chain*) -> int override {
 		return 0;
 	}
 
-	int on_start_link(Mlt::Link*) {
+	auto on_start_link(Mlt::Link*) -> int override {
 		return 0;
 	}
 
-	int on_end_link(Mlt::Link*) {
+	auto on_end_link(Mlt::Link*) -> int override {
 		return 0;
 	}
 };
 
 void ProxyManager::generateIfNotExistsAll(Mlt::Producer& producer) {
 	FindNonProxyProducersParser parser;
-	LongUiTask                  longTask(QObject::tr("Generating Proxies"));
+	LongUiTask longTask(QObject::tr("Generating Proxies"));
 	parser.start(producer);
 	auto n = parser.producers().size();
 	auto i = 0;
@@ -792,7 +815,7 @@ void ProxyManager::generateIfNotExistsAll(Mlt::Producer& producer) {
 	}
 }
 
-bool ProxyManager::removePending() {
+auto ProxyManager::removePending() -> bool {
 	bool foundAny = false;
 	QDir dir(MLT.projectFolder());
 	if (!MLT.projectFolder().isEmpty() && dir.exists()) {
@@ -812,18 +835,18 @@ bool ProxyManager::removePending() {
 	return foundAny;
 }
 
-QString ProxyManager::GoProProxyFilePath(const QString& resource) {
-	auto fi     = QFileInfo(resource);
-	auto base   = fi.baseName();
-	base        = "GL" + base.mid(2);
+auto ProxyManager::GoProProxyFilePath(const QString& resource) -> QString {
+	auto fi = QFileInfo(resource);
+	auto base = fi.baseName();
+	base = "GL" + base.mid(2);
 	auto result = fi.absoluteDir().filePath(base + kGoProProxyVideoExtension);
 	LOG_DEBUG() << result;
 	return result;
 }
 
-QString ProxyManager::DJIProxyFilePath(const QString& resource) {
-	auto fi     = QFileInfo(resource);
-	auto base   = fi.baseName();
+auto ProxyManager::DJIProxyFilePath(const QString& resource) -> QString {
+	auto fi = QFileInfo(resource);
+	auto base = fi.baseName();
 	auto result = fi.absoluteDir().filePath(base + kDJIProxyVideoExtension);
 	LOG_DEBUG() << result;
 	return result;

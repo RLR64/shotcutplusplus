@@ -18,11 +18,21 @@
 #ifndef AVFORMATPRODUCERWIDGET_H
 #define AVFORMATPRODUCERWIDGET_H
 
+// Local
 #include "abstractproducerwidget.hpp"
 #include "dialogs/transcodedialog.hpp"
 
+// Qt
+#include <MltProducer.h>
 #include <QRunnable>
 #include <QWidget>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
+
+// STL
+#include <memory>
 
 namespace Ui {
 class AvformatProducerWidget;
@@ -33,12 +43,12 @@ class AvformatProducerWidget : public QWidget, public AbstractProducerWidget {
 	Q_OBJECT
 
   public:
-	explicit AvformatProducerWidget(QWidget* parent = 0);
-	~AvformatProducerWidget();
+	explicit AvformatProducerWidget(QWidget* parent = nullptr);
+	~AvformatProducerWidget() override;
 
 	// AbstractProducerWidget overrides
-	Mlt::Producer* newProducer(Mlt::Profile&);
-	void           setProducer(Mlt::Producer*);
+	Mlt::Producer* newProducer(Mlt::Profile&) override;
+	void setProducer(Mlt::Producer*) override;
 
   public slots:
 	void updateDuration();
@@ -52,7 +62,7 @@ class AvformatProducerWidget : public QWidget, public AbstractProducerWidget {
 	void showInFiles(QString);
 
   protected:
-	void keyPressEvent(QKeyEvent* event);
+	void keyPressEvent(QKeyEvent* event) override;
 
   private slots:
 
@@ -157,7 +167,7 @@ class ProbeTask : public QObject, public QRunnable {
 
   public:
 	explicit ProbeTask(Mlt::Producer* producer);
-	void run();
+	void run() override;
 
   signals:
 	void probeFinished();

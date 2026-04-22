@@ -18,9 +18,11 @@
 #ifndef TOOLBARWIDGET_HPP
 #define TOOLBARWIDGET_HPP
 
+// Qt
 #include <QCheckBox>
 #include <QPushButton>
 #include <QWidget>
+#include <qtmetamacros.h>
 
 class ScreenCapture;
 
@@ -29,7 +31,7 @@ class ScreenCaptureToolbar : public QWidget {
 
   public:
 	explicit ScreenCaptureToolbar(bool isRecordingMode, QWidget* parent = nullptr);
-	~ScreenCaptureToolbar();
+	~ScreenCaptureToolbar() override;
 
   signals:
 	void captureModeSelected(int mode, bool minimizeShotcut, bool recordAudio);
@@ -43,12 +45,12 @@ class ScreenCaptureToolbar : public QWidget {
 	void onWindowClicked();
 
   private:
-	bool         m_isRecordingMode;
+	bool m_isRecordingMode;
 	QPushButton* m_fullscreenButton;
 	QPushButton* m_rectangleButton;
 	QPushButton* m_windowButton;
-	QCheckBox*   m_minimizeCheckbox;
-	QCheckBox*   m_audioCheckbox;
+	QCheckBox* m_minimizeCheckbox;
+	QCheckBox* m_audioCheckbox;
 };
 
 #endif // TOOLBARWIDGET_HPP

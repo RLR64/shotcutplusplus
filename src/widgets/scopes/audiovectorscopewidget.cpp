@@ -15,35 +15,49 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "audiovectorscopewidget.h"
-
 #include "Logger.hpp"
 #include "settings.hpp"
+#include "widgets/scopes/scopewidget.h"
 
+// Qt
 #include <QComboBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPainter>
 #include <QVBoxLayout>
+#include <qcontainerfwd.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qvariant.h>
+#include <qwidget.h>
+
+// STL
+#include <cstdint>
 #include <cmath>
 
-static constexpr qreal MAX_AMPLITUDE = {32768.0};
+static constexpr qreal MAX_AMPLITUDE{32768.0};
 
 AudioVectorScopeWidget::AudioVectorScopeWidget() : ScopeWidget("AudioVector"), m_mutex(), m_c1Index(0), m_c2Index(1) {
 	LOG_DEBUG() << "begin";
 	setMinimumSize(100, 100);
 	setWhatsThis("https://forum.shotcut.org/t/audio-vector-scope/43817/1");
 
-	QVBoxLayout* vlayout = new QVBoxLayout(this);
+	auto* vlayout = new QVBoxLayout(this);
 	vlayout->setContentsMargins(0, 0, 0, 0);
 	vlayout->setSpacing(0);
-	QHBoxLayout* hlayout = new QHBoxLayout;
+	auto* hlayout = new QHBoxLayout;
 	hlayout->setContentsMargins(0, 0, 0, 0);
 	hlayout->setSpacing(0);
 	vlayout->addLayout(hlayout);
 
-	m_c1Combo       = new QComboBox(this);
-	m_c2Combo       = new QComboBox(this);
+	m_c1Combo = new QComboBox(this);
+	m_c2Combo = new QComboBox(this);
 	QWidget* spacer = new QWidget(this);
 	spacer->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
 	hlayout->addWidget(m_c1Combo);
@@ -57,15 +71,15 @@ AudioVectorScopeWidget::AudioVectorScopeWidget() : ScopeWidget("AudioVector"), m
 
 	setLayout(vlayout);
 
-	connect(&Settings, &ShotcutSettings::playerAudioChannelsChanged, this, [&]() {
+	connect(&Settings, &ShotcutSettings::playerAudioChannelsChanged, this, [&]() -> void {
 		setComboBoxOptions();
 		requestRefresh();
 	});
-	connect(m_c1Combo, &QComboBox::currentIndexChanged, this, [&](int index) {
+	connect(m_c1Combo, &QComboBox::currentIndexChanged, this, [&](int index) -> void {
 		m_c1Index = index;
 		requestRefresh();
 	});
-	connect(m_c2Combo, &QComboBox::currentIndexChanged, this, [&](int index) {
+	connect(m_c2Combo, &QComboBox::currentIndexChanged, this, [&](int index) -> void {
 		m_c2Index = index;
 		requestRefresh();
 	});
@@ -74,11 +88,10 @@ AudioVectorScopeWidget::AudioVectorScopeWidget() : ScopeWidget("AudioVector"), m
 	LOG_DEBUG() << "end";
 }
 
-AudioVectorScopeWidget::~AudioVectorScopeWidget() {
-}
+AudioVectorScopeWidget::~AudioVectorScopeWidget() = default;
 
 void AudioVectorScopeWidget::setComboBoxOptions() {
-	int channels = Settings.playerAudioChannels();
+	const int channels = Settings.playerAudioChannels();
 	m_c1Combo->clear();
 	m_c2Combo->clear();
 	if (channels == 1) {
@@ -127,7 +140,7 @@ void AudioVectorScopeWidget::refreshScope(const QSize& size, bool full) {
 		m_frame = m_queue.pop();
 	}
 
-	qreal side = qMin(size.width(), size.height());
+	const qreal side = qMin(size.width(), size.height());
 
 	if (m_renderImg.width() != side) {
 		m_renderImg = QImage(QSize(side, side), QImage::Format_ARGB32_Premultiplied);
@@ -152,16 +165,16 @@ void AudioVectorScopeWidget::refreshScope(const QSize& size, bool full) {
 		pen.setWidth(2);
 		p.setPen(pen);
 		// Add a transform to apply rotation
-		QRectF     rect   = m_renderImg.rect();
-		QPointF    center = rect.center();
+		QRectF const rect = m_renderImg.rect();
+		QPointF const center = rect.center();
 		QTransform t;
 		t = t.translate(center.x(), center.y());
 		t = t.rotate(45.0);
 		p.setTransform(t);
 
-		int channels = m_frame.get_audio_channels();
-		int c1       = m_c1Index;
-		int c2       = m_c2Index;
+		const int channels = m_frame.get_audio_channels();
+		int c1 = m_c1Index;
+		int c2 = m_c2Index;
 		if (c1 < 0 || c1 >= channels) {
 			c1 = 0;
 		}
@@ -169,10 +182,10 @@ void AudioVectorScopeWidget::refreshScope(const QSize& size, bool full) {
 			c2 = 0;
 		}
 
-		int samples = m_frame.get_audio_samples();
+		const int samples = m_frame.get_audio_samples();
 
 		// Find the max value to be used for scaling
-		const int16_t* a              = (int16_t*)m_frame.get_audio();
+		const int16_t* a = (int16_t*)m_frame.get_audio();
 		int16_t        maxSampleValue = 0;
 		for (int s = 0; s < samples; s++) {
 			if (std::abs(a[c1]) > maxSampleValue) {
@@ -184,11 +197,11 @@ void AudioVectorScopeWidget::refreshScope(const QSize& size, bool full) {
 			a += channels;
 		}
 
-		a                 = (int16_t*)m_frame.get_audio();
-		qreal maxPoint    = sqrt(side * side + side * side) / 4;
-		qreal scaleFactor = maxPoint / maxSampleValue;
+		a = (int16_t*)m_frame.get_audio();
+		const qreal maxPoint = sqrt(side * side + side * side) / 4;
+		const qreal scaleFactor = maxPoint / maxSampleValue;
 		for (int s = 0; s < samples; s++) {
-			QPointF point((qreal)a[c1] * scaleFactor, (qreal)a[c2] * scaleFactor);
+			QPointF const point((qreal)a[c1] * scaleFactor, (qreal)a[c2] * scaleFactor);
 			p.drawPoint(point);
 			a += channels;
 		}
@@ -203,6 +216,6 @@ void AudioVectorScopeWidget::refreshScope(const QSize& size, bool full) {
 	QMetaObject::invokeMethod(this, "onNewDisplayImage", Qt::QueuedConnection);
 }
 
-QString AudioVectorScopeWidget::getTitle() {
+auto AudioVectorScopeWidget::getTitle() -> QString {
 	return tr("Audio Vector");
 }

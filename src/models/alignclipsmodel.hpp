@@ -18,8 +18,18 @@
 #ifndef ALIGNCLIPSMODEL_HPP
 #define ALIGNCLIPSMODEL_HPP
 
+// Qt
 #include <QAbstractItemModel>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+
+// STL
 #include <limits>
+
+static constexpr int INVALID_OFFSET = std::numeric_limits<int>::max();
+
 
 class AlignClipsModel : public QAbstractItemModel {
 	Q_OBJECT
@@ -33,34 +43,32 @@ class AlignClipsModel : public QAbstractItemModel {
 		COLUMN_COUNT,
 	};
 
-	static constexpr int INVALID_OFFSET = std::numeric_limits<int>::max();
-
 	explicit AlignClipsModel(QObject* parent = nullptr);
-	virtual ~AlignClipsModel();
-	void   clear();
-	void   addClip(const QString& name, int offset, int speed, const QString& error);
-	void   updateProgress(int row, int percent);
-	int    getProgress(int row) const;
-	void   updateOffsetAndSpeed(int row, int offset, double speed, const QString& error);
-	int    getOffset(int row);
-	double getSpeed(int row);
+	~AlignClipsModel() override = default;
+	void clear();
+	void addClip(const QString& name, int offset, int speed, const QString& error);
+	void updateProgress(int row, int percent);
+	[[nodiscard]] auto getProgress(int row) const -> int;
+	void updateOffsetAndSpeed(int row, int offset, double speed, const QString& error);
+	auto getOffset(int row) -> int;
+	auto getSpeed(int row) -> double;
 
   protected:
 	// Implement QAbstractItemModel
-	int         rowCount(const QModelIndex& parent) const;
-	int         columnCount(const QModelIndex& parent) const;
-	QVariant    data(const QModelIndex& index, int role) const;
-	QVariant    headerData(int section, Qt::Orientation orientation, int role) const;
-	QModelIndex index(int row, int column = 0, const QModelIndex& parent = QModelIndex()) const;
-	QModelIndex parent(const QModelIndex& index) const;
+	[[nodiscard]] auto rowCount(const QModelIndex& parent) const -> int override;
+	[[nodiscard]] auto columnCount(const QModelIndex& parent) const -> int override;
+	[[nodiscard]] auto data(const QModelIndex& index, int role) const -> QVariant override;
+	[[nodiscard]] auto headerData(int section, Qt::Orientation orientation, int role) const -> QVariant override;
+	[[nodiscard]] auto index(int row, int column = 0, const QModelIndex& parent = QModelIndex()) const -> QModelIndex override;
+	[[nodiscard]] auto parent(const QModelIndex& index) const -> QModelIndex override;
 
   private:
 	typedef struct {
 		QString name;
-		int     offset;
-		double  speed;
+		int offset;
+		double speed;
 		QString error;
-		int     progress;
+		int progress;
 	} ClipAlignment;
 
 	QList<ClipAlignment> m_clips;

@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "colorproducerwidget.h"
-
 #include "Logger.hpp"
 #include "mltcontroller.hpp"
 #include "qmltypes/colordialog.hpp"
@@ -25,18 +25,25 @@
 #include "ui_colorproducerwidget.h"
 #include "util.hpp"
 
+// Qt
+#include <MltProfile.h>
+#include <MltProperties.h>
 #include <QFileInfo>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qrgb.h>
+#include <qtmetamacros.h>
 
 static const QString kTransparent = QObject::tr("transparent", "Open Other > Color");
 
-static QString colorToString(const QColor& color) {
+static auto colorToString(const QColor& color) -> QString {
 	return (color == QColor(0, 0, 0, 0))
 	           ? kTransparent
 	           : QString::asprintf("#%02X%02X%02X%02X", qAlpha(color.rgba()), qRed(color.rgba()), qGreen(color.rgba()),
 	                               qBlue(color.rgba()));
 }
 
-static QString colorStringToResource(const QString& s) {
+static auto colorStringToResource(const QString& s) -> QString {
 	return (s == kTransparent) ? "#00000000" : s;
 }
 
@@ -84,8 +91,8 @@ void ColorProducerWidget::on_colorButton_clicked() {
 	}
 }
 
-Mlt::Producer* ColorProducerWidget::newProducer(Mlt::Profile& profile) {
-	Mlt::Producer* p = new Mlt::Producer(profile, "color:");
+auto ColorProducerWidget::newProducer(Mlt::Profile& profile) -> Mlt::Producer* {
+	auto* p = new Mlt::Producer(profile, "color:");
 	p->set("resource", colorStringToResource(ui->colorLabel->text()).toLatin1().constData());
 	p->set("mlt_image_format", "rgba");
 	MLT.setDurationFromDefault(p);
@@ -98,15 +105,15 @@ Mlt::Producer* ColorProducerWidget::newProducer(Mlt::Profile& profile) {
 	return p;
 }
 
-Mlt::Properties ColorProducerWidget::getPreset() const {
+auto ColorProducerWidget::getPreset() const -> Mlt::Properties {
 	Mlt::Properties p;
-	QString         color = colorStringToResource(ui->colorLabel->text());
+	QString const color = colorStringToResource(ui->colorLabel->text());
 	p.set("resource", color.toLatin1().constData());
 	return p;
 }
 
 void ColorProducerWidget::loadPreset(Mlt::Properties& p) {
-	QColor color(QFileInfo(p.get("resource")).baseName());
+	QColor const color(QFileInfo(p.get("resource")).baseName());
 	ui->colorLabel->setText(colorToString(color));
 	ui->colorLabel->setStyleSheet(
 	    QStringLiteral("color: %1; background-color: %2").arg(Util::textColor(color), color.name()));
@@ -139,7 +146,7 @@ void ColorProducerWidget::rename() {
 }
 
 void ColorProducerWidget::on_preset_selected(void* p) {
-	Mlt::Properties* properties = (Mlt::Properties*)p;
+	auto* properties = (Mlt::Properties*)p;
 	loadPreset(*properties);
 	delete properties;
 }
@@ -163,7 +170,7 @@ void ColorProducerWidget::on_lineEdit_editingFinished() {
 
 void ColorProducerWidget::on_notesTextEdit_textChanged() {
 	if (m_producer && m_producer->is_valid()) {
-		QString existing = QString::fromUtf8(m_producer->get(kCommentProperty));
+		QString const existing = QString::fromUtf8(m_producer->get(kCommentProperty));
 		if (ui->notesTextEdit->toPlainText() != existing) {
 			m_producer->set(kCommentProperty, ui->notesTextEdit->toPlainText().toUtf8().constData());
 			emit modified();

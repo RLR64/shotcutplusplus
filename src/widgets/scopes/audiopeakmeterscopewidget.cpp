@@ -15,24 +15,36 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "audiopeakmeterscopewidget.h"
-
 #include "Logger.hpp"
+#include "sharedframe.hpp"
 #include "mltcontroller.hpp"
 #include "settings.hpp"
 #include "widgets/audiometerwidget.h"
+#include "widgets/scopes/scopewidget.h"
 
+// Qt
 #include <QVBoxLayout>
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qvariant.h>
+
+// STL
+#include <cstdint>
 #include <cmath> // log10()
+#include <limits>
 
 AudioPeakMeterScopeWidget::AudioPeakMeterScopeWidget()
-    : ScopeWidget("AudioPeakMeter"), m_audioMeter(0), m_orientation((Qt::Orientation)-1),
+	: ScopeWidget("AudioPeakMeter"), m_audioMeter(nullptr), m_orientation((Qt::Orientation)-1),
       m_channels(Settings.playerAudioChannels()) {
 	LOG_DEBUG() << "begin";
 	qRegisterMetaType<QVector<double>>("QVector<double>");
 	setAutoFillBackground(true);
 	setWhatsThis("https://forum.shotcut.org/t/audio-peak-meter-scope/12918/1");
-	QVBoxLayout* vlayout = new QVBoxLayout(this);
+	auto* vlayout = new QVBoxLayout(this);
 	vlayout->setContentsMargins(4, 4, 4, 4);
 	m_audioMeter = new AudioMeterWidget(this);
 	m_audioMeter->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -48,15 +60,15 @@ void AudioPeakMeterScopeWidget::refreshScope(const QSize& /*size*/, bool /*full*
 	while (m_queue.count() > 0) {
 		sFrame = m_queue.pop();
 		if (sFrame.is_valid() && sFrame.get_audio_samples() > 0) {
-			int             channels = sFrame.get_audio_channels();
-			int             samples  = sFrame.get_audio_samples();
+			const int channels = sFrame.get_audio_channels();
+			const int samples  = sFrame.get_audio_samples();
 			QVector<double> levels;
-			const int16_t*  audio = sFrame.get_audio();
+			const int16_t* audio = sFrame.get_audio();
 			for (int c = 0; c < channels; c++) {
-				int16_t        peak = 0;
-				const int16_t* p    = audio + c;
+				int16_t peak = 0;
+				const int16_t* p = audio + c;
 				for (int s = 0; s < samples; s++) {
-					int16_t sample = abs(*p);
+					const int16_t sample = abs(*p);
 					if (sample > peak)
 						peak = sample;
 					p += channels;
@@ -77,7 +89,7 @@ void AudioPeakMeterScopeWidget::refreshScope(const QSize& /*size*/, bool /*full*
 	}
 }
 
-QString AudioPeakMeterScopeWidget::getTitle() {
+auto AudioPeakMeterScopeWidget::getTitle() -> QString {
 	return tr("Audio Peak Meter");
 }
 
@@ -101,7 +113,7 @@ void AudioPeakMeterScopeWidget::reconfigureMeter() {
 	m_audioMeter->setChannelLabels(channelLabels);
 
 	// Set the size constraints.
-	int spaceNeeded = (m_channels * 16) + 17;
+	const int spaceNeeded = (m_channels * 16) + 17;
 	if (m_orientation == Qt::Vertical) {
 		m_audioMeter->setMinimumSize(spaceNeeded, 250);
 		setMinimumSize(spaceNeeded + 8, 258);

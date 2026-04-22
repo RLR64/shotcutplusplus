@@ -18,12 +18,17 @@
 #ifndef KEYFRAMESDOCK_HPP
 #define KEYFRAMESDOCK_HPP
 
+// Local
 #include "models/keyframesmodel.hpp"
 #include "qmltypes/qmlfilter.hpp"
 
+// Qt
 #include <QDockWidget>
 #include <QQuickWidget>
 #include <QScopedPointer>
+#include <qcoreevent.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class QmlFilter;
 class QmlMetadata;
@@ -38,15 +43,15 @@ class KeyframesDock : public QDockWidget {
   public:
 	explicit KeyframesDock(QmlProducer* qmlProducer, QWidget* parent = nullptr);
 
-	KeyframesModel& model() {
+	auto model() -> KeyframesModel& {
 		return m_model;
 	}
 
 	Q_INVOKABLE int seekPrevious();
 	Q_INVOKABLE int seekNext();
-	int             currentParameter() const;
+	[[nodiscard]] const int currentParameter();
 
-	double timeScale() const {
+	[[nodiscard]] const double timeScale() {
 		return m_timeScale;
 	}
 
@@ -72,9 +77,9 @@ class KeyframesDock : public QDockWidget {
 	void onProducerModified();
 
   protected:
-	bool event(QEvent* event);
-	void keyPressEvent(QKeyEvent* event);
-	void keyReleaseEvent(QKeyEvent* event);
+	bool event(QEvent* event) override;
+	void keyPressEvent(QKeyEvent* event) override;
+	void keyReleaseEvent(QKeyEvent* event) override;
 
   private slots:
 	void onDockRightClicked();

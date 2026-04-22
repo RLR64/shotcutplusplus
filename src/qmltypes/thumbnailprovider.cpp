@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "thumbnailprovider.hpp"
-
 #include "Logger.hpp"
 #include "database.hpp"
 #include "mltcontroller.hpp"
@@ -24,30 +24,39 @@
 #include "settings.hpp"
 #include "util.hpp"
 
+// Qt
+#include <MltFilter.h>
+#include <MltProperties.h>
 #include <QCryptographicHash>
 #include <QQuickImageProvider>
+#include <framework/mlt_types.h>
+#include <qhashfunctions.h>
+#include <qimage.h>
+#include <qnumeric.h>
+#include <qqmlengine.h>
+#include <qsize.h>
 
 ThumbnailProvider::ThumbnailProvider()
     : QQuickImageProvider(QQmlImageProviderBase::Image, QQmlImageProviderBase::ForceAsynchronousImageLoading),
       m_profile("atsc_720p_60") {
 }
 
-QImage ThumbnailProvider::requestImage(const QString& id, QSize* size, const QSize& requestedSize) {
+auto ThumbnailProvider::requestImage(const QString& id, QSize* size, const QSize& requestedSize) -> QImage {
 	QImage result;
 
 	// id is [hash]/mlt_service/resource#frameNumber[!]
 	// optional trailing '!' means to force update
-	int index = id.lastIndexOf('#');
+	const int index = id.lastIndexOf('#');
 
 	if (index != -1) {
 		QString myId  = id;
-		bool    force = id.endsWith('!');
+		const bool force = id.endsWith('!');
 		if (force)
 			myId = id.left(id.size() - 1);
-		QString         hash        = myId.section('/', 0, 0);
-		QString         service     = myId.section('/', 1, 1);
-		QString         resource    = myId.section('/', 2);
-		int             frameNumber = myId.mid(index + 1).toInt();
+		QString const hash = myId.section('/', 0, 0);
+		QString service = myId.section('/', 1, 1);
+		QString resource = myId.section('/', 2);
+		int frameNumber = myId.mid(index + 1).toInt();
 		Mlt::Properties properties;
 
 		// Scale the frameNumber to ThumbnailProvider profile's fps.
@@ -57,8 +66,8 @@ QImage ThumbnailProvider::requestImage(const QString& id, QSize* size, const QSi
 		resource = Util::removeQueryString(resource);
 		properties.set("_profile", m_profile.get_profile(), 0);
 
-		QString key = cacheKey(properties, service, resource, hash, frameNumber);
-		result      = DB.getThumbnail(key);
+		QString const key = cacheKey(properties, service, resource, hash, frameNumber);
+		result = DB.getThumbnail(key);
 		if (force || result.isNull()) {
 			if (service == "avformat-novalidate")
 				service = "avformat";
@@ -85,8 +94,8 @@ QImage ThumbnailProvider::requestImage(const QString& id, QSize* size, const QSi
 	return result;
 }
 
-QString ThumbnailProvider::cacheKey(Mlt::Properties& properties, const QString& service, const QString& resource,
-                                    const QString& hash, int frameNumber) {
+auto ThumbnailProvider::cacheKey(Mlt::Properties& properties, const QString& service, const QString& resource,
+									const QString& hash, int frameNumber) -> QString {
 	QString time = properties.frames_to_time(frameNumber, mlt_time_clock);
 	// Reduce the precision to centiseconds to increase chance for cache hit
 	// without much loss of accuracy.
@@ -103,12 +112,12 @@ QString ThumbnailProvider::cacheKey(Mlt::Properties& properties, const QString& 
 	return key;
 }
 
-QImage ThumbnailProvider::makeThumbnail(Mlt::Producer& producer, int frameNumber, const QSize& requestedSize) {
+auto ThumbnailProvider::makeThumbnail(Mlt::Producer& producer, int frameNumber, const QSize& requestedSize) -> QImage {
 	Mlt::Filter scaler(m_profile, "swscale");
 	Mlt::Filter padder(m_profile, "resize");
 	Mlt::Filter converter(m_profile, "avcolor_space");
-	int         height = PlaylistModel::THUMBNAIL_HEIGHT * 2;
-	int         width  = PlaylistModel::THUMBNAIL_WIDTH * 2;
+	int height = PlaylistModel::THUMBNAIL_HEIGHT * 2;
+	int width  = PlaylistModel::THUMBNAIL_WIDTH * 2;
 
 	if (!requestedSize.isEmpty()) {
 		width  = requestedSize.width();

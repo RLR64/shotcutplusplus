@@ -18,10 +18,17 @@
 #ifndef SCREENCAPTURE_HPP
 #define SCREENCAPTURE_HPP
 
+// Qt
 #include <QObject>
 #include <QRect>
 #include <QScreen>
 #include <QVariant>
+#include <memory>
+#include <qcontainerfwd.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+
+// STL
 #include <memory>
 
 class QEventLoop;
@@ -35,11 +42,11 @@ class ScreenCapture : public QObject {
   public:
 	enum CaptureMode { Fullscreen, Rectangle, Window, Interactive };
 
-	explicit ScreenCapture(const QString& outputFile, CaptureMode mode, QObject* parent = nullptr);
-	~ScreenCapture();
+	explicit ScreenCapture(QString  outputFile, CaptureMode mode, QObject* parent = nullptr);
+	~ScreenCapture() override;
 
-	void        startRecording();
-	void        startSnapshot();
+	void startRecording();
+	void startSnapshot();
 	static bool isWayland();
 
   signals:
@@ -49,7 +56,7 @@ class ScreenCapture : public QObject {
 	void minimizeShotcut();
 
   private slots:
-	void onCaptureModeSelected(CaptureMode mode, bool minimizeShotcut, bool recordAudio);
+	void onCaptureModeSelected(ScreenCapture::CaptureMode mode, bool minimizeShotcut, bool recordAudio);
 	void onRectangleSelected(const QRect& rect);
 	void onWindowSelected(const QRect& rect);
 	void onImageRectangleSelected(const QRect& rect);
@@ -58,30 +65,30 @@ class ScreenCapture : public QObject {
 	void onPortalResponse(uint response, const QVariantMap& results);
 
   private:
-	void    startFullscreenRecording();
-	void    startRectangleRecording();
-	void    startWindowRecording();
-	void    startFullscreenSnapshot();
-	void    startRectangleSnapshot();
-	void    startWindowSnapshot();
-	void    captureAndSaveImage(const QRect& rect);
-	void    doCaptureAndSaveImage(const QRect& rect);
+	void startFullscreenRecording();
+	void startRectangleRecording();
+	void startWindowRecording();
+	void startFullscreenSnapshot();
+	void startRectangleSnapshot();
+	void startWindowSnapshot();
+	void captureAndSaveImage(const QRect& rect);
+	void doCaptureAndSaveImage(const QRect& rect);
 	QPixmap captureScreen(const QRect& rect);
-	QRect   adjustRectForVideo(const QRect& rect);
-	QRect   applyDevicePixelRatio(const QRect& rect);
-	QRect   invertDevicePixelRatio(const QRect& rect);
-	bool    captureImagePortal(const QRect& rect, const QString& outputPath);
+	QRect adjustRectForVideo(const QRect& rect);
+	QRect applyDevicePixelRatio(const QRect& rect);
+	QRect invertDevicePixelRatio(const QRect& rect);
+	bool captureImagePortal(const QRect& rect, const QString& outputPath);
 
 	// Portal call state
-	bool        m_portalSuccess = false;
-	QString     m_portalUri;
+	bool m_portalSuccess = false;
+	QString m_portalUri;
 	QEventLoop* m_portalEventLoop = nullptr;
 
-	QString     m_outputFile;
+	QString m_outputFile;
 	CaptureMode m_mode;
-	bool        m_isImageMode;
-	bool        m_minimizeShotcut;
-	bool        m_recordAudio;
+	bool m_isImageMode;
+	bool m_minimizeShotcut;
+	bool m_recordAudio;
 
 	std::unique_ptr<ScreenCaptureToolbar> m_toolbar;
 	std::unique_ptr<RectangleSelector>    m_rectangleSelector;

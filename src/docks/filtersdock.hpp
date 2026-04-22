@@ -18,12 +18,17 @@
 #ifndef FILTERSDOCK_HPP
 #define FILTERSDOCK_HPP
 
+// Local
 #include "qmltypes/qmlproducer.hpp"
 #include "sharedframe.hpp"
 
+// Qt
+#include <MltService.h>
 #include <QDockWidget>
 #include <QObject>
 #include <QQuickWidget>
+#include <qevent.h>
+#include <qtmetamacros.h>
 
 class QmlFilter;
 class QmlMetadata;
@@ -40,7 +45,7 @@ class FiltersDock : public QDockWidget {
 	                     MotionTrackerModel* motionTrackerModel, SubtitlesModel* subtitlesModel,
 	                     QWidget* parent = nullptr);
 
-	QmlProducer* qmlProducer() {
+	auto qmlProducer() -> QmlProducer* {
 		return &m_producer;
 	}
 
@@ -61,8 +66,8 @@ class FiltersDock : public QDockWidget {
 	void load();
 
   protected:
-	bool event(QEvent* event);
-	void keyPressEvent(QKeyEvent* event);
+	auto event(QEvent* event) -> bool override;
+	void keyPressEvent(QKeyEvent* event) override;
 
   private:
 	void         setupActions();

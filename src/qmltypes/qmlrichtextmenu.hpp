@@ -18,7 +18,9 @@
 #ifndef QMLRICHTEXTMENU_HPP
 #define QMLRICHTEXTMENU_HPP
 
+// Qt
 #include <QObject>
+#include <qtmetamacros.h>
 
 class QmlRichTextMenu : public QObject {
 	Q_OBJECT

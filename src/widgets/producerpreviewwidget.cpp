@@ -15,19 +15,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "widgets/producerpreviewwidget.h"
-
 #include "Logger.hpp"
+#include "dataqueue.hpp"
 #include "mltcontroller.hpp"
 #include "scrubbar.hpp"
 #include "settings.hpp"
 
+// Qt
+#include <MltProducer.h>
 #include <QHBoxLayout>
 #include <QImage>
 #include <QLabel>
 #include <QProgressBar>
 #include <QVBoxLayout>
-#include <QtConcurrent/QtConcurrent>
+#include <QtConcurrent/qtconcurrentrun.h>
+#include <framework/mlt_types.h>
+#include <qhashfunctions.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsizepolicy.h>
+#include <qwidget.h>
+
+// STL
+#include <cstdint>
+#include <cmath>
+#include <memory>
 
 ProducerPreviewWidget::ProducerPreviewWidget(double dar, int width)
     : QWidget(), m_previewSize(width, width), m_seekTo(-1), m_timerId(0),
@@ -43,7 +58,7 @@ ProducerPreviewWidget::ProducerPreviewWidget(double dar, int width)
 	}
 	m_previewSize.setHeight(height);
 
-	QVBoxLayout* layout = new QVBoxLayout();
+	auto* layout = new QVBoxLayout();
 	layout->setContentsMargins(0, 0, 0, 0);
 	layout->setSpacing(0);
 	setLayout(layout);
@@ -84,7 +99,7 @@ void ProducerPreviewWidget::start(const Mlt::Producer& producer) {
 		m_scrubber->setFramerate(MLT.profile().fps());
 		m_scrubber->setScale(m_producer.get_length());
 		// Display preview at half frame rate.
-		int milliseconds = 2 * 1000.0 / MLT.profile().fps();
+		const auto milliseconds = 2 * 1000.0 / MLT.profile().fps();
 		m_timerId        = startTimer(milliseconds);
 		// Set up the producer frame generator
 		m_seekTo         = 0;
@@ -115,7 +130,7 @@ void ProducerPreviewWidget::ProducerPreviewWidget::stop(bool releaseProducer) {
 	m_posLabel->setText("");
 }
 
-void ProducerPreviewWidget::showText(QString text) {
+void ProducerPreviewWidget::showText(const QString& text) {
 	m_imageLabel->setText(text);
 }
 
@@ -144,7 +159,7 @@ void ProducerPreviewWidget::seeked(int position) {
 
 void ProducerPreviewWidget::timerEvent(QTimerEvent*) {
 	if (m_queue.count() > 0) {
-		QueueItem item = m_queue.pop();
+		QueueItem const item = m_queue.pop();
 		m_imageLabel->setPixmap(item.pixmap);
 		m_scrubber->onSeek(item.position);
 		m_posLabel->setText(item.positionText);
@@ -170,15 +185,15 @@ void ProducerPreviewWidget::generateFrame() {
 		}
 	}
 	// Get the image
-	int                         position = m_producer.position();
-	int                         length   = m_producer.get_length();
-	int                         width    = m_previewSize.width();
-	int                         height   = m_previewSize.height();
-	mlt_image_format            format   = mlt_image_rgb;
+	const int position = m_producer.position();
+	const int length = m_producer.get_length();
+	int width = m_previewSize.width();
+	int height = m_previewSize.height();
+	mlt_image_format format = mlt_image_rgb;
 	std::unique_ptr<Mlt::Frame> frame(m_producer.get_frame());
 	frame->set("rescale.interp", "bilinear");
 	uint8_t* mltImage = frame->get_image(format, width, height, 0);
-	QImage   image(mltImage, width, height, QImage::Format_RGB888);
+	QImage const image(mltImage, width, height, QImage::Format_RGB888);
 
 	// Send the image and status in the queue
 	QueueItem item;

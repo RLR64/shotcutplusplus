@@ -18,11 +18,17 @@
 #ifndef NEWPROJECTFOLDER_H
 #define NEWPROJECTFOLDER_H
 
+// Qt
 #include <QMenu>
 #include <QModelIndex>
 #include <QStandardItemModel>
 #include <QString>
 #include <QWidget>
+#include <qabstractitemmodel.h>
+#include <qobject.h>
+#include <qpoint.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 namespace Ui {
 class NewProjectFolder;
@@ -35,13 +41,13 @@ class NewProjectFolder : public QWidget {
 	Q_OBJECT
 
   public:
-	explicit NewProjectFolder(QWidget* parent = 0);
-	~NewProjectFolder();
+	explicit NewProjectFolder(QWidget* parent = nullptr);
+	~NewProjectFolder() override;
 
   protected:
-	void showEvent(QShowEvent*);
-	void hideEvent(QHideEvent*);
-	bool event(QEvent* event);
+	void showEvent(QShowEvent*) override;
+	void hideEvent(QHideEvent*) override;
+	bool event(QEvent* event) override;
 
   public slots:
 	void updateRecentProjects();
@@ -77,13 +83,13 @@ class NewProjectFolder : public QWidget {
 	void setProjectFolderButtonText(const QString& text);
 
 	Ui::NewProjectFolder* ui;
-	QActionGroup*         m_profileGroup;
-	QMenu                 m_videoModeMenu;
-	QMenu*                m_customProfileMenu;
-	QString               m_profile;
-	QStandardItemModel    m_model;
-	QString               m_projectName;
-	bool                  m_isOpening;
+	QActionGroup* m_profileGroup;
+	QMenu m_videoModeMenu;
+	QMenu* m_customProfileMenu;
+	QString m_profile;
+	QStandardItemModel m_model;
+	QString m_projectName;
+	bool m_isOpening;
 };
 
 #endif // NEWPROJECTFOLDER_H

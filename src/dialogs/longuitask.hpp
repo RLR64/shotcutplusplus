@@ -18,32 +18,38 @@
 #ifndef LONGUITASK_HPP
 #define LONGUITASK_HPP
 
+// Qt
 #include <QFuture>
 #include <QProgressDialog>
 #include <QtConcurrent/QtConcurrent>
+#include <qcoreapplication.h>
+#include <qhashfunctions.h>
+#include <qthread.h>
+
+constexpr int MS_SLEEP = {100};
 
 class LongUiTask : public QProgressDialog {
   public:
-	explicit LongUiTask(QString title);
-	~LongUiTask();
+	explicit LongUiTask(const QString& title);
+	~LongUiTask() override;
 
-	template <class Ret> Ret wait(QString text, const QFuture<Ret>& future) {
+	template <class Ret> auto wait(const QString& text, const QFuture<Ret>& future) -> Ret {
 		setLabelText(text);
 		setRange(0, 0);
 		while (!future.isFinished()) {
 			setValue(0);
 			QCoreApplication::processEvents();
-			QThread::msleep(100);
+			QThread::msleep(MS_SLEEP);
 		}
 		return future.result();
 	}
 
-	template <class Ret, class Func, class... Args> Ret runAsync(QString text, Func&& f, Args&&... args) {
+	template <class Ret, class Func, class... Args> auto runAsync(QString text, Func&& f, Args&&... args) -> Ret {
 		QFuture<Ret> future = QtConcurrent::run(f, std::forward<Args>(args)...);
 		return wait<Ret>(text, future);
 	}
 
-	void        reportProgress(QString text, int value, int max);
+	void        reportProgress(const QString& text, int value, int max);
 	static void cancel();
 };
 

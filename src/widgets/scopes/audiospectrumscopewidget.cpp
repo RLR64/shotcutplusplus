@@ -15,28 +15,41 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "audiospectrumscopewidget.h"
-
 #include "Logger.hpp"
+#include "sharedframe.hpp"
 #include "widgets/audiometerwidget.h"
+#include "widgets/scopes/scopewidget.h"
 
+// Qt
+#include <MltFilter.h>
 #include <MltProfile.h>
 #include <QPainter>
 #include <QVBoxLayout>
 #include <QtAlgorithms>
+#include <framework/mlt_types.h>
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qvariant.h>
+
+// STL
 #include <cmath>
 
-static constexpr int WINDOW_SIZE = {8000}; // 6 Hz FFT bins at 48kHz
+// Number constants
+static constexpr int WINDOW_SIZE{8000}; // 6 Hz FFT bins at 48kHz
 
 struct band {
-	float       low;    // Low frequency
-	float       center; // Center frequency
-	float       high;   // High frequency
+	float low;    // Low frequency
+	float center; // Center frequency
+	float high;   // High frequency
 	const char* label;
 };
 
 // Preferred frequencies from ISO R 266-1997 / ANSI S1.6-1984
-static const band BAND_TAB[] = {
+static constexpr const band BAND_TAB[] = {
     //     Low      Preferred  High                Band
     //     Freq      Center    Freq     Label       Num
     {1.12, 1.25, 1.41, "1.25"},            //  1
@@ -84,11 +97,11 @@ static const band BAND_TAB[] = {
     {17936.00, 20000.00, 22421.00, "20k"}, // 43 - Last in audible range
 };
 
-static constexpr int FIRST_AUDIBLE_BAND_INDEX = {12};
-static constexpr int LAST_AUDIBLE_BAND_INDEX  = {42};
-static constexpr int AUDIBLE_BAND_COUNT       = {LAST_AUDIBLE_BAND_INDEX - FIRST_AUDIBLE_BAND_INDEX + 1};
+static constexpr int FIRST_AUDIBLE_BAND_INDEX{12};
+static constexpr int LAST_AUDIBLE_BAND_INDEX{42};
+static constexpr int AUDIBLE_BAND_COUNT{LAST_AUDIBLE_BAND_INDEX - FIRST_AUDIBLE_BAND_INDEX + 1};
 
-AudioSpectrumScopeWidget::AudioSpectrumScopeWidget() : ScopeWidget("AudioSpectrum"), m_audioMeter(0) {
+AudioSpectrumScopeWidget::AudioSpectrumScopeWidget() : ScopeWidget("AudioSpectrum"), m_audioMeter(nullptr) {
 	LOG_DEBUG() << "begin";
 
 	// Setup this widget
@@ -101,7 +114,7 @@ AudioSpectrumScopeWidget::AudioSpectrumScopeWidget() : ScopeWidget("AudioSpectru
 	m_filter->set("window_size", WINDOW_SIZE);
 
 	// Add the audio signal widget
-	QVBoxLayout* vlayout = new QVBoxLayout(this);
+	auto* vlayout = new QVBoxLayout(this);
 	vlayout->setContentsMargins(4, 4, 4, 4);
 	m_audioMeter = new AudioMeterWidget(this);
 	m_audioMeter->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -132,16 +145,16 @@ AudioSpectrumScopeWidget::~AudioSpectrumScopeWidget() {
 
 void AudioSpectrumScopeWidget::processSpectrum() {
 	QVector<double> bands(AUDIBLE_BAND_COUNT);
-	float*          bins      = (float*)m_filter->get_data("bins");
-	int             bin_count = m_filter->get_int("bin_count");
-	double          bin_width = m_filter->get_double("bin_width");
+	const float * bins = (float*)m_filter->get_data("bins");
+	const int bin_count = m_filter->get_int("bin_count");
+	const double bin_width = m_filter->get_double("bin_width");
 
-	int  band           = 0;
+	int band = 0;
 	bool firstBandFound = false;
 	for (int bin = 0; bin < bin_count; bin++) {
 		// Loop through all the FFT bins and align bin frequencies with
 		// band frequencies.
-		double F = bin_width * (double)bin;
+		const double F = bin_width * (double)bin;
 
 		if (!firstBandFound) {
 			// Skip bins that come before the first band.
@@ -169,8 +182,8 @@ void AudioSpectrumScopeWidget::processSpectrum() {
 	// At this point, bands contains the magnitude of the signal for each
 	// band. Convert to dB.
 	for (band = 0; band < bands.size(); band++) {
-		double mag  = bands[band];
-		double dB   = mag > 0.0 ? 20 * log10(mag) : -1000.0;
+		const double mag  = bands[band];
+		const double dB   = mag > 0.0 ? 20 * log10(mag) : -1000.0;
 		bands[band] = dB;
 	}
 
@@ -179,17 +192,17 @@ void AudioSpectrumScopeWidget::processSpectrum() {
 }
 
 void AudioSpectrumScopeWidget::refreshScope(const QSize& /*size*/, bool /*full*/) {
-	bool        refresh = false;
+	bool refresh = false;
 	SharedFrame sFrame;
 
 	while (m_queue.count() > 0) {
 		sFrame = m_queue.pop();
 		if (sFrame.is_valid() && sFrame.get_audio_samples() > 0) {
-			mlt_audio_format format    = mlt_audio_s16;
-			int              channels  = sFrame.get_audio_channels();
-			int              frequency = sFrame.get_audio_frequency();
-			int              samples   = sFrame.get_audio_samples();
-			Mlt::Frame       mFrame    = sFrame.clone(true, false, false);
+			mlt_audio_format format = mlt_audio_s16;
+			int channels = sFrame.get_audio_channels();
+			int frequency = sFrame.get_audio_frequency();
+			int samples = sFrame.get_audio_samples();
+			Mlt::Frame mFrame = sFrame.clone(true, false, false);
 			m_filter->process(mFrame);
 			mFrame.get_audio(format, frequency, channels, samples);
 			refresh = true;
@@ -201,6 +214,6 @@ void AudioSpectrumScopeWidget::refreshScope(const QSize& /*size*/, bool /*full*/
 	}
 }
 
-QString AudioSpectrumScopeWidget::getTitle() {
+auto AudioSpectrumScopeWidget::getTitle() -> QString {
 	return tr("Audio Spectrum");
 }

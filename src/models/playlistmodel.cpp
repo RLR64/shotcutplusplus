@@ -15,16 +15,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "playlistmodel.hpp"
-
 #include "Logger.hpp"
 #include "database.hpp"
 #include "mainwindow.hpp"
+#include "mltcontroller.hpp"
 #include "proxymanager.hpp"
 #include "settings.hpp"
 #include "shotcut_mlt_properties.hpp"
 #include "util.hpp"
 
+// Qt
+#include <MltFilter.h>
+#include <MltPlaylist.h>
+#include <MltProfile.h>
 #include <QApplication>
 #include <QColor>
 #include <QCryptographicHash>
@@ -36,6 +41,31 @@
 #include <QScopedPointer>
 #include <QThreadPool>
 #include <QUrl>
+#include <framework/mlt_types.h>
+#include <qabstractitemmodel.h>
+#include <qassert.h>
+#include <qbytearrayalgorithms.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qlatin1stringview.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qpaintdevice.h>
+#include <qpair.h>
+#include <qrunnable.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+
+// STL
+#include <algorithm>
+#include <cstdint>
+
+// Number constants
+constexpr int getSuggestedFrameRateNumber{90000};
 
 static void deleteQImage(QImage* image) {
 	delete image;
@@ -46,22 +76,22 @@ class UpdateThumbnailTask : public QRunnable {
 	Mlt::Producer  m_producer;
 	Mlt::Profile   m_profile;
 	Mlt::Producer* m_tempProducer;
-	int            m_in;
-	int            m_out;
-	int            m_row;
-	bool           m_force;
+	int m_in;
+	int m_out;
+	int m_row;
+	bool m_force;
 
   public:
 	UpdateThumbnailTask(PlaylistModel* model, Mlt::Producer& producer, int in, int out, int row, bool force = false)
-	    : QRunnable(), m_model(model), m_producer(producer), m_profile("atsc_720p_60"), m_tempProducer(0), m_in(in),
+		: QRunnable(), m_model(model), m_producer(producer), m_profile("atsc_720p_60"), m_tempProducer(nullptr), m_in(in),
 	      m_out(out), m_row(row), m_force(force) {
 	}
 
-	~UpdateThumbnailTask() {
+	~UpdateThumbnailTask() override {
 		delete m_tempProducer;
 	}
 
-	Mlt::Producer* tempProducer() {
+	auto tempProducer() -> Mlt::Producer* {
 		if (!m_tempProducer) {
 			QString service = m_producer.get("mlt_service");
 			if (service == "avformat-novalidate")
@@ -86,13 +116,13 @@ class UpdateThumbnailTask : public QRunnable {
 		return m_tempProducer;
 	}
 
-	QString cacheKey(int frameNumber) {
+	auto cacheKey(int frameNumber) -> QString {
 		QString time = m_producer.frames_to_time(frameNumber, mlt_time_clock);
 		// Reduce the precision to centiseconds to increase chance for cache hit
 		// without much loss of accuracy.
 		time = time.left(time.size() - 1);
 		QString key;
-		QString resource = m_producer.get(kShotcutHashProperty);
+		QString const resource = m_producer.get(kShotcutHashProperty);
 		if (resource.isEmpty()) {
 			key =
 			    QStringLiteral("%1 %2 %3").arg(m_producer.get("mlt_service")).arg(m_producer.get("resource")).arg(time);
@@ -105,44 +135,44 @@ class UpdateThumbnailTask : public QRunnable {
 		return key;
 	}
 
-	void run() {
-		QString setting = Settings.playlistThumbnails();
+	void run() override {
+		QString const setting = Settings.playlistThumbnails();
 		if (setting == "hidden")
 			return;
 
 		// Scale the in and out point frame numbers to this member profile's fps.
-		int inPoint  = qRound(m_in / MLT.profile().fps() * m_profile.fps());
-		int outPoint = qRound(m_out / MLT.profile().fps() * m_profile.fps());
+		const int inPoint = qRound(m_in / MLT.profile().fps() * m_profile.fps());
+		const int outPoint = qRound(m_out / MLT.profile().fps() * m_profile.fps());
 
 		QImage image = DB.getThumbnail(cacheKey(inPoint));
 		if (m_force || image.isNull()) {
 			image = makeThumbnail(inPoint);
-			m_producer.set(kThumbnailInProperty, new QImage(image), 0, (mlt_destructor)deleteQImage, NULL);
+			m_producer.set(kThumbnailInProperty, new QImage(image), 0, (mlt_destructor)deleteQImage, nullptr);
 			DB.putThumbnail(cacheKey(inPoint), image);
 		} else {
-			m_producer.set(kThumbnailInProperty, new QImage(image), 0, (mlt_destructor)deleteQImage, NULL);
+			m_producer.set(kThumbnailInProperty, new QImage(image), 0, (mlt_destructor)deleteQImage, nullptr);
 		}
 		if (setting == "tall" || setting == "wide") {
 			image = DB.getThumbnail(cacheKey(outPoint));
 			if (m_force || image.isNull()) {
 				image = makeThumbnail(outPoint);
-				m_producer.set(kThumbnailOutProperty, new QImage(image), 0, (mlt_destructor)deleteQImage, NULL);
+				m_producer.set(kThumbnailOutProperty, new QImage(image), 0, (mlt_destructor)deleteQImage, nullptr);
 				DB.putThumbnail(cacheKey(outPoint), image);
 			} else {
-				m_producer.set(kThumbnailOutProperty, new QImage(image), 0, (mlt_destructor)deleteQImage, NULL);
+				m_producer.set(kThumbnailOutProperty, new QImage(image), 0, (mlt_destructor)deleteQImage, nullptr);
 			}
 		}
 		m_model->showThumbnail(m_row);
 	}
 
-	QImage makeThumbnail(int frameNumber) {
-		int  height   = PlaylistModel::THUMBNAIL_HEIGHT * 2;
-		int  width    = PlaylistModel::THUMBNAIL_WIDTH * 2;
+	auto makeThumbnail(int frameNumber) -> QImage {
+		const int height = PlaylistModel::THUMBNAIL_HEIGHT * 2;
+		const int width = PlaylistModel::THUMBNAIL_WIDTH * 2;
 		auto producer = tempProducer();
 		if (producer && producer->is_valid()) {
 			return MLT.image(*tempProducer(), frameNumber, width, height);
 		} else {
-			return QImage();
+			return {};
 		}
 	}
 };
@@ -158,11 +188,11 @@ PlaylistModel::~PlaylistModel() {
 	m_playlist = nullptr;
 }
 
-int PlaylistModel::rowCount(const QModelIndex& /*parent*/) const {
+auto PlaylistModel::rowCount(const QModelIndex& /*parent*/) const -> int{
 	return m_playlist ? m_playlist->count() : 0;
 }
 
-int PlaylistModel::columnCount(const QModelIndex& /*parent*/) const {
+auto PlaylistModel::columnCount(const QModelIndex& /*parent*/) const -> int {
 	switch (m_mode) {
 	case Detailed:
 		return COLUMN_COUNT;
@@ -174,9 +204,9 @@ int PlaylistModel::columnCount(const QModelIndex& /*parent*/) const {
 	return 0;
 }
 
-QVariant PlaylistModel::data(const QModelIndex& index, int role) const {
+auto PlaylistModel::data(const QModelIndex& index, int role) const -> QVariant {
 	if (!m_playlist)
-		return QVariant();
+		return {};
 
 	int field = role;
 
@@ -190,16 +220,16 @@ QVariant PlaylistModel::data(const QModelIndex& index, int role) const {
 			field = FIELD_RESOURCE;
 		} else if (role == Qt::DecorationRole) {
 			if (m_mode == Detailed && index.column() != COLUMN_THUMBNAIL)
-				return QVariant();
+				return {};
 			field = FIELD_THUMBNAIL;
 		} else if (role == Qt::StatusTipRole) {
 			field = FIELD_INDEX + index.column();
 		} else {
-			return QVariant();
+			return {};
 		}
 	}
 
-	QScopedPointer<Mlt::ClipInfo> info(m_playlist->clip_info(index.row()));
+	QScopedPointer<Mlt::ClipInfo> const info(m_playlist->clip_info(index.row()));
 	if (info) {
 		switch (field) {
 		case FIELD_INDEX:
@@ -213,7 +243,7 @@ QVariant PlaylistModel::data(const QModelIndex& index, int role) const {
 					if (result.isEmpty()) {
 						result = Util::baseName(ProxyManager::resource(*info->producer));
 						if (!::qstrcmp(info->producer->get("mlt_service"), "timewarp")) {
-							double speed = ::qAbs(info->producer->get_double("warp_speed"));
+							const double speed = ::qAbs(info->producer->get_double("warp_speed"));
 							result       = QStringLiteral("%1 (%2x)").arg(result).arg(speed);
 						}
 					}
@@ -231,7 +261,7 @@ QVariant PlaylistModel::data(const QModelIndex& index, int role) const {
 					if (result.isEmpty()) {
 						result = ProxyManager::resource(*info->producer);
 						if (!result.isEmpty() && QFileInfo(result).isRelative()) {
-							QString basePath = QFileInfo(MAIN.fileName()).canonicalPath();
+							QString const basePath = QFileInfo(MAIN.fileName()).canonicalPath();
 							result           = QFileInfo(basePath, result).filePath();
 						}
 						result = QDir::toNativeSeparators(result);
@@ -269,7 +299,7 @@ QVariant PlaylistModel::data(const QModelIndex& index, int role) const {
 			}
 		case FIELD_DATE:
 			if (info->producer && info->producer->is_valid()) {
-				int64_t ms = info->producer->get_creation_time();
+				const int64_t ms = info->producer->get_creation_time();
 				if (!ms) {
 					return "";
 				} else {
@@ -279,14 +309,14 @@ QVariant PlaylistModel::data(const QModelIndex& index, int role) const {
 				return "";
 			}
 		case FIELD_THUMBNAIL: {
-			QString setting = Settings.playlistThumbnails();
+			QString const setting = Settings.playlistThumbnails();
 			if (setting == "hidden")
 				return QImage();
 
-			QScopedPointer<Mlt::Producer> producer(m_playlist->get_clip(index.row()));
-			Mlt::Producer                 parent(producer->get_parent());
-			int                           width = THUMBNAIL_WIDTH;
-			QImage                        image;
+			QScopedPointer<Mlt::Producer> const producer(m_playlist->get_clip(index.row()));
+			Mlt::Producer parent(producer->get_parent());
+			const int width = THUMBNAIL_WIDTH;
+			QImage image;
 
 			if (setting == "wide")
 				image = QImage(width * 2, THUMBNAIL_HEIGHT, QImage::Format_ARGB32);
@@ -302,8 +332,8 @@ QVariant PlaylistModel::data(const QModelIndex& index, int role) const {
 				image.fill(QApplication::palette().base().color().rgb());
 
 				// draw the in thumbnail
-				QImage* thumb = (QImage*)parent.get_data(kThumbnailInProperty);
-				QRect   rect  = thumb->rect();
+				QImage const* thumb = (QImage*)parent.get_data(kThumbnailInProperty);
+				QRect rect = thumb->rect();
 				if (setting != "large") {
 					rect.setWidth(width);
 					rect.setHeight(THUMBNAIL_HEIGHT);
@@ -348,7 +378,7 @@ QVariant PlaylistModel::data(const QModelIndex& index, int role) const {
 					auto service = QString::fromLatin1(info->producer->get("mlt_service"));
 					if (service.startsWith("avformat")) {
 						if (info->producer->get_int("video_index") > -1 &&
-						    Util::getSuggestedFrameRate(info->producer) != 90000)
+							Util::getSuggestedFrameRate(info->producer) != getSuggestedFrameRateNumber)
 							type = Video;
 						else if (info->producer->get_int("audio_index") > -1)
 							type = Audio;
@@ -379,10 +409,10 @@ QVariant PlaylistModel::data(const QModelIndex& index, int role) const {
 			break;
 		}
 	}
-	return QVariant();
+	return {};
 }
 
-PlaylistModel::ViewMode PlaylistModel::viewMode() const {
+auto PlaylistModel::viewMode() const -> PlaylistModel::ViewMode {
 	return m_mode;
 }
 
@@ -431,7 +461,7 @@ void PlaylistModel::renameBin(const QString& bin, const QString& newName) {
 		emit this->modified();
 }
 
-QVariant PlaylistModel::headerData(int section, Qt::Orientation orientation, int role) const {
+auto PlaylistModel::headerData(int section, Qt::Orientation orientation, int role) const -> QVariant {
 	if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
 		switch (section) {
 		case COLUMN_INDEX:
@@ -456,14 +486,14 @@ QVariant PlaylistModel::headerData(int section, Qt::Orientation orientation, int
 			break;
 		}
 	}
-	return QVariant();
+	return {};
 }
 
-Qt::DropActions PlaylistModel::supportedDropActions() const {
+auto PlaylistModel::supportedDropActions() const -> Qt::DropActions {
 	return Qt::CopyAction | Qt::MoveAction;
 }
 
-bool PlaylistModel::insertRows(int row, int count, const QModelIndex& parent) {
+auto PlaylistModel::insertRows(int row, int count, const QModelIndex& parent) -> bool {
 	Q_UNUSED(count)
 	Q_UNUSED(parent)
 	if (!m_playlist)
@@ -473,7 +503,7 @@ bool PlaylistModel::insertRows(int row, int count, const QModelIndex& parent) {
 	return true;
 }
 
-bool PlaylistModel::removeRows(int row, int count, const QModelIndex& parent) {
+auto PlaylistModel::removeRows(int row, int count, const QModelIndex& parent) -> bool {
 	Q_UNUSED(count)
 	Q_UNUSED(parent)
 	if (!m_playlist || m_dropRow == -1)
@@ -481,7 +511,7 @@ bool PlaylistModel::removeRows(int row, int count, const QModelIndex& parent) {
 	if (row < m_dropRow) {
 		if (!m_rowsRemoved.contains(row)) {
 			int adjustment = 0;
-			foreach (int i, m_rowsRemoved) {
+			foreach (const int i, m_rowsRemoved) {
 				if (row > i)
 					--adjustment;
 			}
@@ -490,7 +520,7 @@ bool PlaylistModel::removeRows(int row, int count, const QModelIndex& parent) {
 		}
 	} else {
 		if (!m_rowsRemoved.contains(row)) {
-			foreach (int i, m_rowsRemoved) {
+			foreach (const int i, m_rowsRemoved) {
 				if (row >= i)
 					++row;
 			}
@@ -503,7 +533,7 @@ bool PlaylistModel::removeRows(int row, int count, const QModelIndex& parent) {
 	return true;
 }
 
-bool PlaylistModel::moveRows(const QModelIndex&, int sourceRow, int count, const QModelIndex&, int destinationChild) {
+auto PlaylistModel::moveRows(const QModelIndex&, int sourceRow, int count, const QModelIndex&, int destinationChild) -> bool {
 	Q_ASSERT(count == 1);
 	move(sourceRow, destinationChild);
 	return true;
@@ -514,16 +544,16 @@ void PlaylistModel::sort(int column, Qt::SortOrder order) {
 		return;
 
 	int index = 0;
-	int count = rowCount();
+	const int count = rowCount();
 	if (count < 2)
 		return;
 
 	// Create a list mapping values to their original index.
 	QVector<QPair<QString, int>> indexMap(count);
 	for (index = 0; index < count; index++) {
-		QModelIndex modelIndex = createIndex(index, column);
-		QString     key        = data(modelIndex, Qt::DisplayRole).toString().toLower();
-		indexMap[index]        = qMakePair(key, index);
+		QModelIndex const modelIndex = createIndex(index, column);
+		QString const key = data(modelIndex, Qt::DisplayRole).toString().toLower();
+		indexMap[index] = qMakePair(key, index);
 	}
 	// Sort the list.
 	std::sort(indexMap.begin(), indexMap.end());
@@ -548,14 +578,14 @@ void PlaylistModel::sort(int column, Qt::SortOrder order) {
 	emit modified();
 }
 
-QStringList PlaylistModel::mimeTypes() const {
+auto PlaylistModel::mimeTypes() const -> QStringList {
 	QStringList ls = QAbstractTableModel::mimeTypes();
 	ls.append(Mlt::XmlMimeType);
 	ls.append("text/uri-list");
 	return ls;
 }
 
-QMimeData* PlaylistModel::mimeData(const QModelIndexList& indexes) const {
+auto PlaylistModel::mimeData(const QModelIndexList& indexes) const -> QMimeData* {
 	QMimeData* mimeData = new QMimeData;
 	int        count    = 0;
 	foreach (auto index, indexes) {
@@ -567,7 +597,7 @@ QMimeData* PlaylistModel::mimeData(const QModelIndexList& indexes) const {
 	foreach (auto index, indexes) {
 		if (m_mode == Detailed && index.column() != COLUMN_RESOURCE)
 			continue;
-		QScopedPointer<Mlt::ClipInfo> info(m_playlist->clip_info(index.row()));
+		QScopedPointer<Mlt::ClipInfo> const info(m_playlist->clip_info(index.row()));
 		if (info && info->producer) {
 			playlist.append(*info->producer, info->frame_in, info->frame_out);
 		}
@@ -579,8 +609,8 @@ QMimeData* PlaylistModel::mimeData(const QModelIndexList& indexes) const {
 	return mimeData;
 }
 
-bool PlaylistModel::dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column,
-                                 const QModelIndex& parent) {
+auto PlaylistModel::dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column,
+								 const QModelIndex& parent) -> bool {
 	Q_UNUSED(column)
 	Q_UNUSED(parent)
 	// Internal reorder
@@ -616,15 +646,15 @@ bool PlaylistModel::dropMimeData(const QMimeData* data, Qt::DropAction action, i
 	return false;
 }
 
-Qt::ItemFlags PlaylistModel::flags(const QModelIndex& index) const {
-	Qt::ItemFlags defaults = QAbstractTableModel::flags(index);
+auto PlaylistModel::flags(const QModelIndex& index) const -> Qt::ItemFlags {
+	Qt::ItemFlags const defaults = QAbstractTableModel::flags(index);
 	if (index.isValid())
 		return Qt::ItemIsDragEnabled | defaults;
 	else
 		return Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | defaults;
 }
 
-QModelIndex PlaylistModel::createIndex(int row, int column) const {
+auto PlaylistModel::createIndex(int row, int column) const -> QModelIndex {
 	return QAbstractTableModel::createIndex(row, column);
 }
 
@@ -673,9 +703,9 @@ void PlaylistModel::load() {
 
 void PlaylistModel::append(Mlt::Producer& producer, bool emitModified) {
 	createIfNeeded();
-	int count = m_playlist->count();
-	int in    = producer.get_in();
-	int out   = producer.get_out();
+	const int count = m_playlist->count();
+	const int in = producer.get_in();
+	const int out = producer.get_out();
 	producer.set_in_and_out(0, producer.get_length() - 1);
 	QThreadPool::globalInstance()->start(new UpdateThumbnailTask(this, producer, in, out, count), 1);
 	beginInsertRows(QModelIndex(), count, count);
@@ -687,8 +717,8 @@ void PlaylistModel::append(Mlt::Producer& producer, bool emitModified) {
 
 void PlaylistModel::insert(Mlt::Producer& producer, int row) {
 	createIfNeeded();
-	int in  = producer.get_in();
-	int out = producer.get_out();
+	const int in = producer.get_in();
+	const int out = producer.get_out();
 	producer.set_in_and_out(0, producer.get_length() - 1);
 	QThreadPool::globalInstance()->start(new UpdateThumbnailTask(this, producer, in, out, row), 1);
 	beginInsertRows(QModelIndex(), row, row);
@@ -712,8 +742,8 @@ void PlaylistModel::remove(int row) {
 void PlaylistModel::update(int row, Mlt::Producer& producer, bool copyFilters) {
 	if (!m_playlist)
 		return;
-	int in  = producer.get_in();
-	int out = producer.get_out();
+	const int in = producer.get_in();
+	const int out = producer.get_out();
 	producer.set_in_and_out(0, producer.get_length() - 1);
 	QThreadPool::globalInstance()->start(new UpdateThumbnailTask(this, producer, in, out, row), 1);
 	if (copyFilters) {
@@ -731,7 +761,7 @@ void PlaylistModel::update(int row, Mlt::Producer& producer, bool copyFilters) {
 void PlaylistModel::updateThumbnails(int row) {
 	if (!m_playlist)
 		return;
-	QScopedPointer<Mlt::ClipInfo> info(m_playlist->clip_info(row));
+	QScopedPointer<Mlt::ClipInfo> const info(m_playlist->clip_info(row));
 	if (!info || !info->producer->is_valid())
 		return;
 	QThreadPool::globalInstance()->start(new UpdateThumbnailTask(this, *info->producer, info->frame_in, info->frame_out,
@@ -741,7 +771,7 @@ void PlaylistModel::updateThumbnails(int row) {
 
 void PlaylistModel::appendBlank(int frames) {
 	createIfNeeded();
-	int count = m_playlist->count();
+	const int count = m_playlist->count();
 	beginInsertRows(QModelIndex(), count, count);
 	m_playlist->blank(frames - 1);
 	endInsertRows();
@@ -774,7 +804,7 @@ void PlaylistModel::move(int from, int to) {
 	emit modified();
 }
 
-void PlaylistModel::onRowsAboutToBeRemoved(const QModelIndex& parent, int first, int last) {
+void PlaylistModel::onRowsAboutToBeRemoved(const QModelIndex&  /*parent*/, int first, int last) {
 	if (m_playlist) {
 		for (int i = first; i <= last; ++i) {
 			emit removing(m_playlist->get_clip(i));
@@ -825,7 +855,7 @@ void PlaylistModel::setPlaylist(Mlt::Playlist& playlist) {
 		m_playlist = new Mlt::Playlist(playlist);
 		if (!m_playlist->is_valid()) {
 			delete m_playlist;
-			m_playlist = 0;
+			m_playlist = nullptr;
 			return;
 		}
 		if (m_playlist->count() > 0) {
@@ -843,8 +873,8 @@ void PlaylistModel::setPlaylist(Mlt::Playlist& playlist) {
 void PlaylistModel::setInOut(int row, int in, int out) {
 	if (!m_playlist || row < 0 || row >= m_playlist->count())
 		return;
-	bool                          inChanged = false, outChanged = false;
-	QScopedPointer<Mlt::ClipInfo> info(m_playlist->clip_info(row));
+	bool inChanged = false, outChanged = false;
+	QScopedPointer<Mlt::ClipInfo> const info(m_playlist->clip_info(row));
 	if (info && info->producer && info->producer->is_valid()) {
 		if (MLT.producer()->get_producer() == info->producer->get_producer()) {
 			inChanged  = info->frame_in != in;

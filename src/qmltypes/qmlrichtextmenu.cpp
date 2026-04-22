@@ -15,9 +15,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "qmlrichtextmenu.hpp"
 
+// Qt
 #include <QMenu>
+#include <qaction.h>
+#include <qnamespace.h>
+#include <qobject.h>
 
 QmlRichTextMenu::QmlRichTextMenu(QObject* parent) : QObject(parent) {
 }

@@ -15,18 +15,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "qmlfile.hpp"
-
 #include "Logger.hpp"
 
+// Qt
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <qfilesystemwatcher.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+
+// STL
+#include <memory>
 
 QmlFile::QmlFile(QObject* parent) : QObject(parent), m_url() {
 }
 
-QString QmlFile::getUrl() {
+auto QmlFile::getUrl() -> QString {
 	auto s = QUrl::fromPercentEncoding(m_url.toString().toUtf8());
 #ifdef Q_OS_WIN
 	if (s.size() > 2 && s[1] == ':' && s[2] == '/') {
@@ -37,8 +44,8 @@ QString QmlFile::getUrl() {
 }
 
 void QmlFile::setUrl(QString text) {
-	QUrl    url = text.replace('\\', "/");
-	QString s   = url.toString();
+	QUrl const url = text.replace('\\', "/");
+	QString s = url.toString();
 	;
 	QUrl::FormattingOptions options = QUrl::RemoveScheme | QUrl::RemovePassword | QUrl::RemoveUserInfo |
 	                                  QUrl::RemovePort | QUrl::RemoveAuthority | QUrl::RemoveQuery;
@@ -78,7 +85,7 @@ void QmlFile::setUrl(QString text) {
 		s = s.mid(2);
 	}
 
-	QUrl adj = s;
+	QUrl const adj = s;
 
 	if (m_url != adj) {
 		m_url = adj;
@@ -86,19 +93,19 @@ void QmlFile::setUrl(QString text) {
 	}
 }
 
-QString QmlFile::getFileName() {
+auto QmlFile::getFileName() -> QString {
 	return QFileInfo(getUrl()).fileName();
 }
 
-QString QmlFile::getPath() {
+auto QmlFile::getPath() -> QString {
 	return QDir::toNativeSeparators(QFileInfo(getUrl()).path());
 }
 
-QString QmlFile::getFilePath() {
+auto QmlFile::getFilePath() -> QString {
 	return QDir::toNativeSeparators(getUrl());
 }
 
-void QmlFile::copyFromFile(QString source) {
+void QmlFile::copyFromFile(const QString& source) {
 	if (QFile::exists(m_url.toString())) {
 		QFile::remove(m_url.toString());
 	}
@@ -118,11 +125,11 @@ void QmlFile::copyFromFile(QString source) {
 	outfile.close();
 }
 
-bool QmlFile::exists() {
-	return QFileInfo(m_url.toString()).exists();
+auto QmlFile::exists() -> bool {
+	return QFileInfo::exists(m_url.toString());
 }
 
-QString QmlFile::suffix() {
+auto QmlFile::suffix() -> QString {
 	return QFileInfo(m_url.toString()).suffix();
 }
 

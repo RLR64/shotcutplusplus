@@ -18,7 +18,13 @@
 #ifndef ACTIONSMODEL_HPP
 #define ACTIONSMODEL_HPP
 
+// Qt
 #include <QAbstractItemModel>
+#include <qhash.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 class QAction;
 
@@ -40,22 +46,22 @@ class ActionsModel : public QAbstractItemModel {
 	};
 
 	explicit ActionsModel(QObject* parent = nullptr);
-	QAction* action(const QModelIndex& index) const;
+	[[nodiscard]] auto action(const QModelIndex& index) const -> QAction*;
 
   signals:
 	void editError(const QString& error);
 
   protected:
 	// Implement QAbstractItemModel
-	int                    rowCount(const QModelIndex& parent) const override;
-	int                    columnCount(const QModelIndex& parent) const override;
-	QVariant               data(const QModelIndex& index, int role) const override;
-	bool                   setData(const QModelIndex& index, const QVariant& value, int role) override;
-	QVariant               headerData(int section, Qt::Orientation orientation, int role) const override;
-	QModelIndex            index(int row, int column = 0, const QModelIndex& parent = QModelIndex()) const override;
-	QModelIndex            parent(const QModelIndex& index) const override;
-	Qt::ItemFlags          flags(const QModelIndex& index) const override;
-	QHash<int, QByteArray> roleNames() const override;
+	[[nodiscard]] auto rowCount(const QModelIndex& parent) const -> int override;
+	[[nodiscard]] auto columnCount(const QModelIndex& parent) const -> int override;
+	[[nodiscard]] auto data(const QModelIndex& index, int role) const -> QVariant override;
+	auto setData(const QModelIndex& index, const QVariant& value, int role) -> bool override;
+	[[nodiscard]] auto headerData(int section, Qt::Orientation orientation, int role) const -> QVariant override;
+	[[nodiscard]] auto index(int row, int column = 0, const QModelIndex& parent = QModelIndex()) const -> QModelIndex override;
+	[[nodiscard]] auto parent(const QModelIndex& index) const -> QModelIndex override;
+	[[nodiscard]] auto flags(const QModelIndex& index) const -> Qt::ItemFlags override;
+	[[nodiscard]] auto roleNames() const -> QHash<int, QByteArray> override;
 
   private:
 	QList<QAction*> m_actions;

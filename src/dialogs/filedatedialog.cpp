@@ -15,13 +15,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "filedatedialog.hpp"
-
 #include "Logger.hpp"
 #include "mltcontroller.hpp"
 #include "proxymanager.hpp"
 #include "shotcut_mlt_properties.hpp"
 
+// Qt
 #include <MltProducer.h>
 #include <QComboBox>
 #include <QDateTimeEdit>
@@ -29,17 +30,26 @@
 #include <QDialogButtonBox>
 #include <QFileInfo>
 #include <QVBoxLayout>
+#include <qdatetime.h>
+#include <qdialog.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtimezone.h>
+#include <qwidget.h>
 
-void addDateToCombo(QComboBox* combo, const QString& description, const QDateTime& date) {
-	QDateTime local = date.toLocalTime();
-	QString   text  = local.toString("yyyy-MM-dd HH:mm:ss") + " [" + description + "]";
+// STL
+#include <cstdint>
+
+static void addDateToCombo(QComboBox* combo, const QString& description, const QDateTime& date) {
+	QDateTime const local = date.toLocalTime();
+	QString   const text  = local.toString("yyyy-MM-dd HH:mm:ss") + " [" + description + "]";
 	combo->addItem(text, local);
 }
 
-FileDateDialog::FileDateDialog(QString title, Mlt::Producer* producer, QWidget* parent)
+FileDateDialog::FileDateDialog(const QString& title, Mlt::Producer* producer, QWidget* parent)
     : QDialog(parent), m_producer(producer), m_dtCombo(new QComboBox()), m_dtEdit(new QDateTimeEdit()) {
 	setWindowTitle(tr("%1 File Date").arg(title));
-	int64_t   milliseconds = producer->get_creation_time();
+	const int64_t   milliseconds = producer->get_creation_time();
 	QDateTime creation_time;
 	if (!milliseconds) {
 		creation_time = QDateTime::currentDateTime();
@@ -48,7 +58,7 @@ FileDateDialog::FileDateDialog(QString title, Mlt::Producer* producer, QWidget* 
 		creation_time = QDateTime::fromMSecsSinceEpoch(milliseconds);
 	}
 
-	QVBoxLayout* VLayout = new QVBoxLayout(this);
+	auto* VLayout = new QVBoxLayout(this);
 
 	populateDateOptions(producer);
 	m_dtCombo->setCurrentIndex(-1);
@@ -61,7 +71,7 @@ FileDateDialog::FileDateDialog(QString title, Mlt::Producer* producer, QWidget* 
 	m_dtEdit->setDateTime(creation_time);
 	VLayout->addWidget(m_dtEdit);
 
-	QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+	auto* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 	VLayout->addWidget(buttonBox);
 	connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
@@ -87,7 +97,7 @@ void FileDateDialog::populateDateOptions(Mlt::Producer* producer) {
 	QDateTime dateTime;
 
 	// Add current value
-	int64_t milliseconds = producer->get_creation_time();
+	const int64_t milliseconds = producer->get_creation_time();
 	if (milliseconds) {
 		dateTime = QDateTime::fromMSecsSinceEpoch(milliseconds);
 		addDateToCombo(m_dtCombo, tr("Current Value"), dateTime);
@@ -97,8 +107,8 @@ void FileDateDialog::populateDateOptions(Mlt::Producer* producer) {
 	addDateToCombo(m_dtCombo, tr("Now"), QDateTime::currentDateTime());
 
 	// Add system info for the file.
-	QString   resource = ProxyManager::resource(*producer);
-	QFileInfo fileInfo(resource);
+	QString   const resource = ProxyManager::resource(*producer);
+	QFileInfo const fileInfo(resource);
 	if (fileInfo.exists()) {
 		addDateToCombo(m_dtCombo, tr("System - Modified"), fileInfo.lastModified());
 		addDateToCombo(m_dtCombo, tr("System - Created"), fileInfo.birthTime());

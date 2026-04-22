@@ -15,43 +15,63 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "playlisticonview.h"
-
 #include "Logger.hpp"
 #include "models/playlistmodel.hpp"
 #include "settings.hpp"
 
+// Qt
 #include <QDebug>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QScrollBar>
 #include <QSortFilterProxyModel>
 #include <QtMath>
+#include <qabstractitemmodel.h>
+#include <qabstractitemview.h>
+#include <qcontainerfwd.h>
+#include <qimage.h>
+#include <qitemselectionmodel.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpaintdevice.h>
+#include <qpalette.h>
+#include <qregion.h>
+#include <qtpreprocessorsupport.h>
+#include <qwidget.h>
 
-static constexpr int kPaddingPx       = {10};
-static constexpr float kFilesSizeFactor = {1.5f};
+// Number constants
+static constexpr int setPlaylistIconViewNumber{40};
+static constexpr int setSingleStepNumber{100};
+static constexpr int setPageStepNumber{400};
+static constexpr int setGridSizeNumber{170};
+
+static constexpr int kPaddingPx{10};
+static constexpr float kFilesSizeFactor{1.5f};
 
 PlaylistIconView::PlaylistIconView(QWidget* parent)
-    : QAbstractItemView(parent), m_gridSize(170, 100), m_draggingOverPos(QPoint()), m_itemsPerRow(3),
+	: QAbstractItemView(parent), m_gridSize(setGridSizeNumber, setSingleStepNumber), m_draggingOverPos(QPoint()), m_itemsPerRow(3),
       m_iconRole(Qt::DecorationRole) {
-	verticalScrollBar()->setSingleStep(100);
-	verticalScrollBar()->setPageStep(400);
+	verticalScrollBar()->setSingleStep(setSingleStepNumber);
+	verticalScrollBar()->setPageStep(setPageStepNumber);
 	setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(&Settings, SIGNAL(playlistThumbnailsChanged()), SLOT(updateSizes()));
 }
 
-QRect PlaylistIconView::_visualRect(const QModelIndex& index) const {
+auto PlaylistIconView::_visualRect(const QModelIndex& index) const -> QRect {
 	if (!index.isValid())
-		return QRect();
-	int row = index.row() / m_itemsPerRow;
-	int col = index.row() % m_itemsPerRow;
-	return QRect(col * m_gridSize.width(), row * m_gridSize.height(), m_gridSize.width(), m_gridSize.height());
+		return {};
+	const int row = index.row() / m_itemsPerRow;
+	const int col = index.row() % m_itemsPerRow;
+	return {col * m_gridSize.width(), row * m_gridSize.height(), m_gridSize.width(), m_gridSize.height()};
 }
 
-QRect PlaylistIconView::visualRect(const QModelIndex& index) const {
+auto PlaylistIconView::visualRect(const QModelIndex& /*index*/) const -> QRect {
 	// TODO: this was causing a performance problem
 	// return _visualRect(index);
-	return QRect();
+	return {};
 }
 
 void PlaylistIconView::rowsInserted(const QModelIndex& parent, int start, int end) {
@@ -80,33 +100,33 @@ void PlaylistIconView::scrollTo(const QModelIndex& index, ScrollHint hint) {
 	Q_UNUSED(hint);
 }
 
-QModelIndex PlaylistIconView::indexAt(const QPoint& point) const {
+auto PlaylistIconView::indexAt(const QPoint& point) const -> QModelIndex {
 	if (!model())
-		return QModelIndex();
+		return {};
 
 	if (point.x() / m_gridSize.width() >= m_itemsPerRow)
-		return QModelIndex();
+		return {};
 
-	int row = (point.y() + verticalScrollBar()->value()) / m_gridSize.height();
-	int col = (point.x() / m_gridSize.width()) % m_itemsPerRow;
+	const int row = (point.y() + verticalScrollBar()->value()) / m_gridSize.height();
+	const int col = (point.x() / m_gridSize.width()) % m_itemsPerRow;
 	return model()->index(row * m_itemsPerRow + col, 0, rootIndex());
 }
 
-QModelIndex PlaylistIconView::moveCursor(CursorAction cursorAction, Qt::KeyboardModifiers modifiers) {
+auto PlaylistIconView::moveCursor(CursorAction cursorAction, Qt::KeyboardModifiers modifiers) -> QModelIndex {
 	Q_UNUSED(cursorAction);
 	Q_UNUSED(modifiers);
-	return QModelIndex();
+	return {};
 }
 
-int PlaylistIconView::horizontalOffset() const {
+auto PlaylistIconView::horizontalOffset() const -> int {
 	return 0;
 }
 
-int PlaylistIconView::verticalOffset() const {
+auto PlaylistIconView::verticalOffset() const -> int {
 	return 0;
 }
 
-bool PlaylistIconView::isIndexHidden(const QModelIndex& index) const {
+auto PlaylistIconView::isIndexHidden(const QModelIndex& index) const -> bool {
 	Q_UNUSED(index);
 	return false;
 }
@@ -124,7 +144,7 @@ void PlaylistIconView::setSelection(const QRect& rect, QItemSelectionModel::Sele
 		selectionModel()->select(indexAt(rect.bottomRight()), command);
 		return;
 	} else if (m_isRangeSelect && topLeft.isValid()) {
-		QModelIndex bottomRight = indexAt(rect.bottomRight());
+		QModelIndex const bottomRight = indexAt(rect.bottomRight());
 		selectionModel()->select(QItemSelection(topLeft, bottomRight), command);
 		return;
 	} else if (topLeft.isValid()) {
@@ -134,9 +154,9 @@ void PlaylistIconView::setSelection(const QRect& rect, QItemSelectionModel::Sele
 	m_pendingSelect = indexAt(rect.topLeft());
 }
 
-QRegion PlaylistIconView::visualRegionForSelection(const QItemSelection& selection) const {
+auto PlaylistIconView::visualRegionForSelection(const QItemSelection& selection) const -> QRegion {
 	Q_UNUSED(selection);
-	return QRegion();
+	return {};
 }
 
 void PlaylistIconView::currentChanged(const QModelIndex& current, const QModelIndex& previous) {
@@ -145,11 +165,11 @@ void PlaylistIconView::currentChanged(const QModelIndex& current, const QModelIn
 }
 
 void PlaylistIconView::paintEvent(QPaintEvent*) {
-	QPainter   painter(viewport());
-	QPalette   pal(palette());
-	const auto proxy   = tr("P", "The first letter or symbol of \"proxy\"");
+	QPainter painter(viewport());
+	QPalette const pal(palette());
+	const auto proxy = tr("P", "The first letter or symbol of \"proxy\"");
 	const auto oldFont = painter.font();
-	auto       boldFont(oldFont);
+	auto boldFont(oldFont);
 
 	painter.setRenderHints(QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
 	boldFont.setBold(true);
@@ -158,25 +178,25 @@ void PlaylistIconView::paintEvent(QPaintEvent*) {
 	if (!model())
 		return;
 
-	auto  proxyModel = static_cast<QSortFilterProxyModel*>(model());
+	auto  proxyModel = dynamic_cast<QSortFilterProxyModel*>(model());
 	QRect dragIndicator;
 
 	for (int row = 0; row <= proxyModel->rowCount(rootIndex()) / m_itemsPerRow; row++) {
 		for (int col = 0; col < m_itemsPerRow; col++) {
 			const int rowIdx = row * m_itemsPerRow + col;
 
-			QModelIndex idx = proxyModel->index(rowIdx, 0, rootIndex());
+			QModelIndex const idx = proxyModel->index(rowIdx, 0, rootIndex());
 			if (!idx.isValid())
 				break;
 
-			QRect itemRect(col * m_gridSize.width(), row * m_gridSize.height() - verticalScrollBar()->value(),
+			QRect const itemRect(col * m_gridSize.width(), row * m_gridSize.height() - verticalScrollBar()->value(),
 			               m_gridSize.width(), m_gridSize.height());
 
 			if (itemRect.bottom() < 0 || itemRect.top() > this->height())
 				continue;
 
 			const bool selected = selectedIndexes().contains(idx);
-			QImage     thumb    = proxyModel->mapToSource(idx).data(m_iconRole).value<QImage>();
+			auto thumb = proxyModel->mapToSource(idx).data(m_iconRole).value<QImage>();
 
 			if (m_iconRole != Qt::DecorationRole) { // Files
 				thumb = thumb.scaled(PlaylistModel::THUMBNAIL_WIDTH * kFilesSizeFactor,
@@ -195,7 +215,7 @@ void PlaylistIconView::paintEvent(QPaintEvent*) {
 			textRect.setTop(imageBoundingRect.bottom());
 			textRect.adjust(3, 0, -3, 0);
 
-			QRect buttonRect = itemRect.adjusted(2, 2, -2, -2);
+			QRect const buttonRect = itemRect.adjusted(2, 2, -2, -2);
 
 			if (selected) {
 				painter.fillRect(buttonRect, pal.highlight());
@@ -227,7 +247,7 @@ void PlaylistIconView::paintEvent(QPaintEvent*) {
 			                 painter.fontMetrics().elidedText(nameParts.first(), Qt::ElideMiddle, textRect.width()));
 
 			if (!m_draggingOverPos.isNull() && itemRect.contains(m_draggingOverPos)) {
-				QAbstractItemView::DropIndicatorPosition dropPos = position(m_draggingOverPos, itemRect, idx);
+				QAbstractItemView::DropIndicatorPosition const dropPos = position(m_draggingOverPos, itemRect, idx);
 				dragIndicator.setSize(QSize(4, itemRect.height()));
 				if (dropPos == QAbstractItemView::AboveItem)
 					dragIndicator.moveTopLeft(itemRect.topLeft() - QPoint(dragIndicator.width() / 2, 0));
@@ -266,14 +286,14 @@ void PlaylistIconView::dropEvent(QDropEvent* event) {
 	m_draggingOverPos = QPoint();
 
 	QModelIndex index           = indexAt(event->position().toPoint());
-	QRect       rectAtDropPoint = _visualRect(index);
+	QRect const rectAtDropPoint = _visualRect(index);
 
-	QAbstractItemView::DropIndicatorPosition dropPos = position(event->position().toPoint(), rectAtDropPoint, index);
+	QAbstractItemView::DropIndicatorPosition const dropPos = position(event->position().toPoint(), rectAtDropPoint, index);
 	if (dropPos == QAbstractItemView::BelowItem)
 		index = index.sibling(index.row() + 1, index.column());
 
 	const Qt::DropAction action = event->dropAction();
-	int                  row    = (index.row() != -1) ? index.row() : model()->rowCount(rootIndex());
+	const int row = (index.row() != -1) ? index.row() : model()->rowCount(rootIndex());
 	if (model()->dropMimeData(event->mimeData(), action, row, index.column(), index))
 		event->acceptProposedAction();
 
@@ -305,8 +325,7 @@ void PlaylistIconView::keyReleaseEvent(QKeyEvent* event) {
 	resetMultiSelect();
 }
 
-QAbstractItemView::DropIndicatorPosition PlaylistIconView::position(const QPoint& pos, const QRect& rect,
-                                                                    const QModelIndex& index) const {
+auto PlaylistIconView::position(const QPoint& pos, const QRect& rect, const QModelIndex& index) const -> QAbstractItemView::DropIndicatorPosition {
 	Q_UNUSED(index);
 	if (pos.x() < rect.center().x())
 		return QAbstractItemView::AboveItem;
@@ -336,7 +355,7 @@ void PlaylistIconView::updateSizes() {
 	size.setWidth(size.width() + kPaddingPx);
 
 	m_itemsPerRow = qMax(1, viewport()->width() / size.width());
-	m_gridSize    = QSize(viewport()->width() / m_itemsPerRow, size.height() + 40);
+	m_gridSize = QSize(viewport()->width() / m_itemsPerRow, size.height() + setPlaylistIconViewNumber);
 
 	if (!verticalScrollBar())
 		return;

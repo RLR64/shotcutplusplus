@@ -18,14 +18,19 @@
 #ifndef PLAYLISTLISTVIEW_H
 #define PLAYLISTLISTVIEW_H
 
+// Qt
 #include <QListView>
+#include <qobject.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class QDropEvent;
 
 class PlaylistListView : public QListView {
 	Q_OBJECT
   public:
-	PlaylistListView(QWidget* parent = 0);
+	PlaylistListView(QWidget* parent = nullptr);
 	void dropEvent(QDropEvent* event) Q_DECL_OVERRIDE;
 	void keyPressEvent(QKeyEvent* event) Q_DECL_OVERRIDE;
 

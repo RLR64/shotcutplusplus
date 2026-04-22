@@ -18,24 +18,31 @@
 #ifndef FFMPEGJOB_HPP
 #define FFMPEGJOB_HPP
 
+// Local
 #include "abstractjob.hpp"
+#include "jobs/postjobaction.hpp"
+#include "settings.hpp"
 
+// Qt
 #include <QStringList>
+#include <qcontainerfwd.h>
+#include <qthread.h>
+#include <qtmetamacros.h>
 
 class FfmpegJob : public AbstractJob {
 	Q_OBJECT
   public:
 	FfmpegJob(const QString& name, const QStringList& args, bool isOpenLog = true,
 	          QThread::Priority priority = Settings.jobPriority());
-	virtual ~FfmpegJob();
-	void start();
+	~FfmpegJob() override;
+	void start() override;
 
   public slots:
-	virtual void stop();
+	void stop() override;
 
   private slots:
 	void onOpenTriggered();
-	void onReadyRead();
+	void onReadyRead() override;
 
   private:
 	QStringList m_args;

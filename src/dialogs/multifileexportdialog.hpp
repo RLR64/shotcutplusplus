@@ -18,8 +18,12 @@
 #ifndef MULTIFILEEXPORTDIALOG_HPP
 #define MULTIFILEEXPORTDIALOG_HPP
 
+// Qt
 #include <QDialog>
 #include <QStringList>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 class QComboBox;
 class QDialogButtonBox;
@@ -34,16 +38,16 @@ class Playlist;
 class MultiFileExportDialog : public QDialog {
 	Q_OBJECT
   public:
-	explicit MultiFileExportDialog(QString title, Mlt::Playlist* playlist, const QString& directory,
+	explicit MultiFileExportDialog(const QString& title, Mlt::Playlist* playlist, const QString& directory,
 	                               const QString& prefix, const QString& extension, QWidget* parent = nullptr);
-	QStringList getExportFiles();
+	auto getExportFiles() -> QStringList;
 
   private slots:
 	void rebuildList();
 	void browse();
 
   private:
-	QString appendField(QString text, QComboBox* combo, int clipIndex);
+	auto appendField(QString text, QComboBox* combo, int clipIndex) -> QString;
 	void    fillCombo(QComboBox* combo);
 
 	Mlt::Playlist*    m_playlist;

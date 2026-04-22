@@ -15,11 +15,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "listselectiondialog.hpp"
-
 #include "ui_listselectiondialog.h"
 
+// Qt
 #include <QListWidget>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <qdialog.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 
 ListSelectionDialog::ListSelectionDialog(const QStringList& list, QWidget* parent)
     : QDialog(parent), ui(new Ui::ListSelectionDialog) {
@@ -43,7 +50,7 @@ void ListSelectionDialog::setColors(const QStringList& list) {
 		QListWidgetItem* item = new QListWidgetItem(text, ui->listWidget);
 		item->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 		connect(ui->listWidget, SIGNAL(itemActivated(QListWidgetItem*)), SLOT(onItemActivated(QListWidgetItem*)));
-		QColor color(text);
+		QColor const color(text);
 		item->setCheckState(Qt::Checked);
 		if (color.isValid()) {
 			item->setBackground(color);
@@ -52,7 +59,7 @@ void ListSelectionDialog::setColors(const QStringList& list) {
 }
 
 void ListSelectionDialog::setSelection(const QStringList& selection) {
-	int n = ui->listWidget->count();
+	const int n = ui->listWidget->count();
 	for (int i = 0; i < n; ++i) {
 		QListWidgetItem* item = ui->listWidget->item(i);
 		if (selection.indexOf(item->text()) > -1)
@@ -60,18 +67,18 @@ void ListSelectionDialog::setSelection(const QStringList& selection) {
 	}
 }
 
-QStringList ListSelectionDialog::selection() const {
+auto ListSelectionDialog::selection() const -> QStringList {
 	QStringList result;
-	int         n = ui->listWidget->count();
+	const int n = ui->listWidget->count();
 	for (int i = 0; i < n; ++i) {
-		QListWidgetItem* item = ui->listWidget->item(i);
+		QListWidgetItem const* const item = ui->listWidget->item(i);
 		if (item->checkState() == Qt::Checked)
 			result << item->text();
 	}
 	return result;
 }
 
-QDialogButtonBox* ListSelectionDialog::buttonBox() const {
+auto ListSelectionDialog::buttonBox() const -> QDialogButtonBox* {
 	return ui->buttonBox;
 }
 

@@ -15,20 +15,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "playlistcommands.hpp"
-
 #include "Logger.hpp"
 #include "docks/playlistdock.h"
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"
+#include "models/playlistmodel.hpp"
 #include "shotcut_mlt_properties.hpp"
 
+// Qt
+#include <MltPlaylist.h>
+#include <MltProducer.h>
 #include <QTreeWidget>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qscopedpointer.h>
+#include <qtmetamacros.h>
+#include <qundostack.h>
+
+// STL
+#include <memory>
+#include <utility>
 
 namespace Playlist {
 
-AppendCommand::AppendCommand(PlaylistModel& model, const QString& xml, bool emitModified, QUndoCommand* parent)
-    : QUndoCommand(parent), m_model(model), m_xml(xml), m_emitModified(emitModified) {
+AppendCommand::AppendCommand(PlaylistModel& model, QString  xml, bool emitModified, QUndoCommand* parent)
+	: QUndoCommand(parent), m_model(model), m_xml(std::move(xml)), m_emitModified(emitModified) {
 	setText(QObject::tr("Append playlist item %1").arg(m_model.rowCount() + 1));
 }
 
@@ -48,8 +63,8 @@ void AppendCommand::Undo() {
 	m_model.remove(m_model.rowCount() - 1);
 }
 
-InsertCommand::InsertCommand(PlaylistModel& model, const QString& xml, int row, QUndoCommand* parent)
-    : QUndoCommand(parent), m_model(model), m_xml(xml), m_row(row) {
+InsertCommand::InsertCommand(PlaylistModel& model, QString  xml, int row, QUndoCommand* parent)
+	: QUndoCommand(parent), m_model(model), m_xml(std::move(xml)), m_row(row) {
 	setText(QObject::tr("Insert playlist item %1").arg(row + 1));
 }
 
@@ -69,10 +84,10 @@ void InsertCommand::Undo() {
 	m_model.remove(m_row);
 }
 
-UpdateCommand::UpdateCommand(PlaylistModel& model, const QString& xml, int row, QUndoCommand* parent)
-    : QUndoCommand(parent), m_model(model), m_newXml(xml), m_row(row) {
+UpdateCommand::UpdateCommand(PlaylistModel& model, QString  xml, int row, QUndoCommand* parent)
+	: QUndoCommand(parent), m_model(model), m_newXml(std::move(xml)), m_row(row) {
 	setText(QObject::tr("Update playlist item %1").arg(row + 1));
-	QScopedPointer<Mlt::ClipInfo> info(m_model.playlist()->clip_info(row));
+	QScopedPointer<Mlt::ClipInfo> const info(m_model.playlist()->clip_info(row));
 	info->producer->set_in_and_out(info->frame_in, info->frame_out);
 	m_oldXml = MLT.XML(info->producer);
 }
@@ -94,8 +109,8 @@ void UpdateCommand::Undo() {
 	m_model.update(m_row, producer);
 }
 
-bool UpdateCommand::MergeWith(const QUndoCommand* other) {
-	const UpdateCommand* that = static_cast<const UpdateCommand*>(other);
+auto UpdateCommand::mergeWith(const QUndoCommand* other) -> bool {
+	const auto* that = dynamic_cast<const UpdateCommand*>(other);
 	LOG_DEBUG() << "this row" << m_row << "that row" << that->m_row;
 	if (that->id() != id() || that->m_row != m_row)
 		return false;
@@ -105,7 +120,7 @@ bool UpdateCommand::MergeWith(const QUndoCommand* other) {
 
 RemoveCommand::RemoveCommand(PlaylistModel& model, int row, QUndoCommand* parent)
     : QUndoCommand(parent), m_model(model), m_row(row) {
-	QScopedPointer<Mlt::ClipInfo> info(m_model.playlist()->clip_info(row));
+	QScopedPointer<Mlt::ClipInfo> const info(m_model.playlist()->clip_info(row));
 	info->producer->set_in_and_out(info->frame_in, info->frame_out);
 	m_xml = MLT.XML(info->producer);
 	setText(QObject::tr("Remove playlist item %1").arg(row + 1));
@@ -142,7 +157,7 @@ void ClearCommand::Redo() {
 
 void ClearCommand::Undo() {
 	LOG_DEBUG() << "";
-	Mlt::Producer* producer = new Mlt::Producer(MLT.profile(), "xml-string", m_xml.toUtf8().constData());
+	auto* producer = new Mlt::Producer(MLT.profile(), "xml-string", m_xml.toUtf8().constData());
 	if (producer->is_valid()) {
 		producer->set("resource", "<playlist>");
 		if (!MLT.setProducer(producer)) {
@@ -178,8 +193,8 @@ void MoveCommand::Undo() {
 
 SortCommand::SortCommand(PlaylistModel& model, int column, Qt::SortOrder order, QUndoCommand* parent)
     : QUndoCommand(parent), m_model(model), m_column(column), m_order(order) {
-	m_xml              = MLT.XML(m_model.playlist());
-	QString columnName = m_model.headerData(m_column, Qt::Horizontal, Qt::DisplayRole).toString();
+	m_xml = MLT.XML(m_model.playlist());
+	QString const columnName = m_model.headerData(m_column, Qt::Horizontal, Qt::DisplayRole).toString();
 	setText(QObject::tr("Sort playlist by %1").arg(columnName));
 	for (int i = 0; i < m_model.playlist()->count(); i++) {
 		Mlt::Producer clip(m_model.playlist()->get_clip(i));
@@ -196,7 +211,7 @@ void SortCommand::Redo() {
 
 void SortCommand::Undo() {
 	LOG_DEBUG() << "";
-	Mlt::Producer* producer = new Mlt::Producer(MLT.profile(), "xml-string", m_xml.toUtf8().constData());
+	auto* producer = new Mlt::Producer(MLT.profile(), "xml-string", m_xml.toUtf8().constData());
 	if (producer->is_valid()) {
 		producer->set("resource", "<playlist>");
 		if (!MLT.setProducer(producer)) {
@@ -218,10 +233,10 @@ void SortCommand::Undo() {
 TrimClipInCommand::TrimClipInCommand(PlaylistModel& model, int row, int in, QUndoCommand* parent)
     : QUndoCommand(parent), m_model(model), m_row(row), m_oldIn(in), m_newIn(in), m_out(-1) {
 	setText(QObject::tr("Trim playlist item %1 in").arg(row + 1));
-	QScopedPointer<Mlt::ClipInfo> info(m_model.playlist()->clip_info(row));
+	QScopedPointer<Mlt::ClipInfo> const info(m_model.playlist()->clip_info(row));
 	if (info) {
 		m_oldIn = info->frame_in;
-		m_out   = info->frame_out;
+		m_out = info->frame_out;
 	}
 }
 
@@ -235,8 +250,8 @@ void TrimClipInCommand::Undo() {
 	m_model.setInOut(m_row, m_oldIn, m_out);
 }
 
-bool TrimClipInCommand::MergeWith(const QUndoCommand* other) {
-	const TrimClipInCommand* that = static_cast<const TrimClipInCommand*>(other);
+auto TrimClipInCommand::mergeWith(const QUndoCommand* other) -> bool {
+	const auto* that = dynamic_cast<const TrimClipInCommand*>(other);
 	LOG_DEBUG() << "this row" << m_row << "that row" << that->m_row;
 	if (that->id() != id() || that->m_row != m_row)
 		return false;
@@ -247,9 +262,9 @@ bool TrimClipInCommand::MergeWith(const QUndoCommand* other) {
 TrimClipOutCommand::TrimClipOutCommand(PlaylistModel& model, int row, int out, QUndoCommand* parent)
     : QUndoCommand(parent), m_model(model), m_row(row), m_in(-1), m_oldOut(out), m_newOut(out) {
 	setText(QObject::tr("Trim playlist item %1 out").arg(row + 1));
-	QScopedPointer<Mlt::ClipInfo> info(m_model.playlist()->clip_info(row));
+	QScopedPointer<Mlt::ClipInfo> const info(m_model.playlist()->clip_info(row));
 	if (info) {
-		m_in     = info->frame_in;
+		m_in = info->frame_in;
 		m_oldOut = info->frame_out;
 	}
 }
@@ -264,8 +279,8 @@ void TrimClipOutCommand::Undo() {
 	m_model.setInOut(m_row, m_in, m_oldOut);
 }
 
-bool TrimClipOutCommand::MergeWith(const QUndoCommand* other) {
-	const TrimClipOutCommand* that = static_cast<const TrimClipOutCommand*>(other);
+auto TrimClipOutCommand::mergeWith(const QUndoCommand* other) -> bool {
+	const auto* that = dynamic_cast<const TrimClipOutCommand*>(other);
 	LOG_DEBUG() << "this row" << m_row << "that row" << that->m_row;
 	if (that->id() != id() || that->m_row != m_row)
 		return false;
@@ -273,10 +288,10 @@ bool TrimClipOutCommand::MergeWith(const QUndoCommand* other) {
 	return true;
 }
 
-ReplaceCommand::ReplaceCommand(PlaylistModel& model, const QString& xml, int row, QUndoCommand* parent)
-    : QUndoCommand(parent), m_model(model), m_newXml(xml), m_row(row) {
+ReplaceCommand::ReplaceCommand(PlaylistModel& model, QString  xml, int row, QUndoCommand* parent)
+	: QUndoCommand(parent), m_model(model), m_newXml(std::move(xml)), m_row(row) {
 	setText(QObject::tr("Replace playlist item %1").arg(row + 1));
-	QScopedPointer<Mlt::ClipInfo> info(m_model.playlist()->clip_info(row));
+	QScopedPointer<Mlt::ClipInfo> const info(m_model.playlist()->clip_info(row));
 	info->producer->set_in_and_out(info->frame_in, info->frame_out);
 	m_uuid   = MLT.ensureHasUuid(*info->producer);
 	m_oldXml = MLT.XML(info->producer);
@@ -314,7 +329,7 @@ void NewBinCommand::Redo() {
 
 	std::unique_ptr<Mlt::Properties> props(m_model.playlist()->get_props(kShotcutBinsProperty));
 	if (!props || !props->is_valid()) {
-		props.reset(new Mlt::Properties);
+		props = std::make_unique<Mlt::Properties>();
 		m_model.playlist()->set(kShotcutBinsProperty, *props);
 	}
 	for (int i = PlaylistDock::SmartBinCount; i < m_binTree->topLevelItemCount(); ++i) {
@@ -331,8 +346,7 @@ void NewBinCommand::Undo() {
 	RenameBinCommand::RebuildBinList(m_model, m_binTree);
 }
 
-MoveToBinCommand::MoveToBinCommand(PlaylistModel& model, QTreeWidget* tree, const QString& bin, const QList<int>& rows,
-                                   QUndoCommand* parent)
+MoveToBinCommand::MoveToBinCommand(PlaylistModel& model, QTreeWidget* tree, const QString& bin, const QList<int>& rows, QUndoCommand* parent)
     : QUndoCommand(parent), m_model(model), m_binTree(tree), m_bin(bin) {
 	setText(QObject::tr("Move %n item(s) to bin: %1", "", rows.size()).arg(bin));
 	for (const auto row : rows) {
@@ -413,7 +427,7 @@ void RenameBinCommand::Undo() {
 		PlaylistDock::sortBins(m_binTree);
 
 		// Restore bin property on playlist items
-		for (auto row : m_removedRows) {
+		for (const auto row : std::as_const(m_removedRows)) {
 			m_model.playlist()->get_clip(row)->parent().set(kShotcutBinsProperty, m_bin.toUtf8().constData());
 		}
 		m_model.renameBin(m_bin);

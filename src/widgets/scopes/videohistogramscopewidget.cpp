@@ -15,17 +15,36 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "videohistogramscopewidget.h"
-
 #include "Logger.hpp"
+#include "widgets/scopes/scopewidget.h"
 
+// Qt
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPainterPath>
 #include <QToolTip>
+#include <framework/mlt_types.h>
+#include <qbrush.h>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qmutex.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qvariant.h>
+#include <qwidget.h>
 
-constexpr qreal IRE0   = {16};
-constexpr qreal IRE100 = {235};
+// STL
+#include <cstddef>
+#include <cstdint>
+
+// Number constants
+constexpr qreal IRE0{16};
+constexpr qreal IRE100{235};
 
 VideoHistogramScopeWidget::VideoHistogramScopeWidget()
     : ScopeWidget("VideoHistogram"), m_frame(), m_mutex(), m_yBins(), m_rBins(), m_gBins(), m_bBins() {
@@ -51,11 +70,11 @@ void VideoHistogramScopeWidget::refreshScope(const QSize& size, bool full) {
 	if (m_frame.is_valid() && m_frame.get_image_width() && m_frame.get_image_height()) {
 		const uint8_t* pYUV  = m_frame.get_image(mlt_image_yuv420p);
 		const uint8_t* pRGB  = m_frame.get_image(mlt_image_rgb);
-		size_t         count = m_frame.get_image_width() * m_frame.get_image_height();
-		unsigned int*  pYbin = yBins.data();
-		unsigned int*  pRbin = rBins.data();
-		unsigned int*  pGbin = gBins.data();
-		unsigned int*  pBbin = bBins.data();
+		size_t count = m_frame.get_image_width() * m_frame.get_image_height();
+		unsigned int* pYbin = yBins.data();
+		unsigned int* pRbin = rBins.data();
+		unsigned int* pGbin = gBins.data();
+		unsigned int* pBbin = bBins.data();
 		while (count--) {
 			pYbin[*pYUV++]++;
 			pRbin[*pRGB++]++;
@@ -80,12 +99,12 @@ void VideoHistogramScopeWidget::paintEvent(QPaintEvent*) {
 	QPainter p(this);
 	p.setRenderHint(QPainter::Antialiasing, true);
 	QFont font     = QWidget::font();
-	int   fontSize = font.pointSize() - (font.pointSize() > 10 ? 2 : (font.pointSize() > 8 ? 1 : 0));
+	const int fontSize = font.pointSize() - (font.pointSize() > 10 ? 2 : (font.pointSize() > 8 ? 1 : 0));
 	font.setPointSize(fontSize);
 	p.setFont(font);
 
 	// draw the waveform data
-	int   histHeight = rect().height() / 4;
+	const int histHeight = rect().height() / 4;
 	QRect histRect;
 
 	m_mutex.lock();
@@ -114,14 +133,14 @@ void VideoHistogramScopeWidget::paintEvent(QPaintEvent*) {
 	p.end();
 }
 
-void VideoHistogramScopeWidget::drawHistogram(QPainter& p, QString title, QColor color, QColor outline,
+void VideoHistogramScopeWidget::drawHistogram(QPainter& p, const QString& title, QColor color, QColor outline,
                                               QVector<unsigned int>& bins, QRect rect) {
-	unsigned int  binCount = bins.size();
-	unsigned int* pBins    = bins.data();
-	QFontMetrics  fm(p.font());
-	int           textpad    = 3;
-	qreal         histHeight = rect.height() - fm.height() - textpad - textpad;
-	QPen          pen;
+	const unsigned int  binCount = bins.size();
+	const unsigned int* pBins = bins.data();
+	QFontMetrics const fm(p.font());
+	const int textpad    = 3;
+	const qreal histHeight = rect.height() - fm.height() - textpad - textpad;
+	QPen pen;
 
 	// Find the highest value
 	unsigned int maxLevel = 0;
@@ -156,7 +175,7 @@ void VideoHistogramScopeWidget::drawHistogram(QPainter& p, QString title, QColor
 	gradient.setColorAt(0.2, color.darker().darker());
 	gradient.setColorAt(0.8, color);
 	gradient.setColorAt(1, color);
-	QBrush brush(gradient);
+	QBrush const brush(gradient);
 	p.setBrush(brush);
 
 	// Set histogram outline.
@@ -166,10 +185,10 @@ void VideoHistogramScopeWidget::drawHistogram(QPainter& p, QString title, QColor
 
 	QPainterPath histPath;
 	histPath.moveTo(rect.bottomLeft());
-	qreal lineWidth = (qreal)rect.width() / 256.0;
+	const qreal lineWidth = (qreal)rect.width() / 256.0;
 	for (unsigned int i = 0; i < binCount; i++) {
-		qreal xPos = (qreal)rect.width() * i / binCount;
-		qreal yPos = (qreal)rect.bottom() - (histHeight * pBins[i] / maxLevel);
+		const qreal xPos = (qreal)rect.width() * i / binCount;
+		const qreal yPos = (qreal)rect.bottom() - (histHeight * pBins[i] / maxLevel);
 		histPath.lineTo(xPos, yPos);
 		histPath.lineTo(xPos + lineWidth, yPos);
 	}
@@ -180,15 +199,15 @@ void VideoHistogramScopeWidget::drawHistogram(QPainter& p, QString title, QColor
 
 void VideoHistogramScopeWidget::mouseMoveEvent(QMouseEvent* event) {
 	QString text;
-	int     value = 256 * event->pos().x() / width();
+	const int value = 256 * event->pos().x() / width();
 
 	if (event->pos().y() < height() / 4) {
 		// Show value and IRE in the luminance histogram.
-		qreal ire100x = width() * IRE100 / 256;
-		qreal ire0x   = width() * IRE0 / 256;
-		qreal ireStep = (ire0x - ire100x) / 100.0;
-		int   ire     = (ire0x - event->pos().x()) / ireStep;
-		text          = tr("Value: %1\nIRE: %2").arg(value).arg(ire);
+		const qreal ire100x = width() * IRE100 / 256;
+		const qreal ire0x   = width() * IRE0 / 256;
+		const qreal ireStep = (ire0x - ire100x) / 100.0;
+		const int ire = (ire0x - event->pos().x()) / ireStep;
+		text = tr("Value: %1\nIRE: %2").arg(value).arg(ire);
 	} else {
 		text = tr("Value: %1").arg(value);
 	}
@@ -196,6 +215,6 @@ void VideoHistogramScopeWidget::mouseMoveEvent(QMouseEvent* event) {
 	QToolTip::showText(event->globalPosition().toPoint(), text);
 }
 
-QString VideoHistogramScopeWidget::getTitle() {
+auto VideoHistogramScopeWidget::getTitle() -> QString {
 	return tr("Video Histogram");
 }

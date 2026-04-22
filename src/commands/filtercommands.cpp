@@ -15,33 +15,50 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "filtercommands.hpp"
-
 #include "Logger.hpp"
 #include "controllers/filtercontroller.hpp"
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"
+#include "models/attachedfiltersmodel.hpp"
 #include "qmltypes/qmlapplication.hpp"
 #include "shotcut_mlt_properties.hpp"
 
+// Qt
+#include <MltChain.h>
+#include <MltLink.h>
+#include <MltParser.h>
+#include <MltProfile.h>
+#include <qassert.h>
+#include <qhashfunctions.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qundostack.h>
+#include <quuid.h>
+
+// STL
+#include <utility>
+
+
 class FindProducerParser : public Mlt::Parser {
   private:
-	QUuid         m_uuid;
+	QUuid m_uuid;
 	Mlt::Producer m_producer;
 
   public:
 	FindProducerParser(QUuid uuid) : Mlt::Parser(), m_uuid(uuid) {
 	}
 
-	Mlt::Producer producer() {
+	auto producer() -> Mlt::Producer {
 		return m_producer;
 	}
 
-	int on_start_filter(Mlt::Filter*) {
+	auto on_start_filter(Mlt::Filter*) -> int override {
 		return 0;
 	}
 
-	int on_start_producer(Mlt::Producer* producer) {
+	auto on_start_producer(Mlt::Producer* producer) -> int override {
 		if (MLT.uuid(*producer) == m_uuid) {
 			m_producer = producer;
 			return 1;
@@ -49,72 +66,72 @@ class FindProducerParser : public Mlt::Parser {
 		return 0;
 	}
 
-	int on_end_producer(Mlt::Producer*) {
+	auto on_end_producer(Mlt::Producer*) -> int override {
 		return 0;
 	}
 
-	int on_start_playlist(Mlt::Playlist* playlist) {
+	auto on_start_playlist(Mlt::Playlist* playlist) -> int override {
 		return on_start_producer(playlist);
 	}
 
-	int on_end_playlist(Mlt::Playlist*) {
+	auto on_end_playlist(Mlt::Playlist*) -> int override {
 		return 0;
 	}
 
-	int on_start_tractor(Mlt::Tractor* tractor) {
+	auto on_start_tractor(Mlt::Tractor* tractor) -> int override {
 		return on_start_producer(tractor);
 	}
 
-	int on_end_tractor(Mlt::Tractor*) {
+	auto on_end_tractor(Mlt::Tractor*) -> int override {
 		return 0;
 	}
 
-	int on_start_multitrack(Mlt::Multitrack*) {
+	auto on_start_multitrack(Mlt::Multitrack*) -> int override {
 		return 0;
 	}
 
-	int on_end_multitrack(Mlt::Multitrack*) {
+	auto on_end_multitrack(Mlt::Multitrack*) -> int override {
 		return 0;
 	}
 
-	int on_start_track() {
+	auto on_start_track() -> int override {
 		return 0;
 	}
 
-	int on_end_track() {
+	auto on_end_track() -> int override {
 		return 0;
 	}
 
-	int on_end_filter(Mlt::Filter*) {
+	auto on_end_filter(Mlt::Filter*) -> int override {
 		return 0;
 	}
 
-	int on_start_transition(Mlt::Transition*) {
+	auto on_start_transition(Mlt::Transition*) -> int override {
 		return 0;
 	}
 
-	int on_end_transition(Mlt::Transition*) {
+	auto on_end_transition(Mlt::Transition*) -> int override {
 		return 0;
 	}
 
-	int on_start_chain(Mlt::Chain* chain) {
+	auto on_start_chain(Mlt::Chain* chain) -> int override {
 		return on_start_producer(chain);
 	}
 
-	int on_end_chain(Mlt::Chain*) {
+	auto on_end_chain(Mlt::Chain*) -> int override {
 		return 0;
 	}
 
-	int on_start_link(Mlt::Link*) {
+	auto on_start_link(Mlt::Link*) -> int override {
 		return 0;
 	}
 
-	int on_end_link(Mlt::Link*) {
+	auto on_end_link(Mlt::Link*) -> int override {
 		return 0;
 	}
 };
 
-static Mlt::Producer findProducer(const QUuid& uuid) {
+static auto findProducer(const QUuid& uuid) -> Mlt::Producer {
 	FindProducerParser graphParser(uuid);
 	if (MAIN.isMultitrackValid()) {
 		graphParser.start(*MAIN.multitrack());
@@ -135,13 +152,12 @@ static Mlt::Producer findProducer(const QUuid& uuid) {
 			return graphParser.producer();
 		}
 	}
-	return Mlt::Producer();
+	return {};
 }
 
 namespace Filter {
 
-AddCommand::AddCommand(AttachedFiltersModel& model, const QString& name, Mlt::Service& service, int row,
-                       AddCommand::AddType type, QUndoCommand* parent)
+AddCommand::AddCommand(AttachedFiltersModel& model, const QString& name, Mlt::Service& service, int row, AddCommand::AddType type, QUndoCommand* parent)
     : QUndoCommand(parent), m_model(model), m_producer(*model.producer()),
       m_producerUuid(MLT.ensureHasUuid(m_producer)), m_type(type) {
 	if (m_type == AddCommand::AddSingle) {
@@ -160,7 +176,7 @@ void AddCommand::Redo() {
 		producer = findProducer(m_producerUuid);
 	}
 	Q_ASSERT(producer.is_valid());
-	int adjustFrom = producer.filter_count();
+	const int adjustFrom = producer.filter_count();
 	for (int i = 0; i < m_rows.size(); i++) {
 		m_model.doAddService(producer, m_services[i], m_rows[i]);
 	}
@@ -180,8 +196,8 @@ void AddCommand::Undo() {
 	}
 }
 
-bool AddCommand::MergeWith(const QUndoCommand* other) {
-	AddCommand* that = const_cast<AddCommand*>(static_cast<const AddCommand*>(other));
+auto AddCommand::mergeWith(const QUndoCommand* other) -> bool {
+	auto* that = const_cast<AddCommand*>(dynamic_cast<const AddCommand*>(other));
 	if (!that || that->id() != id()) {
 		LOG_ERROR() << "Invalid merge";
 		return false;
@@ -290,7 +306,7 @@ void DisableCommand::Undo() {
 	}
 }
 
-bool DisableCommand::MergeWith(const QUndoCommand* other) {
+auto DisableCommand::mergeWith(const QUndoCommand* /*other*/) -> bool {
 	// TODO: This doesn't always provide expected results.
 	// If you toggle twice and then undo, you get the opposite of the original state.
 	// It would make sense to merge three toggles in a row, but not two.
@@ -306,8 +322,8 @@ bool DisableCommand::MergeWith(const QUndoCommand* other) {
 	*/
 }
 
-PasteCommand::PasteCommand(AttachedFiltersModel& model, const QString& filterProducerXml, QUndoCommand* parent)
-    : QUndoCommand(parent), m_model(model), m_xml(filterProducerXml),
+PasteCommand::PasteCommand(AttachedFiltersModel& model, QString  filterProducerXml, QUndoCommand* parent)
+	: QUndoCommand(parent), m_model(model), m_xml(std::move(filterProducerXml)),
       m_producerUuid(MLT.ensureHasUuid(*model.producer())) {
 	setText(QObject::tr("Paste filters"));
 	m_beforeXml = MLT.XML(model.producer());
@@ -392,8 +408,8 @@ void UndoParameterCommand::Undo() {
 	}
 }
 
-bool UndoParameterCommand::MergeWith(const QUndoCommand* other) {
-	UndoParameterCommand* that = const_cast<UndoParameterCommand*>(static_cast<const UndoParameterCommand*>(other));
+auto UndoParameterCommand::mergeWith(const QUndoCommand* other) -> bool {
+	UndoParameterCommand const* that = const_cast<UndoParameterCommand*>(dynamic_cast<const UndoParameterCommand*>(other));
 	LOG_DEBUG() << "this filter" << m_row << "that filter" << that->m_row;
 	if (that->id() != id() || that->m_row != m_row || that->m_producerUuid != m_producerUuid || that->text() != text())
 		return false;

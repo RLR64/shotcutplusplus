@@ -18,7 +18,12 @@
 #ifndef _PLAYLISTTABLE_H
 #define _PLAYLISTTABLE_H
 
+// Qt
 #include <QTableView>
+#include <qobject.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class PlaylistTable : public QTableView {
 	Q_OBJECT

@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "lumamixtransition.h"
-
 #include "Logger.hpp"
 #include "mltcontroller.hpp"
 #include "qmltypes/qmlapplication.hpp"
@@ -25,12 +25,27 @@
 #include "util.hpp"
 #include "widgets/producerpreviewwidget.h"
 
+// Qt
+#include <MltTransition.h>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <framework/mlt_types.h>
+#include <qbytearrayalgorithms.h>
+#include <qlineedit.h>
+#include <qlistwidget.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qscopedpointer.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
-static constexpr int kLumaComboDissolveIndex = {0};
-static constexpr int kLumaComboCutIndex      = {1};
-static constexpr int kLumaComboCustomIndex   = {2};
+// Number constants
+static constexpr int kLumaComboDissolveIndex{0};
+static constexpr int kLumaComboCutIndex{1};
+static constexpr int kLumaComboCustomIndex{2};
 
 LumaMixTransition::LumaMixTransition(Mlt::Producer& producer, QWidget* parent)
     : QWidget(parent), ui(new Ui::LumaMixTransition), m_producer(producer) {
@@ -51,7 +66,7 @@ LumaMixTransition::LumaMixTransition(Mlt::Producer& producer, QWidget* parent)
 
 	QScopedPointer<Mlt::Transition> transition(getTransition("luma"));
 	if (transition && transition->is_valid()) {
-		QString resource = transition->get("resource");
+		QString const resource = transition->get("resource");
 		ui->lumaCombo->blockSignals(true);
 		if (!resource.isEmpty() && resource.indexOf("%luma") != -1) {
 			ui->lumaCombo->setCurrentRow(resource.mid(resource.indexOf("%luma") + 5).left(2).toInt() + 2);
@@ -118,7 +133,7 @@ void LumaMixTransition::onPlaying() {
 }
 
 void LumaMixTransition::on_invertCheckBox_clicked(bool checked) {
-	QScopedPointer<Mlt::Transition> transition(getTransition("luma"));
+	QScopedPointer<Mlt::Transition> const transition(getTransition("luma"));
 	if (transition && transition->is_valid()) {
 		transition->set("invert", checked);
 		MLT.refreshConsumer();
@@ -127,14 +142,14 @@ void LumaMixTransition::on_invertCheckBox_clicked(bool checked) {
 }
 
 static void setColor(Mlt::Transition* transition, int value) {
-	qreal   r        = qreal(value) / 100.0;
-	QColor  color    = QColor::fromRgbF(r, r, r);
-	QString resource = QStringLiteral("color:%1").arg(color.name());
+	const qreal r = qreal(value) / 100.0;
+	QColor const color = QColor::fromRgbF(r, r, r);
+	QString const resource = QStringLiteral("color:%1").arg(color.name());
 	transition->set("resource", resource.toLatin1().constData());
 }
 
 void LumaMixTransition::on_softnessSlider_valueChanged(int value) {
-	QScopedPointer<Mlt::Transition> transition(getTransition("luma"));
+	QScopedPointer<Mlt::Transition> const transition(getTransition("luma"));
 	if (transition && transition->is_valid()) {
 		if (kLumaComboCutIndex == ui->lumaCombo->currentRow()) {
 			setColor(transition.data(), value);
@@ -147,7 +162,7 @@ void LumaMixTransition::on_softnessSlider_valueChanged(int value) {
 }
 
 void LumaMixTransition::on_crossfadeRadioButton_clicked() {
-	QScopedPointer<Mlt::Transition> transition(getTransition("mix"));
+	QScopedPointer<Mlt::Transition> const transition(getTransition("mix"));
 	if (transition && transition->is_valid()) {
 		transition->set("start", -1);
 	}
@@ -156,7 +171,7 @@ void LumaMixTransition::on_crossfadeRadioButton_clicked() {
 }
 
 void LumaMixTransition::on_mixRadioButton_clicked() {
-	QScopedPointer<Mlt::Transition> transition(getTransition("mix"));
+	QScopedPointer<Mlt::Transition> const transition(getTransition("mix"));
 	if (transition && transition->is_valid()) {
 		transition->set("start", ui->mixSlider->value() / 100.0);
 	}
@@ -165,13 +180,13 @@ void LumaMixTransition::on_mixRadioButton_clicked() {
 }
 
 void LumaMixTransition::on_mixSlider_valueChanged(int value) {
-	QScopedPointer<Mlt::Transition> transition(getTransition("mix"));
+	QScopedPointer<Mlt::Transition> const transition(getTransition("mix"));
 	if (transition && transition->is_valid()) {
 		transition->set("start", value / 100.0);
 	}
 }
 
-Mlt::Transition* LumaMixTransition::getTransition(const QString& name) {
+auto LumaMixTransition::getTransition(const QString& name) -> Mlt::Transition* {
 	QScopedPointer<Mlt::Service> service(m_producer.producer());
 	while (service && service->is_valid()) {
 		if (service->type() == mlt_service_transition_type) {
@@ -190,7 +205,7 @@ void LumaMixTransition::updateCustomLumaLabel(Mlt::Transition& transition) {
 	ui->customLumaLabel->hide();
 	ui->favoriteButton->hide();
 	ui->customLumaLabel->setToolTip(QString());
-	QString resource = transition.get("resource");
+	QString const resource = transition.get("resource");
 	if (resource.isEmpty() || resource.indexOf("%luma") != -1 || resource.startsWith("color:") ||
 	    ui->lumaCombo->currentRow() > m_maxStockIndex) {
 	} else if (!resource.isEmpty() && !resource.startsWith("color:")) {
@@ -210,7 +225,7 @@ void LumaMixTransition::on_lumaCombo_currentRowChanged(int index) {
 	ui->softnessSlider->setEnabled(index != kLumaComboDissolveIndex);
 	ui->softnessSpinner->setEnabled(index != kLumaComboDissolveIndex);
 
-	QScopedPointer<Mlt::Transition> transition(getTransition("luma"));
+	QScopedPointer<Mlt::Transition> const transition(getTransition("luma"));
 	if (transition && transition->is_valid()) {
 		if (index == kLumaComboDissolveIndex) {
 			transition->set("resource", "");
@@ -222,11 +237,11 @@ void LumaMixTransition::on_lumaCombo_currentRowChanged(int index) {
 		} else if (index == kLumaComboCustomIndex) {
 			ui->softnessLabel->setText(tr("Softness"));
 			// Custom file
-			QString path = Settings.openPath();
+			QString const path = Settings.openPath();
 #ifdef Q_OS_MAC
 			path.append("/*");
 #endif
-			QString filename = QFileDialog::getOpenFileName(this, tr("Open File"), path, QString(), nullptr,
+			QString const filename = QFileDialog::getOpenFileName(this, tr("Open File"), path, QString(), nullptr,
 			                                                Util::getFileDialogOptions());
 			activateWindow();
 			if (!filename.isEmpty()) {
@@ -279,7 +294,7 @@ void LumaMixTransition::on_previewCheckBox_clicked(bool checked) {
 void LumaMixTransition::on_favoriteButton_clicked() {
 	QmlApplication::addWipe(ui->customLumaLabel->toolTip());
 	const auto transitions = QString::fromLatin1("transitions");
-	QDir       dir(Settings.appDataLocation());
+	QDir const dir(Settings.appDataLocation());
 	if (!dir.exists(transitions)) {
 		dir.mkdir(transitions);
 	}

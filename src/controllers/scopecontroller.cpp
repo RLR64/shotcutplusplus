@@ -14,8 +14,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "scopecontroller.hpp"
 
+// Local
+#include "scopecontroller.hpp"
 #include "Logger.hpp"
 #include "docks/scopedock.hpp"
 #include "widgets/scopes/audioloudnessscopewidget.h"
@@ -24,6 +25,7 @@
 #include "widgets/scopes/audiosurroundscopewidget.h"
 #include "widgets/scopes/audiovectorscopewidget.h"
 #include "widgets/scopes/audiowaveformscopewidget.h"
+#include "widgets/scopes/scopewidget.h"
 #include "widgets/scopes/videohistogramscopewidget.h"
 #include "widgets/scopes/videorgbparadescopewidget.h"
 #include "widgets/scopes/videorgbwaveformscopewidget.h"
@@ -31,8 +33,11 @@
 #include "widgets/scopes/videowaveformscopewidget.h"
 #include "widgets/scopes/videozoomscopewidget.h"
 
+// Qt
 #include <QMainWindow>
 #include <QMenu>
+#include <qnamespace.h>
+#include <qobject.h>
 
 ScopeController::ScopeController(QMainWindow* mainWindow, QMenu* menu) : QObject(mainWindow) {
 	LOG_DEBUG() << "begin";
@@ -54,7 +59,7 @@ ScopeController::ScopeController(QMainWindow* mainWindow, QMenu* menu) : QObject
 
 template <typename ScopeTYPE> void ScopeController::createScopeDock(QMainWindow* mainWindow, QMenu* menu) {
 	ScopeWidget* scopeWidget = new ScopeTYPE();
-	ScopeDock*   scopeDock   = new ScopeDock(this, scopeWidget);
+	auto* scopeDock = new ScopeDock(this, scopeWidget);
 	scopeDock->hide();
 	menu->addAction(scopeDock->toggleViewAction());
 	mainWindow->addDockWidget(Qt::RightDockWidgetArea, scopeDock);

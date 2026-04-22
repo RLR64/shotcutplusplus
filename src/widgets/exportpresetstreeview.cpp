@@ -15,7 +15,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "exportpresetstreeview.h"
+
+// Qt
+#include <qabstractitemmodel.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtreeview.h>
+#include <qwidget.h>
 
 ExportPresetsTreeView::ExportPresetsTreeView(QWidget* parent) : QTreeView(parent) {
 }

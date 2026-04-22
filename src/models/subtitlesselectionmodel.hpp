@@ -18,7 +18,11 @@
 #ifndef SUBTITLESSELECTIONMODEL_HPP
 #define SUBTITLESSELECTIONMODEL_HPP
 
+// Qt
 #include <QItemSelectionModel>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qtmetamacros.h>
 
 class SubtitlesSelectionModel : public QItemSelectionModel {
 	Q_OBJECT

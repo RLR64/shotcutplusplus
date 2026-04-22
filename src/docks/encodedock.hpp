@@ -18,14 +18,23 @@
 #ifndef ENCODEDOCK_HPP
 #define ENCODEDOCK_HPP
 
+// Local
 #include "settings.hpp"
 
+// Qt
 #include <MltProperties.h>
 #include <QDockWidget>
 #include <QDomElement>
 #include <QSortFilterProxyModel>
 #include <QStandardItemModel>
 #include <QStringList>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qpoint.h>
+#include <qscopedpointer.h>
+#include <qthread.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class QTreeWidgetItem;
 class QTemporaryFile;
@@ -44,7 +53,7 @@ class Filter;
 
 class PresetsProxyModel : public QSortFilterProxyModel {
   protected:
-	bool filterAcceptsRow(int source_row, const QModelIndex& source_parent) const;
+	[[nodiscard]] auto filterAcceptsRow(int source_row, const QModelIndex& source_parent) const -> bool override;
 };
 
 class EncodeDock : public QDockWidget {
@@ -52,10 +61,10 @@ class EncodeDock : public QDockWidget {
 
   public:
 	explicit EncodeDock(QWidget* parent = nullptr);
-	~EncodeDock();
+	~EncodeDock() override;
 
 	void loadPresetFromProperties(Mlt::Properties&);
-	bool isExportInProgress() const;
+	[[nodiscard]] auto isExportInProgress() const -> bool;
 
   signals:
 	void captureStateChanged(bool);
@@ -67,7 +76,7 @@ class EncodeDock : public QDockWidget {
 	void onProfileChanged();
 	void onReframeChanged();
 	void on_hwencodeButton_clicked();
-	bool detectHardwareEncoders();
+	auto detectHardwareEncoders() -> bool;
 
   private slots:
 	void on_presetsTree_clicked(const QModelIndex& index);
@@ -165,24 +174,24 @@ class EncodeDock : public QDockWidget {
 	QStringList             m_losslessAudioCodecs;
 
 	void             loadPresets();
-	Mlt::Properties* collectProperties(int realtime, bool includeProfile = false);
+	auto collectProperties(int realtime, bool includeProfile = false) -> Mlt::Properties*;
 	void             collectProperties(QDomElement& node, int realtime);
 	void             setSubtitleProperties(QDomElement& node, Mlt::Producer* service);
-	QPoint addConsumerElement(Mlt::Producer* service, QDomDocument& dom, const QString& target, int realtime, int pass);
-	MeltJob* convertReframe(Mlt::Producer* service, QTemporaryFile* tmp, const QString& target, int realtime, int pass,
-	                        const QThread::Priority priority);
-	MeltJob* createMeltJob(Mlt::Producer* service, const QString& target, int realtime, int pass = 0,
-	                       const QThread::Priority priority = Settings.jobPriority());
+	auto addConsumerElement(Mlt::Producer* service, QDomDocument& dom, const QString& target, int realtime, int pass) -> QPoint;
+	auto convertReframe(Mlt::Producer* service, QTemporaryFile* tmp, const QString& target, int realtime, int pass,
+							const QThread::Priority priority) -> MeltJob*;
+	auto createMeltJob(Mlt::Producer* service, const QString& target, int realtime, int pass = 0,
+						   const QThread::Priority priority = Settings.jobPriority()) -> MeltJob*;
 	void     runMelt(const QString& target, int realtime = -1);
 	void     enqueueAnalysis();
 	void     enqueueMelt(const QStringList& targets, int realtime);
 	void     encode(const QString& target);
 	void     resetOptions();
-	Mlt::Producer* fromProducer(bool usePlaylistBin = false) const;
+	[[nodiscard]] auto fromProducer(bool usePlaylistBin = false) const -> Mlt::Producer*;
 	static void    filterCodecParams(const QString& vcodec, QStringList& other);
 	void           onVideoCodecComboChanged(int index, bool ignorePreset = false, bool resetBframes = true);
-	bool           checkForMissingFiles();
-	QString&       defaultFormatExtension();
+	auto           checkForMissingFiles() -> bool;
+	auto       defaultFormatExtension() -> QString&;
 	void           initSpecialCodecLists();
 	void           setReframeEnabled(bool enabled);
 	void           showResampleWarning(const QString& message);

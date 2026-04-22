@@ -14,11 +14,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+// Local
 #include "sharedframe.hpp"
 
+// Qt
+#include <MltFrame.h>
+#include <framework/mlt_audio.h>
+#include <framework/mlt_frame.h>
+#include <framework/mlt_image.h>
+#include <framework/mlt_pool.h>
+#include <framework/mlt_types.h>
+#include <framework/mlt_version.h>
+#include <qshareddata.h>
+#include <qtclasshelpermacros.h>
+
+// STL
+#include <cstdint>
+#include <cstring>
 #include <mutex>
 
-void destroyFrame(void* p) {
+static void destroyFrame(void* p) {
 	delete static_cast<Mlt::Frame*>(p);
 }
 
@@ -26,7 +42,7 @@ class FrameData : public QSharedData {
   public:
 	FrameData() : f(nullptr) {};
 	FrameData(Mlt::Frame& frame) : f(frame) {};
-	~FrameData() {};
+	~FrameData() = default;
 
 	Mlt::Frame f;
 	std::mutex m;
@@ -41,29 +57,24 @@ SharedFrame::SharedFrame() : d(new FrameData()) {
 SharedFrame::SharedFrame(Mlt::Frame& frame) : d(new FrameData(frame)) {
 }
 
-SharedFrame::SharedFrame(const SharedFrame& other) : d(other.d) {
-}
+SharedFrame::SharedFrame(const SharedFrame& other) = default;
 
-SharedFrame::~SharedFrame() {
-}
+SharedFrame::~SharedFrame() = default;
 
-SharedFrame& SharedFrame::operator=(const SharedFrame& other) {
-	d = other.d;
-	return *this;
-}
+auto SharedFrame::operator=(const SharedFrame& other) -> SharedFrame& = default;
 
-bool SharedFrame::is_valid() const {
+auto SharedFrame::is_valid() const -> bool {
 	return d && d->f.is_valid();
 }
 
-Mlt::Frame SharedFrame::clone(bool audio, bool image, bool alpha) const {
+auto SharedFrame::clone(bool audio, bool image, bool alpha) const -> Mlt::Frame {
 	// TODO: Consider moving this implementation into MLT.
 	// It could be added to mlt_frame as an alternative to:
 	//     mlt_frame mlt_frame_clone( mlt_frame self, int is_deep );
 	// It could also be added to Mlt::Frame as a const function.
-	void*      data = 0;
-	void*      copy = 0;
-	int        size = 0;
+	void const* data = nullptr;
+	void* copy = nullptr;
+	int size = 0;
 	Mlt::Frame cloneFrame(mlt_frame_init(nullptr));
 	cloneFrame.inherit(d->f);
 	cloneFrame.set("_producer", d->f.get_data("_producer", size), size);
@@ -91,7 +102,7 @@ Mlt::Frame SharedFrame::clone(bool audio, bool image, bool alpha) const {
 	data = d->f.get_data("image", size);
 	if (image && data) {
 		if (!size) {
-			size = mlt_image_format_size(get_image_format(), get_image_width(), get_image_height(), 0);
+			size = mlt_image_format_size(get_image_format(), get_image_width(), get_image_height(), nullptr);
 		}
 		copy = mlt_pool_alloc(size);
 		memcpy(copy, data, size);
@@ -125,39 +136,39 @@ Mlt::Frame SharedFrame::clone(bool audio, bool image, bool alpha) const {
 	return cloneFrame;
 }
 
-int SharedFrame::get_int(const char* name) const {
+auto SharedFrame::get_int(const char* name) const -> int {
 	return d->f.get_int(name);
 }
 
-int64_t SharedFrame::get_int64(const char* name) const {
+auto SharedFrame::get_int64(const char* name) const -> int64_t {
 	return d->f.get_int64(name);
 }
 
-double SharedFrame::get_double(const char* name) const {
+auto SharedFrame::get_double(const char* name) const -> double {
 	return d->f.get_double(name);
 }
 
-int SharedFrame::get_position() const {
+auto SharedFrame::get_position() const -> int {
 	return d->f.get_position();
 }
 
-mlt_image_format SharedFrame::get_image_format() const {
+auto SharedFrame::get_image_format() const -> mlt_image_format {
 	return (mlt_image_format)d->f.get_int("format");
 }
 
-int SharedFrame::get_image_width() const {
+auto SharedFrame::get_image_width() const -> int {
 	return d->f.get_int("width");
 }
 
-int SharedFrame::get_image_height() const {
+auto SharedFrame::get_image_height() const -> int {
 	return d->f.get_int("height");
 }
 
-const uint8_t* SharedFrame::get_image(mlt_image_format format) const {
-	mlt_image_format native_format = get_image_format();
-	int              width         = get_image_width();
-	int              height        = get_image_height();
-	uint8_t*         image         = nullptr;
+auto SharedFrame::get_image(mlt_image_format format) const -> const uint8_t* {
+	mlt_image_format const native_format = get_image_format();
+	int width = get_image_width();
+	int height = get_image_height();
+	uint8_t const* image = nullptr;
 
 	if (format == mlt_image_none) {
 		format = native_format;
@@ -171,15 +182,15 @@ const uint8_t* SharedFrame::get_image(mlt_image_format format) const {
 		const char* formatName = mlt_image_format_name(format);
 		// Convert to non-const so that the cache can be accessed/modified while
 		// under lock.
-		FrameData* nonConstData = const_cast<FrameData*>(d.data());
+		auto* nonConstData = const_cast<FrameData*>(d.data());
 
 		nonConstData->m.lock();
 
-		Mlt::Frame* cacheFrame = static_cast<Mlt::Frame*>(nonConstData->f.get_data(formatName));
+		auto* cacheFrame = static_cast<Mlt::Frame*>(nonConstData->f.get_data(formatName));
 		if (cacheFrame == nullptr) {
 			// A cached image does not exist, create one.
 			// Make a non-deep clone of the frame (including convert function)
-			mlt_frame cloneFrame      = mlt_frame_clone(nonConstData->f.get_frame(), 0);
+			mlt_frame cloneFrame = mlt_frame_clone(nonConstData->f.get_frame(), 0);
 			cloneFrame->convert_image = nonConstData->f.get_frame()->convert_image;
 			// Create a new cache frame
 			cacheFrame = new Mlt::Frame(cloneFrame);
@@ -202,30 +213,30 @@ const uint8_t* SharedFrame::get_image(mlt_image_format format) const {
 	return image;
 }
 
-mlt_audio_format SharedFrame::get_audio_format() const {
+auto SharedFrame::get_audio_format() const -> mlt_audio_format {
 	return (mlt_audio_format)d->f.get_int("audio_format");
 }
 
-int SharedFrame::get_audio_channels() const {
+auto SharedFrame::get_audio_channels() const -> int {
 	return d->f.get_int("audio_channels");
 }
 
-int SharedFrame::get_audio_frequency() const {
+auto SharedFrame::get_audio_frequency() const -> int {
 	return d->f.get_int("audio_frequency");
 }
 
-int SharedFrame::get_audio_samples() const {
+auto SharedFrame::get_audio_samples() const -> int {
 	return d->f.get_int("audio_samples");
 }
 
-const int16_t* SharedFrame::get_audio() const {
+auto SharedFrame::get_audio() const -> const int16_t* {
 	mlt_audio_format format    = get_audio_format();
-	int              frequency = get_audio_frequency();
-	int              channels  = get_audio_channels();
-	int              samples   = get_audio_samples();
+	int frequency = get_audio_frequency();
+	int channels = get_audio_channels();
+	int samples = get_audio_samples();
 	return (int16_t*)d->f.get_audio(format, frequency, channels, samples);
 }
 
-Mlt::Producer* SharedFrame::get_original_producer() {
+auto SharedFrame::get_original_producer() -> Mlt::Producer* {
 	return d->f.get_original_producer();
 }

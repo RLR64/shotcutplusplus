@@ -18,27 +18,31 @@
 #ifndef AUDIOLEVELSTASK_HPP
 #define AUDIOLEVELSTASK_HPP
 
+// Qt
 #include <MltProducer.h>
 #include <MltProfile.h>
 #include <QList>
 #include <QPersistentModelIndex>
 #include <QRunnable>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qscopedpointer.h>
 
 class AudioLevelsTask : public QRunnable {
   public:
 	AudioLevelsTask(Mlt::Producer& producer, QObject* object, const QModelIndex& index);
-	virtual ~AudioLevelsTask();
+	~AudioLevelsTask() override;
 	static void start(Mlt::Producer& producer, QObject* object, const QModelIndex& index, bool force = false);
 	static void closeAll();
-	bool        operator==(AudioLevelsTask& b);
+	auto operator==(AudioLevelsTask& b) -> bool;
 
   protected:
-	void run();
+	void run() override;
 
   private:
-	Mlt::Producer* tempProducer();
-	QString        cacheKey();
-	void           notifyQObjects(const QPersistentModelIndex& index);
+	auto tempProducer() -> Mlt::Producer*;
+	auto cacheKey() -> QString;
+	void notifyQObjects(const QPersistentModelIndex& index);
 
 	QObject*                                             m_object;
 	QObject*                                             m_qmlProducer;

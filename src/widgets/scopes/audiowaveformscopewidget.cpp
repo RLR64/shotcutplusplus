@@ -15,35 +15,52 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "audiowaveformscopewidget.h"
-
 #include "Logger.hpp"
+#include "widgets/scopes/scopewidget.h"
 
+// Qt
 #include <QMouseEvent>
 #include <QPainter>
 #include <QResizeEvent>
 #include <QToolTip>
+#include <qcontainerfwd.h>
+#include <qcoreevent.h>
+#include <qmutex.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qvariant.h>
+#include <qwidget.h>
+
+// STL
+#include <cstdint>
 #include <cmath>
 
-static constexpr qreal MAX_AMPLITUDE = {32768.0};
+// Number constants
+constexpr int setMinimumSizeNumber{100};
+static constexpr qreal MAX_AMPLITUDE{32768.0};
 
-static int graphHeight(const QSize& widgetSize, int maxChan, int padding) {
-	int totalPadding = padding + (padding * maxChan);
+static auto graphHeight(const QSize& widgetSize, int maxChan, int padding) -> int {
+	const int totalPadding = padding + (padding * maxChan);
 	return (widgetSize.height() - totalPadding) / maxChan;
 }
 
-static int graphBottomY(const QSize& widgetSize, int channel, int maxChan, int padding) {
-	int gHeight = graphHeight(widgetSize, maxChan, padding);
+static auto graphBottomY(const QSize& widgetSize, int channel, int maxChan, int padding) -> int {
+	const int gHeight = graphHeight(widgetSize, maxChan, padding);
 	return padding + (gHeight + padding) * channel;
 }
 
-static int graphTopY(const QSize& widgetSize, int channel, int maxChan, int padding) {
-	int gHeight = graphHeight(widgetSize, maxChan, padding);
+static auto graphTopY(const QSize& widgetSize, int channel, int maxChan, int padding) -> int {
+	const int gHeight = graphHeight(widgetSize, maxChan, padding);
 	return graphBottomY(widgetSize, channel, maxChan, padding) + gHeight;
 }
 
-static int graphCenterY(const QSize& widgetSize, int channel, int maxChan, int padding) {
-	int gHeight = graphHeight(widgetSize, maxChan, padding);
+static auto graphCenterY(const QSize& widgetSize, int channel, int maxChan, int padding) -> int {
+	const int gHeight = graphHeight(widgetSize, maxChan, padding);
 	return graphBottomY(widgetSize, channel, maxChan, padding) + gHeight / 2;
 }
 
@@ -52,18 +69,17 @@ AudioWaveformScopeWidget::AudioWaveformScopeWidget()
       m_displayWave(), m_displayGrid() {
 	LOG_DEBUG() << "begin";
 	setAutoFillBackground(true);
-	setMinimumSize(100, 100);
+	setMinimumSize(setMinimumSizeNumber, setMinimumSizeNumber);
 	setMouseTracking(true);
 	setWhatsThis("https://forum.shotcut.org/t/audio-waveform-scope/12920/1");
 	LOG_DEBUG() << "end";
 }
 
-AudioWaveformScopeWidget::~AudioWaveformScopeWidget() {
-}
+AudioWaveformScopeWidget::~AudioWaveformScopeWidget() = default;
 
 void AudioWaveformScopeWidget::refreshScope(const QSize& size, bool full) {
 	m_mutex.lock();
-	QSize prevSize = m_displayWave.size();
+	QSize const prevSize = m_displayWave.size();
 	while (m_queue.count() > 0) {
 		m_frame = m_queue.pop();
 	}
@@ -98,22 +114,22 @@ void AudioWaveformScopeWidget::refreshScope(const QSize& size, bool full) {
 	p.setPen(pen);
 
 	if (m_frame.is_valid() && m_frame.get_audio_samples() > 0) {
-		int      samples       = m_frame.get_audio_samples();
-		int16_t* audio         = (int16_t*)m_frame.get_audio();
-		int      waveAmplitude = graphHeight(size, m_channels, m_graphTopPadding) / 2;
-		qreal    scaleFactor   = (qreal)waveAmplitude / (qreal)MAX_AMPLITUDE;
+		const int samples = m_frame.get_audio_samples();
+		int16_t const* audio = (int16_t*)m_frame.get_audio();
+		const int waveAmplitude = graphHeight(size, m_channels, m_graphTopPadding) / 2;
+		const qreal scaleFactor = (qreal)waveAmplitude / (qreal)MAX_AMPLITUDE;
 
 		for (int c = 0; c < m_channels; c++) {
 			p.save();
-			int y = graphCenterY(size, c, m_channels, m_graphTopPadding);
+			const int y = graphCenterY(size, c, m_channels, m_graphTopPadding);
 			p.translate(0, y);
 
 			// For each x position on the waveform, find the min and max sample
 			// values that apply to that position. Draw a vertical line from the
 			// min value to the max value.
-			QPoint         high;
-			QPoint         low;
-			int            lastX = 0;
+			QPoint high;
+			QPoint low;
+			int lastX = 0;
 			const int16_t* q     = audio + c;
 			// Invert the polarity because QT draws from top to bottom.
 			int16_t value = *q * -1;
@@ -121,7 +137,7 @@ void AudioWaveformScopeWidget::refreshScope(const QSize& size, bool full) {
 			qreal   min   = value;
 
 			for (int i = 0; i <= samples; i++) {
-				int x = (i * size.width()) / samples;
+				const int x = (i * size.width()) / samples;
 				if (x != lastX) {
 					// The min and max have been determined for the previous x
 					// So draw the line
@@ -138,7 +154,7 @@ void AudioWaveformScopeWidget::refreshScope(const QSize& size, bool full) {
 
 					// Swap max and min so that the next line picks up where
 					// this one left off.
-					int tmp = max;
+					const int tmp = max;
 					max     = min;
 					min     = tmp;
 				}
@@ -162,16 +178,16 @@ void AudioWaveformScopeWidget::refreshScope(const QSize& size, bool full) {
 }
 
 void AudioWaveformScopeWidget::createGrid(const QSize& size) {
-	QFont font     = QWidget::font();
-	int   fontSize = font.pointSize() - (font.pointSize() > 10 ? 2 : (font.pointSize() > 8 ? 1 : 0));
+	QFont font = QWidget::font();
+	const int fontSize = font.pointSize() - (font.pointSize() > 10 ? 2 : (font.pointSize() > 8 ? 1 : 0));
 	font.setPointSize(fontSize);
-	QFontMetrics fm(font);
-	QString      zeroLabel     = tr("0");
-	QString      infinityLabel = tr("-inf");
-	QRect        textRect      = fm.tightBoundingRect(infinityLabel);
-	int          labelHeight   = textRect.height();
-	m_graphTopPadding          = fm.height();
-	m_graphLeftPadding         = textRect.width() + 6;
+	QFontMetrics const fm(font);
+	QString const zeroLabel = tr("0");
+	QString const infinityLabel = tr("-inf");
+	QRect const textRect = fm.tightBoundingRect(infinityLabel);
+	const int labelHeight = textRect.height();
+	m_graphTopPadding = fm.height();
+	m_graphLeftPadding = textRect.width() + 6;
 
 	m_mutex.lock();
 
@@ -240,20 +256,20 @@ void AudioWaveformScopeWidget::mouseMoveEvent(QMouseEvent* event) {
 	if (!m_frame.is_valid())
 		return;
 
-	int      channels = m_frame.get_audio_channels();
-	int      samples  = m_frame.get_audio_samples();
-	int16_t* audio    = (int16_t*)m_frame.get_audio();
+	const int channels = m_frame.get_audio_channels();
+	const int samples  = m_frame.get_audio_samples();
+	int16_t const* audio = (int16_t*)m_frame.get_audio();
 	if (samples < 10 || channels < 1)
 		return;
 
-	qreal   position = (qreal)event->pos().x() / (qreal)width();
-	int     sample   = (qreal)samples * position;
-	QString text     = tr("Sample: %1\n").arg(sample + 1);
+	const qreal position = (qreal)event->pos().x() / (qreal)width();
+	const int sample = (qreal)samples * position;
+	QString text = tr("Sample: %1\n").arg(sample + 1);
 
 	for (int c = 0; c < channels; c++) {
-		const int16_t* q           = audio + (channels * sample) + c;
-		qreal          scaledValue = (qreal)*q / MAX_AMPLITUDE;
-		qreal          dbValue     = 20 * log(fabs(scaledValue));
+		const int16_t* q = audio + (channels * sample) + c;
+		const qreal scaledValue = (qreal)*q / MAX_AMPLITUDE;
+		qreal dbValue = 20 * log(fabs(scaledValue));
 		if (dbValue < 0.01 && dbValue > -0.01)
 			dbValue = 0.0;
 		text += tr("Ch: %1: %2 (%3 dBFS)").arg(c + 1).arg(scaledValue, 0, 'f', 2).arg(dbValue, 0, 'f', 2);
@@ -275,6 +291,6 @@ void AudioWaveformScopeWidget::leaveEvent(QEvent* event) {
 	update();
 }
 
-QString AudioWaveformScopeWidget::getTitle() {
+auto AudioWaveformScopeWidget::getTitle() -> QString {
 	return tr("Audio Waveform");
 }

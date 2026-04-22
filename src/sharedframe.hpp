@@ -18,9 +18,13 @@
 #ifndef SHAREDFRAME_HPP
 #define SHAREDFRAME_HPP
 
+// Qt
 #include <MltFrame.h>
 #include <QExplicitlySharedDataPointer>
 #include <QObject>
+#include <framework/mlt_types.h>
+
+// STL
 #include <cstdint>
 
 class FrameData;
@@ -52,22 +56,22 @@ class SharedFrame {
 	~SharedFrame();
 	SharedFrame& operator=(const SharedFrame& other);
 
-	bool             is_valid() const;
-	Mlt::Frame       clone(bool audio = false, bool image = false, bool alpha = false) const;
-	int              get_int(const char* name) const;
-	int64_t          get_int64(const char* name) const;
-	double           get_double(const char* name) const;
-	int              get_position() const;
+	[[nodiscard]] bool is_valid() const;
+	[[nodiscard]] Mlt::Frame clone(bool audio = false, bool image = false, bool alpha = false) const;
+	int get_int(const char* name) const;
+	int64_t get_int64(const char* name) const;
+	double get_double(const char* name) const;
+	[[nodiscard]] int get_position() const;
 	mlt_image_format get_image_format() const;
-	int              get_image_width() const;
-	int              get_image_height() const;
-	const uint8_t*   get_image(mlt_image_format format) const;
+	[[nodiscard]] int get_image_width() const;
+	[[nodiscard]] int get_image_height() const;
+	[[nodiscard]] const uint8_t* get_image(mlt_image_format format) const;
 	mlt_audio_format get_audio_format() const;
-	int              get_audio_channels() const;
-	int              get_audio_frequency() const;
-	int              get_audio_samples() const;
-	const int16_t*   get_audio() const;
-	Mlt::Producer*   get_original_producer();
+	[[nodiscard]] int get_audio_channels() const;
+	[[nodiscard]] int get_audio_frequency() const;
+	[[nodiscard]] int get_audio_samples() const;
+	[[nodiscard]] const int16_t* get_audio() const;
+	Mlt::Producer* get_original_producer();
 
   private:
 	QExplicitlySharedDataPointer<FrameData> d;

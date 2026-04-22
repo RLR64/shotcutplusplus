@@ -23,27 +23,31 @@
 //
 // Functions for loading MP4/MOV files and manipulating boxes.
 
+// Local
 #include "box.hpp"
 #include "constants.hpp"
 #include "container.hpp"
 
+// STL
+#include <cstdint>
+
 class Mpeg4Container : public Container {
   public:
 	Mpeg4Container();
-	virtual ~Mpeg4Container();
+	~Mpeg4Container() override;
 
 	static Mpeg4Container* load(std::fstream&); //, uint32_t iPos, uint32_t iEnd );
 
-	void         merge(Box*);
-	virtual void print_structure(const char* p = "");
-	virtual void save(std::fstream&, std::fstream&, int32_t);
+	void merge(Box*);
+	void print_structure(const char* p = "") override;
+	void save(std::fstream&, std::fstream&, int32_t) override;
 
   public:
-	Box*            m_pMoovBox;
-	Box*            m_pFreeBox;
-	Box*            m_pFTYPBox;
+	Box* m_pMoovBox;
+	Box* m_pFreeBox;
+	Box* m_pFTYPBox;
 	Mpeg4Container* m_pFirstMDatBox;
-	uint32_t        m_iFirstMDatPos;
+	uint32_t m_iFirstMDatPos;
 };
 
 #endif // MPEG4_CONTAINER_HPP

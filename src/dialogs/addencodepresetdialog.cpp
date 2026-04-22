@@ -15,9 +15,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "addencodepresetdialog.hpp"
-
 #include "ui_addencodepresetdialog.h"
+
+// Qt
+#include <qdialog.h>
+#include <qobject.h>
+#include <qwidget.h>
+
 
 AddEncodePresetDialog::AddEncodePresetDialog(QWidget* parent) : QDialog(parent), ui(new Ui::AddEncodePresetDialog) {
 	ui->setupUi(this);
@@ -31,11 +37,11 @@ void AddEncodePresetDialog::setProperties(const QString& properties) {
 	ui->propertiesEdit->setPlainText(properties);
 }
 
-QString AddEncodePresetDialog::presetName() const {
+auto AddEncodePresetDialog::presetName() const -> QString {
 	return ui->nameEdit->text();
 }
 
-QString AddEncodePresetDialog::properties() const {
+auto AddEncodePresetDialog::properties() const -> QString {
 	const auto& extension = ui->extensionEdit->text();
 	if (!extension.isEmpty()) {
 		return ui->propertiesEdit->toPlainText() + "\nmeta.preset.extension=" + extension;

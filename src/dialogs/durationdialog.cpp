@@ -15,10 +15,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "durationdialog.hpp"
-
 #include "mltcontroller.hpp"
 #include "ui_durationdialog.h"
+
+// Qt
+#include <qdialog.h>
+#include <qwidget.h>
 
 DurationDialog::DurationDialog(QWidget* parent) : QDialog(parent), ui(new Ui::DurationDialog) {
 	ui->setupUi(this);
@@ -34,6 +38,6 @@ void DurationDialog::setDuration(int frames) {
 	ui->spinBox->setValue(frames);
 }
 
-int DurationDialog::duration() const {
+auto DurationDialog::duration() const -> int {
 	return ui->spinBox->value();
 }

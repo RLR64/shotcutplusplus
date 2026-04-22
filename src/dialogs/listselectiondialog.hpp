@@ -18,7 +18,11 @@
 #ifndef LISTSELECTIONDIALOG_HPP
 #define LISTSELECTIONDIALOG_HPP
 
+// Qt
 #include <QDialog>
+#include <qcontainerfwd.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 namespace Ui {
 class ListSelectionDialog;
@@ -31,11 +35,11 @@ class ListSelectionDialog : public QDialog {
 
   public:
 	explicit ListSelectionDialog(const QStringList& list, QWidget* parent = nullptr);
-	~ListSelectionDialog();
+	~ListSelectionDialog() override;
 	void              setColors(const QStringList& colors);
 	void              setSelection(const QStringList& selection);
-	QStringList       selection() const;
-	QDialogButtonBox* buttonBox() const;
+	[[nodiscard]] auto       selection() const -> QStringList;
+	[[nodiscard]] auto buttonBox() const -> QDialogButtonBox*;
 
   private:
 	Ui::ListSelectionDialog* ui;

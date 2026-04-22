@@ -18,7 +18,10 @@
 #ifndef FILEDATEDIALOG_HPP
 #define FILEDATEDIALOG_HPP
 
+// Qt
 #include <QDialog>
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 class QComboBox;
 class QDateTimeEdit;
@@ -31,10 +34,10 @@ class FileDateDialog : public QDialog {
 	Q_OBJECT
 
   public:
-	explicit FileDateDialog(QString title, Mlt::Producer* producer, QWidget* parent = nullptr);
+	explicit FileDateDialog(const QString& title, Mlt::Producer* producer, QWidget* parent = nullptr);
 
   private slots:
-	void accept();
+	void accept() override;
 	void dateSelected(int index);
 
   private:

@@ -17,12 +17,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "screenselector.h"
-
 #include "mainwindow.hpp"
 
+// Qt
 #include <QApplication>
 #include <QMouseEvent>
+#include <qcoreevent.h>
+#include <qframe.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 ScreenSelector::ScreenSelector(QWidget* parent)
     : QFrame(parent), m_selectionInProgress(false), m_selectionRect(-1, -1, -1, -1), m_selectionPoint(-1, -1),
@@ -91,23 +99,23 @@ void ScreenSelector::startSelection(QPoint initialPos) {
 	QApplication::instance()->installEventFilter(this);
 }
 
-bool ScreenSelector::eventFilter(QObject*, QEvent* event) {
+auto ScreenSelector::eventFilter(QObject*, QEvent* event) -> bool {
 	switch (event->type()) {
 	case QEvent::MouseButtonPress:
-		return onMousePressEvent(static_cast<QMouseEvent*>(event));
+		return onMousePressEvent(dynamic_cast<QMouseEvent*>(event));
 	case QEvent::MouseMove:
-		return onMouseMoveEvent(static_cast<QMouseEvent*>(event));
+		return onMouseMoveEvent(dynamic_cast<QMouseEvent*>(event));
 	case QEvent::MouseButtonRelease:
-		return onMouseReleaseEvent(static_cast<QMouseEvent*>(event));
+		return onMouseReleaseEvent(dynamic_cast<QMouseEvent*>(event));
 	case QEvent::KeyPress:
-		return onKeyPressEvent(static_cast<QKeyEvent*>(event));
+		return onKeyPressEvent(dynamic_cast<QKeyEvent*>(event));
 	default:
 		break;
 	}
 	return false;
 }
 
-bool ScreenSelector::onMousePressEvent(QMouseEvent* event) {
+auto ScreenSelector::onMousePressEvent(QMouseEvent* event) -> bool {
 	if (event->button() == Qt::LeftButton && !m_selectionInProgress) {
 		m_selectionInProgress = true;
 		show();
@@ -117,10 +125,10 @@ bool ScreenSelector::onMousePressEvent(QMouseEvent* event) {
 	return true;
 }
 
-bool ScreenSelector::onMouseMoveEvent(QMouseEvent* event) {
+auto ScreenSelector::onMouseMoveEvent(QMouseEvent* event) -> bool {
 	if (m_boundingRect.x() > -1 && !m_boundingRect.contains(event->globalPosition().toPoint())) {
-		int x = qBound(m_boundingRect.left(), qRound(event->globalPosition().x()), m_boundingRect.right());
-		int y = qBound(m_boundingRect.top(), qRound(event->globalPosition().y()), m_boundingRect.bottom());
+		const int x = qBound(m_boundingRect.left(), qRound(event->globalPosition().x()), m_boundingRect.right());
+		const int y = qBound(m_boundingRect.top(), qRound(event->globalPosition().y()), m_boundingRect.bottom());
 		QCursor::setPos(x, y);
 		return true;
 	}
@@ -154,7 +162,7 @@ bool ScreenSelector::onMouseMoveEvent(QMouseEvent* event) {
 	return true;
 }
 
-bool ScreenSelector::onMouseReleaseEvent(QMouseEvent* event) {
+auto ScreenSelector::onMouseReleaseEvent(QMouseEvent* event) -> bool {
 	if (event->button() == Qt::LeftButton && m_selectionInProgress == true) {
 		release();
 		emit screenSelected(m_selectionRect);
@@ -162,7 +170,7 @@ bool ScreenSelector::onMouseReleaseEvent(QMouseEvent* event) {
 	return true;
 }
 
-bool ScreenSelector::onKeyPressEvent(QKeyEvent* event) {
+auto ScreenSelector::onKeyPressEvent(QKeyEvent* event) -> bool {
 	if (event->key() == Qt::Key_Escape) {
 		release();
 		emit cancelled();

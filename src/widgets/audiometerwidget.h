@@ -18,18 +18,27 @@
 #ifndef AUDIOMETERWIDGET_H
 #define AUDIOMETERWIDGET_H
 
+// Qt
 #include <QLinearGradient>
 #include <QStringList>
 #include <QVector>
 #include <QWidget>
-#include <cstdint>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qicon.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qsize.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class QLabel;
 
 class AudioMeterWidget : public QWidget {
 	Q_OBJECT
   public:
-	AudioMeterWidget(QWidget* parent = 0);
+	AudioMeterWidget(QWidget* parent = nullptr);
 	void setDbLabels(const QVector<int>& labels);
 	void setChannelLabels(const QStringList& labels);
 	void setChannelLabelUnits(const QString& units);
@@ -44,22 +53,22 @@ class AudioMeterWidget : public QWidget {
 	void mouseMoveEvent(QMouseEvent*) Q_DECL_OVERRIDE;
 
   private:
-	void            calcGraphRect();
-	void            drawDbLabels(QPainter&);
-	void            drawChanLabels(QPainter&);
-	void            drawBars(QPainter&);
-	void            drawPeaks(QPainter&);
-	void            updateToolTip();
-	QRectF          m_graphRect;
-	QSizeF          m_barSize;
+	void calcGraphRect();
+	void drawDbLabels(QPainter&);
+	void drawChanLabels(QPainter&);
+	void drawBars(QPainter&);
+	void drawPeaks(QPainter&);
+	void updateToolTip();
+	QRectF m_graphRect;
+	QSizeF m_barSize;
 	Qt::Orientation m_orient;
 	QVector<double> m_levels;
 	QVector<double> m_peaks;
-	QVector<int>    m_dbLabels;
-	QStringList     m_chanLabels;
+	QVector<int> m_dbLabels;
+	QStringList m_chanLabels;
 	QLinearGradient m_gradient;
-	double          m_maxDb;
-	QString         m_chanLabelUnits;
+	double m_maxDb;
+	QString m_chanLabelUnits;
 };
 
 #endif // AUDIOMETERWIDGET_H

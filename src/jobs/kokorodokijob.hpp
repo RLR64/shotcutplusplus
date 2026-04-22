@@ -17,7 +17,18 @@
 #ifndef KOKORODOKIJOB_HPP
 #define KOKORODOKIJOB_HPP
 
+// Local
 #include "abstractjob.hpp"
+#include "jobs/postjobaction.hpp"
+#include "settings.hpp"
+
+// Qt
+#include <qobject.h>
+#include <qthread.h>
+#include <qtmetamacros.h>
+
+// STL
+#include <functional>
 
 class KokorodokiJob : public AbstractJob {
 	Q_OBJECT
@@ -26,10 +37,10 @@ class KokorodokiJob : public AbstractJob {
 	              double speed, QThread::Priority priority = Settings.jobPriority());
 	~KokorodokiJob() override;
 
-	static bool checkDockerImage(QWidget* parent);
+	static auto checkDockerImage(QWidget* parent) -> bool;
 	// Calls 'callback' once the image is ready (or immediately if already current).
 	// 'parent' is used for dialogs.
-	static void prepareAndRun(QWidget* parent, std::function<void()> callback);
+	static void prepareAndRun(QWidget* parent, const std::function<void()>& callback);
 
   public slots:
 	void start() override;

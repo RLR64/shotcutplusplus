@@ -21,13 +21,14 @@
 #include <QPoint>
 #include <QRect>
 #include <QWidget>
+#include <qtmetamacros.h>
 
 class RectangleSelector : public QWidget {
 	Q_OBJECT
 
   public:
 	explicit RectangleSelector(QWidget* parent = nullptr);
-	~RectangleSelector();
+	~RectangleSelector() override;
 
   signals:
 	void rectangleSelected(const QRect& rect);
@@ -41,11 +42,11 @@ class RectangleSelector : public QWidget {
 	void keyPressEvent(QKeyEvent* event) override;
 
   private:
-	QRect getSelectionRect() const;
+	[[nodiscard]] QRect getSelectionRect() const;
 
 	QPoint m_startPoint;
 	QPoint m_currentPoint;
-	bool   m_selecting;
+	bool m_selecting;
 };
 
 #endif // RECTANGLESELECTOR_HPP

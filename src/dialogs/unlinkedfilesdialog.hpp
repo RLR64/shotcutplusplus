@@ -18,9 +18,13 @@
 #ifndef UNLINKEDFILESDIALOG_HPP
 #define UNLINKEDFILESDIALOG_HPP
 
+// Qt
 #include <QDialog>
 #include <QDir>
 #include <QStandardItemModel>
+#include <qabstractitemmodel.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 namespace Ui {
 class UnlinkedFilesDialog;
@@ -31,7 +35,7 @@ class UnlinkedFilesDialog : public QDialog {
 
   public:
 	explicit UnlinkedFilesDialog(QWidget* parent = nullptr);
-	~UnlinkedFilesDialog();
+	~UnlinkedFilesDialog() override;
 
 	void setModel(QStandardItemModel& model);
 
@@ -41,7 +45,7 @@ class UnlinkedFilesDialog : public QDialog {
 	void on_searchFolderButton_clicked();
 
   private:
-	bool lookInDir(const QDir& dir, bool recurse = false);
+	auto lookInDir(const QDir& dir, bool recurse = false) -> bool;
 
 	Ui::UnlinkedFilesDialog* ui;
 };

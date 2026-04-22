@@ -19,10 +19,12 @@
 #ifndef QMLUTILITIES_HPP
 #define QMLUTILITIES_HPP
 
+// Qt
 #include <QDir>
 #include <QObject>
 #include <QPoint>
 #include <QUrl>
+#include <qtmetamacros.h>
 
 class QQmlContext;
 class QQmlEngine;
@@ -35,9 +37,9 @@ class QmlUtilities : public QObject {
 
 	static void        registerCommonTypes();
 	static void        setCommonProperties(QQmlContext* context);
-	static QDir        qmlDir();
-	static QUrl        blankVui();
-	static QQmlEngine* sharedEngine();
+	static auto        qmlDir() -> QDir;
+	static auto        blankVui() -> QUrl;
+	static auto sharedEngine() -> QQmlEngine*;
 };
 
 #endif // QMLUTILITIES_HPP

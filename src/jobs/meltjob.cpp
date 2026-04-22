@@ -15,14 +15,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "meltjob.hpp"
-
 #include "Logger.hpp"
 #include "dialogs/textviewerdialog.hpp"
+#include "jobs/abstractjob.hpp"
+#include "jobs/postjobaction.hpp"
 #include "mainwindow.hpp"
 #include "settings.hpp"
 #include "util.hpp"
 
+// Qt
 #include <QAction>
 #include <QApplication>
 #include <QDialog>
@@ -31,6 +34,13 @@
 #include <QFileInfo>
 #include <QIODevice>
 #include <QTimer>
+#include <qcontainerfwd.h>
+#include <qcoreapplication.h>
+#include <qobjectdefs.h>
+#include <qprocess.h>
+#include <qthread.h>
+#include <qtmetamacros.h>
+#include <qurl.h>
 
 MeltJob::MeltJob(const QString& name, const QString& xml, int frameRateNum, int frameRateDen,
                  QThread::Priority priority)
@@ -38,7 +48,7 @@ MeltJob::MeltJob(const QString& name, const QString& xml, int frameRateNum, int 
       m_useMultiConsumer(false) {
 	setTarget(name);
 	if (!xml.isEmpty()) {
-		QAction* action = new QAction(tr("View XML"), this);
+		auto* action = new QAction(tr("View XML"), this);
 		action->setToolTip(tr("View the MLT XML for this job"));
 		connect(action, SIGNAL(triggered()), this, SLOT(onViewXmlTriggered()));
 		m_standardActions << action;
@@ -49,7 +59,7 @@ MeltJob::MeltJob(const QString& name, const QString& xml, int frameRateNum, int 
 		}
 	} else {
 		// Not an EncodeJob
-		QAction* action = new QAction(tr("Open"), this);
+		auto* action = new QAction(tr("Open"), this);
 		action->setData("Open");
 		action->setToolTip(tr("Open the output file in the Shotcut player"));
 		connect(action, SIGNAL(triggered()), this, SLOT(onOpenTiggered()));
@@ -100,14 +110,14 @@ void MeltJob::start() {
 		AbstractJob::start();
 		LOG_ERROR() << "the job XML is empty!";
 		appendToLog("Error: the job XML is empty!\n");
-		QTimer::singleShot(0, this, [=]() { emit finished(this, false); });
+		QTimer::singleShot(0, this, [this]() -> void { emit finished(this, false); });
 		return;
 	}
-	QString shotcutPath = qApp->applicationDirPath();
+	QString const shotcutPath = qApp->applicationDirPath();
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
 	QFileInfo meltPath(shotcutPath, "melt-7");
 #else
-	QFileInfo meltPath(shotcutPath, "melt");
+	QFileInfo const meltPath(shotcutPath, "melt");
 #endif
 	setReadChannel(QProcess::StandardError);
 	QStringList args;
@@ -150,7 +160,7 @@ void MeltJob::start() {
 	AbstractJob::start(meltPath.absoluteFilePath(), args);
 }
 
-QString MeltJob::xml() {
+auto MeltJob::xml() -> QString {
 	if (m_xml->open()) {
 		QString s(m_xml->readAll());
 		m_xml->close();
@@ -183,16 +193,16 @@ void MeltJob::onViewXmlTriggered() {
 void MeltJob::onReadyRead() {
 	QString msg;
 	do {
-		msg       = readLine();
+		msg = readLine();
 		int index = msg.indexOf("Frame:");
 		if (index > -1) {
 			index += 6;
-			int comma      = msg.indexOf(',', index);
+			const int comma      = msg.indexOf(',', index);
 			m_currentFrame = msg.mid(index, comma - index).toInt();
 		}
 		index = msg.indexOf("percentage:");
 		if (index > -1) {
-			int percent = msg.mid(index + 11).toInt();
+			const int percent = msg.mid(index + 11).toInt();
 			if (percent > m_previousPercent) {
 				emit progressUpdated(m_item, percent);
 				QCoreApplication::processEvents();
@@ -208,7 +218,7 @@ void MeltJob::onFinished(int exitCode, QProcess::ExitStatus exitStatus) {
 	AbstractJob::onFinished(exitCode, exitStatus);
 	if (exitStatus != QProcess::NormalExit && exitCode != 0 && !stopped()) {
 		Mlt::Producer producer(m_profile, "colour:");
-		QString       time = QString::fromLatin1(producer.frames_to_time(m_currentFrame));
+		QString const time = QString::fromLatin1(producer.frames_to_time(m_currentFrame));
 		emit          finished(this, false, time);
 	}
 }

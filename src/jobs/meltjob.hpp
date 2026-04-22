@@ -18,10 +18,19 @@
 #ifndef MELTJOB_HPP
 #define MELTJOB_HPP
 
+// Local
 #include "abstractjob.hpp"
+#include "jobs/postjobaction.hpp"
+#include "settings.hpp"
 
+// Qt
 #include <MltProfile.h>
 #include <QTemporaryFile>
+#include <qcontainerfwd.h>
+#include <qprocess.h>
+#include <qscopedpointer.h>
+#include <qthread.h>
+#include <qtmetamacros.h>
 
 class MeltJob : public AbstractJob {
 	Q_OBJECT
@@ -30,10 +39,10 @@ class MeltJob : public AbstractJob {
 	        QThread::Priority priority = Settings.jobPriority());
 	MeltJob(const QString& name, const QStringList& args, int frameRateNum, int frameRateDen);
 	MeltJob(const QString& name, const QString& xml, const QStringList& args, int frameRateNum, int frameRateDen);
-	virtual ~MeltJob();
-	QString xml();
+	~MeltJob() override;
+	auto xml() -> QString;
 
-	QString xmlPath() const {
+	[[nodiscard]] auto xmlPath() const -> QString {
 		return m_xml->fileName();
 	}
 

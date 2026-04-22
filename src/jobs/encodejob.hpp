@@ -18,9 +18,14 @@
 #ifndef ENCODEJOB_HPP
 #define ENCODEJOB_HPP
 
+// Local
+#include "jobs/postjobaction.hpp"
 #include "meltjob.hpp"
 
+// Qt
 #include <QThread>
+#include <qprocess.h>
+#include <qtmetamacros.h>
 
 class EncodeJob : public MeltJob {
 	Q_OBJECT

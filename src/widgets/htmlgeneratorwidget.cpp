@@ -15,9 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "htmlgeneratorwidget.h"
-
 #include "Logger.hpp"
+#include "abstractproducerwidget.hpp"
 #include "dialogs/durationdialog.hpp"
 #include "htmlgenerator.hpp"
 #include "jobqueue.hpp"
@@ -31,6 +32,9 @@
 #include "ui_htmlgeneratorwidget.h"
 #include "util.hpp"
 
+// Qt
+#include <MltProfile.h>
+#include <MltProperties.h>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFont>
@@ -39,25 +43,37 @@
 #include <QMovie>
 #include <QPixmap>
 #include <QTemporaryFile>
+#include <framework/mlt_types.h>
+#include <memory>
+#include <qalgorithms.h>
+#include <qcontainerfwd.h>
+#include <qdialog.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qrgb.h>
+
+// STL
+#include <utility>
 
 static const QString kTransparent = QObject::tr("transparent", "New > Image/Video From HTML");
-static QString       kPresetsFolder("HTML");
-const char*          HtmlGeneratorWidget::kColorProperty      = "shotcut:color";
-const char*          HtmlGeneratorWidget::kCssProperty        = "shotcut:css";
-const char*          HtmlGeneratorWidget::kBodyProperty       = "shotcut:body";
-const char*          HtmlGeneratorWidget::kJavaScriptProperty = "shotcut:javascript";
-const char*          HtmlGeneratorWidget::kLine1Property      = "shotcut:line1";
-const char*          HtmlGeneratorWidget::kLine2Property      = "shotcut:line2";
-const char*          HtmlGeneratorWidget::kLine3Property      = "shotcut:line3";
+static const QString kPresetsFolder("HTML");
+const char* HtmlGeneratorWidget::kColorProperty      = "shotcut:color";
+const char* HtmlGeneratorWidget::kCssProperty        = "shotcut:css";
+const char* HtmlGeneratorWidget::kBodyProperty       = "shotcut:body";
+const char* HtmlGeneratorWidget::kJavaScriptProperty = "shotcut:javascript";
+const char* HtmlGeneratorWidget::kLine1Property      = "shotcut:line1";
+const char* HtmlGeneratorWidget::kLine2Property      = "shotcut:line2";
+const char* HtmlGeneratorWidget::kLine3Property      = "shotcut:line3";
 
-static QString colorToString(const QColor& color) {
+static auto colorToString(const QColor& color) -> QString {
 	return (color == QColor(0, 0, 0, 0))
 	           ? kTransparent
 	           : QString::asprintf("#%02X%02X%02X%02X", qRed(color.rgba()), qGreen(color.rgba()), qBlue(color.rgba()),
 	                               qAlpha(color.rgba()));
 }
 
-static QString colorStringToResource(const QString& s) {
+static auto colorStringToResource(const QString& s) -> QString {
 	return (s == kTransparent) ? "#00000000" : s;
 }
 
@@ -77,8 +93,8 @@ HtmlGeneratorWidget::HtmlGeneratorWidget(QWidget* parent) : QWidget(parent), ui(
 	ui->preset->saveDefaultPreset(getPreset());
 
 	Mlt::Properties p;
-	QFile           f;
-	QDir            dir(Settings.appDataLocation());
+	QFile f;
+	QDir dir(Settings.appDataLocation());
 
 	if (!dir.exists())
 		dir.mkpath(dir.path());
@@ -211,7 +227,7 @@ void HtmlGeneratorWidget::on_colorButton_clicked() {
 	// At this point Qt's colors are misread from CSS and and are stored in Qt as ARGB instead of RGBA
 	// Remap to Qt's color order RGBA
 	const QColor qtColor(color.alpha(), color.red(), color.green(), color.blue());
-	auto         newColor = ColorDialog::getColor(qtColor, this);
+	auto newColor = ColorDialog::getColor(qtColor, this);
 
 	if (newColor.isValid()) {
 		ui->colorLabel->setText(colorToString(newColor));
@@ -220,7 +236,7 @@ void HtmlGeneratorWidget::on_colorButton_clicked() {
 	}
 }
 
-Mlt::Producer* HtmlGeneratorWidget::newProducer(Mlt::Profile& profile) {
+auto HtmlGeneratorWidget::newProducer(Mlt::Profile& profile) -> Mlt::Producer* {
 	auto* p = new Mlt::Producer(profile, "color:");
 	p->set("resource", colorStringToResource(ui->colorLabel->text()).toLatin1().constData());
 	p->set("mlt_image_format", "rgba");
@@ -230,7 +246,7 @@ Mlt::Producer* HtmlGeneratorWidget::newProducer(Mlt::Profile& profile) {
 	return p;
 }
 
-Mlt::Properties HtmlGeneratorWidget::getPreset() const {
+auto HtmlGeneratorWidget::getPreset() const -> Mlt::Properties {
 	Mlt::Properties p;
 	const QString   color = colorStringToResource(ui->colorLabel->text());
 	p.set(kColorProperty, color.toLatin1().constData());
@@ -293,7 +309,7 @@ void HtmlGeneratorWidget::setProducer(Mlt::Producer* p) {
 }
 
 void HtmlGeneratorWidget::on_preset_selected(void* p) {
-	Mlt::Properties* properties = (Mlt::Properties*)p;
+	auto* properties = (Mlt::Properties*)p;
 	loadPreset(*properties);
 	delete properties;
 }
@@ -302,8 +318,8 @@ void HtmlGeneratorWidget::on_preset_saveClicked() {
 	ui->preset->savePreset(getPreset());
 }
 
-QString HtmlGeneratorWidget::generateHtml() const {
-	QString html(R"(
+auto HtmlGeneratorWidget::generateHtml() const -> QString {
+	QString const html(R"(
 <html>
   <head>
     <style>%1</style>
@@ -342,8 +358,8 @@ void HtmlGeneratorWidget::on_imageButton_clicked() {
 		Settings.setSavePath(QFileInfo(outputPath).path());
 	}
 
-	QFileInfo outInfo(outputPath);
-	auto      txtFile = new QTemporaryFile(outInfo.dir().filePath("XXXXXX.html"), this);
+	QFileInfo const outInfo(outputPath);
+	auto txtFile = new QTemporaryFile(outInfo.dir().filePath("XXXXXX.html"), this);
 
 	if (!txtFile->open()) {
 		LOG_ERROR() << "Failed to create temp HTML file" << txtFile->fileName();
@@ -355,10 +371,9 @@ void HtmlGeneratorWidget::on_imageButton_clicked() {
 
 	auto generator = new HtmlGenerator(this);
 	connect(
-	    generator, &HtmlGenerator::imageReady, this,
-	    [=](QString outputPath) {
-		    auto    p     = new Mlt::Producer(MLT.profile(), outputPath.toUtf8().constData());
-		    QString color = colorStringToResource(ui->colorLabel->text());
+		generator, &HtmlGenerator::imageReady, this, [this](const QString& outputPath) -> void {
+			auto p = new Mlt::Producer(MLT.profile(), outputPath.toUtf8().constData());
+			QString const color = colorStringToResource(ui->colorLabel->text());
 		    p->pass_property(*m_producer, kPrivateProducerProperty);
 		    p->set(kColorProperty, color.toLatin1().constData());
 		    p->set(kCssProperty, ui->cssTextEdit->toPlainText().toUtf8().toBase64().constData());
@@ -389,8 +404,8 @@ void HtmlGeneratorWidget::on_videoButton_clicked() {
 		return;
 	}
 
-	int durationFrames = durationDialog.duration();
-	int durationMs     = (durationFrames / MLT.profile().fps()) * 1000.0;
+	const int durationFrames = durationDialog.duration();
+	const int durationMs = (durationFrames / MLT.profile().fps()) * 1000.0;
 
 	// Get save filename
 	auto outputPath = QmlApplication::getNextProjectFile("html-.avi");
@@ -408,9 +423,8 @@ void HtmlGeneratorWidget::on_videoButton_clicked() {
 	}
 
 	// Create and add the job
-	const auto job   = new HtmlGeneratorJob(tr("Generate HTML Video: %1").arg(QFileInfo(outputPath).fileName()),
-	                                        generateHtml(), outputPath, durationMs);
-	QString    color = colorStringToResource(ui->colorLabel->text());
+	const auto job   = new HtmlGeneratorJob(tr("Generate HTML Video: %1").arg(QFileInfo(outputPath).fileName()), generateHtml(), outputPath, durationMs);
+	QString const color = colorStringToResource(ui->colorLabel->text());
 	job->setProperty(kPrivateProducerProperty, QString::fromLatin1(m_producer->get(kPrivateProducerProperty)));
 	job->setProperty(kColorProperty, color.toLatin1());
 	job->setProperty(kCssProperty, ui->cssTextEdit->toPlainText().toUtf8().toBase64().constData());
@@ -450,8 +464,8 @@ void HtmlGeneratorWidget::on_bodyTextEdit_textChanged() {
 }
 
 void HtmlGeneratorWidget::updateTextSectionVisibility() {
-	const auto body            = ui->bodyTextEdit->toPlainText();
-	bool       hasPlaceholders = body.contains("%1") || body.contains("%2") || body.contains("%3");
+	const auto body = ui->bodyTextEdit->toPlainText();
+	const bool hasPlaceholders = body.contains("%1") || body.contains("%2") || body.contains("%3");
 
 	ui->textLabel->setVisible(hasPlaceholders);
 	on_bodyToggleButton_toggled(!hasPlaceholders);
@@ -515,8 +529,8 @@ void HtmlGeneratorWidget::populatePresetIconView() {
 	}
 }
 
-QString HtmlGeneratorWidget::findPresetIconPath(const QString& presetName) {
-	QString iconFileName = presetName + QStringLiteral(".webp");
+auto HtmlGeneratorWidget::findPresetIconPath(const QString& presetName) -> QString {
+	QString const iconFileName = presetName + QStringLiteral(".webp");
 
 	// First, try loading from preset directory
 	QDir dir(Settings.appDataLocation());
@@ -528,7 +542,7 @@ QString HtmlGeneratorWidget::findPresetIconPath(const QString& presetName) {
 		dir.cdUp();
 		dir.cdUp();
 	}
-	return QString();
+	return {};
 }
 
 void HtmlGeneratorWidget::setupIconAnimation(QListWidgetItem* item, const QString& iconPath) {
@@ -545,7 +559,7 @@ void HtmlGeneratorWidget::setupIconAnimation(QListWidgetItem* item, const QStrin
 
 		// Connect to update the icon whenever a new frame is available
 		connect(movie, &QMovie::frameChanged, this,
-		        [this, item, movie]() { item->setIcon(QIcon(movie->currentPixmap())); });
+				[this, item, movie]() -> void { item->setIcon(QIcon(movie->currentPixmap())); });
 
 		// Set initial frame but don't start animation yet
 		movie->jumpToFrame(0);
@@ -553,7 +567,7 @@ void HtmlGeneratorWidget::setupIconAnimation(QListWidgetItem* item, const QStrin
 	} else {
 		// It's a static image or movie is invalid
 		delete movie;
-		QPixmap pixmap(iconPath);
+		QPixmap const pixmap(iconPath);
 		if (!pixmap.isNull()) {
 			item->setIcon(QIcon(pixmap.scaled(128, 128, Qt::KeepAspectRatio, Qt::SmoothTransformation)));
 		}
@@ -591,11 +605,11 @@ void HtmlGeneratorWidget::on_presetIconView_itemClicked(QListWidgetItem* item) {
 		ui->line1LineEdit->setFocus(Qt::PopupFocusReason);
 }
 
-bool HtmlGeneratorWidget::eventFilter(QObject* watched, QEvent* event) {
+auto HtmlGeneratorWidget::eventFilter(QObject* watched, QEvent* event) -> bool {
 	if (watched == ui->presetIconView->viewport()) {
 		if (event->type() == QEvent::MouseMove) {
-			auto             mouseEvent = static_cast<QMouseEvent*>(event);
-			QListWidgetItem* item       = ui->presetIconView->itemAt(mouseEvent->pos());
+			auto mouseEvent = dynamic_cast<QMouseEvent*>(event);
+			QListWidgetItem* item = ui->presetIconView->itemAt(mouseEvent->pos());
 
 			if (item != m_lastHoveredItem) {
 				// Stop animation on previously hovered item

@@ -18,13 +18,13 @@
 #ifndef POSTJOBACTION_HPP
 #define POSTJOBACTION_HPP
 
+// Qt
 #include <QString>
 #include <QUuid>
 
 class PostJobAction {
   public:
-	virtual ~PostJobAction() {
-	}
+	virtual ~PostJobAction() = default;
 
 	virtual void doAction() = 0;
 };
@@ -38,7 +38,7 @@ class FilePropertiesPostJobAction : public PostJobAction {
 	virtual ~FilePropertiesPostJobAction() {
 	}
 
-	virtual void doAction();
+	void doAction() override;
 
   protected:
 	QString m_srcFile;
@@ -51,7 +51,7 @@ class OpenPostJobAction : public FilePropertiesPostJobAction {
 	    : FilePropertiesPostJobAction(srcFile, dstFile), m_fileNameToRemove(fileNameToRemove) {
 	}
 
-	void doAction();
+	void doAction() override;
 
   private:
 	QString m_fileNameToRemove;
@@ -65,7 +65,7 @@ class ReplaceOnePostJobAction : public FilePropertiesPostJobAction {
 	      m_in(in) {
 	}
 
-	void doAction();
+	void doAction() override;
 
   private:
 	QString m_fileNameToRemove;
@@ -79,7 +79,7 @@ class ReplaceAllPostJobAction : public FilePropertiesPostJobAction {
 	    : FilePropertiesPostJobAction(srcFile, dstFile), m_hash(srcHash) {
 	}
 
-	void doAction();
+	void doAction() override;
 
   private:
 	QString m_hash;
@@ -105,7 +105,7 @@ class ProxyFinalizePostJobAction : public FilePropertiesPostJobAction {
 	    : FilePropertiesPostJobAction(srcFile, dstFile), m_dstFile(dstFile) {
 	}
 
-	void doAction();
+	void doAction() override;
 
   private:
 	QString m_dstFile;
@@ -120,10 +120,9 @@ class ImportSrtPostJobAction : public PostJobAction {
 	    : m_srtFile(srtFile), m_trackName(trackName), m_lang(lang), m_includeNonspoken(includeNonspoken), m_dock(dock) {
 	}
 
-	virtual ~ImportSrtPostJobAction() {
-	}
+	~ImportSrtPostJobAction() override = default;
 
-	void doAction();
+	void doAction() override;
 
   protected:
 	const QString  m_srtFile;

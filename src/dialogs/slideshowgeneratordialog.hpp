@@ -18,8 +18,11 @@
 #ifndef SLIDESHOWGENERATORDIALOG_HPP
 #define SLIDESHOWGENERATORDIALOG_HPP
 
+// Qt
 #include <MltPlaylist.h>
 #include <QDialog>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class SlideshowGeneratorWidget;
 class QAbstractButton;
@@ -30,7 +33,7 @@ class SlideshowGeneratorDialog : public QDialog {
 
   public:
 	explicit SlideshowGeneratorDialog(QWidget* parent, Mlt::Playlist& clips);
-	Mlt::Playlist* getSlideshow();
+	auto getSlideshow() -> Mlt::Playlist*;
 
   private slots:
 	void clicked(QAbstractButton* button);

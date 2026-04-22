@@ -18,9 +18,15 @@
 #ifndef SUBTITLECOMMANDS_HPP
 #define SUBTITLECOMMANDS_HPP
 
+// Local
+#include "models/subtitles.hpp"
 #include "models/subtitlesmodel.hpp"
 
+// Qt
 #include <QUndoCommand>
+#include <cstdint>
+#include <qhashfunctions.h>
+#include <qlist.h>
 
 namespace Subtitles {
 
@@ -33,7 +39,7 @@ enum {
 
 class InsertTrackCommand : public QUndoCommand {
   public:
-	InsertTrackCommand(SubtitlesModel& Model, const SubtitlesModel::SubtitleTrack& Track, int Index);
+	InsertTrackCommand(SubtitlesModel& Model, SubtitlesModel::SubtitleTrack  Track, int Index);
 	void Redo();
 	void Undo();
 
@@ -58,7 +64,7 @@ class RemoveTrackCommand : public QUndoCommand {
 
 class EditTrackCommand : public QUndoCommand {
   public:
-	EditTrackCommand(SubtitlesModel& Model, const SubtitlesModel::SubtitleTrack& Track, int Index);
+	EditTrackCommand(SubtitlesModel& Model, SubtitlesModel::SubtitleTrack  Track, int Index);
 	void Redo();
 	void Undo();
 
@@ -98,16 +104,16 @@ class RemoveSubtitlesCommand : public QUndoCommand {
 
 class SetTextCommand : public QUndoCommand {
   public:
-	SetTextCommand(SubtitlesModel& Model, int TrackIndex, int ItemIndex, const QString& Text);
+	SetTextCommand(SubtitlesModel& Model, int TrackIndex, int ItemIndex, QString  Text);
 	void Redo();
 	void Undo();
 
   protected:
-	int Id() const {
+	[[nodiscard]] auto id() const -> int override {
 		return UndoIdSubText;
 	}
 
-	bool MergeWith(const QUndoCommand* Other);
+	auto mergeWith(const QUndoCommand* Other) -> bool override;
 
   private:
 	SubtitlesModel& m_model;
@@ -124,11 +130,11 @@ class SetStartCommand : public QUndoCommand {
 	void Undo();
 
   protected:
-	int Id() const {
+	[[nodiscard]] auto id() const -> int override {
 		return UndoIdSubStart;
 	}
 
-	bool MergeWith(const QUndoCommand* Other);
+	auto mergeWith(const QUndoCommand* Other) -> bool override;
 
   private:
 	SubtitlesModel& m_model;
@@ -145,11 +151,11 @@ class SetEndCommand : public QUndoCommand {
 	void Undo();
 
   protected:
-	int Id() const {
+	[[nodiscard]] auto id() const -> int override {
 		return UndoIdSubEnd;
 	}
 
-	bool MergeWith(const QUndoCommand* Other);
+	auto mergeWith(const QUndoCommand* Other) -> bool override;
 
   private:
 	SubtitlesModel& m_model;
@@ -167,11 +173,11 @@ class MoveSubtitlesCommand : public QUndoCommand {
 	void Undo();
 
   protected:
-	int Id() const {
+	[[nodiscard]] auto id() const -> int override {
 		return UndoIdSubMove;
 	}
 
-	bool MergeWith(const QUndoCommand* Other);
+	auto mergeWith(const QUndoCommand* Other) -> bool override;
 
   private:
 	SubtitlesModel&                m_model;

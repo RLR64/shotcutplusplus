@@ -15,18 +15,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "statuslabelwidget.h"
-
 #include "settings.hpp"
 
+// Qt
 #include <QAction>
 #include <QApplication>
 #include <QGraphicsOpacityEffect>
 #include <QHBoxLayout>
 #include <QPropertyAnimation>
 #include <QPushButton>
+#include <qabstractanimation.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpalette.h>
+#include <qsizepolicy.h>
+#include <qtmetamacros.h>
 
-static constexpr int STATUS_ANIMATION_MS = {350};
+// Number constants
+static constexpr int setTimeoutSecondsNumber{1000};
+static constexpr int STATUS_ANIMATION_MS{350};
 
 StatusLabelWidget::StatusLabelWidget(QWidget* parent) : QWidget(parent), m_width(0) {
 	m_layout = new QHBoxLayout;
@@ -39,7 +49,7 @@ StatusLabelWidget::StatusLabelWidget(QWidget* parent) : QWidget(parent), m_width
 	m_layout->addWidget(m_label);
 	m_layout->addStretch(1);
 	if (Settings.drawMethod() != Qt::AA_UseOpenGLES) {
-		QGraphicsOpacityEffect* effect = new QGraphicsOpacityEffect(this);
+		auto* effect = new QGraphicsOpacityEffect(this);
 		m_label->setGraphicsEffect(effect);
 		m_fadeIn = new QPropertyAnimation(effect, "opacity", this);
 		m_fadeIn->setDuration(STATUS_ANIMATION_MS);
@@ -61,16 +71,15 @@ StatusLabelWidget::StatusLabelWidget(QWidget* parent) : QWidget(parent), m_width
 	setLayout(m_layout);
 }
 
-StatusLabelWidget::~StatusLabelWidget() {
-}
+StatusLabelWidget::~StatusLabelWidget() = default;
 
 void StatusLabelWidget::setWidth(int width) {
 	m_width = width;
 }
 
 void StatusLabelWidget::showText(const QString& text, int timeoutSeconds, QAction* action, QPalette::ColorRole role) {
-	auto    width = m_width ? m_width : m_layout->maximumSize().width();
-	QString s     = QStringLiteral("  %1  ").arg(m_label->fontMetrics().elidedText(text, Qt::ElideRight, width - 30));
+	auto width = m_width ? m_width : m_layout->maximumSize().width();
+	QString const s = QStringLiteral("  %1  ").arg(m_label->fontMetrics().elidedText(text, Qt::ElideRight, width - 30));
 	m_label->setText(s);
 	m_label->setToolTip(text);
 	auto palette = QApplication::palette();
@@ -86,7 +95,7 @@ void StatusLabelWidget::showText(const QString& text, int timeoutSeconds, QActio
 	if (action)
 		connect(m_label, &QPushButton::clicked, action, &QAction::triggered);
 	else
-		disconnect(m_label, &QPushButton::clicked, 0, 0);
+		disconnect(m_label, &QPushButton::clicked, nullptr, nullptr);
 
 	if (Settings.drawMethod() != Qt::AA_UseOpenGLES) {
 		// Cancel the fade out.
@@ -106,7 +115,7 @@ void StatusLabelWidget::showText(const QString& text, int timeoutSeconds, QActio
 			if (m_fadeIn->state() != QAbstractAnimation::Running && !m_timer.isActive()) {
 				m_fadeIn->start();
 				if (timeoutSeconds > 0)
-					m_timer.start(timeoutSeconds * 1000);
+					m_timer.start(timeoutSeconds * setTimeoutSecondsNumber);
 			}
 		}
 	} else { // DirectX
@@ -115,7 +124,7 @@ void StatusLabelWidget::showText(const QString& text, int timeoutSeconds, QActio
 		} else {
 			m_label->show();
 			if (timeoutSeconds > 0)
-				m_timer.start(timeoutSeconds * 1000);
+				m_timer.start(timeoutSeconds * setTimeoutSecondsNumber);
 		}
 	}
 }

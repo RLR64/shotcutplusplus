@@ -15,11 +15,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "systemsyncdialog.hpp"
-
 #include "mltcontroller.hpp"
 #include "settings.hpp"
 #include "ui_systemsyncdialog.h"
+
+// Qt
+#include <qdialog.h>
+#include <qtpreprocessorsupport.h>
+#include <qwidget.h>
 
 SystemSyncDialog::SystemSyncDialog(QWidget* parent)
     : QDialog(parent), ui(new Ui::SystemSyncDialog), m_oldValue(Settings.playerVideoDelayMs()) {

@@ -18,11 +18,19 @@
 #ifndef QMLAPPLICATION_HPP
 #define QMLAPPLICATION_HPP
 
+// Qt
 #include <QColor>
 #include <QDir>
 #include <QObject>
 #include <QPoint>
 #include <QRect>
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+
+// Number constants
+constexpr int timeoutSecondsNumber{15};
 
 namespace Mlt {
 class Producer;
@@ -59,11 +67,11 @@ class QmlApplication : public QObject {
 	Q_INVOKABLE static QString getNextProjectFile(const QString& filename);
 	Q_INVOKABLE static bool    isProjectFolder();
 	static qreal               devicePixelRatio();
-	Q_INVOKABLE void           showStatusMessage(const QString& message, int timeoutSeconds = 15);
+	Q_INVOKABLE void           showStatusMessage(const QString& message, int timeoutSeconds = timeoutSecondsNumber);
 	static int                 maxTextureSize();
 	Q_INVOKABLE static bool    confirmOutputFilter();
 	static QDir                dataDir();
-	Q_INVOKABLE static QColor  contrastingColor(QString color);
+	Q_INVOKABLE static QColor  contrastingColor(const QString& color);
 	static QStringList         wipes();
 	Q_INVOKABLE static bool    addWipe(const QString& filePath);
 	Q_INVOKABLE static bool    intersects(const QRectF& a, const QRectF& b);

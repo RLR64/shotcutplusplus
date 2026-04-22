@@ -18,7 +18,12 @@
 #ifndef JOBSDOCK_HPP
 #define JOBSDOCK_HPP
 
+// Qt
 #include <QDockWidget>
+#include <qpoint.h>
+#include <qtmetamacros.h>
+#include <qvariant.h>
+#include <qwidget.h>
 
 class AbstractJob;
 class QStandardItem;
@@ -32,15 +37,15 @@ class JobsDock : public QDockWidget {
 
   public:
 	explicit JobsDock(QWidget* parent = nullptr);
-	~JobsDock();
-	AbstractJob* currentJob() const;
+	~JobsDock() override;
+	[[nodiscard]] auto currentJob() const -> AbstractJob*;
 
   public slots:
 	void onJobAdded();
 	void onProgressUpdated(QStandardItem* item, int percent);
 
   protected:
-	void resizeEvent(QResizeEvent* event);
+	void resizeEvent(QResizeEvent* event) override;
 
   private:
 	Ui::JobsDock* ui;

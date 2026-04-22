@@ -19,8 +19,12 @@
 #ifndef TRACKPROPERTIESWIDGET_H
 #define TRACKPROPERTIESWIDGET_H
 
+// Qt
 #include <MltProducer.h>
 #include <QWidget>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 namespace Ui {
 class TrackPropertiesWidget;
@@ -34,8 +38,8 @@ class TrackPropertiesWidget : public QWidget {
 	Q_OBJECT
 
   public:
-	explicit TrackPropertiesWidget(Mlt::Producer& track, QWidget* parent = 0);
-	~TrackPropertiesWidget();
+	explicit TrackPropertiesWidget(Mlt::Producer& track, QWidget* parent = nullptr);
+	~TrackPropertiesWidget() override;
 
   private slots:
 	void on_blendModeCombo_currentIndexChanged(int index);
@@ -45,7 +49,7 @@ class TrackPropertiesWidget : public QWidget {
 	Mlt::Transition* getTransition(const QString& name);
 
 	Ui::TrackPropertiesWidget* ui;
-	Mlt::Producer              m_track;
+	Mlt::Producer m_track;
 };
 
 #endif // TRACKPROPERTIESWIDGET_H

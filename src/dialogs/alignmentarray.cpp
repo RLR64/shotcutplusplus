@@ -17,15 +17,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "alignmentarray.hpp"
 
+// Qt
 #include <QDebug>
 #include <QMutexLocker>
+#include <complex>
+#include <fftw3.h>
+
+// STL
 #include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <iostream>
+#include <limits>
 #include <numeric>
+#include <vector>
+
+// Number constants
+constexpr double speedStepNumber{0.0005};
+constexpr int minimumSpeedStepNumber{10};
+constexpr int speedStepNumberB{10};
+constexpr int speedMinNumber{5};
+constexpr int speedMaxNumber{5};
 
 // FFTW plan functions are not threadsafe
 static QMutex s_fftwPlanningMutex;
@@ -40,7 +55,7 @@ AlignmentArray::AlignmentArray(size_t minimum_size) : AlignmentArray() {
 }
 
 AlignmentArray::~AlignmentArray() {
-	QMutexLocker locker(&s_fftwPlanningMutex);
+	QMutexLocker const locker(&s_fftwPlanningMutex);
 	if (m_forwardBuf) {
 		fftw_free(reinterpret_cast<fftw_complex*>(m_forwardBuf));
 		fftw_destroy_plan(m_forwardPlan);
@@ -50,11 +65,11 @@ AlignmentArray::~AlignmentArray() {
 }
 
 void AlignmentArray::init(size_t minimumSize) {
-	QMutexLocker locker(&m_transformMutex);
+	QMutexLocker const locker(&m_transformMutex);
 	m_minimumSize       = minimumSize;
 	m_actualComplexSize = (minimumSize * 2) - 1;
 	if (m_forwardBuf) {
-		QMutexLocker locker(&s_fftwPlanningMutex);
+		QMutexLocker const locker(&s_fftwPlanningMutex);
 		fftw_free(reinterpret_cast<fftw_complex*>(m_forwardBuf));
 		m_forwardBuf = nullptr;
 		fftw_destroy_plan(m_forwardPlan);
@@ -65,16 +80,16 @@ void AlignmentArray::init(size_t minimumSize) {
 }
 
 void AlignmentArray::setValues(const std::vector<double>& values) {
-	QMutexLocker locker(&m_transformMutex);
+	QMutexLocker const locker(&m_transformMutex);
 	m_values        = values;
 	m_isTransformed = false;
 }
 
-double AlignmentArray::calculateOffset(AlignmentArray& from, int* offset) {
+auto AlignmentArray::calculateOffset(AlignmentArray& from, int* offset) -> double {
 	// Create a destination for the correlation values
 	s_fftwPlanningMutex.lock();
-	fftw_complex*         buf            = fftw_alloc_complex(m_actualComplexSize);
-	std::complex<double>* correlationBuf = reinterpret_cast<std::complex<double>*>(buf);
+	fftw_complex* buf = fftw_alloc_complex(m_actualComplexSize);
+	auto* correlationBuf = reinterpret_cast<std::complex<double>*>(buf);
 	fftw_plan correlationPlan = fftw_plan_dft_1d(m_actualComplexSize, buf, buf, FFTW_BACKWARD, FFTW_ESTIMATE);
 	std::fill(correlationBuf, correlationBuf + m_actualComplexSize, std::complex<double>(0));
 	s_fftwPlanningMutex.unlock();
@@ -93,7 +108,7 @@ double AlignmentArray::calculateOffset(AlignmentArray& from, int* offset) {
 	// Find the maximum correlation offset
 	double max = 0;
 	for (size_t i = 0; i < m_actualComplexSize; ++i) {
-		double norm = std::norm(correlationBuf[i]);
+		const double norm = std::norm(correlationBuf[i]);
 		if (max < norm) {
 			*offset = i;
 			max     = norm;
@@ -111,47 +126,47 @@ double AlignmentArray::calculateOffset(AlignmentArray& from, int* offset) {
 
 	// Normalize the best score by dividing by the max autocorrelation of the two signals
 	// (Pearson's correlation coefficient)
-	double correlationCoefficient = sqrt(m_autocorrelationMax) * sqrt(from.m_autocorrelationMax);
+	const double correlationCoefficient = sqrt(m_autocorrelationMax) * sqrt(from.m_autocorrelationMax);
 	return max / correlationCoefficient;
 }
 
-double AlignmentArray::calculateOffsetAndSpeed(AlignmentArray& from, double* speed, int* offset, double speedRange) {
+auto AlignmentArray::calculateOffsetAndSpeed(AlignmentArray& from, double* speed, int* offset, double speedRange) -> double {
 	// The minimum speed step results in one frame of stretch.
 	// Do not try to compensate for more than 1 frame of speed difference.
-	double         minimumSpeedStep = 1.0 / (double)from.m_values.size();
-	double         speedStep        = 0.0005;
-	double         bestSpeed        = 1.0;
-	int            bestOffset       = 0;
-	double         bestScore        = calculateOffset(from, &bestOffset);
+	const double minimumSpeedStep = 1.0 / (double)from.m_values.size();
+	double speedStep = speedStepNumber;
+	double bestSpeed = 1.0;
+	int bestOffset = 0;
+	double bestScore = calculateOffset(from, &bestOffset);
 	AlignmentArray stretched(m_minimumSize);
-	double         speedMin = bestSpeed - speedRange;
-	double         speedMax = bestSpeed + speedRange;
+	double speedMin = bestSpeed - speedRange;
+	double speedMax = bestSpeed + speedRange;
 
-	while (speedStep > (minimumSpeedStep / 10)) {
+	while (speedStep > (minimumSpeedStep / minimumSpeedStepNumber)) {
 		for (double s = speedMin; s <= speedMax; s += speedStep) {
 			if (s == bestSpeed) {
 				continue;
 			}
 			// Stretch the original values to simulate a speed compensation
-			double              factor        = 1.0 / s;
-			size_t              stretchedSize = std::floor((double)from.m_values.size() * factor);
+			const double factor = 1.0 / s;
+			size_t const stretchedSize = std::floor((double)from.m_values.size() * factor);
 			std::vector<double> strechedValues(stretchedSize);
 			// Nearest neighbor interpolation
 			for (size_t i = 0; i < stretchedSize; i++) {
-				size_t srcIndex   = std::round(s * i);
+				size_t const srcIndex   = std::round(s * i);
 				strechedValues[i] = from.m_values[srcIndex];
 			}
 			stretched.setValues(strechedValues);
-			double score = calculateOffset(stretched, offset);
+			const double score = calculateOffset(stretched, offset);
 			if (score > bestScore) {
 				bestScore  = score;
 				bestSpeed  = s;
 				bestOffset = *offset;
 			}
 		}
-		speedStep /= 10;
-		speedMin = bestSpeed - (speedStep * 5);
-		speedMax = bestSpeed + (speedStep * 5);
+		speedStep /= speedStepNumberB;
+		speedMin = bestSpeed - (speedStep * speedMinNumber);
+		speedMax = bestSpeed + (speedStep * speedMaxNumber);
 	}
 	*speed  = bestSpeed;
 	*offset = bestOffset;
@@ -159,18 +174,18 @@ double AlignmentArray::calculateOffsetAndSpeed(AlignmentArray& from, double* spe
 }
 
 void AlignmentArray::transform() {
-	QMutexLocker locker(&m_transformMutex);
+	QMutexLocker const locker(&m_transformMutex);
 	if (!m_isTransformed) {
 		if (!m_forwardBuf) {
 			// Create the plans while the global planning mutex is locked
 			s_fftwPlanningMutex.lock();
 			fftw_complex* buf = nullptr;
 			// Allocate the forward buffer and plan
-			buf           = fftw_alloc_complex(m_actualComplexSize);
+			buf = fftw_alloc_complex(m_actualComplexSize);
 			m_forwardBuf  = reinterpret_cast<std::complex<double>*>(buf);
 			m_forwardPlan = fftw_plan_dft_1d(m_actualComplexSize, buf, buf, FFTW_FORWARD, FFTW_ESTIMATE);
 			// Allocate the backward buffer and plan
-			buf            = fftw_alloc_complex(m_actualComplexSize);
+			buf = fftw_alloc_complex(m_actualComplexSize);
 			m_backwardBuf  = reinterpret_cast<std::complex<double>*>(buf);
 			m_backwardPlan = fftw_plan_dft_1d(m_actualComplexSize, buf, buf, FFTW_BACKWARD, FFTW_ESTIMATE);
 			s_fftwPlanningMutex.unlock();
@@ -179,11 +194,11 @@ void AlignmentArray::transform() {
 		std::fill(m_backwardBuf, m_backwardBuf + m_actualComplexSize, std::complex<double>(0));
 		// Calculate the mean and standard deviation to be used to normalize the values.
 		double accum = 0.0;
-		std::for_each(m_values.begin(), m_values.end(), [&](const double d) { accum += d; });
+		std::for_each(m_values.begin(), m_values.end(), [&](const double d) -> void { accum += d; });
 		double mean = accum / m_values.size();
 		accum       = 0;
-		std::for_each(m_values.begin(), m_values.end(), [&](const double d) { accum += (d - mean) * (d - mean); });
-		double stddev = sqrt(accum / (m_values.size() - 1));
+		std::for_each(m_values.begin(), m_values.end(), [&](const double d) -> void { accum += (d - mean) * (d - mean); });
+		const double stddev = sqrt(accum / (m_values.size() - 1));
 		// Fill the transform array
 		// Normalize the input values: Subtract the mean and divide by the standard deviation.
 		for (size_t i = 0; i < m_values.size(); i++) {
@@ -199,7 +214,7 @@ void AlignmentArray::transform() {
 		fftw_execute(m_backwardPlan);
 		// Find the maximum autocorrelation value
 		for (size_t i = 0; i < m_actualComplexSize; i++) {
-			double norm = std::norm(m_backwardBuf[i]);
+			const double norm = std::norm(m_backwardBuf[i]);
 			if (norm > m_autocorrelationMax)
 				m_autocorrelationMax = norm;
 		}

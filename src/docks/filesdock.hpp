@@ -18,12 +18,20 @@
 #ifndef FILESDOCK_HPP
 #define FILESDOCK_HPP
 
+// Qt
 #include <QDockWidget>
 #include <QFileSystemModel>
 #include <QHash>
 #include <QMutex>
 #include <QTimer>
 #include <QUndoCommand>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
+
+// STL
+#include <memory>
 
 namespace Ui {
 class FilesDock;
@@ -44,13 +52,13 @@ class FilesDock : public QDockWidget {
 
   public:
 	explicit FilesDock(QWidget* parent = nullptr);
-	~FilesDock();
+	~FilesDock() override;
 
 	struct CacheItem {
 		int mediaType{-1}; // -1 = unknown
 	};
 
-	int  getCacheMediaType(const QString& key);
+	auto  getCacheMediaType(const QString& key) -> int;
 	void setCacheMediaType(const QString& key, int mediaType);
 
   signals:
@@ -77,8 +85,8 @@ class FilesDock : public QDockWidget {
 	void on_removeLocationButton_clicked();
 
   protected:
-	void keyPressEvent(QKeyEvent* event);
-	void keyReleaseEvent(QKeyEvent* event);
+	void keyPressEvent(QKeyEvent* event) override;
+	void keyReleaseEvent(QKeyEvent* event) override;
 
   private:
 	void    setupActions();
@@ -88,8 +96,8 @@ class FilesDock : public QDockWidget {
 	void    onSelectAllActionTriggered();
 	void    incrementIndex(int step);
 	void    addOpenWithMenu(QMenu* menu);
-	QString firstSelectedFilePath();
-	QString firstSelectedMediaType();
+	auto firstSelectedFilePath() -> QString;
+	auto firstSelectedMediaType() -> QString;
 	void    openClip(const QString& filePath);
 
 	Ui::FilesDock*                    ui;

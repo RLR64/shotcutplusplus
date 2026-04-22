@@ -15,11 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "settings.hpp"
-
 #include "Logger.hpp"
 #include "qmltypes/qmlapplication.hpp"
 
+// Qt
 #include <QApplication>
 #include <QAudioDevice>
 #include <QColor>
@@ -29,21 +30,37 @@
 #include <QLocale>
 #include <QMediaDevices>
 #include <QStandardPaths>
+#include <framework/mlt_types.h>
 #include <qdesktopservices.h>
+#include <qforeach.h>
+#include <qkeysequence.h>
+#include <qlatin1stringview.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qscopedpointer.h>
+#include <qtenvironmentvariables.h>
+#include <qthread.h>
+#include <qtmetamacros.h>
 
-static const QString                   APP_DATA_DIR_KEY("appdatadir");
-static const QString                   SHOTCUT_INI_FILENAME("/shotcut.ini");
-static const QString                   RECENT_INI_FILENAME("recent.ini");
+// STL
+#include <utility>
+
+// Number constants
+
+static const QString APP_DATA_DIR_KEY("appdatadir");
+static const QString SHOTCUT_INI_FILENAME("/shotcut.ini");
+static const QString RECENT_INI_FILENAME("recent.ini");
 static QScopedPointer<ShotcutSettings> instance;
-static QString                         appDataForSession;
-static constexpr int                   kMaximumTrackHeight = {125};
-static const QString                   kRecentKey("recent");
-static const QString                   kProjectsKey("projects");
+static QString appDataForSession;
+static constexpr int kMaximumTrackHeight{125};
+static const QString kRecentKey("recent");
+static const QString kProjectsKey("projects");
 
 namespace {
 struct ModeMap {
 	ShotcutSettings::ProcessingMode id;
-	const char*                     name;
+	const char* name;
 };
 
 static constexpr ModeMap kModeMap[] = {
@@ -53,7 +70,7 @@ static constexpr ModeMap kModeMap[] = {
 };
 } // anonymous namespace
 
-ShotcutSettings& ShotcutSettings::singleton() {
+auto ShotcutSettings::singleton() -> ShotcutSettings& {
 	if (!instance) {
 		if (appDataForSession.isEmpty()) {
 			instance.reset(new ShotcutSettings);
@@ -86,7 +103,7 @@ void ShotcutSettings::migrateRecent() {
 	auto oldRecents = settings.value(kRecentKey).toStringList();
 	if (recent().isEmpty() && !oldRecents.isEmpty()) {
 		auto newRecents = recent();
-		for (const auto& a : oldRecents) {
+		for (const auto& a : std::as_const(oldRecents)) {
 			if (a.size() < ShotcutSettings::MaxPath && !newRecents.contains(a)) {
 				while (newRecents.size() > 100) {
 					newRecents.removeFirst();
@@ -130,7 +147,7 @@ void ShotcutSettings::log() {
 #endif
 }
 
-QString ShotcutSettings::language() const {
+auto ShotcutSettings::language() const -> QString {
 	QString language = settings.value("language", QLocale().name()).toString();
 	if (language == "en")
 		language = "en_US";
@@ -141,7 +158,7 @@ void ShotcutSettings::setLanguage(const QString& s) {
 	settings.setValue("language", s);
 }
 
-double ShotcutSettings::imageDuration() const {
+auto ShotcutSettings::imageDuration() const -> double {
 	return settings.value("imageDuration", 4.0).toDouble();
 }
 
@@ -149,7 +166,7 @@ void ShotcutSettings::setImageDuration(double d) {
 	settings.setValue("imageDuration", d);
 }
 
-QString ShotcutSettings::openPath() const {
+auto ShotcutSettings::openPath() const -> QString {
 	return settings.value("openPath", QStandardPaths::standardLocations(QStandardPaths::MoviesLocation)).toString();
 }
 
@@ -158,7 +175,7 @@ void ShotcutSettings::setOpenPath(const QString& s) {
 	emit savePathChanged();
 }
 
-QString ShotcutSettings::savePath() const {
+auto ShotcutSettings::savePath() const -> QString {
 	return settings.value("savePath", QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation)).toString();
 }
 
@@ -167,7 +184,7 @@ void ShotcutSettings::setSavePath(const QString& s) {
 	emit savePathChanged();
 }
 
-QStringList ShotcutSettings::recent() const {
+auto ShotcutSettings::recent() const -> QStringList {
 	return m_recent.value(kRecentKey).toStringList();
 }
 
@@ -178,10 +195,10 @@ void ShotcutSettings::setRecent(const QStringList& ls) {
 		m_recent.setValue(kRecentKey, ls);
 }
 
-QStringList ShotcutSettings::projects() {
+auto ShotcutSettings::projects() -> QStringList {
 	auto ls = m_recent.value(kProjectsKey).toStringList();
 	if (ls.isEmpty()) {
-		for (auto& r : recent()) {
+		for (const auto& r : recent()) {
 			if (r.endsWith(".mlt"))
 				ls << r;
 		}
@@ -200,7 +217,7 @@ void ShotcutSettings::setProjects(const QStringList& ls) {
 		m_recent.setValue(kProjectsKey, ls);
 }
 
-QString ShotcutSettings::theme() const {
+auto ShotcutSettings::theme() const -> QString {
 	return settings.value("theme", "dark").toString();
 }
 
@@ -208,7 +225,7 @@ void ShotcutSettings::setTheme(const QString& s) {
 	settings.setValue("theme", s);
 }
 
-QThread::Priority ShotcutSettings::jobPriority() const {
+auto ShotcutSettings::jobPriority() const -> QThread::Priority {
 	const auto priority = settings.value("jobPriority", "low").toString();
 	if (priority == "low") {
 		return QThread::LowPriority;
@@ -220,7 +237,7 @@ void ShotcutSettings::setJobPriority(const QString& s) {
 	settings.setValue("jobPriority", s);
 }
 
-bool ShotcutSettings::showTitleBars() const {
+auto ShotcutSettings::showTitleBars() const -> bool {
 	return settings.value("titleBars", true).toBool();
 }
 
@@ -228,7 +245,7 @@ void ShotcutSettings::setShowTitleBars(bool b) {
 	settings.setValue("titleBars", b);
 }
 
-bool ShotcutSettings::showToolBar() const {
+auto ShotcutSettings::showToolBar() const -> bool {
 	return settings.value("toolBar", true).toBool();
 }
 
@@ -236,7 +253,7 @@ void ShotcutSettings::setShowToolBar(bool b) {
 	settings.setValue("toolBar", b);
 }
 
-bool ShotcutSettings::textUnderIcons() const {
+auto ShotcutSettings::textUnderIcons() const -> bool {
 	return settings.value("textUnderIcons", true).toBool();
 }
 
@@ -244,7 +261,7 @@ void ShotcutSettings::setTextUnderIcons(bool b) {
 	settings.setValue("textUnderIcons", b);
 }
 
-bool ShotcutSettings::smallIcons() const {
+auto ShotcutSettings::smallIcons() const -> bool {
 	return settings.value("smallIcons", false).toBool();
 }
 
@@ -253,7 +270,7 @@ void ShotcutSettings::setSmallIcons(bool b) {
 	emit smallIconsChanged();
 }
 
-QByteArray ShotcutSettings::windowGeometry() const {
+auto ShotcutSettings::windowGeometry() const -> QByteArray {
 	return settings.value("geometry2").toByteArray();
 }
 
@@ -261,7 +278,7 @@ void ShotcutSettings::setWindowGeometry(const QByteArray& a) {
 	settings.setValue("geometry2", a);
 }
 
-QByteArray ShotcutSettings::windowGeometryDefault() const {
+auto ShotcutSettings::windowGeometryDefault() const -> QByteArray {
 	return settings.value("geometryDefault").toByteArray();
 }
 
@@ -269,7 +286,7 @@ void ShotcutSettings::setWindowGeometryDefault(const QByteArray& a) {
 	settings.setValue("geometryDefault", a);
 }
 
-QByteArray ShotcutSettings::windowState() const {
+auto ShotcutSettings::windowState() const -> QByteArray {
 	return settings.value("windowState2").toByteArray();
 }
 
@@ -277,7 +294,7 @@ void ShotcutSettings::setWindowState(const QByteArray& a) {
 	settings.setValue("windowState2", a);
 }
 
-QByteArray ShotcutSettings::windowStateDefault() const {
+auto ShotcutSettings::windowStateDefault() const -> QByteArray {
 	return settings.value("windowStateDefault").toByteArray();
 }
 
@@ -285,7 +302,7 @@ void ShotcutSettings::setWindowStateDefault(const QByteArray& a) {
 	settings.setValue("windowStateDefault", a);
 }
 
-QString ShotcutSettings::viewMode() const {
+auto ShotcutSettings::viewMode() const -> QString {
 	return settings.value("playlist/viewMode").toString();
 }
 
@@ -294,7 +311,7 @@ void ShotcutSettings::setViewMode(const QString& viewMode) {
 	emit viewModeChanged();
 }
 
-QString ShotcutSettings::filesViewMode() const {
+auto ShotcutSettings::filesViewMode() const -> QString {
 	return settings.value("files/viewMode", QLatin1String("tiled")).toString();
 }
 
@@ -303,7 +320,7 @@ void ShotcutSettings::setFilesViewMode(const QString& viewMode) {
 	emit filesViewModeChanged();
 }
 
-QStringList ShotcutSettings::filesLocations() const {
+auto ShotcutSettings::filesLocations() const -> QStringList {
 	QStringList result;
 	for (const auto& s : settings.value("files/locations").toStringList()) {
 		if (!s.startsWith("__"))
@@ -312,13 +329,13 @@ QStringList ShotcutSettings::filesLocations() const {
 	return result;
 }
 
-QString ShotcutSettings::filesLocationPath(const QString& name) const {
-	QString key = QStringLiteral("files/location/%1").arg(name);
+auto ShotcutSettings::filesLocationPath(const QString& name) const -> QString {
+	QString const key = QStringLiteral("files/location/%1").arg(name);
 	return settings.value(key).toString();
 }
 
-bool ShotcutSettings::setFilesLocation(const QString& name, const QString& path) {
-	bool        isNew     = false;
+auto ShotcutSettings::setFilesLocation(const QString& name, const QString& path) -> bool {
+	bool isNew = false;
 	QStringList locations = filesLocations();
 	if (!locations.contains(name)) {
 		isNew = true;
@@ -329,9 +346,9 @@ bool ShotcutSettings::setFilesLocation(const QString& name, const QString& path)
 	return isNew;
 }
 
-bool ShotcutSettings::removeFilesLocation(const QString& name) {
-	QStringList list  = filesLocations();
-	int         index = list.indexOf(name);
+auto ShotcutSettings::removeFilesLocation(const QString& name) -> bool {
+	QStringList list = filesLocations();
+	const int index = list.indexOf(name);
 	if (index > -1) {
 		list.removeAt(index);
 		if (list.isEmpty())
@@ -344,7 +361,7 @@ bool ShotcutSettings::removeFilesLocation(const QString& name) {
 	return false;
 }
 
-QStringList ShotcutSettings::filesOpenOther(const QString& type) const {
+auto ShotcutSettings::filesOpenOther(const QString& type) const -> QStringList {
 	return settings.value("files/openOther/" + type).toStringList();
 }
 
@@ -355,9 +372,9 @@ void ShotcutSettings::setFilesOpenOther(const QString& type, const QString& file
 	settings.setValue("files/openOther/" + type, filePaths);
 }
 
-bool ShotcutSettings::removeFilesOpenOther(const QString& type, const QString& filePath) {
+auto ShotcutSettings::removeFilesOpenOther(const QString& type, const QString& filePath) -> bool {
 	QStringList list  = filesOpenOther(type);
-	int         index = list.indexOf(filePath);
+	const int index = list.indexOf(filePath);
 	if (index > -1) {
 		list.removeAt(index);
 		if (list.isEmpty())
@@ -369,9 +386,9 @@ bool ShotcutSettings::removeFilesOpenOther(const QString& type, const QString& f
 	return false;
 }
 
-QString ShotcutSettings::filesCurrentDir() const {
-	const auto ls   = QStandardPaths::standardLocations(QStandardPaths::HomeLocation);
-	auto       path = settings.value("files/currentDir", ls.first()).toString();
+auto ShotcutSettings::filesCurrentDir() const -> QString {
+	const auto ls = QStandardPaths::standardLocations(QStandardPaths::HomeLocation);
+	auto path = settings.value("files/currentDir", ls.first()).toString();
 	if (!QFile::exists(path)) {
 		LOG_DEBUG() << "dir does not exist:" << QDir::toNativeSeparators(path);
 		path = ls.first();
@@ -383,7 +400,7 @@ void ShotcutSettings::setFilesCurrentDir(const QString& s) {
 	settings.setValue("files/currentDir", s);
 }
 
-bool ShotcutSettings::filesFoldersOpen() const {
+auto ShotcutSettings::filesFoldersOpen() const -> bool {
 	return settings.value("files/foldersOpen", true).toBool();
 }
 
@@ -391,7 +408,7 @@ void ShotcutSettings::setFilesFoldersOpen(bool b) {
 	settings.setValue("files/foldersOpen", b);
 }
 
-QString ShotcutSettings::exportFrameSuffix() const {
+auto ShotcutSettings::exportFrameSuffix() const -> QString {
 	return settings.value("exportFrameSuffix", ".png").toString();
 }
 
@@ -399,7 +416,7 @@ void ShotcutSettings::setExportFrameSuffix(const QString& exportFrameSuffix) {
 	settings.setValue("exportFrameSuffix", exportFrameSuffix);
 }
 
-QString ShotcutSettings::encodePath() const {
+auto ShotcutSettings::encodePath() const -> QString {
 	return settings.value("encode/path", QStandardPaths::standardLocations(QStandardPaths::MoviesLocation)).toString();
 }
 
@@ -407,7 +424,7 @@ void ShotcutSettings::setEncodePath(const QString& s) {
 	settings.setValue("encode/path", s);
 }
 
-bool ShotcutSettings::encodeFreeSpaceCheck() const {
+auto ShotcutSettings::encodeFreeSpaceCheck() const -> bool {
 	return settings.value("encode/freeSpaceCheck", true).toBool();
 }
 
@@ -415,7 +432,7 @@ void ShotcutSettings::setEncodeFreeSpaceCheck(bool b) {
 	settings.setValue("encode/freeSpaceCheck", b);
 }
 
-bool ShotcutSettings::encodeUseHardware() const {
+auto ShotcutSettings::encodeUseHardware() const -> bool {
 	return settings.value("encode/useHardware").toBool();
 }
 
@@ -423,7 +440,7 @@ void ShotcutSettings::setEncodeUseHardware(bool b) {
 	settings.setValue("encode/useHardware", b);
 }
 
-QStringList ShotcutSettings::encodeHardware() const {
+auto ShotcutSettings::encodeHardware() const -> QStringList {
 	return settings.value("encode/hardware").toStringList();
 }
 
@@ -434,7 +451,7 @@ void ShotcutSettings::setEncodeHardware(const QStringList& ls) {
 		settings.setValue("encode/hardware", ls);
 }
 
-bool ShotcutSettings::encodeHardwareDecoder() const {
+auto ShotcutSettings::encodeHardwareDecoder() const -> bool {
 	return settings.value("encode/hardwareDecoder", false).toBool();
 }
 
@@ -442,7 +459,7 @@ void ShotcutSettings::setEncodeHardwareDecoder(bool b) {
 	settings.setValue("encode/hardwareDecoder", b);
 }
 
-bool ShotcutSettings::encodeAdvanced() const {
+auto ShotcutSettings::encodeAdvanced() const -> bool {
 	return settings.value("encode/advanced", false).toBool();
 }
 
@@ -450,7 +467,7 @@ void ShotcutSettings::setEncodeAdvanced(bool b) {
 	settings.setValue("encode/advanced", b);
 }
 
-bool ShotcutSettings::convertAdvanced() const {
+auto ShotcutSettings::convertAdvanced() const -> bool {
 	return settings.value("convertAdvanced", false).toBool();
 }
 
@@ -458,7 +475,7 @@ void ShotcutSettings::setConvertAdvanced(bool b) {
 	settings.setValue("convertAdvanced", b);
 }
 
-ShotcutSettings::ProcessingMode ShotcutSettings::processingMode() {
+auto ShotcutSettings::processingMode() -> ShotcutSettings::ProcessingMode {
 	if (settings.contains("processingMode")) {
 		auto result = (ShotcutSettings::ProcessingMode)settings.value("processingMode").toInt();
 		if (result == Linear8Cpu) {
@@ -481,7 +498,7 @@ void ShotcutSettings::setProcessingMode(ProcessingMode mode) {
 	emit playerGpuChanged();
 }
 
-QString ShotcutSettings::processingModeStr(ShotcutSettings::ProcessingMode mode) {
+auto ShotcutSettings::processingModeStr(ShotcutSettings::ProcessingMode mode) -> QString {
 	for (const auto& m : kModeMap) {
 		if (m.id == mode)
 			return QString::fromLatin1(m.name);
@@ -490,7 +507,7 @@ QString ShotcutSettings::processingModeStr(ShotcutSettings::ProcessingMode mode)
 	return QStringLiteral("Native8Cpu");
 }
 
-ShotcutSettings::ProcessingMode ShotcutSettings::processingModeId(const QString& mode) {
+auto ShotcutSettings::processingModeId(const QString& mode) -> ShotcutSettings::ProcessingMode {
 	for (const auto& m : kModeMap) {
 		if (mode == QLatin1String(m.name))
 			return m.id;
@@ -499,7 +516,7 @@ ShotcutSettings::ProcessingMode ShotcutSettings::processingModeId(const QString&
 	return Native8Cpu;
 }
 
-bool ShotcutSettings::showConvertClipDialog() const {
+auto ShotcutSettings::showConvertClipDialog() const -> bool {
 	return settings.value("showConvertClipDialog", true).toBool();
 }
 
@@ -507,7 +524,7 @@ void ShotcutSettings::setShowConvertClipDialog(bool b) {
 	settings.setValue("showConvertClipDialog", b);
 }
 
-bool ShotcutSettings::encodeParallelProcessing() const {
+auto ShotcutSettings::encodeParallelProcessing() const -> bool {
 	return settings.value("encode/parallelProcessing", false).toBool();
 }
 
@@ -515,7 +532,7 @@ void ShotcutSettings::setEncodeParallelProcessing(bool b) {
 	settings.setValue("encode/parallelProcessing", b);
 }
 
-int ShotcutSettings::playerAudioChannels() const {
+auto ShotcutSettings::playerAudioChannels() const -> int {
 	return settings.value("player/audioChannels", 2).toInt();
 }
 
@@ -524,7 +541,7 @@ void ShotcutSettings::setPlayerAudioChannels(int i) {
 	emit playerAudioChannelsChanged(i);
 }
 
-QString ShotcutSettings::playerDeinterlacer() const {
+auto ShotcutSettings::playerDeinterlacer() const -> QString {
 	QString result = settings.value("player/deinterlacer", "onefield").toString();
 	// XXX workaround yadif crashing with mlt_transition
 	if (result == "yadif" || result == "yadif-nospatial")
@@ -536,7 +553,7 @@ void ShotcutSettings::setPlayerDeinterlacer(const QString& s) {
 	settings.setValue("player/deinterlacer", s);
 }
 
-QString ShotcutSettings::playerExternal() const {
+auto ShotcutSettings::playerExternal() const -> QString {
 	auto result = settings.value("player/external", "").toString();
 	// "sdi" is no longer supported DVEO VidPort
 	return result == "sdi" ? "" : result;
@@ -546,11 +563,11 @@ void ShotcutSettings::setPlayerExternal(const QString& s) {
 	settings.setValue("player/external", s);
 }
 
-bool ShotcutSettings::playerJACK() const {
+auto ShotcutSettings::playerJACK() const -> bool {
 	return settings.value("player/jack", false).toBool();
 }
 
-QString ShotcutSettings::playerInterpolation() const {
+auto ShotcutSettings::playerInterpolation() const -> QString {
 	return settings.value("player/interpolation", "bilinear").toString();
 }
 
@@ -558,10 +575,10 @@ void ShotcutSettings::setPlayerInterpolation(const QString& s) {
 	settings.setValue("player/interpolation", s);
 }
 
-bool ShotcutSettings::playerGPU() const {
+auto ShotcutSettings::playerGPU() const -> bool {
 	// This is the legacy function for the old GPU mode.
 	if (settings.contains("processingMode")) {
-		ProcessingMode mode = (ProcessingMode)settings.value("processingMode").toInt();
+		ProcessingMode const mode = (ProcessingMode)settings.value("processingMode").toInt();
 		return mode == Linear10GpuCpu;
 	} else if (settings.contains("player/gpu2")) {
 		// Legacy GPU Mode
@@ -570,7 +587,7 @@ bool ShotcutSettings::playerGPU() const {
 	return false;
 }
 
-bool ShotcutSettings::playerWarnGPU() const {
+auto ShotcutSettings::playerWarnGPU() const -> bool {
 	return false; // settings.value("player/warnGPU", false).toBool();
 }
 
@@ -578,7 +595,7 @@ void ShotcutSettings::setPlayerJACK(bool b) {
 	settings.setValue("player/jack", b);
 }
 
-int ShotcutSettings::playerDecklinkGamma() const {
+auto ShotcutSettings::playerDecklinkGamma() const -> int {
 	return settings.value("player/decklinkGamma", 0).toInt();
 }
 
@@ -586,7 +603,7 @@ void ShotcutSettings::setPlayerDecklinkGamma(int i) {
 	settings.setValue("player/decklinkGamma", i);
 }
 
-int ShotcutSettings::playerKeyerMode() const {
+auto ShotcutSettings::playerKeyerMode() const -> int {
 	return settings.value("player/keyer", 0).toInt();
 }
 
@@ -594,7 +611,7 @@ void ShotcutSettings::setPlayerKeyerMode(int i) {
 	settings.setValue("player/keyer", i);
 }
 
-bool ShotcutSettings::playerMuted() const {
+auto ShotcutSettings::playerMuted() const -> bool {
 	return settings.value("player/muted", false).toBool();
 }
 
@@ -602,7 +619,7 @@ void ShotcutSettings::setPlayerMuted(bool b) {
 	settings.setValue("player/muted", b);
 }
 
-QString ShotcutSettings::playerProfile() const {
+auto ShotcutSettings::playerProfile() const -> QString {
 	return settings.value("player/profile", "").toString();
 }
 
@@ -610,7 +627,7 @@ void ShotcutSettings::setPlayerProfile(const QString& s) {
 	settings.setValue("player/profile", s);
 }
 
-bool ShotcutSettings::playerProgressive() const {
+auto ShotcutSettings::playerProgressive() const -> bool {
 	return settings.value("player/progressive", true).toBool();
 }
 
@@ -618,7 +635,7 @@ void ShotcutSettings::setPlayerProgressive(bool b) {
 	settings.setValue("player/progressive", b);
 }
 
-bool ShotcutSettings::playerRealtime() const {
+auto ShotcutSettings::playerRealtime() const -> bool {
 	return settings.value("player/realtime", true).toBool();
 }
 
@@ -626,7 +643,7 @@ void ShotcutSettings::setPlayerRealtime(bool b) {
 	settings.setValue("player/realtime", b);
 }
 
-bool ShotcutSettings::playerScrubAudio() const {
+auto ShotcutSettings::playerScrubAudio() const -> bool {
 	return settings.value("player/scrubAudio", true).toBool();
 }
 
@@ -634,7 +651,7 @@ void ShotcutSettings::setPlayerScrubAudio(bool b) {
 	settings.setValue("player/scrubAudio", b);
 }
 
-int ShotcutSettings::playerVolume() const {
+auto ShotcutSettings::playerVolume() const -> int {
 	return settings.value("player/volume", 88).toInt();
 }
 
@@ -642,7 +659,7 @@ void ShotcutSettings::setPlayerVolume(int i) {
 	settings.setValue("player/volume", i);
 }
 
-float ShotcutSettings::playerZoom() const {
+auto ShotcutSettings::playerZoom() const -> float {
 	return settings.value("player/zoom", 0.0f).toFloat();
 }
 
@@ -650,7 +667,7 @@ void ShotcutSettings::setPlayerZoom(float f) {
 	settings.setValue("player/zoom", f);
 }
 
-int ShotcutSettings::playerPreviewScale() const {
+auto ShotcutSettings::playerPreviewScale() const -> int {
 	return settings.value("player/previewScale", 0).toInt();
 }
 
@@ -658,11 +675,11 @@ void ShotcutSettings::setPlayerPreviewScale(int i) {
 	settings.setValue("player/previewScale", i);
 }
 
-bool ShotcutSettings::playerPreviewHardwareDecoder() const {
+auto ShotcutSettings::playerPreviewHardwareDecoder() const -> bool {
 	return settings.value("player/previewHardwareDecoder", true).toBool();
 }
 
-bool ShotcutSettings::playerPreviewHardwareDecoderIsSet() const {
+auto ShotcutSettings::playerPreviewHardwareDecoderIsSet() const -> bool {
 	return settings.contains("player/previewHardwareDecoder");
 }
 
@@ -670,7 +687,7 @@ void ShotcutSettings::setPlayerPreviewHardwareDecoder(bool b) {
 	settings.setValue("player/previewHardwareDecoder", b);
 }
 
-int ShotcutSettings::playerVideoDelayMs() const {
+auto ShotcutSettings::playerVideoDelayMs() const -> int {
 	return settings.value("player/videoDelayMs", 0).toInt();
 }
 
@@ -678,7 +695,7 @@ void ShotcutSettings::setPlayerVideoDelayMs(int i) {
 	settings.setValue("player/videoDelayMs", i);
 }
 
-double ShotcutSettings::playerJumpSeconds() const {
+auto ShotcutSettings::playerJumpSeconds() const -> double {
 	return settings.value("player/jumpSeconds", 60.0).toDouble();
 }
 
@@ -686,7 +703,7 @@ void ShotcutSettings::setPlayerJumpSeconds(double i) {
 	settings.setValue("player/jumpSeconds", i);
 }
 
-QString ShotcutSettings::playerAudioDriver() const {
+auto ShotcutSettings::playerAudioDriver() const -> QString {
 #if defined(Q_OS_WIN)
 	auto s = playerAudioChannels() > 2 ? "directsound" : "winmm";
 #else
@@ -703,7 +720,7 @@ void ShotcutSettings::setPlayerAudioDriver(const QString& s) {
 	settings.setValue("player/audioDriver", s);
 }
 
-bool ShotcutSettings::playerPauseAfterSeek() const {
+auto ShotcutSettings::playerPauseAfterSeek() const -> bool {
 	return settings.value("player/pauseAfterSeek", true).toBool();
 }
 
@@ -711,7 +728,7 @@ void ShotcutSettings::setPlayerPauseAfterSeek(bool b) {
 	settings.setValue("player/pauseAfterSeek", b);
 }
 
-QString ShotcutSettings::playlistThumbnails() const {
+auto ShotcutSettings::playlistThumbnails() const -> QString {
 	return settings.value("playlist/thumbnails", "small").toString();
 }
 
@@ -720,7 +737,7 @@ void ShotcutSettings::setPlaylistThumbnails(const QString& s) {
 	emit playlistThumbnailsChanged();
 }
 
-bool ShotcutSettings::playlistAutoplay() const {
+auto ShotcutSettings::playlistAutoplay() const -> bool {
 	return settings.value("playlist/autoplay", true).toBool();
 }
 
@@ -728,7 +745,7 @@ void ShotcutSettings::setPlaylistAutoplay(bool b) {
 	settings.setValue("playlist/autoplay", b);
 }
 
-bool ShotcutSettings::playlistShowColumn(const QString& column) {
+auto ShotcutSettings::playlistShowColumn(const QString& column) -> bool {
 	return settings.value("playlist/columns/" + column, true).toBool();
 }
 
@@ -736,7 +753,7 @@ void ShotcutSettings::setPlaylistShowColumn(const QString& column, bool b) {
 	settings.setValue("playlist/columns/" + column, b);
 }
 
-bool ShotcutSettings::timelineDragScrub() const {
+auto ShotcutSettings::timelineDragScrub() const -> bool {
 	return settings.value("timeline/dragScrub", false).toBool();
 }
 
@@ -745,7 +762,7 @@ void ShotcutSettings::setTimelineDragScrub(bool b) {
 	emit timelineDragScrubChanged();
 }
 
-bool ShotcutSettings::timelineShowWaveforms() const {
+auto ShotcutSettings::timelineShowWaveforms() const -> bool {
 	return settings.value("timeline/waveforms", true).toBool();
 }
 
@@ -754,7 +771,7 @@ void ShotcutSettings::setTimelineShowWaveforms(bool b) {
 	emit timelineShowWaveformsChanged();
 }
 
-bool ShotcutSettings::timelineShowThumbnails() const {
+auto ShotcutSettings::timelineShowThumbnails() const -> bool {
 	return settings.value("timeline/thumbnails", true).toBool();
 }
 
@@ -763,7 +780,7 @@ void ShotcutSettings::setTimelineShowThumbnails(bool b) {
 	emit timelineShowThumbnailsChanged();
 }
 
-bool ShotcutSettings::timelineRipple() const {
+auto ShotcutSettings::timelineRipple() const -> bool {
 	return settings.value("timeline/ripple", false).toBool();
 }
 
@@ -772,7 +789,7 @@ void ShotcutSettings::setTimelineRipple(bool b) {
 	emit timelineRippleChanged();
 }
 
-bool ShotcutSettings::timelineRippleAllTracks() const {
+auto ShotcutSettings::timelineRippleAllTracks() const -> bool {
 	return settings.value("timeline/rippleAllTracks", false).toBool();
 }
 
@@ -781,7 +798,7 @@ void ShotcutSettings::setTimelineRippleAllTracks(bool b) {
 	emit timelineRippleAllTracksChanged();
 }
 
-bool ShotcutSettings::timelineRippleMarkers() const {
+auto ShotcutSettings::timelineRippleMarkers() const -> bool {
 	return settings.value("timeline/rippleMarkers", false).toBool();
 }
 
@@ -790,7 +807,7 @@ void ShotcutSettings::setTimelineRippleMarkers(bool b) {
 	emit timelineRippleMarkersChanged();
 }
 
-bool ShotcutSettings::timelineSnap() const {
+auto ShotcutSettings::timelineSnap() const -> bool {
 	return settings.value("timeline/snap", true).toBool();
 }
 
@@ -799,7 +816,7 @@ void ShotcutSettings::setTimelineSnap(bool b) {
 	emit timelineSnapChanged();
 }
 
-int ShotcutSettings::timelineTrackHeight() const {
+auto ShotcutSettings::timelineTrackHeight() const -> int {
 	return qMin(settings.value("timeline/trackHeight", 50).toInt(), kMaximumTrackHeight);
 }
 
@@ -807,7 +824,7 @@ void ShotcutSettings::setTimelineTrackHeight(int n) {
 	settings.setValue("timeline/trackHeight", qMin(n, kMaximumTrackHeight));
 }
 
-bool ShotcutSettings::timelineScrollZoom() const {
+auto ShotcutSettings::timelineScrollZoom() const -> bool {
 	return settings.value("timeline/scrollZoom", true).toBool();
 }
 
@@ -816,7 +833,7 @@ void ShotcutSettings::setTimelineScrollZoom(bool b) {
 	emit timelineScrollZoomChanged();
 }
 
-bool ShotcutSettings::timelineFramebufferWaveform() const {
+auto ShotcutSettings::timelineFramebufferWaveform() const -> bool {
 	return settings.value("timeline/framebufferWaveform", true).toBool();
 }
 
@@ -825,7 +842,7 @@ void ShotcutSettings::setTimelineFramebufferWaveform(bool b) {
 	emit timelineFramebufferWaveformChanged();
 }
 
-int ShotcutSettings::audioReferenceTrack() const {
+auto ShotcutSettings::audioReferenceTrack() const -> int {
 	return settings.value("timeline/audioReferenceTrack", 0).toInt();
 }
 
@@ -833,7 +850,7 @@ void ShotcutSettings::setAudioReferenceTrack(int track) {
 	settings.setValue("timeline/audioReferenceTrack", track);
 }
 
-double ShotcutSettings::audioReferenceSpeedRange() const {
+auto ShotcutSettings::audioReferenceSpeedRange() const -> double {
 	return settings.value("timeline/audioReferenceSpeedRange", 0).toDouble();
 }
 
@@ -841,7 +858,7 @@ void ShotcutSettings::setAudioReferenceSpeedRange(double range) {
 	settings.setValue("timeline/audioReferenceSpeedRange", range);
 }
 
-bool ShotcutSettings::timelinePreviewTransition() const {
+auto ShotcutSettings::timelinePreviewTransition() const -> bool {
 	return settings.value("timeline/previewTransition", true).toBool();
 }
 
@@ -855,14 +872,14 @@ void ShotcutSettings::setTimelineScrolling(ShotcutSettings::TimelineScrolling va
 	emit timelineScrollingChanged();
 }
 
-ShotcutSettings::TimelineScrolling ShotcutSettings::timelineScrolling() const {
+auto ShotcutSettings::timelineScrolling() const -> ShotcutSettings::TimelineScrolling {
 	if (settings.contains("timeline/centerPlayhead") && settings.value("timeline/centerPlayhead").toBool())
 		return ShotcutSettings::TimelineScrolling::CenterPlayhead;
 	else
 		return ShotcutSettings::TimelineScrolling(settings.value("timeline/scrolling", PageScrolling).toInt());
 }
 
-bool ShotcutSettings::timelineAutoAddTracks() const {
+auto ShotcutSettings::timelineAutoAddTracks() const -> bool {
 	return settings.value("timeline/autoAddTracks", false).toBool();
 }
 
@@ -873,7 +890,7 @@ void ShotcutSettings::setTimelineAutoAddTracks(bool b) {
 	}
 }
 
-bool ShotcutSettings::timelineRectangleSelect() const {
+auto ShotcutSettings::timelineRectangleSelect() const -> bool {
 	return settings.value("timeline/rectangleSelect", true).toBool();
 }
 
@@ -882,7 +899,7 @@ void ShotcutSettings::setTimelineRectangleSelect(bool b) {
 	emit timelineRectangleSelectChanged();
 }
 
-bool ShotcutSettings::timelineAdjustGain() const {
+auto ShotcutSettings::timelineAdjustGain() const -> bool {
 	return settings.value("timeline/adjustGain", false).toBool();
 }
 
@@ -891,7 +908,7 @@ void ShotcutSettings::setTimelineAdjustGain(bool b) {
 	emit timelineAdjustGainChanged();
 }
 
-QString ShotcutSettings::filterFavorite(const QString& filterName) {
+auto ShotcutSettings::filterFavorite(const QString& filterName) -> QString {
 	return settings.value("filter/favorite/" + filterName, "").toString();
 }
 
@@ -899,7 +916,7 @@ void ShotcutSettings::setFilterFavorite(const QString& filterName, const QString
 	settings.setValue("filter/favorite/" + filterName, value);
 }
 
-double ShotcutSettings::audioInDuration() const {
+auto ShotcutSettings::audioInDuration() const -> double {
 	return settings.value("filter/audioInDuration", 1.0).toDouble();
 }
 
@@ -908,7 +925,7 @@ void ShotcutSettings::setAudioInDuration(double d) {
 	emit audioInDurationChanged();
 }
 
-double ShotcutSettings::audioOutDuration() const {
+auto ShotcutSettings::audioOutDuration() const -> double {
 	return settings.value("filter/audioOutDuration", 1.0).toDouble();
 }
 
@@ -917,7 +934,7 @@ void ShotcutSettings::setAudioOutDuration(double d) {
 	emit audioOutDurationChanged();
 }
 
-double ShotcutSettings::videoInDuration() const {
+auto ShotcutSettings::videoInDuration() const -> double {
 	return settings.value("filter/videoInDuration", 1.0).toDouble();
 }
 
@@ -926,7 +943,7 @@ void ShotcutSettings::setVideoInDuration(double d) {
 	emit videoInDurationChanged();
 }
 
-double ShotcutSettings::videoOutDuration() const {
+auto ShotcutSettings::videoOutDuration() const -> double {
 	return settings.value("filter/videoOutDuration", 1.0).toDouble();
 }
 
@@ -935,7 +952,7 @@ void ShotcutSettings::setVideoOutDuration(double d) {
 	emit videoOutDurationChanged();
 }
 
-int ShotcutSettings::audioInCurve() const {
+auto ShotcutSettings::audioInCurve() const -> int {
 	return settings.value("filter/audioInCurve", mlt_keyframe_linear).toInt();
 }
 
@@ -944,7 +961,7 @@ void ShotcutSettings::setAudioInCurve(int c) {
 	emit audioInCurveChanged();
 }
 
-int ShotcutSettings::audioOutCurve() const {
+auto ShotcutSettings::audioOutCurve() const -> int {
 	return settings.value("filter/audioOutCurve", mlt_keyframe_linear).toInt();
 }
 
@@ -953,7 +970,7 @@ void ShotcutSettings::setAudioOutCurve(int c) {
 	emit audioOutCurveChanged();
 }
 
-bool ShotcutSettings::askOutputFilter() const {
+auto ShotcutSettings::askOutputFilter() const -> bool {
 	return settings.value("filter/askOutput", true).toBool();
 }
 
@@ -962,7 +979,7 @@ void ShotcutSettings::setAskOutputFilter(bool b) {
 	emit askOutputFilterChanged();
 }
 
-bool ShotcutSettings::loudnessScopeShowMeter(const QString& meter) const {
+auto ShotcutSettings::loudnessScopeShowMeter(const QString& meter) const -> bool {
 	return settings.value("scope/loudness/" + meter, true).toBool();
 }
 
@@ -974,15 +991,15 @@ void ShotcutSettings::setMarkerColor(const QColor& color) {
 	settings.setValue("markers/color", color.name());
 }
 
-QColor ShotcutSettings::markerColor() const {
-	return QColor(settings.value("markers/color", "green").toString());
+auto ShotcutSettings::markerColor() const -> QColor {
+	return {settings.value("markers/color", "green").toString()};
 }
 
 void ShotcutSettings::setMarkersShowColumn(const QString& column, bool b) {
 	settings.setValue("markers/columns/" + column, b);
 }
 
-bool ShotcutSettings::markersShowColumn(const QString& column) const {
+auto ShotcutSettings::markersShowColumn(const QString& column) const -> bool {
 	return settings.value("markers/columns/" + column, true).toBool();
 }
 
@@ -991,15 +1008,15 @@ void ShotcutSettings::setMarkerSort(int column, Qt::SortOrder order) {
 	settings.setValue("markers/sortOrder", order);
 }
 
-int ShotcutSettings::getMarkerSortColumn() {
+auto ShotcutSettings::getMarkerSortColumn() -> int {
 	return settings.value("markers/sortColumn", -1).toInt();
 }
 
-Qt::SortOrder ShotcutSettings::getMarkerSortOrder() {
+auto ShotcutSettings::getMarkerSortOrder() -> Qt::SortOrder {
 	return (Qt::SortOrder)settings.value("markers/sortOrder", Qt::AscendingOrder).toInt();
 }
 
-int ShotcutSettings::drawMethod() const {
+auto ShotcutSettings::drawMethod() const -> int {
 #ifdef Q_OS_WIN
 	return settings.value("opengl", Qt::AA_UseOpenGLES).toInt();
 #else
@@ -1011,7 +1028,7 @@ void ShotcutSettings::setDrawMethod(int i) {
 	settings.setValue("opengl", i);
 }
 
-bool ShotcutSettings::noUpgrade() const {
+auto ShotcutSettings::noUpgrade() const -> bool {
 	return settings.value("noupgrade", false).toBool();
 }
 
@@ -1019,7 +1036,7 @@ void ShotcutSettings::setNoUpgrade(bool value) {
 	settings.setValue("noupgrade", value);
 }
 
-bool ShotcutSettings::checkUpgradeAutomatic() {
+auto ShotcutSettings::checkUpgradeAutomatic() -> bool {
 	return settings.value("checkUpgradeAutomatic", false).toBool();
 }
 
@@ -1027,7 +1044,7 @@ void ShotcutSettings::setCheckUpgradeAutomatic(bool b) {
 	settings.setValue("checkUpgradeAutomatic", b);
 }
 
-bool ShotcutSettings::askUpgradeAutomatic() {
+auto ShotcutSettings::askUpgradeAutomatic() -> bool {
 	return settings.value("askUpgradeAutmatic", true).toBool();
 }
 
@@ -1035,7 +1052,7 @@ void ShotcutSettings::setAskUpgradeAutomatic(bool b) {
 	settings.setValue("askUpgradeAutmatic", b);
 }
 
-bool ShotcutSettings::askChangeVideoMode() {
+auto ShotcutSettings::askChangeVideoMode() -> bool {
 	return settings.value("askChangeVideoMode", true).toBool();
 }
 
@@ -1047,7 +1064,7 @@ void ShotcutSettings::sync() {
 	settings.sync();
 }
 
-QString ShotcutSettings::appDataLocation() const {
+auto ShotcutSettings::appDataLocation() const -> QString {
 	if (!m_appDataLocation.isEmpty())
 		return m_appDataLocation;
 	else
@@ -1080,7 +1097,7 @@ void ShotcutSettings::setAppDataLocally(const QString& location) {
 	localSettings.sync();
 }
 
-QStringList ShotcutSettings::layouts() const {
+auto ShotcutSettings::layouts() const -> QStringList {
 	QStringList result;
 	for (const auto& s : settings.value("layout/layouts").toStringList()) {
 		if (!s.startsWith("__"))
@@ -1089,7 +1106,7 @@ QStringList ShotcutSettings::layouts() const {
 	return result;
 }
 
-bool ShotcutSettings::setLayout(const QString& name, const QByteArray& geometry, const QByteArray& state) {
+auto ShotcutSettings::setLayout(const QString& name, const QByteArray& geometry, const QByteArray& state) -> bool {
 	bool        isNew   = false;
 	QStringList layouts = this->layouts();
 	if (layouts.indexOf(name) == -1) {
@@ -1102,19 +1119,19 @@ bool ShotcutSettings::setLayout(const QString& name, const QByteArray& geometry,
 	return isNew;
 }
 
-QByteArray ShotcutSettings::layoutGeometry(const QString& name) {
-	QString key = QStringLiteral("layout/%1_geometry").arg(name);
+auto ShotcutSettings::layoutGeometry(const QString& name) -> QByteArray {
+	QString const key = QStringLiteral("layout/%1_geometry").arg(name);
 	return settings.value(key).toByteArray();
 }
 
-QByteArray ShotcutSettings::layoutState(const QString& name) {
-	QString key = QStringLiteral("layout/%1_state").arg(name);
+auto ShotcutSettings::layoutState(const QString& name) -> QByteArray {
+	QString const key = QStringLiteral("layout/%1_state").arg(name);
 	return settings.value(key).toByteArray();
 }
 
 bool ShotcutSettings::removeLayout(const QString& name) {
 	QStringList list  = layouts();
-	int         index = list.indexOf(name);
+	const int index = list.indexOf(name);
 	if (index > -1) {
 		list.removeAt(index);
 		if (list.isEmpty())
@@ -1128,7 +1145,7 @@ bool ShotcutSettings::removeLayout(const QString& name) {
 	return false;
 }
 
-int ShotcutSettings::layoutMode() const {
+auto ShotcutSettings::layoutMode() const -> int {
 	return settings.value("layout/mode", -1).toInt();
 }
 
@@ -1136,7 +1153,7 @@ void ShotcutSettings::setLayoutMode(int mode) {
 	settings.setValue("layout/mode", mode);
 }
 
-bool ShotcutSettings::clearRecent() const {
+auto ShotcutSettings::clearRecent() const -> bool {
 	return settings.value("clearRecent", false).toBool();
 }
 
@@ -1144,7 +1161,7 @@ void ShotcutSettings::setClearRecent(bool b) {
 	settings.setValue("clearRecent", b);
 }
 
-QString ShotcutSettings::projectsFolder() const {
+auto ShotcutSettings::projectsFolder() const -> QString {
 	return settings.value("projectsFolder", QStandardPaths::standardLocations(QStandardPaths::MoviesLocation))
 	    .toString();
 }
@@ -1153,7 +1170,7 @@ void ShotcutSettings::setProjectsFolder(const QString& path) {
 	settings.setValue("projectsFolder", path);
 }
 
-QString ShotcutSettings::audioInput() const {
+auto ShotcutSettings::audioInput() const -> QString {
 	QString defaultValue = "default";
 #if defined(Q_OS_MAC) || defined(Q_OS_WIN)
 	for (const auto& deviceInfo : QMediaDevices::audioInputs()) {
@@ -1167,7 +1184,7 @@ void ShotcutSettings::setAudioInput(const QString& name) {
 	settings.setValue("audioInput", name);
 }
 
-QString ShotcutSettings::videoInput() const {
+auto ShotcutSettings::videoInput() const -> QString {
 	return settings.value("videoInput").toString();
 }
 
@@ -1175,8 +1192,8 @@ void ShotcutSettings::setVideoInput(const QString& name) {
 	settings.setValue("videoInput", name);
 }
 
-QString ShotcutSettings::glaxnimatePath() const {
-	QDir dir(qApp->applicationDirPath());
+auto ShotcutSettings::glaxnimatePath() const -> QString {
+	QDir const dir(qApp->applicationDirPath());
 	return settings.value("glaxnimatePath", dir.absoluteFilePath("glaxnimate")).toString();
 }
 
@@ -1184,7 +1201,7 @@ void ShotcutSettings::setGlaxnimatePath(const QString& path) {
 	settings.setValue("glaxnimatePath", path);
 }
 
-bool ShotcutSettings::exportRangeMarkers() const {
+auto ShotcutSettings::exportRangeMarkers() const -> bool {
 	return settings.value("exportRangeMarkers", true).toBool();
 }
 
@@ -1192,7 +1209,7 @@ void ShotcutSettings::setExportRangeMarkers(bool b) {
 	settings.setValue("exportRangeMarkers", b);
 }
 
-bool ShotcutSettings::proxyEnabled() const {
+auto ShotcutSettings::proxyEnabled() const -> bool {
 	return settings.value("proxy/enabled", false).toBool();
 }
 
@@ -1200,8 +1217,8 @@ void ShotcutSettings::setProxyEnabled(bool b) {
 	settings.setValue("proxy/enabled", b);
 }
 
-QString ShotcutSettings::proxyFolder() const {
-	QDir        dir(appDataLocation());
+auto ShotcutSettings::proxyFolder() const -> QString {
+	QDir dir(appDataLocation());
 	const char* subfolder = "proxies";
 	if (!dir.cd(subfolder)) {
 		if (dir.mkdir(subfolder))
@@ -1214,7 +1231,7 @@ void ShotcutSettings::setProxyFolder(const QString& path) {
 	settings.setValue("proxy/folder", path);
 }
 
-bool ShotcutSettings::proxyUseProjectFolder() const {
+auto ShotcutSettings::proxyUseProjectFolder() const -> bool {
 	return settings.value("proxy/useProjectFolder", true).toBool();
 }
 
@@ -1222,7 +1239,7 @@ void ShotcutSettings::setProxyUseProjectFolder(bool b) {
 	settings.setValue("proxy/useProjectFolder", b);
 }
 
-bool ShotcutSettings::proxyUseHardware() const {
+auto ShotcutSettings::proxyUseHardware() const -> bool {
 	return settings.value("proxy/useHardware", false).toBool();
 }
 
@@ -1231,12 +1248,12 @@ void ShotcutSettings::setProxyUseHardware(bool b) {
 }
 
 void ShotcutSettings::clearShortcuts(const QString& name) {
-	QString key = "shortcuts/" + name;
+	QString const key = "shortcuts/" + name;
 	settings.remove(key);
 }
 
 void ShotcutSettings::setShortcuts(const QString& name, const QList<QKeySequence>& shortcuts) {
-	QString key = "shortcuts/" + name;
+	QString const key = "shortcuts/" + name;
 	QString shortcutSetting;
 	if (shortcuts.size() > 0)
 		shortcutSetting += shortcuts[0].toString();
@@ -1246,10 +1263,10 @@ void ShotcutSettings::setShortcuts(const QString& name, const QList<QKeySequence
 	settings.setValue(key, shortcutSetting);
 }
 
-QList<QKeySequence> ShotcutSettings::shortcuts(const QString& name) {
-	QString             key = "shortcuts/" + name;
+auto ShotcutSettings::shortcuts(const QString& name) -> QList<QKeySequence> {
+	QString const key = "shortcuts/" + name;
 	QList<QKeySequence> shortcuts;
-	QString             shortcutSetting = settings.value(key, "").toString();
+	QString const shortcutSetting = settings.value(key, "").toString();
 	if (!shortcutSetting.isEmpty()) {
 		for (const QString& s : shortcutSetting.split("||"))
 			shortcuts << QKeySequence::fromString(s);
@@ -1257,7 +1274,7 @@ QList<QKeySequence> ShotcutSettings::shortcuts(const QString& name) {
 	return shortcuts;
 }
 
-double ShotcutSettings::slideshowImageDuration(double defaultSeconds) const {
+auto ShotcutSettings::slideshowImageDuration(double defaultSeconds) const -> double {
 	return settings.value("slideshow/clipDuration", defaultSeconds).toDouble();
 }
 
@@ -1265,7 +1282,7 @@ void ShotcutSettings::setSlideshowImageDuration(double seconds) {
 	settings.setValue("slideshow/clipDuration", seconds);
 }
 
-double ShotcutSettings::slideshowAudioVideoDuration(double defaultSeconds) const {
+auto ShotcutSettings::slideshowAudioVideoDuration(double defaultSeconds) const -> double {
 	return settings.value("slideshow/audioVideoDuration", defaultSeconds).toDouble();
 }
 
@@ -1273,7 +1290,7 @@ void ShotcutSettings::setSlideshowAudioVideoDuration(double seconds) {
 	settings.setValue("slideshow/audioVideoDuration", seconds);
 }
 
-int ShotcutSettings::slideshowAspectConversion(int defaultAspectConversion) const {
+auto ShotcutSettings::slideshowAspectConversion(int defaultAspectConversion) const -> int {
 	return settings.value("slideshow/aspectConversion", defaultAspectConversion).toInt();
 }
 
@@ -1281,7 +1298,7 @@ void ShotcutSettings::setSlideshowAspectConversion(int aspectConversion) {
 	settings.setValue("slideshow/aspectConversion", aspectConversion);
 }
 
-int ShotcutSettings::slideshowZoomPercent(int defaultZoomPercent) const {
+auto ShotcutSettings::slideshowZoomPercent(int defaultZoomPercent) const -> int {
 	return settings.value("slideshow/zoomPercent", defaultZoomPercent).toInt();
 }
 
@@ -1289,7 +1306,7 @@ void ShotcutSettings::setSlideshowZoomPercent(int zoomPercent) {
 	settings.setValue("slideshow/zoomPercent", zoomPercent);
 }
 
-double ShotcutSettings::slideshowTransitionDuration(double defaultTransitionDuration) const {
+auto ShotcutSettings::slideshowTransitionDuration(double defaultTransitionDuration) const -> double {
 	return settings.value("slideshow/transitionDuration", defaultTransitionDuration).toDouble();
 }
 
@@ -1297,7 +1314,7 @@ void ShotcutSettings::setSlideshowTransitionDuration(double transitionDuration) 
 	settings.setValue("slideshow/transitionDuration", transitionDuration);
 }
 
-int ShotcutSettings::slideshowTransitionStyle(int defaultTransitionStyle) const {
+auto ShotcutSettings::slideshowTransitionStyle(int defaultTransitionStyle) const -> int {
 	return settings.value("slideshow/transitionStyle", defaultTransitionStyle).toInt();
 }
 
@@ -1305,7 +1322,7 @@ void ShotcutSettings::setSlideshowTransitionStyle(int transitionStyle) {
 	settings.setValue("slideshow/transitionStyle", transitionStyle);
 }
 
-int ShotcutSettings::slideshowTransitionSoftness(int defaultTransitionStyle) const {
+auto ShotcutSettings::slideshowTransitionSoftness(int defaultTransitionStyle) const -> int {
 	return settings.value("slideshow/transitionSoftness", defaultTransitionStyle).toInt();
 }
 
@@ -1313,7 +1330,7 @@ void ShotcutSettings::setSlideshowTransitionSoftness(int transitionSoftness) {
 	settings.setValue("slideshow/transitionSoftness", transitionSoftness);
 }
 
-bool ShotcutSettings::keyframesDragScrub() const {
+auto ShotcutSettings::keyframesDragScrub() const -> bool {
 	return settings.value("keyframes/dragScrub", false).toBool();
 }
 
@@ -1326,7 +1343,7 @@ void ShotcutSettings::setSubtitlesShowColumn(const QString& column, bool b) {
 	settings.setValue("subtitles/columns/" + column, b);
 }
 
-bool ShotcutSettings::subtitlesShowColumn(const QString& column) const {
+auto ShotcutSettings::subtitlesShowColumn(const QString& column) const -> bool {
 	return settings.value("subtitles/columns/" + column, true).toBool();
 }
 
@@ -1334,7 +1351,7 @@ void ShotcutSettings::setSubtitlesTrackTimeline(bool b) {
 	settings.setValue("subtitles/trackTimeline", b);
 }
 
-bool ShotcutSettings::subtitlesTrackTimeline() const {
+auto ShotcutSettings::subtitlesTrackTimeline() const -> bool {
 	return settings.value("subtitles/trackTimeline", true).toBool();
 }
 
@@ -1342,11 +1359,11 @@ void ShotcutSettings::setSubtitlesShowPrevNext(bool b) {
 	settings.setValue("subtitles/showPrevNext", b);
 }
 
-bool ShotcutSettings::subtitlesShowPrevNext() const {
+auto ShotcutSettings::subtitlesShowPrevNext() const -> bool {
 	return settings.value("subtitles/showPrevNext", true).toBool();
 }
 
-QString ShotcutSettings::speechLanguage() const {
+auto ShotcutSettings::speechLanguage() const -> QString {
 	return settings.value("speech/language", QStringLiteral("a")).toString();
 }
 
@@ -1354,7 +1371,7 @@ void ShotcutSettings::setSpeechLanguage(const QString& code) {
 	settings.setValue("speech/language", code);
 }
 
-QString ShotcutSettings::speechVoice() const {
+auto ShotcutSettings::speechVoice() const -> QString {
 	return settings.value("speech/voice", QString()).toString();
 }
 
@@ -1362,7 +1379,7 @@ void ShotcutSettings::setSpeechVoice(const QString& voiceId) {
 	settings.setValue("speech/voice", voiceId);
 }
 
-double ShotcutSettings::speechSpeed() const {
+auto ShotcutSettings::speechSpeed() const -> double {
 	return settings.value("speech/speed", 1.0).toDouble();
 }
 
@@ -1374,7 +1391,7 @@ void ShotcutSettings::saveCustomColors() {
 	// QColorDialog supports up to 48 custom colors (16 in older versions)
 	QStringList colorList;
 	for (int i = 0; i < QColorDialog::customCount(); ++i) {
-		QColor color = QColorDialog::customColor(i);
+		QColor const color = QColorDialog::customColor(i);
 		if (color.isValid()) {
 			colorList.append(color.name(QColor::HexArgb));
 		} else {
@@ -1385,11 +1402,11 @@ void ShotcutSettings::saveCustomColors() {
 }
 
 void ShotcutSettings::restoreCustomColors() {
-	QStringList colorList = settings.value("colorDialog/customColors").toStringList();
+	QStringList const colorList = settings.value("colorDialog/customColors").toStringList();
 	for (int i = 0; i < colorList.size() && i < QColorDialog::customCount(); ++i) {
 		const QString& colorName = colorList.at(i);
 		if (!colorName.isEmpty()) {
-			QColor color(colorName);
+			QColor const color(colorName);
 			if (color.isValid()) {
 				// Use rgba() to preserve alpha channel
 				QColorDialog::setCustomColor(i, color.rgba());
@@ -1402,8 +1419,8 @@ void ShotcutSettings::setWhisperExe(const QString& path) {
 	settings.setValue("subtitles/whisperExe", path);
 }
 
-QString ShotcutSettings::whisperExe() {
-	QDir dir(qApp->applicationDirPath());
+auto ShotcutSettings::whisperExe() -> QString {
+	QDir const dir(qApp->applicationDirPath());
 #if defined(Q_OS_WIN)
 	auto exe = "whisper-cli.exe";
 #else
@@ -1416,7 +1433,7 @@ void ShotcutSettings::setWhisperModel(const QString& path) {
 	settings.setValue("subtitles/whisperModel", path);
 }
 
-QString ShotcutSettings::whisperModel() {
+auto ShotcutSettings::whisperModel() -> QString {
 	QDir dataPath = QmlApplication::dataDir();
 	dataPath.cd("shotcut/whisper_models");
 	return settings.value("subtitles/whisperModel", "").toString();
@@ -1426,25 +1443,25 @@ void ShotcutSettings::setNotesZoom(int zoom) {
 	settings.setValue("notes/zoom", zoom);
 }
 
-int ShotcutSettings::notesZoom() const {
+auto ShotcutSettings::notesZoom() const -> int {
 	return settings.value("notes/zoom", 0).toInt();
 }
 
 void ShotcutSettings::reset() {
-	for (auto& key : settings.allKeys()) {
+	for (const auto& key : settings.allKeys()) {
 		settings.remove(key);
 	}
 }
 
-int ShotcutSettings::undoLimit() const {
+auto ShotcutSettings::undoLimit() const -> int {
 	return settings.value("undoLimit", 50).toInt();
 }
 
-bool ShotcutSettings::warnLowMemory() const {
+auto ShotcutSettings::warnLowMemory() const -> bool {
 	return settings.value("warnLowMemory", true).toBool();
 }
 
-int ShotcutSettings::backupPeriod() const {
+auto ShotcutSettings::backupPeriod() const -> int {
 	return settings.value("backupPeriod", 24 * 60).toInt();
 }
 
@@ -1452,7 +1469,7 @@ void ShotcutSettings::setBackupPeriod(int minutes) {
 	settings.setValue("backupPeriod", minutes);
 }
 
-mlt_time_format ShotcutSettings::timeFormat() const {
+auto ShotcutSettings::timeFormat() const -> mlt_time_format {
 	return (mlt_time_format)settings.value("timeFormat", mlt_time_clock).toInt();
 }
 
@@ -1461,7 +1478,7 @@ void ShotcutSettings::setTimeFormat(int format) {
 	emit timeFormatChanged();
 }
 
-bool ShotcutSettings::askFlatpakWrappers() {
+auto ShotcutSettings::askFlatpakWrappers() -> bool {
 	return settings.value("flatpakWrappers", true).toBool();
 }
 
@@ -1469,7 +1486,7 @@ void ShotcutSettings::setAskFlatpakWrappers(bool b) {
 	settings.setValue("flatpakWrappers", b);
 }
 
-QString ShotcutSettings::dockerPath() const {
+auto ShotcutSettings::dockerPath() const -> QString {
 #if defined(Q_OS_MAC)
 	return settings.value("dockerPath", "/usr/local/bin/docker").toString();
 #elif defined(Q_OS_WIN)
@@ -1483,7 +1500,7 @@ void ShotcutSettings::setDockerPath(const QString& path) {
 	settings.setValue("dockerPath", path);
 }
 
-QString ShotcutSettings::chromiumPath() const {
+auto ShotcutSettings::chromiumPath() const -> QString {
 #if defined(Q_OS_MAC)
 	return settings.value("chromiumPath", "/Applications/Google Chrome.app").toString();
 #elif defined(Q_OS_WIN)
@@ -1497,7 +1514,7 @@ void ShotcutSettings::setChromiumPath(const QString& path) {
 	settings.setValue("chromiumPath", path);
 }
 
-QString ShotcutSettings::screenRecorderPath() const {
+auto ShotcutSettings::screenRecorderPath() const -> QString {
 	return settings.value("screenRecorderPath", "obs").toString();
 }
 

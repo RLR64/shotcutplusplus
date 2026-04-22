@@ -15,18 +15,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "windowpicker.hpp"
-
 #include "Logger.hpp"
 
+// Qt
 #include <QDebug>
 #include <QGuiApplication>
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QScreen>
-#if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
+#include <qfont.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qwidget.h>
+
 // clang-format off
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
 extern "C" {
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
@@ -44,7 +53,7 @@ WindowPicker::WindowPicker(QWidget* parent)
 	setCursor(Qt::CrossCursor);
 
 	// Make fullscreen
-	QScreen* screen = QGuiApplication::primaryScreen();
+	QScreen const* screen = QGuiApplication::primaryScreen();
 	if (screen) {
 		setGeometry(screen->geometry());
 	}
@@ -52,8 +61,7 @@ WindowPicker::WindowPicker(QWidget* parent)
 	detectWindows();
 }
 
-WindowPicker::~WindowPicker() {
-}
+WindowPicker::~WindowPicker() = default;
 
 void WindowPicker::detectWindows() {
 	m_windows.clear();
@@ -66,7 +74,7 @@ void WindowPicker::detectWindows() {
 	LOG_DEBUG() << "Found" << m_windows.size() << "windows";
 }
 
-QList<WindowPicker::WindowInfo> WindowPicker::getX11Windows() {
+auto WindowPicker::getX11Windows() -> QList<WindowPicker::WindowInfo> {
 	QList<WindowInfo> windows;
 
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
@@ -152,12 +160,12 @@ QList<WindowPicker::WindowInfo> WindowPicker::getX11Windows() {
 #endif
 
 	// Convert X11 physical coordinates to Qt logical coordinates for display
-	QScreen* screen = QGuiApplication::primaryScreen();
+	QScreen const* screen = QGuiApplication::primaryScreen();
 	if (screen) {
-		qreal dpr = screen->devicePixelRatio();
+		const qreal dpr = screen->devicePixelRatio();
 		if (!qFuzzyCompare(dpr, 1.0)) {
 			for (WindowInfo& window : windows) {
-				QRect physical  = window.geometry;
+				QRect const physical = window.geometry;
 				window.geometry = QRect(qRound(physical.x() / dpr), qRound(physical.y() / dpr),
 				                        qRound(physical.width() / dpr), qRound(physical.height() / dpr));
 				LOG_DEBUG() << "Window:" << window.title << "Physical:" << physical << "Logical:" << window.geometry
@@ -200,7 +208,7 @@ void WindowPicker::paintEvent(QPaintEvent* event) {
 			QRect textRect = painter.fontMetrics().boundingRect(window.title);
 			textRect.adjust(-5, -3, 5, 3);
 
-			int textX = window.geometry.center().x() - textRect.width() / 2;
+			const int textX = window.geometry.center().x() - textRect.width() / 2;
 			int textY = window.geometry.top() - textRect.height() - 5;
 
 			if (textY < 0) {
@@ -219,8 +227,8 @@ void WindowPicker::paintEvent(QPaintEvent* event) {
 	}
 
 	// Draw instruction text
-	QString instruction(tr("Click on a window to select it"));
-	QFont   font = painter.font();
+	QString const instruction(tr("Click on a window to select it"));
+	QFont font = painter.font();
 	font.setPixelSize(16);
 	painter.setFont(font);
 
@@ -233,7 +241,7 @@ void WindowPicker::paintEvent(QPaintEvent* event) {
 }
 
 void WindowPicker::mouseMoveEvent(QMouseEvent* event) {
-	int oldHighlighted  = m_highlightedWindow;
+	const int oldHighlighted  = m_highlightedWindow;
 	m_highlightedWindow = findWindowAtPosition(event->pos());
 
 	if (oldHighlighted != m_highlightedWindow) {
@@ -251,7 +259,7 @@ void WindowPicker::mousePressEvent(QMouseEvent* event) {
 	}
 }
 
-int WindowPicker::findWindowAtPosition(const QPoint& pos) {
+auto WindowPicker::findWindowAtPosition(const QPoint& pos) -> int {
 	// Find the topmost window at this position
 	for (int i = 0; i < m_windows.size(); ++i) {
 		if (m_windows[i].geometry.contains(pos)) {

@@ -18,15 +18,21 @@
 #ifndef BITRATEVIEWERJOB_HPP
 #define BITRATEVIEWERJOB_HPP
 
+// Local
 #include "ffprobejob.hpp"
+#include "jobs/postjobaction.hpp"
 
+// Qt
 #include <QJsonArray>
+#include <qcontainerfwd.h>
+#include <qprocess.h>
+#include <qtmetamacros.h>
 
 class BitrateViewerJob : public FfprobeJob {
 	Q_OBJECT
   public:
 	BitrateViewerJob(const QString& name, const QStringList& args, double fps);
-	virtual ~BitrateViewerJob();
+	~BitrateViewerJob() override;
 
   private slots:
 	void onFinished(int exitCode, QProcess::ExitStatus exitStatus) override;

@@ -18,9 +18,13 @@
 #ifndef QMLFILE_HPP
 #define QMLFILE_HPP
 
+// Qt
 #include <QFileSystemWatcher>
 #include <QObject>
 #include <QUrl>
+#include <qtmetamacros.h>
+
+// STL
 #include <memory>
 
 class QmlFile : public QObject {
@@ -37,7 +41,7 @@ class QmlFile : public QObject {
 	QString             getFileName();
 	QString             getPath();
 	QString             getFilePath();
-	Q_INVOKABLE void    copyFromFile(QString source);
+	Q_INVOKABLE void    copyFromFile(const QString& source);
 	Q_INVOKABLE bool    exists();
 	Q_INVOKABLE QString suffix();
 

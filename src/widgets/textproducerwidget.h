@@ -18,9 +18,16 @@
 #ifndef TEXTPRODUCERWIDGET_H
 #define TEXTPRODUCERWIDGET_H
 
+// Local
 #include "abstractproducerwidget.hpp"
 
+// Qt
+#include <MltProducer.h>
+#include <MltProperties.h>
 #include <QWidget>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 namespace Ui {
 class TextProducerWidget;
@@ -30,13 +37,13 @@ class TextProducerWidget : public QWidget, public AbstractProducerWidget {
 	Q_OBJECT
 
   public:
-	explicit TextProducerWidget(QWidget* parent = 0);
-	~TextProducerWidget();
+	explicit TextProducerWidget(QWidget* parent = nullptr);
+	~TextProducerWidget() override;
 
 	// AbstractProducerWidget overrides
-	Mlt::Producer*  newProducer(Mlt::Profile&);
-	Mlt::Properties getPreset() const;
-	void            loadPreset(Mlt::Properties&);
+	Mlt::Producer* newProducer(Mlt::Profile&) override;
+	[[nodiscard]] Mlt::Properties getPreset() const override;
+	void loadPreset(Mlt::Properties&) override;
 
   signals:
 	void producerChanged(Mlt::Producer*);
@@ -47,7 +54,7 @@ class TextProducerWidget : public QWidget, public AbstractProducerWidget {
 	void on_preset_saveClicked();
 
   private:
-	Mlt::Filter*            createFilter(Mlt::Profile&, Mlt::Producer*);
+	Mlt::Filter* createFilter(Mlt::Profile&, Mlt::Producer*);
 	Ui::TextProducerWidget* ui;
 };
 

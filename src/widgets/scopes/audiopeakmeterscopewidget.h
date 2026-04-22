@@ -18,11 +18,18 @@
 #ifndef AUDIOPEAKMETERSCOPEWIDGET_H
 #define AUDIOPEAKMETERSCOPEWIDGET_H
 
+// Local
 #include "scopewidget.h"
 
+// Qt
 #include <QImage>
 #include <QMutex>
 #include <QVector>
+#include <qhashfunctions.h>
+#include <qnamespace.h>
+#include <qsize.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
 
 class AudioMeterWidget;
 
@@ -40,8 +47,8 @@ class AudioPeakMeterScopeWidget Q_DECL_FINAL : public ScopeWidget {
 
 	// Members accessed by GUI thread.
 	AudioMeterWidget* m_audioMeter;
-	Qt::Orientation   m_orientation;
-	int               m_channels;
+	Qt::Orientation m_orientation;
+	int m_channels;
 
   private slots:
 	void reconfigureMeter();

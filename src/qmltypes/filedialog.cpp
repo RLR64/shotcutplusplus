@@ -15,14 +15,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "filedialog.hpp"
-
 #include "mainwindow.hpp"
 #include "settings.hpp"
 #include "util.hpp"
 
+// Qt
+#include <qcontainerfwd.h>
+#include <qdialog.h>
+#include <qfiledialog.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+
+// STL
+#include <memory>
+
 FileDialog::FileDialog(QObject* parent) : QObject{parent} {
-	m_fileDialog.reset(new QFileDialog(&MAIN));
+	m_fileDialog = std::make_unique<QFileDialog>(&MAIN);
 	connect(m_fileDialog.get(), &QDialog::accepted, this, &FileDialog::accepted);
 	connect(m_fileDialog.get(), &QDialog::rejected, this, &FileDialog::rejected);
 	connect(m_fileDialog.get(), &QFileDialog::fileSelected, this, &FileDialog::fileSelected);
@@ -33,7 +44,7 @@ void FileDialog::setFileMode(FileMode mode) {
 	m_fileMode = mode;
 }
 
-QString FileDialog::title() const {
+auto FileDialog::title() const -> QString {
 	return m_fileDialog->windowTitle();
 }
 
@@ -44,7 +55,7 @@ void FileDialog::setTitle(const QString& title) {
 	}
 }
 
-QStringList FileDialog::nameFilters() const {
+auto FileDialog::nameFilters() const -> QStringList {
 	return m_fileDialog->nameFilters();
 }
 
@@ -55,7 +66,7 @@ void FileDialog::setNameFilters(const QStringList& filters) {
 	}
 }
 
-QString FileDialog::selectedFile() {
+auto FileDialog::selectedFile() -> QString {
 	return m_fileDialog->selectedFiles().first();
 }
 

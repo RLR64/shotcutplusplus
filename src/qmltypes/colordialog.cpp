@@ -15,17 +15,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "colordialog.hpp"
-
 #include "settings.hpp"
 #include "util.hpp"
 
+// Qt
 #include <QColorDialog>
+#include <qobject.h>
+#include <qtmetamacros.h>
+
+// Number constants
+constexpr int setAlphaNumber{255};
 
 ColorDialog::ColorDialog(QObject* parent) : QObject{parent} {
 }
 
-QColor ColorDialog::getColor(const QColor& initial, QWidget* parent, const QString& title, bool showAlpha) {
+auto ColorDialog::getColor(const QColor& initial, QWidget* parent, const QString& title, bool showAlpha) -> QColor {
 	auto flags = Util::getColorDialogOptions();
 	if (showAlpha) {
 		flags |= QColorDialog::ShowAlphaChannel;
@@ -38,11 +44,11 @@ QColor ColorDialog::getColor(const QColor& initial, QWidget* parent, const QStri
 	Settings.saveCustomColors();
 
 	if (newColor.isValid() && showAlpha) {
-		auto rgb         = newColor;
+		auto rgb = newColor;
 		auto transparent = QColor(0, 0, 0, 0);
 		rgb.setAlpha(color.alpha());
 		if (newColor.alpha() == 0 && (rgb != color || (newColor == transparent && color == transparent))) {
-			newColor.setAlpha(255);
+			newColor.setAlpha(setAlphaNumber);
 		}
 	}
 

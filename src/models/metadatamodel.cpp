@@ -15,17 +15,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "metadatamodel.hpp"
-
 #include "Logger.hpp"
 #include "controllers/filtercontroller.hpp"
 #include "mainwindow.hpp"
 #include "qmltypes/qmlmetadata.hpp"
 #include "settings.hpp"
 
+// Qt
 #include <QClipboard>
 #include <QGuiApplication>
 #include <QSaveFile>
+#include <qabstractitemmodel.h>
+#include <qdebug.h>
+#include <qdir.h>
+#include <qfiledevice.h>
+#include <qhash.h>
+#include <qnamespace.h>
+#include <qsortfilterproxymodel.h>
+#include <qstringconverter_base.h>
+#include <qstringview.h>
+#include <qtmetamacros.h>
+#include <qvariant.h>
 
 MetadataModel::MetadataModel(QObject* parent)
     : QSortFilterProxyModel(parent), m_filter(FavoritesFilter), m_isClipProducer(true), m_filterMask(HiddenMaskBit) {
@@ -37,21 +49,21 @@ MetadataModel::MetadataModel(QObject* parent)
 	setSourceModel(new InternalMetadataModel(this));
 }
 
-int MetadataModel::rowCount(const QModelIndex& parent) const {
+auto MetadataModel::rowCount(const QModelIndex& parent) const -> int {
 	return QSortFilterProxyModel::rowCount(parent);
 }
 
-int MetadataModel::sourceRowCount(const QModelIndex& parent) const {
-	return static_cast<InternalMetadataModel*>(sourceModel())->rowCount();
+auto MetadataModel::sourceRowCount(const QModelIndex& /*parent*/) const -> int {
+	return dynamic_cast<InternalMetadataModel*>(sourceModel())->rowCount();
 }
 
-int InternalMetadataModel::rowCount(const QModelIndex&) const {
+auto InternalMetadataModel::rowCount(const QModelIndex&) const -> int {
 	return m_list.size();
 }
 
-QVariant InternalMetadataModel::data(const QModelIndex& index, int role) const {
-	QVariant     result;
-	QmlMetadata* meta = m_list.at(index.row());
+auto InternalMetadataModel::data(const QModelIndex& index, int role) const -> QVariant {
+	QVariant result;
+	QmlMetadata const* meta = m_list.at(index.row());
 
 	if (meta) {
 		switch (role) {
@@ -83,7 +95,7 @@ QVariant InternalMetadataModel::data(const QModelIndex& index, int role) const {
 	return result;
 }
 
-bool InternalMetadataModel::setData(const QModelIndex& index, const QVariant& value, int role) {
+auto InternalMetadataModel::setData(const QModelIndex& index, const QVariant& value, int role) -> bool {
 	if (!index.isValid())
 		return false;
 	switch (role) {
@@ -97,7 +109,7 @@ bool InternalMetadataModel::setData(const QModelIndex& index, const QVariant& va
 	return true;
 }
 
-QHash<int, QByteArray> InternalMetadataModel::roleNames() const {
+auto InternalMetadataModel::roleNames() const -> QHash<int, QByteArray> {
 	QHash<int, QByteArray> roles         = QAbstractListModel::roleNames();
 	roles[MetadataModel::NameRole]       = "name";
 	roles[MetadataModel::HiddenRole]     = "hidden";
@@ -109,7 +121,7 @@ QHash<int, QByteArray> InternalMetadataModel::roleNames() const {
 	return roles;
 }
 
-Qt::ItemFlags InternalMetadataModel::flags(const QModelIndex& index) const {
+auto InternalMetadataModel::flags(const QModelIndex& index) const -> Qt::ItemFlags {
 	if (!index.isValid())
 		return Qt::NoItemFlags;
 	return QAbstractListModel::flags(index) | Qt::ItemIsEditable | Qt::ItemIsSelectable;
@@ -136,7 +148,7 @@ void InternalMetadataModel::add(QmlMetadata* data) {
 }
 
 void MetadataModel::setHidden(const QString& objectName, bool hidden) {
-	static_cast<InternalMetadataModel*>(sourceModel())->setHidden(objectName, hidden);
+	dynamic_cast<InternalMetadataModel*>(sourceModel())->setHidden(objectName, hidden);
 }
 
 void InternalMetadataModel::setHidden(const QString& objectName, bool hidden) {
@@ -151,16 +163,16 @@ void InternalMetadataModel::setHidden(const QString& objectName, bool hidden) {
 	}
 }
 
-QmlMetadata* MetadataModel::get(int row) const {
+auto MetadataModel::get(int row) const -> QmlMetadata* {
 	auto sourceIndex = mapToSource(index(row, 0));
 	return getFromSource(sourceIndex.row());
 }
 
-QmlMetadata* MetadataModel::getFromSource(int index) const {
-	return static_cast<InternalMetadataModel*>(sourceModel())->get(index);
+auto MetadataModel::getFromSource(int index) const -> QmlMetadata* {
+	return dynamic_cast<InternalMetadataModel*>(sourceModel())->get(index);
 }
 
-QmlMetadata* InternalMetadataModel::get(int index) const {
+auto InternalMetadataModel::get(int index) const -> QmlMetadata* {
 	if (index >= 0 && index < m_list.size()) {
 		return m_list[index];
 	}
@@ -185,7 +197,7 @@ void MetadataModel::setSearch(const QString& search) {
 	invalidateFilter();
 }
 
-bool MetadataModel::filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const {
+auto MetadataModel::filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const -> bool {
 	auto meta = getFromSource(sourceRow);
 	if (meta->filterMask & m_filterMask) {
 		return false;
@@ -266,7 +278,7 @@ void MetadataModel::updateFilterMask(bool isClipProducer, bool isChainProducer, 
 	endResetModel();
 }
 
-unsigned InternalMetadataModel::computeFilterMask(const QmlMetadata* meta) {
+auto InternalMetadataModel::computeFilterMask(const QmlMetadata* meta) -> unsigned {
 	unsigned mask = 0;
 	if (meta->isHidden())
 		mask |= MetadataModel::HiddenMaskBit;
@@ -317,7 +329,7 @@ void MetadataModel::saveFilterSet(const QString& name) {
 		auto meta = new QmlMetadata;
 		meta->setType(QmlMetadata::FilterSet);
 		meta->setName(name);
-		auto model = static_cast<InternalMetadataModel*>(sourceModel());
+		auto model = dynamic_cast<InternalMetadataModel*>(sourceModel());
 		model->add(meta);
 	}
 }
@@ -330,7 +342,7 @@ void MetadataModel::deleteFilterSet(const QString& name) {
 	auto fileName = QUrl::toPercentEncoding(name.toUtf8());
 	if (QFile::remove(dir.filePath(fileName)) || QFile::remove(dir.filePath(name))) {
 		auto i      = 0;
-		auto source = static_cast<InternalMetadataModel*>(sourceModel());
+		auto source = dynamic_cast<InternalMetadataModel*>(sourceModel());
 		auto list   = source->list();
 		for (const auto& meta : list) {
 			if (meta->type() == QmlMetadata::FilterSet && meta->name() == name)

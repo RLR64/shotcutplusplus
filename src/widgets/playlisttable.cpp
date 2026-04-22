@@ -15,11 +15,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "playlisttable.h"
-
 #include "Logger.hpp"
 
+// Qt
 #include <QKeyEvent>
+#include <qabstractitemmodel.h>
+#include <qnamespace.h>
+#include <qtableview.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 PlaylistTable::PlaylistTable(QWidget* parent) : QTableView(parent) {
 }
@@ -43,7 +49,7 @@ void PlaylistTable::keyPressEvent(QKeyEvent* event) {
 }
 
 void PlaylistTable::dropEvent(QDropEvent* event) {
-	QModelIndex index = indexAt(event->position().toPoint());
+	QModelIndex const index = indexAt(event->position().toPoint());
 	if (event->dropAction() == Qt::MoveAction && index.row() == -1) {
 		event->acceptProposedAction();
 		emit movedToEnd();

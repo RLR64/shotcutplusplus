@@ -15,16 +15,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "servicepresetwidget.h"
-
 #include "Logger.hpp"
 #include "qmltypes/qmlapplication.hpp"
 #include "settings.hpp"
 #include "ui_servicepresetwidget.h"
 
+// Qt
+#include <MltProperties.h>
 #include <QDir>
 #include <QInputDialog>
 #include <QMessageBox>
+#include <qcontainerfwd.h>
+#include <qdialog.h>
+#include <qfiledevice.h>
+#include <qnamespace.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
+
+// STL
+#include <cstdlib>
+#include <cmath>
+#include <utility>
 
 ServicePresetWidget::ServicePresetWidget(QWidget* parent)
     : QWidget(parent), ui(new Ui::ServicePresetWidget), m_widgetName(parent->objectName()) {
@@ -60,8 +73,8 @@ void ServicePresetWidget::loadPresets() {
 
 static void saveProperties(const Mlt::Properties& properties, const QString& filePath) {
 	// Save properties as YAML to file.
-	char*   yamlStr = const_cast<Mlt::Properties&>(properties).serialise_yaml();
-	QString yaml    = yamlStr;
+	char* yamlStr = const_cast<Mlt::Properties&>(properties).serialise_yaml();
+	QString const yaml = yamlStr;
 	free(yamlStr);
 	QFile yamlFile(filePath);
 	if (!yamlFile.open(QIODevice::WriteOnly)) {
@@ -82,8 +95,8 @@ void ServicePresetWidget::savePreset(const Mlt::Properties& properties) {
 	dialog.setWindowTitle(tr("Save Preset"));
 	dialog.setLabelText(tr("Name:"));
 	dialog.setWindowModality(QmlApplication::dialogModality());
-	int     r      = dialog.exec();
-	QString preset = dialog.textValue();
+	const int r = dialog.exec();
+	QString const preset = dialog.textValue();
 	if (r == QDialog::Accepted && !preset.isEmpty()) {
 		QDir dir(Settings.appDataLocation());
 
@@ -110,7 +123,7 @@ void ServicePresetWidget::savePreset(const Mlt::Properties& properties) {
 	}
 }
 
-void ServicePresetWidget::savePreset(const Mlt::Properties& properties, QString name) {
+void ServicePresetWidget::savePreset(const Mlt::Properties& properties, const QString& name) {
 	QDir dir(Settings.appDataLocation());
 
 	if (!dir.exists())
@@ -127,9 +140,9 @@ void ServicePresetWidget::savePreset(const Mlt::Properties& properties, QString 
 }
 
 void ServicePresetWidget::on_presetCombo_activated(int index) {
-	QString          preset = ui->presetCombo->itemText(index);
-	QDir             dir(Settings.appDataLocation());
-	Mlt::Properties* properties;
+	QString const preset = ui->presetCombo->itemText(index);
+	QDir dir(Settings.appDataLocation());
+	Mlt::Properties* properties = nullptr;
 
 	if (!dir.cd("presets") || !dir.cd(m_widgetName))
 		return;
@@ -159,13 +172,12 @@ void ServicePresetWidget::on_savePresetButton_clicked() {
 }
 
 void ServicePresetWidget::on_deletePresetButton_clicked() {
-	QString     preset = ui->presetCombo->currentText();
-	QMessageBox dialog(QMessageBox::Question, tr("Delete Preset"),
-	                   tr("Are you sure you want to delete %1?").arg(preset), QMessageBox::No | QMessageBox::Yes, this);
+	QString const preset = ui->presetCombo->currentText();
+	QMessageBox dialog(QMessageBox::Question, tr("Delete Preset"), tr("Are you sure you want to delete %1?").arg(preset), QMessageBox::No | QMessageBox::Yes, this);
 	dialog.setDefaultButton(QMessageBox::Yes);
 	dialog.setEscapeButton(QMessageBox::No);
 	dialog.setWindowModality(QmlApplication::dialogModality());
-	int result = dialog.exec();
+	const int result = dialog.exec();
 	if (result == QMessageBox::Yes) {
 		QDir dir(Settings.appDataLocation());
 

@@ -18,9 +18,13 @@
 #ifndef ACTIONSDIALOG_HPP
 #define ACTIONSDIALOG_HPP
 
+// Local
 #include "models/actionsmodel.hpp"
 
+// Qt
 #include <QDialog>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class PrivateTreeView;
 class QLineEdit;
@@ -38,8 +42,8 @@ class ActionsDialog : public QDialog {
 	void focusSearchResults();
 
   protected:
-	void hideEvent(QHideEvent* event);
-	void showEvent(QShowEvent* event);
+	void hideEvent(QHideEvent* event) override;
+	void showEvent(QShowEvent* event) override;
 
   private:
 	QLineEdit*             m_searchField;

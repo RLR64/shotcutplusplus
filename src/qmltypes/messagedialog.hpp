@@ -17,7 +17,10 @@
 #ifndef MESSAGEDIALOG_HPP
 #define MESSAGEDIALOG_HPP
 
+// Qt
 #include <QMessageBox>
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 class MessageDialog : public QObject {
 	Q_OBJECT
@@ -49,19 +52,19 @@ class MessageDialog : public QObject {
 	QString m_text;
 	int     m_buttons;
 
-	QString title() const {
+	[[nodiscard]] auto title() const -> QString {
 		return m_title;
 	}
 
 	void setTitle(const QString& title);
 
-	QString text() const {
+	[[nodiscard]] auto text() const -> QString {
 		return m_text;
 	}
 
 	void setText(const QString& text);
 
-	int buttons() const {
+	[[nodiscard]] auto buttons() const -> int {
 		return m_buttons;
 	}
 

@@ -15,35 +15,44 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "timespinbox.h"
-
 #include "mltcontroller.hpp"
 #include "settings.hpp"
 
+// Qt
 #include <QFontDatabase>
 #include <QGuiApplication>
 #include <QKeyEvent>
 #include <QRegularExpressionValidator>
+#include <qlineedit.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qspinbox.h>
+#include <qtmetamacros.h>
+
+// STL
+#include <climits>
 
 TimeSpinBox::TimeSpinBox(QWidget* parent) : QSpinBox(parent) {
 	setLineEdit(new TimeSpinBoxLineEdit);
 	setRange(0, INT_MAX);
 	setAlignment(Qt::AlignRight);
-	m_validator = new QRegularExpressionValidator(QRegularExpression("^\\s*(\\d*:){0,2}(\\d*[.;:])?\\d*\\s*$"), this);
+	m_validator = new QRegularExpressionValidator(QRegularExpression(R"(^\s*(\d*:){0,2}(\d*[.;:])?\d*\s*$)"), this);
 	setValue(0);
 	QFont font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
 	font.setPointSize(QGuiApplication::font().pointSize());
 	setFont(font);
 	setFixedWidth(fontMetrics().boundingRect("_HHH:MM:SS;FFF_").width());
 
-	connect(&Settings, &ShotcutSettings::timeFormatChanged, this, [&]() { setValue(value()); });
+	connect(&Settings, &ShotcutSettings::timeFormatChanged, this, [&]() -> void { setValue(value()); });
 }
 
-QValidator::State TimeSpinBox::validate(QString& input, int& pos) const {
+auto TimeSpinBox::validate(QString& input, int& pos) const -> QValidator::State {
 	return m_validator->validate(input, pos);
 }
 
-int TimeSpinBox::valueFromText(const QString& text) const {
+auto TimeSpinBox::valueFromText(const QString& text) const -> int {
 	if (MLT.producer() && MLT.producer()->is_valid()) {
 		return MLT.producer()->time_to_frames(text.toLatin1().constData());
 	} else {
@@ -52,13 +61,13 @@ int TimeSpinBox::valueFromText(const QString& text) const {
 	return 0;
 }
 
-QString TimeSpinBox::textFromValue(int val) const {
+auto TimeSpinBox::textFromValue(int val) const -> QString {
 	if (MLT.producer() && MLT.producer()->is_valid()) {
 		return MLT.producer()->frames_to_time(val, Settings.timeFormat());
 	} else {
 		return Mlt::Producer(MLT.profile(), "color", "").frames_to_time(val, Settings.timeFormat());
 	}
-	return QString();
+	return {};
 }
 
 void TimeSpinBox::keyPressEvent(QKeyEvent* event) {

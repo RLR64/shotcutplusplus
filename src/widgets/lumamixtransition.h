@@ -18,9 +18,13 @@
 #ifndef LUMAMIXTRANSITION_H
 #define LUMAMIXTRANSITION_H
 
+// Qt
 #include <MltProducer.h>
 #include <MltTransition.h>
 #include <QWidget>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 namespace Ui {
 class LumaMixTransition;
@@ -31,8 +35,8 @@ class LumaMixTransition : public QWidget {
 	Q_OBJECT
 
   public:
-	explicit LumaMixTransition(Mlt::Producer& transition, QWidget* parent = 0);
-	~LumaMixTransition();
+	explicit LumaMixTransition(Mlt::Producer& transition, QWidget* parent = nullptr);
+	~LumaMixTransition() override;
 
   public slots:
 	void onPlaying();
@@ -61,13 +65,13 @@ class LumaMixTransition : public QWidget {
 
   private:
 	Ui::LumaMixTransition* ui;
-	Mlt::Producer          m_producer;
-	int                    m_maxStockIndex;
+	Mlt::Producer m_producer;
+	int m_maxStockIndex;
 	ProducerPreviewWidget* m_preview;
-	Mlt::Producer          m_previewProducer;
+	Mlt::Producer m_previewProducer;
 
 	Mlt::Transition* getTransition(const QString& name);
-	void             updateCustomLumaLabel(Mlt::Transition& transition);
+	void updateCustomLumaLabel(Mlt::Transition& transition);
 };
 
 #endif // LUMAMIXTRANSITION_H

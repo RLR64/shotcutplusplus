@@ -18,8 +18,14 @@
 #ifndef MARKERSDOCK_HPP
 #define MARKERSDOCK_HPP
 
+// Qt
 #include <QDockWidget>
 #include <QItemSelectionModel>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class EditMarkerWidget;
 class MarkerTreeView;
@@ -33,7 +39,7 @@ class MarkersDock : public QDockWidget {
 
   public:
 	explicit MarkersDock(QWidget* parent = nullptr);
-	~MarkersDock();
+	~MarkersDock() override;
 	void setModel(MarkersModel* model);
 
   signals:

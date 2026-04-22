@@ -16,11 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "noisewidget.h"
-
 #include "shotcut_mlt_properties.hpp"
 #include "ui_noisewidget.h"
 #include "util.hpp"
+
+// Qt
+#include <MltProfile.h>
 
 NoiseWidget::NoiseWidget(QWidget* parent) : QWidget(parent), ui(new Ui::NoiseWidget) {
 	ui->setupUi(this);
@@ -31,8 +34,8 @@ NoiseWidget::~NoiseWidget() {
 	delete ui;
 }
 
-Mlt::Producer* NoiseWidget::newProducer(Mlt::Profile& profile) {
-	Mlt::Producer* p = new Mlt::Producer(profile, "noise:");
+auto NoiseWidget::newProducer(Mlt::Profile& profile) -> Mlt::Producer* {
+	auto* p = new Mlt::Producer(profile, "noise:");
 	p->set(kShotcutCaptionProperty, ui->nameLabel->text().toUtf8().constData());
 	p->set(kShotcutDetailProperty, ui->nameLabel->text().toUtf8().constData());
 	return p;

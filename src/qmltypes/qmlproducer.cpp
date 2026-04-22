@@ -15,27 +15,38 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "qmlproducer.hpp"
-
 #include "Logger.hpp"
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"
 #include "models/audiolevelstask.hpp"
 #include "qmltypes/qmlapplication.hpp"
+#include "shotcut_mlt_properties.hpp"
 #include "util.hpp"
 #include "widgets/glaxnimateproducerwidget.h"
 
-static const char* kWidthProperty     = "meta.media.width";
-static const char* kHeightProperty    = "meta.media.height";
-static const char* kAspectNumProperty = "meta.media.sample_aspect_num";
-static const char* kAspectDenProperty = "meta.media.sample_aspect_den";
+// Qt
+#include <MltFilter.h>
+#include <framework/mlt_types.h>
+#include <qbytearrayalgorithms.h>
+#include <qcontainerfwd.h>
+#include <qminmax.h>
+#include <qobjectdefs.h>
+#include <qscopedpointer.h>
+#include <qtmetamacros.h>
+
+static constexpr const char* kWidthProperty = "meta.media.width";
+static constexpr const char* kHeightProperty = "meta.media.height";
+static constexpr const char* kAspectNumProperty = "meta.media.sample_aspect_num";
+static constexpr const char* kAspectDenProperty = "meta.media.sample_aspect_den";
 
 QmlProducer::QmlProducer(QObject* parent) : QObject(parent) {
 	connect(this, SIGNAL(inChanged(int)), this, SIGNAL(durationChanged()));
 	connect(this, SIGNAL(outChanged(int)), this, SIGNAL(durationChanged()));
 }
 
-int QmlProducer::in() {
+auto QmlProducer::in() -> int {
 	if (!m_producer.is_valid())
 		return 0;
 	if (m_producer.get(kFilterInProperty))
@@ -47,7 +58,7 @@ int QmlProducer::in() {
 		return m_producer.get_in();
 }
 
-int QmlProducer::out() {
+auto QmlProducer::out() -> int {
 	if (!m_producer.is_valid())
 		return 0;
 	if (m_producer.get(kFilterOutProperty))
@@ -59,7 +70,7 @@ int QmlProducer::out() {
 		return m_producer.get_out();
 }
 
-double QmlProducer::aspectRatio() {
+auto QmlProducer::aspectRatio() -> double {
 	if (!m_producer.is_valid())
 		return 1.0;
 	if (m_producer.get(kHeightProperty)) {
@@ -72,26 +83,26 @@ double QmlProducer::aspectRatio() {
 	return MLT.profile().dar();
 }
 
-QString QmlProducer::resource() {
+auto QmlProducer::resource() -> QString {
 	if (!m_producer.is_valid())
-		return QString();
+		return {};
 	QString result = QString::fromUtf8(m_producer.get("resource"));
 	if (result == "<producer>" && m_producer.get("mlt_service"))
 		result = QString::fromUtf8(m_producer.get("mlt_service"));
 	return result;
 }
 
-QString QmlProducer::name() {
+auto QmlProducer::name() -> QString {
 	return Util::producerTitle(m_producer);
 }
 
-const QVariantList* QmlProducer::audioLevels() {
+auto QmlProducer::audioLevels() -> const QVariantList* {
 	if (!m_producer.is_valid())
 		return nullptr;
 	return static_cast<const QVariantList*>(m_producer.get_data(kAudioLevelsProperty));
 }
 
-int QmlProducer::fadeIn() {
+auto QmlProducer::fadeIn() -> int {
 	if (!m_producer.is_valid())
 		return 0;
 	QScopedPointer<Mlt::Filter> filter(MLT.getFilter("fadeInVolume", &m_producer));
@@ -102,7 +113,7 @@ int QmlProducer::fadeIn() {
 	return (filter && filter->is_valid()) ? filter->get_length() : 0;
 }
 
-int QmlProducer::fadeOut() {
+auto QmlProducer::fadeOut() -> int {
 	if (!m_producer.is_valid())
 		return 0;
 	QScopedPointer<Mlt::Filter> filter(MLT.getFilter("fadeOutVolume", &m_producer));
@@ -113,7 +124,7 @@ int QmlProducer::fadeOut() {
 	return (filter && filter->is_valid()) ? filter->get_length() : 0;
 }
 
-double QmlProducer::speed() {
+auto QmlProducer::speed() -> double {
 	double result = 1.0;
 	if (!m_producer.is_valid())
 		return result;
@@ -127,7 +138,7 @@ double QmlProducer::speed() {
 void QmlProducer::setPosition(int position) {
 	if (!m_producer.is_valid())
 		return;
-	int length = duration();
+	const int length = duration();
 	if (position < length) {
 		if (MLT.isMultitrack())
 			emit seeked(m_producer.get_int(kPlaylistStartProperty) + qMax(0, position));
@@ -146,7 +157,7 @@ void QmlProducer::seek(int position) {
 	}
 }
 
-Q_INVOKABLE bool QmlProducer::outOfBounds() {
+Q_INVOKABLE auto QmlProducer::outOfBounds() -> bool {
 	return m_position < 0 || m_position > duration();
 }
 
@@ -169,7 +180,7 @@ void QmlProducer::remakeAudioLevels(bool isKeyframesVisible) {
 		AudioLevelsTask::start(m_producer, this, QModelIndex());
 }
 
-double QmlProducer::displayAspectRatio() {
+auto QmlProducer::displayAspectRatio() -> double {
 	if (m_producer.is_valid() && m_producer.get(kHeightProperty)) {
 		double sar = 1.0;
 		if (m_producer.get(kAspectDenProperty)) {
@@ -180,18 +191,18 @@ double QmlProducer::displayAspectRatio() {
 	return MLT.profile().dar();
 }
 
-QString QmlProducer::get(QString name, int position) {
+auto QmlProducer::get(const QString& name, int position) -> QString {
 	if (m_producer.is_valid()) {
 		if (position < 0)
 			return QString::fromUtf8(m_producer.get(name.toUtf8().constData()));
 		else
 			return QString::fromUtf8(m_producer.anim_get(name.toUtf8().constData(), position, duration()));
 	} else {
-		return QString();
+		return {};
 	}
 }
 
-double QmlProducer::getDouble(QString name, int position) {
+auto QmlProducer::getDouble(const QString& name, int position) -> double {
 	if (m_producer.is_valid()) {
 		if (position < 0)
 			return m_producer.get_double(name.toUtf8().constData());
@@ -202,10 +213,10 @@ double QmlProducer::getDouble(QString name, int position) {
 	}
 }
 
-QRectF QmlProducer::getRect(QString name, int position) {
+auto QmlProducer::getRect(const QString& name, int position) -> QRectF {
 	if (!m_producer.is_valid())
-		return QRectF();
-	QString s = QString::fromUtf8(m_producer.get(name.toUtf8().constData()));
+		return {};
+	QString const s = QString::fromUtf8(m_producer.get(name.toUtf8().constData()));
 	if (!s.isEmpty()) {
 		mlt_rect rect;
 		if (position < 0) {
@@ -217,10 +228,10 @@ QRectF QmlProducer::getRect(QString name, int position) {
 			return QRectF(qRound(rect.x * MLT.profile().width()), qRound(rect.y * MLT.profile().height()),
 			              qRound(rect.w * MLT.profile().width()), qRound(rect.h * MLT.profile().height()));
 		} else {
-			return QRectF(rect.x, rect.y, rect.w, rect.h);
+			return {rect.x, rect.y, rect.w, rect.h};
 		}
 	} else {
-		return QRectF(0.0, 0.0, 0.0, 0.0);
+		return {0.0, 0.0, 0.0, 0.0};
 	}
 }
 

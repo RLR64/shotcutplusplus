@@ -18,7 +18,16 @@
 #ifndef SRC_WIDGETS_PLAYLISTICONVIEW_H
 #define SRC_WIDGETS_PLAYLISTICONVIEW_H
 
+// Qt
 #include <QAbstractItemView>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qitemselectionmodel.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class PlaylistIconView : public QAbstractItemView {
 	Q_OBJECT
@@ -27,16 +36,16 @@ class PlaylistIconView : public QAbstractItemView {
 	void resetMultiSelect();
 	void setIconRole(int role);
 
-	QRect       visualRect(const QModelIndex& index) const Q_DECL_OVERRIDE;
-	void        scrollTo(const QModelIndex& index, ScrollHint hint = EnsureVisible) Q_DECL_OVERRIDE;
-	QModelIndex indexAt(const QPoint& point) const Q_DECL_OVERRIDE;
+	[[nodiscard]] QRect visualRect(const QModelIndex& index) const Q_DECL_OVERRIDE;
+	void scrollTo(const QModelIndex& index, ScrollHint hint = EnsureVisible) Q_DECL_OVERRIDE;
+	[[nodiscard]] QModelIndex indexAt(const QPoint& point) const Q_DECL_OVERRIDE;
 	QModelIndex moveCursor(CursorAction cursorAction, Qt::KeyboardModifiers modifiers) Q_DECL_OVERRIDE;
-	int         horizontalOffset() const Q_DECL_OVERRIDE;
-	int         verticalOffset() const Q_DECL_OVERRIDE;
-	bool        isIndexHidden(const QModelIndex& index) const Q_DECL_OVERRIDE;
-	void        setSelection(const QRect& rect, QItemSelectionModel::SelectionFlags command) Q_DECL_OVERRIDE;
-	QRegion     visualRegionForSelection(const QItemSelection& selection) const Q_DECL_OVERRIDE;
-	void        currentChanged(const QModelIndex& current, const QModelIndex& previous) Q_DECL_OVERRIDE;
+	[[nodiscard]] int horizontalOffset() const Q_DECL_OVERRIDE;
+	[[nodiscard]] int verticalOffset() const Q_DECL_OVERRIDE;
+	[[nodiscard]] bool isIndexHidden(const QModelIndex& index) const Q_DECL_OVERRIDE;
+	void setSelection(const QRect& rect, QItemSelectionModel::SelectionFlags command) Q_DECL_OVERRIDE;
+	[[nodiscard]] QRegion visualRegionForSelection(const QItemSelection& selection) const Q_DECL_OVERRIDE;
+	void currentChanged(const QModelIndex& current, const QModelIndex& previous) Q_DECL_OVERRIDE;
 
 	void paintEvent(QPaintEvent*) Q_DECL_OVERRIDE;
 	void mouseReleaseEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
@@ -60,18 +69,18 @@ class PlaylistIconView : public QAbstractItemView {
 	void selectionChanged(const QItemSelection& selected, const QItemSelection& deselected) Q_DECL_OVERRIDE;
 
   private:
-	int                                      rowWidth() const;
-	QAbstractItemView::DropIndicatorPosition position(const QPoint& pos, const QRect& rect,
+	[[nodiscard]] int rowWidth() const;
+	[[nodiscard]] QAbstractItemView::DropIndicatorPosition position(const QPoint& pos, const QRect& rect,
 	                                                  const QModelIndex& index) const;
-	QRect                                    _visualRect(const QModelIndex& index) const;
+	[[nodiscard]] QRect _visualRect(const QModelIndex& index) const;
 
-	QSize       m_gridSize;
-	QPoint      m_draggingOverPos;
-	int         m_itemsPerRow;
-	bool        m_isToggleSelect{false};
-	bool        m_isRangeSelect{false};
+	QSize m_gridSize;
+	QPoint m_draggingOverPos;
+	int m_itemsPerRow;
+	bool m_isToggleSelect{false};
+	bool m_isRangeSelect{false};
 	QModelIndex m_pendingSelect;
-	int         m_iconRole;
+	int m_iconRole;
 };
 
 #endif

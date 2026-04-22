@@ -15,21 +15,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "database.hpp"
-
 #include "Logger.hpp"
 #include "dialogs/longuitask.hpp"
 #include "settings.hpp"
 
+// Qt
 #include <QDir>
 #include <QFileInfo>
+#include <QtConcurrent/qtconcurrentrun.h>
 #include <QtSql>
+#include <qmutex.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsqldatabase.h>
+
+// STL
+#include <ctime>
+#include <sys/utime.h>
 #include <utime.h>
 
-static QMutex        g_mutex;
-static Database*     instance                   = nullptr;
-static constexpr int kMaxThumbnailCount         = {5000};
-static constexpr int kDeleteThumbnailsTimeoutMs = {60000};
+static QMutex g_mutex;
+static Database* instance = nullptr;
+static constexpr int kMaxThumbnailCount{5000};
+static constexpr int kDeleteThumbnailsTimeoutMs{60000};
 
 Database::Database(QObject* parent) : QObject(parent) {
 	m_deleteTimer.setInterval(kDeleteThumbnailsTimeoutMs);
@@ -38,31 +48,31 @@ Database::Database(QObject* parent) : QObject(parent) {
 	m_deleteTimer.start();
 }
 
-Database& Database::singleton(QObject* parent) {
-	QMutexLocker locker(&g_mutex);
+auto Database::singleton(QObject* parent) -> Database& {
+	QMutexLocker const locker(&g_mutex);
 	if (!instance) {
 		instance = new Database(parent);
 	}
 	return *instance;
 }
 
-static QString toFileName(const QString& s) {
+static auto toFileName(const QString& s) -> QString {
 	QString result = s;
 	return result.replace(':', '-') + +".png";
 }
 
-QDir Database::thumbnailsDir() {
-	QDir        dir(Settings.appDataLocation());
+auto Database::thumbnailsDir() -> QDir {
+	QDir dir(Settings.appDataLocation());
 	const char* subfolder = "thumbnails";
 	if (!dir.cd(subfolder)) {
 		if (dir.mkdir(subfolder)) {
 			dir.cd(subfolder);
 
 			// Convert the DB data to files on the filesystem.
-			LongUiTask   longTask(QObject::tr("Converting Thumbnails"));
+			LongUiTask longTask(QObject::tr("Converting Thumbnails"));
 			QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-			QDir         appDir(Settings.appDataLocation());
-			QString      dbFilePath = appDir.filePath("db.sqlite3");
+			QDir const appDir(Settings.appDataLocation());
+			QString const dbFilePath = appDir.filePath("db.sqlite3");
 			db.setDatabaseName(dbFilePath);
 			if (db.open()) {
 				QSqlQuery query;
@@ -76,14 +86,14 @@ QDir Database::thumbnailsDir() {
 				                          "accessed DESC LIMIT %1")
 				               .arg(kMaxThumbnailCount));
 				for (int i = 0; query.next(); i++) {
-					QString fileName = toFileName(query.value(0).toString());
+					QString const fileName = toFileName(query.value(0).toString());
 					longTask.reportProgress(QObject::tr(
 					                            "Please wait for this one-time update to the thumbnail cache..."),
 					                        i, n);
 					if (img.loadFromData(query.value(2).toByteArray(), "PNG")) {
 						img.save(dir.filePath(fileName));
-						auto           accessed = query.value(1).toDateTime();
-						auto           offset   = accessed.timeZone().offsetFromUtc(accessed);
+						auto accessed = query.value(1).toDateTime();
+						auto offset   = accessed.timeZone().offsetFromUtc(accessed);
 						struct utimbuf utimes{static_cast<time_t>(accessed.toSecsSinceEpoch() + offset),
 						                      static_cast<time_t>(accessed.toSecsSinceEpoch() + offset)};
 						::utime(dir.filePath(fileName).toUtf8().constData(), &utimes);
@@ -97,24 +107,24 @@ QDir Database::thumbnailsDir() {
 	return dir;
 }
 
-bool Database::putThumbnail(const QString& hash, const QImage& image) {
+auto Database::putThumbnail(const QString& hash, const QImage& image) -> bool {
 	return image.save(thumbnailsDir().filePath(toFileName(hash)));
 }
 
-QImage Database::getThumbnail(const QString& hash) {
-	QString filePath = thumbnailsDir().filePath(toFileName(hash));
+auto Database::getThumbnail(const QString& hash) -> QImage {
+	QString const filePath = thumbnailsDir().filePath(toFileName(hash));
 	::utime(filePath.toUtf8().constData(), nullptr);
 	return QImage(filePath);
 }
 
 void Database::deleteOldThumbnails() {
-	auto result = QtConcurrent::run([=]() {
-		QDir dir = thumbnailsDir();
-		auto ls  = dir.entryList(QDir::Files | QDir::NoDotAndDotDot | QDir::Readable, QDir::Time);
+	auto result = QtConcurrent::run([this]() -> void {
+		QDir const dir = thumbnailsDir();
+		auto ls = dir.entryList(QDir::Files | QDir::NoDotAndDotDot | QDir::Readable, QDir::Time);
 		if (ls.size() - kMaxThumbnailCount > 0)
 			LOG_DEBUG() << "removing" << ls.size() - kMaxThumbnailCount;
 		for (int i = kMaxThumbnailCount; i < ls.size(); i++) {
-			QString filePath = dir.filePath(ls[i]);
+			QString const filePath = dir.filePath(ls[i]);
 			if (!QFile::remove(filePath)) {
 				LOG_WARNING() << "failed to delete" << filePath;
 			}

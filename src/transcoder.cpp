@@ -15,8 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "transcoder.hpp"
-
+#include "dialogs/transcodedialog.hpp"
 #include "jobqueue.hpp"
 #include "jobs/ffmpegjob.hpp"
 #include "mainwindow.hpp"
@@ -24,10 +25,21 @@
 #include "shotcut_mlt_properties.hpp"
 #include "util.hpp"
 
+// Qt
+#include <MltProperties.h>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <framework/mlt_types.h>
+#include <qcontainerfwd.h>
+#include <qdialog.h>
+#include <qfileinfo.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qnumeric.h>
+#include <qobject.h>
 
-#define kHandleSeconds (15.0)
+// Number constants
+constexpr double kHandleSeconds{15.0};
 
 void Transcoder::setProducers(QList<Mlt::Producer>& producers) {
 	m_producers = producers;
@@ -42,7 +54,7 @@ void Transcoder::addProducer(Mlt::Producer* producer) {
 }
 
 void Transcoder::convert(TranscodeDialog& dialog) {
-	int result = dialog.exec();
+	const int result = dialog.exec();
 	if (dialog.isCheckBoxChecked()) {
 		Settings.setShowConvertClipDialog(false);
 	}
@@ -50,8 +62,8 @@ void Transcoder::convert(TranscodeDialog& dialog) {
 		return;
 	}
 
-	QString path   = Settings.savePath();
-	QString suffix = dialog.isSubClip() ? tr("Sub-clip") + ' ' : tr("Converted");
+	QString path = Settings.savePath();
+	QString const suffix = dialog.isSubClip() ? tr("Sub-clip") + ' ' : tr("Converted");
 	QString filename;
 	QString nameFormat;
 	QString nameFilter;
@@ -72,8 +84,8 @@ void Transcoder::convert(TranscodeDialog& dialog) {
 	}
 
 	if (m_producers.length() == 1) {
-		QString   resource = Util::GetFilenameFromProducer(&m_producers[0]);
-		QFileInfo fi(resource);
+		QString const resource = Util::GetFilenameFromProducer(&m_producers[0]);
+		QFileInfo const fi(resource);
 		filename = path + nameFormat.arg(fi.completeBaseName(), suffix);
 		if (dialog.isSubClip()) {
 			filename = Util::getNextFile(path);
@@ -118,8 +130,8 @@ void Transcoder::convert(TranscodeDialog& dialog) {
 		}
 
 		for (auto& producer : m_producers) {
-			QString   resource = Util::GetFilenameFromProducer(&producer);
-			QFileInfo fi(resource);
+			QString const resource = Util::GetFilenameFromProducer(&producer);
+			QFileInfo const fi(resource);
 			filename = path + nameFormat.arg(fi.completeBaseName(), suffix);
 			filename = Util::getNextFile(filename);
 			if (JOBS.targetIsInProgress(filename)) {
@@ -134,10 +146,10 @@ void Transcoder::convert(TranscodeDialog& dialog) {
 	Settings.setSavePath(QFileInfo(filename).path());
 }
 
-void Transcoder::convertProducer(Mlt::Producer* producer, TranscodeDialog& dialog, QString filename) {
-	QString     resource = Util::GetFilenameFromProducer(producer);
+void Transcoder::convertProducer(Mlt::Producer* producer, TranscodeDialog& dialog, const QString& filename) {
+	QString const resource = Util::GetFilenameFromProducer(producer);
 	QStringList args;
-	int         in = -1;
+	int in = -1;
 
 	args << "-loglevel"
 	     << "verbose";
@@ -152,8 +164,8 @@ void Transcoder::convertProducer(Mlt::Producer* producer, TranscodeDialog& dialo
 
 		// set trim options
 		if (producer->get(kFilterInProperty)) {
-			in      = producer->get_int(kFilterInProperty);
-			int  ss = qMax(0, in - qRound(producer->get_fps() * kHandleSeconds));
+			in = producer->get_int(kFilterInProperty);
+			const int ss = qMax(0, in - qRound(producer->get_fps() * kHandleSeconds));
 			auto s  = QString::fromLatin1(producer->frames_to_time(ss, mlt_time_clock));
 			args << "-ss" << s.replace(',', '.');
 			in -= ss;
@@ -162,9 +174,9 @@ void Transcoder::convertProducer(Mlt::Producer* producer, TranscodeDialog& dialo
 			     << QString::fromLatin1(producer->get_time("in", mlt_time_clock)).replace(',', '.').replace(',', '.');
 		}
 		if (producer->get(kFilterOutProperty)) {
-			int  out = producer->get_int(kFilterOutProperty);
-			int  to  = qMin(producer->get_playtime() - 1, out + qRound(producer->get_fps() * kHandleSeconds));
-			auto s   = QString::fromLatin1(producer->frames_to_time(to, mlt_time_clock));
+			const int out = producer->get_int(kFilterOutProperty);
+			const int to = qMin(producer->get_playtime() - 1, out + qRound(producer->get_fps() * kHandleSeconds));
+			auto s = QString::fromLatin1(producer->frames_to_time(to, mlt_time_clock));
 			args << "-to" << s.replace(',', '.');
 		} else {
 			args << "-to" << QString::fromLatin1(producer->get_time("out", mlt_time_clock)).replace(',', '.');
@@ -205,8 +217,8 @@ void Transcoder::convertProducer(Mlt::Producer* producer, TranscodeDialog& dialo
 	args << "-vf";
 	QString filterString;
 	if (dialog.deinterlace()) {
-		QString deinterlaceFilter = QStringLiteral("bwdif,");
-		filterString              = filterString + deinterlaceFilter;
+		QString const deinterlaceFilter = QStringLiteral("bwdif,");
+		filterString = filterString + deinterlaceFilter;
 	}
 
 	QString color_range;
@@ -230,7 +242,7 @@ void Transcoder::convertProducer(Mlt::Producer* producer, TranscodeDialog& dialo
 	}
 
 	if (dialog.get709Convert()) {
-		QString convertFilter =
+		QString const convertFilter =
 		    QStringLiteral("zscale=t=linear:npl=100,format=gbrpf32le,zscale=p=bt709,tonemap=tonemap=hable:desat=0,"
 		                   "zscale=t=bt709:m=bt709:r=tv,format=yuv422p,");
 		filterString = filterString + convertFilter;
@@ -239,14 +251,14 @@ void Transcoder::convertProducer(Mlt::Producer* producer, TranscodeDialog& dialo
 	               QStringLiteral("scale=flags=accurate_rnd+full_chroma_inp+full_chroma_int:in_range=%1:out_range=%2")
 	                   .arg(color_range)
 	                   .arg(color_range);
-	auto fps     = dialog.fpsOverride() ? dialog.fps() : Util::getSuggestedFrameRate(producer);
-	auto fpsStr  = QStringLiteral("%1").arg(fps, 0, 'f', 6);
-	int  numerator, denominator;
+	auto fps = dialog.fpsOverride() ? dialog.fps() : Util::getSuggestedFrameRate(producer);
+	auto fpsStr = QStringLiteral("%1").arg(fps, 0, 'f', 6);
+	int numerator, denominator;
 	Util::normalizeFrameRate(fps, numerator, denominator);
 	if (denominator == 1001) {
 		fpsStr = QStringLiteral("%1/%2").arg(numerator).arg(denominator);
 	}
-	QString minterpFilter = QStringLiteral(",minterpolate='mi_mode=%1:mc_mode=aobmc:me_mode=bidir:vsbmc=1:fps=%2'")
+	QString const minterpFilter = QStringLiteral(",minterpolate='mi_mode=%1:mc_mode=aobmc:me_mode=bidir:vsbmc=1:fps=%2'")
 	                            .arg(dialog.frc(), fpsStr);
 	filterString          = filterString + minterpFilter;
 	args << filterString;
@@ -260,9 +272,9 @@ void Transcoder::convertProducer(Mlt::Producer* producer, TranscodeDialog& dialo
 		     << "1";
 	}
 
-	int progressive = producer->get_int("meta.media.progressive") || producer->get_int("force_progressive");
+	const int progressive = producer->get_int("meta.media.progressive") || producer->get_int("force_progressive");
 	if (!dialog.deinterlace() && !progressive) {
-		int tff = producer->get_int("meta.media.top_field_first") || producer->get_int("force_tff");
+		const int tff = producer->get_int("meta.media.top_field_first") || producer->get_int("force_tff");
 		args << "-flags"
 		     << "+ildct+ilme"
 		     << "-top" << QString::number(tff);
@@ -336,12 +348,12 @@ void Transcoder::convertProducer(Mlt::Producer* producer, TranscodeDialog& dialo
 	job->setTarget(filename);
 	if (dialog.isSubClip()) {
 		if (producer->get(kMultitrackItemProperty)) {
-			QString s     = QString::fromLatin1(producer->get(kMultitrackItemProperty));
-			auto    parts = s.split(':');
+			QString const s = QString::fromLatin1(producer->get(kMultitrackItemProperty));
+			auto parts = s.split(':');
 			if (parts.length() == 2) {
-				int   clipIndex  = parts[0].toInt();
-				int   trackIndex = parts[1].toInt();
-				QUuid uuid       = MAIN.timelineClipUuid(trackIndex, clipIndex);
+				const int clipIndex  = parts[0].toInt();
+				const int trackIndex = parts[1].toInt();
+				QUuid const uuid = MAIN.timelineClipUuid(trackIndex, clipIndex);
 				if (!uuid.isNull()) {
 					job->setPostJobAction(new ReplaceOnePostJobAction(resource, filename, QString(), uuid, in));
 					JOBS.add(job);

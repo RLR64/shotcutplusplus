@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "newprojectfolder.h"
-
 #include "Logger.hpp"
 #include "dialogs/customprofiledialog.hpp"
 #include "dialogs/listselectiondialog.hpp"
@@ -26,12 +26,23 @@
 #include "ui_newprojectfolder.h"
 #include "util.hpp"
 
+// Qt
 #include <QActionGroup>
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QListWidgetItem>
 #include <QMessageBox>
+#include <qcontainerfwd.h>
+#include <qcoreevent.h>
+#include <qdialog.h>
+#include <qforeach.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpalette.h>
+#include <qstandarditemmodel.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 NewProjectFolder::NewProjectFolder(QWidget* parent)
     : QWidget(parent), ui(new Ui::NewProjectFolder), m_isOpening(false) {
@@ -50,8 +61,8 @@ NewProjectFolder::~NewProjectFolder() {
 }
 
 void NewProjectFolder::showEvent(QShowEvent*) {
-	QString external = Settings.playerExternal();
-	bool    ok       = false;
+	QString const external = Settings.playerExternal();
+	bool ok = false;
 	external.toInt(&ok);
 	m_profile = Settings.playerProfile();
 
@@ -95,8 +106,8 @@ void NewProjectFolder::hideEvent(QHideEvent*) {
 	ui->projectNameLineEdit->setText(QString());
 }
 
-bool NewProjectFolder::event(QEvent* event) {
-	bool result = QWidget::event(event);
+auto NewProjectFolder::event(QEvent* event) -> bool {
+	const bool result = QWidget::event(event);
 	if (event->type() == QEvent::PaletteChange)
 		setColors();
 	return result;
@@ -106,7 +117,7 @@ void NewProjectFolder::updateRecentProjects() {
 	m_model.clear();
 	for (auto& s : Settings.projects()) {
 		if (!s.isEmpty()) {
-			QStandardItem* item = new QStandardItem(Util::baseName(s));
+			auto* item = new QStandardItem(Util::baseName(s));
 			item->setToolTip(QDir::toNativeSeparators(s));
 			m_model.appendRow(item);
 		}
@@ -114,7 +125,7 @@ void NewProjectFolder::updateRecentProjects() {
 }
 
 void NewProjectFolder::on_projectsFolderButton_clicked() {
-	QString dirName = QFileDialog::getExistingDirectory(this, tr("Projects Folder"), Settings.projectsFolder(),
+	QString const dirName = QFileDialog::getExistingDirectory(this, tr("Projects Folder"), Settings.projectsFolder(),
 	                                                    Util::getFileDialogOptions());
 	if (!dirName.isEmpty()) {
 		setProjectFolderButtonText(dirName);
@@ -135,7 +146,7 @@ void NewProjectFolder::on_actionAddCustomProfile_triggered() {
 	CustomProfileDialog dialog(this);
 	dialog.setWindowModality(QmlApplication::dialogModality());
 	if (dialog.exec() == QDialog::Accepted) {
-		QString name = dialog.profileName();
+		QString const name = dialog.profileName();
 		if (!name.isEmpty()) {
 			ui->videoModeButton->setText(name);
 			MAIN.addCustomProfile(name, m_customProfileMenu, ui->actionProfileRemove, m_profileGroup);
@@ -154,7 +165,7 @@ void NewProjectFolder::on_actionProfileRemove_triggered() {
 	QDir dir(Settings.appDataLocation());
 	if (dir.cd("profiles")) {
 		// Setup the dialog.
-		QStringList         profiles = dir.entryList(QDir::Files | QDir::NoDotAndDotDot | QDir::Readable);
+		QStringList const profiles = dir.entryList(QDir::Files | QDir::NoDotAndDotDot | QDir::Readable);
 		ListSelectionDialog dialog(profiles, this);
 		dialog.setWindowModality(QmlApplication::dialogModality());
 		dialog.setWindowTitle(tr("Remove Video Mode"));
@@ -216,7 +227,7 @@ void NewProjectFolder::on_startButton_clicked() {
 	}
 
 	// Create the project file.
-	QFileInfo info(dir.absolutePath(), fileName);
+	QFileInfo const info(dir.absolutePath(), fileName);
 	if (Util::warnIfNotWritable(info.absoluteFilePath(), this, ui->newProjectLabel->text()))
 		return;
 	MAIN.newProject(info.absoluteFilePath(), true);
@@ -265,9 +276,8 @@ void NewProjectFolder::setColors() {
 }
 
 void NewProjectFolder::setProjectFolderButtonText(const QString& text) {
-	auto    path = QDir::toNativeSeparators(text);
-	QString elidedText =
-	    ui->projectsFolderButton->fontMetrics().elidedText(path, Qt::ElideLeft, ui->recentListView->width() / 1.5);
+	auto path = QDir::toNativeSeparators(text);
+	QString const elidedText = ui->projectsFolderButton->fontMetrics().elidedText(path, Qt::ElideLeft, ui->recentListView->width() / 1.5);
 	ui->projectsFolderButton->setText(elidedText);
 	if (path != elidedText)
 		ui->projectsFolderButton->setToolTip(path);
@@ -289,11 +299,11 @@ void NewProjectFolder::on_recentListView_customContextMenuRequested(const QPoint
 
 void NewProjectFolder::on_actionRecentRemove_triggered() {
 	if (ui->recentListView->currentIndex().isValid()) {
-		auto index    = ui->recentListView->currentIndex();
-		auto data     = m_model.itemData(index);
+		auto index = ui->recentListView->currentIndex();
+		auto data = m_model.itemData(index);
 		auto projects = Settings.projects();
-		auto url      = data[Qt::ToolTipRole].toString();
-		url           = QDir::fromNativeSeparators(url);
+		auto url = data[Qt::ToolTipRole].toString();
+		url = QDir::fromNativeSeparators(url);
 		if (projects.removeAll(url) > 0) {
 			m_model.removeRow(index.row());
 			Settings.setProjects(projects);

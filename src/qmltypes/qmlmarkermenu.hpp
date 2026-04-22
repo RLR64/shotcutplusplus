@@ -18,7 +18,9 @@
 #ifndef QMLMARKERMENU_HPP
 #define QMLMARKERMENU_HPP
 
+// Qt
 #include <QObject>
+#include <qtmetamacros.h>
 
 class TimelineDock;
 

@@ -15,14 +15,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "rectangleselector.hpp"
 
+// Qt
 #include <QDebug>
 #include <QGuiApplication>
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QScreen>
+#include <qfont.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 RectangleSelector::RectangleSelector(QWidget* parent)
     : QWidget(parent, Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::X11BypassWindowManagerHint),
@@ -37,14 +45,13 @@ RectangleSelector::RectangleSelector(QWidget* parent)
 	setFocus(Qt::ActiveWindowFocusReason);
 
 	// Make fullscreen
-	QScreen* screen = QGuiApplication::primaryScreen();
+	QScreen const* screen = QGuiApplication::primaryScreen();
 	if (screen) {
 		setGeometry(screen->geometry());
 	}
 }
 
-RectangleSelector::~RectangleSelector() {
-}
+RectangleSelector::~RectangleSelector() = default;
 
 void RectangleSelector::paintEvent(QPaintEvent* event) {
 	QPainter painter(this);
@@ -54,7 +61,7 @@ void RectangleSelector::paintEvent(QPaintEvent* event) {
 	painter.fillRect(rect(), QColor(0, 0, 0, 100));
 
 	if (m_selecting) {
-		QRect selection = getSelectionRect();
+		QRect const selection = getSelectionRect();
 
 		// Clear the selection area
 		painter.setCompositionMode(QPainter::CompositionMode_Clear);
@@ -80,15 +87,15 @@ void RectangleSelector::paintEvent(QPaintEvent* event) {
 		                 handleSize, handleSize);
 
 		// Draw dimensions text
-		QString dimensions = QString("%1 x %2").arg(selection.width()).arg(selection.height());
-		QFont   font       = painter.font();
+		QString const dimensions = QString("%1 x %2").arg(selection.width()).arg(selection.height());
+		QFont font = painter.font();
 		font.setPixelSize(14);
 		painter.setFont(font);
 
 		QRect textRect = painter.fontMetrics().boundingRect(dimensions);
 		textRect.adjust(-5, -3, 5, 3);
 
-		int textX = selection.center().x() - textRect.width() / 2;
+		const int textX = selection.center().x() - textRect.width() / 2;
 		int textY = selection.top() - textRect.height() - 5;
 
 		if (textY < 0) {
@@ -107,8 +114,8 @@ void RectangleSelector::paintEvent(QPaintEvent* event) {
 
 	// Draw instruction text
 	if (!m_selecting) {
-		QString instruction = tr("Click and drag to select an area. Press ESC to cancel.");
-		QFont   font        = painter.font();
+		QString const instruction = tr("Click and drag to select an area. Press ESC to cancel.");
+		QFont font = painter.font();
 		font.setPixelSize(16);
 		painter.setFont(font);
 
@@ -137,7 +144,7 @@ void RectangleSelector::mouseMoveEvent(QMouseEvent* event) {
 
 void RectangleSelector::mouseReleaseEvent(QMouseEvent* event) {
 	if (event->button() == Qt::LeftButton && m_selecting) {
-		QRect selection = getSelectionRect();
+		QRect const selection = getSelectionRect();
 
 		if (selection.width() > 10 && selection.height() > 10) {
 			emit rectangleSelected(selection);
@@ -159,11 +166,11 @@ void RectangleSelector::keyPressEvent(QKeyEvent* event) {
 	QWidget::keyPressEvent(event);
 }
 
-QRect RectangleSelector::getSelectionRect() const {
-	int x = qMin(m_startPoint.x(), m_currentPoint.x());
-	int y = qMin(m_startPoint.y(), m_currentPoint.y());
-	int w = qAbs(m_currentPoint.x() - m_startPoint.x());
-	int h = qAbs(m_currentPoint.y() - m_startPoint.y());
+auto RectangleSelector::getSelectionRect() const -> QRect {
+	const int x = qMin(m_startPoint.x(), m_currentPoint.x());
+	const int y = qMin(m_startPoint.y(), m_currentPoint.y());
+	const int w = qAbs(m_currentPoint.x() - m_startPoint.x());
+	const int h = qAbs(m_currentPoint.y() - m_startPoint.y());
 
-	return QRect(x, y, w, h);
+	return {x, y, w, h};
 }

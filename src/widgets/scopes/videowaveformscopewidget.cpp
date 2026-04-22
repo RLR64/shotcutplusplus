@@ -15,17 +15,36 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "videowaveformscopewidget.h"
-
 #include "Logger.hpp"
+#include "widgets/scopes/scopewidget.h"
 
+// Qt
 #include <QMouseEvent>
 #include <QPainter>
 #include <QToolTip>
+#include <framework/mlt_types.h>
+#include <qbrush.h>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qmutex.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qvariant.h>
+#include <qwidget.h>
 
-static constexpr qreal  IRE0       = {16};
-static constexpr qreal  IRE100     = {235};
-static constexpr QColor TEXT_COLOR = {255, 255, 255, 127};
+// STL
+#include <cstddef>
+#include <cstdint>
+
+static constexpr qreal IRE0{16};
+static constexpr qreal IRE100{235};
+static constexpr QColor TEXT_COLOR{255, 255, 255, 127};
 
 VideoWaveformScopeWidget::VideoWaveformScopeWidget()
     : ScopeWidget("VideoWaveform"), m_frame(), m_renderImg(), m_mutex(), m_displayImg() {
@@ -43,15 +62,15 @@ void VideoWaveformScopeWidget::refreshScope(const QSize& size, bool full) {
 		m_frame = m_queue.pop();
 	}
 
-	int width  = m_frame.get_image_width();
-	int height = m_frame.get_image_height();
+	const int width  = m_frame.get_image_width();
+	const int height = m_frame.get_image_height();
 
 	if (m_frame.is_valid() && width && height) {
 		if (m_renderImg.width() != width) {
 			m_renderImg = QImage(width, 256, QImage::Format_RGBX8888);
 		}
 
-		QColor bgColor(0, 0, 0, 0xff);
+		QColor const bgColor(0, 0, 0, 0xff);
 		m_renderImg.fill(bgColor);
 
 		const uint8_t* src = m_frame.get_image(mlt_image_yuv420p);
@@ -59,8 +78,8 @@ void VideoWaveformScopeWidget::refreshScope(const QSize& size, bool full) {
 
 		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {
-				uint8_t dy     = 255 - src[0];
-				size_t  dIndex = (dy * width + x) * 4;
+				const uint8_t dy     = 255 - src[0];
+				const size_t  dIndex = (dy * width + x) * 4;
 				if (dst[dIndex] < 0xff) {
 					dst[dIndex] += 0x0f;
 					dst[dIndex + 1] += 0x0f;
@@ -87,10 +106,10 @@ void VideoWaveformScopeWidget::paintEvent(QPaintEvent*) {
 	QPainter p(this);
 	p.setRenderHint(QPainter::Antialiasing, true);
 	QFont font     = QWidget::font();
-	int   fontSize = font.pointSize() - (font.pointSize() > 10 ? 2 : (font.pointSize() > 8 ? 1 : 0));
+	const int fontSize = font.pointSize() - (font.pointSize() > 10 ? 2 : (font.pointSize() > 8 ? 1 : 0));
 	font.setPointSize(fontSize);
-	QFontMetrics fm(font);
-	QPen         pen;
+	QFontMetrics const fm(font);
+	QPen pen;
 	pen.setColor(TEXT_COLOR);
 	pen.setWidth(qRound(devicePixelRatioF()));
 	p.setPen(pen);
@@ -106,15 +125,15 @@ void VideoWaveformScopeWidget::paintEvent(QPaintEvent*) {
 	m_mutex.unlock();
 
 	// Add IRE lines
-	int textpad = 3;
+	const int textpad = 3;
 	// 100
-	qreal ire100y = height() - (height() * IRE100 / 255);
+	const qreal ire100y = height() - (height() * IRE100 / 255);
 	p.drawLine(QPointF(0, ire100y), QPointF(width(), ire100y));
 	p.drawText(textpad, ire100y - textpad, tr("100"));
 	// 0
-	qreal ire0y = height() - (height() * IRE0 / 255);
+	const qreal ire0y = height() - (height() * IRE0 / 255);
 	p.drawLine(QPointF(0, ire0y), QPointF(width(), ire0y));
-	QRect textRect = fm.tightBoundingRect(tr("0"));
+	QRect const textRect = fm.tightBoundingRect(tr("0"));
 	p.drawText(textpad, ire0y + textRect.height() + textpad, tr("0"));
 
 	p.end();
@@ -122,24 +141,24 @@ void VideoWaveformScopeWidget::paintEvent(QPaintEvent*) {
 
 void VideoWaveformScopeWidget::mouseMoveEvent(QMouseEvent* event) {
 	QString text;
-	qreal   ire100y = height() - (height() * IRE100 / 255);
-	qreal   ire0y   = height() - (height() * IRE0 / 255);
-	qreal   ireStep = (ire0y - ire100y) / 100.0;
-	int     ire     = (ire0y - event->pos().y()) / ireStep;
+	const qreal ire100y = height() - (height() * IRE100 / 255);
+	const qreal ire0y = height() - (height() * IRE0 / 255);
+	const qreal ireStep = (ire0y - ire100y) / 100.0;
+	const int ire = (ire0y - event->pos().y()) / ireStep;
 
 	m_mutex.lock();
-	int frameWidth = m_displayImg.width();
+	const int frameWidth = m_displayImg.width();
 	m_mutex.unlock();
 
 	if (frameWidth != 0) {
-		int pixel = frameWidth * event->pos().x() / width();
-		text      = tr("Pixel: %1\nIRE: %2").arg(pixel).arg(ire);
+		const int pixel = frameWidth * event->pos().x() / width();
+		text = tr("Pixel: %1\nIRE: %2").arg(pixel).arg(ire);
 	} else {
 		text = tr("IRE: %1").arg(ire);
 	}
 	QToolTip::showText(event->globalPosition().toPoint(), text);
 }
 
-QString VideoWaveformScopeWidget::getTitle() {
+auto VideoWaveformScopeWidget::getTitle() -> QString {
 	return tr("Video Waveform");
 }

@@ -15,22 +15,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "kokorodokijob.hpp"
-
 #include "Logger.hpp"
 #include "jobqueue.hpp"
+#include "jobs/abstractjob.hpp"
 #include "jobs/dockerpulljob.hpp"
+#include "jobs/postjobaction.hpp"
 #include "mainwindow.hpp"
 #include "qmltypes/qmlapplication.hpp"
 #include "settings.hpp"
 #include "util.hpp"
 
+// Qt
 #include <QAction>
 #include <QApplication>
 #include <QDir>
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QRegularExpression>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qprocess.h>
+#include <qthread.h>
+#include <qtmetamacros.h>
+
+// STL
+#include <algorithm>
+#include <functional>
 
 static const auto kDockerImageRef = QStringLiteral("mltframework/kokorodoki");
 
@@ -39,9 +51,9 @@ KokorodokiJob::KokorodokiJob(const QString& inputFile, const QString& outputFile
     : AbstractJob(QObject::tr("Text to speech: %1").arg(QFileInfo(outputFile).fileName()), priority),
       m_inputFile(inputFile), m_outputFile(outputFile), m_language(language), m_voice(voice), m_speed(speed) {
 	setTarget(outputFile);
-	QAction* action = new QAction(tr("Open"), this);
+	auto* action = new QAction(tr("Open"), this);
 	action->setData("Open");
-	connect(action, &QAction::triggered, this, [this]() { onOpenTriggered(); });
+	connect(action, &QAction::triggered, this, [this]() -> void { onOpenTriggered(); });
 	m_successActions << action;
 
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
@@ -55,7 +67,7 @@ KokorodokiJob::~KokorodokiJob() {
 	LOG_DEBUG() << "KokorodokiJob destroyed";
 }
 
-bool KokorodokiJob::checkDockerImage(QWidget* parent) {
+auto KokorodokiJob::checkDockerImage(QWidget* parent) -> bool {
 	auto dockerKokorodokiExists = Util::dockerStatus("mltframework/kokorodoki");
 	if (!dockerKokorodokiExists.first) {
 		QMessageBox dialog(QMessageBox::Warning, QApplication::applicationName(),
@@ -95,16 +107,16 @@ bool KokorodokiJob::checkDockerImage(QWidget* parent) {
 }
 
 // static
-void KokorodokiJob::prepareAndRun(QWidget* parent, std::function<void()> callback) {
+void KokorodokiJob::prepareAndRun(QWidget* parent, const std::function<void()>& callback) {
 	if (!callback)
 		return;
-	Util::isDockerImageCurrentAsync(kDockerImageRef, parent, [callback](bool current) {
+	Util::isDockerImageCurrentAsync(kDockerImageRef, parent, [callback](bool current) -> void {
 		LOG_DEBUG() << "dockerImageIsCurrent" << current;
 		if (current) {
 			callback();
 		} else {
 			auto pullJob = new DockerPullJob(kDockerImageRef);
-			QObject::connect(pullJob, &AbstractJob::finished, pullJob, [callback](AbstractJob*, bool success) {
+			QObject::connect(pullJob, &AbstractJob::finished, pullJob, [callback](AbstractJob*, bool success) -> void {
 				if (success)
 					callback();
 			});
@@ -114,8 +126,8 @@ void KokorodokiJob::prepareAndRun(QWidget* parent, std::function<void()> callbac
 }
 
 void KokorodokiJob::start() {
-	QFileInfo inFi(m_inputFile);
-	QFileInfo outFi(m_outputFile);
+	QFileInfo const inFi(m_inputFile);
+	QFileInfo const outFi(m_outputFile);
 	if (inFi.dir() != outFi.dir()) {
 		// For safety ensure same directory
 		LOG_INFO() << "Input and output not in same directory; aborting.";
@@ -154,11 +166,11 @@ void KokorodokiJob::start() {
 }
 
 void KokorodokiJob::onReadyRead() {
-	QString                   line;
-	static QRegularExpression timeRe("(\\d{1,2}):(\\d{2}):(\\d{2})\\b");
-	static QRegularExpression ansiRe("\x1B\[[0-9;?]*[A-Za-z]");
+	QString line;
+	static QRegularExpression const timeRe(R"((\d{1,2}):(\d{2}):(\d{2})\b)");
+	static QRegularExpression const ansiRe("\x1B\[[0-9;?]*[A-Za-z]");
 	// Any Braille pattern character (U+2800–U+28FF) often used by rich.console spinners.
-	static QRegularExpression brailleRe("[\u2800-\u28FF]");
+	static QRegularExpression const brailleRe("[\u2800-\u28FF]");
 	do {
 		line = readLine();
 		if (!line.isEmpty()) {

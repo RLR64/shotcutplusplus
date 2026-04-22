@@ -18,9 +18,19 @@
 #ifndef HTMLGENERATORWIDGET_H
 #define HTMLGENERATORWIDGET_H
 
+// Local
 #include "abstractproducerwidget.hpp"
 
+// Qt
+#include <MltProducer.h>
+#include <MltProperties.h>
 #include <QWidget>
+#include <qlist.h>
+#include <qlistwidget.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
+#include <qwindowdefs.h>
 
 namespace Ui {
 class HtmlGeneratorWidget;
@@ -38,14 +48,14 @@ class HtmlGeneratorWidget : public QWidget, public AbstractProducerWidget {
 	static const char* kLine2Property;
 	static const char* kLine3Property;
 
-	explicit HtmlGeneratorWidget(QWidget* parent = 0);
-	~HtmlGeneratorWidget();
+	explicit HtmlGeneratorWidget(QWidget* parent = nullptr);
+	~HtmlGeneratorWidget() override;
 
 	// AbstractProducerWidget overrides
 	Mlt::Producer*  newProducer(Mlt::Profile&) override;
-	Mlt::Properties getPreset() const override;
-	void            loadPreset(Mlt::Properties&) override;
-	void            setProducer(Mlt::Producer* p) override;
+	[[nodiscard]] Mlt::Properties getPreset() const override;
+	void loadPreset(Mlt::Properties&) override;
+	void setProducer(Mlt::Producer* p) override;
 
   signals:
 	void producerChanged(Mlt::Producer*);
@@ -69,20 +79,20 @@ class HtmlGeneratorWidget : public QWidget, public AbstractProducerWidget {
 
 	void on_bodyTextEdit_textChanged();
 
-	void on_presetIconView_itemClicked(class QListWidgetItem* item);
+	void on_presetIconView_itemClicked(QListWidgetItem* item);
 
   protected:
 	bool eventFilter(QObject* watched, QEvent* event) override;
 
   private:
-	QString                  generateHtml() const;
-	void                     updateTextSectionVisibility();
-	void                     populatePresetIconView();
-	QString                  findPresetIconPath(const QString& presetName);
-	void                     setupIconAnimation(class QListWidgetItem* item, const QString& iconPath);
+	[[nodiscard]] QString generateHtml() const;
+	void updateTextSectionVisibility();
+	void populatePresetIconView();
+	QString findPresetIconPath(const QString& presetName);
+	void setupIconAnimation(class QListWidgetItem* item, const QString& iconPath);
 	Ui::HtmlGeneratorWidget* ui;
-	QList<class QMovie*>     m_iconMovies;
-	class QListWidgetItem*   m_lastHoveredItem = nullptr;
+	QList<class QMovie*> m_iconMovies;
+	class QListWidgetItem* m_lastHoveredItem = nullptr;
 };
 
 #endif // TEXTPRODUCERWIDGET_H

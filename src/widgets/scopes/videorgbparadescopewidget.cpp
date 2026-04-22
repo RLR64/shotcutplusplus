@@ -15,13 +15,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "videorgbparadescopewidget.h"
+#include "Logger.hpp"
+#include "widgets/scopes/scopewidget.h"
 
+// Qt
 #include <QMouseEvent>
 #include <QPainter>
 #include <QToolTip>
+#include <framework/mlt_types.h>
+#include <qbrush.h>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qmutex.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qvariant.h>
+#include <qwidget.h>
 
-static constexpr QColor TEXT_COLOR = {255, 255, 255, 127};
+// STL
+#include <cstddef>
+#include <cstdint>
+
+static constexpr QColor TEXT_COLOR{255, 255, 255, 127};
 
 VideoRgbParadeScopeWidget::VideoRgbParadeScopeWidget()
     : ScopeWidget("RgbParade"), m_frame(), m_renderImg(), m_mutex(), m_displayImg() {
@@ -39,40 +60,40 @@ void VideoRgbParadeScopeWidget::refreshScope(const QSize& size, bool full) {
 		m_frame = m_queue.pop();
 	}
 
-	int width  = m_frame.get_image_width();
-	int height = m_frame.get_image_height();
+	const int width = m_frame.get_image_width();
+	const int height = m_frame.get_image_height();
 
 	if (m_frame.is_valid() && width && height) {
-		int imgWidth = width * 3;
+		const int imgWidth = width * 3;
 		if (m_renderImg.width() != imgWidth) {
 			m_renderImg = QImage(imgWidth, 256, QImage::QImage::Format_RGBX8888);
 		}
 
-		QColor bgColor(0, 0, 0, 0xff);
+		QColor const bgColor(0, 0, 0, 0xff);
 		m_renderImg.fill(bgColor);
 
-		const uint8_t* src     = m_frame.get_image(mlt_image_rgb);
-		uint8_t*       dst     = m_renderImg.scanLine(0);
-		size_t         rOffset = 0;
-		size_t         gOffset = rOffset + width;
-		size_t         bOffset = gOffset + width;
+		const uint8_t* src = m_frame.get_image(mlt_image_rgb);
+		uint8_t* dst = m_renderImg.scanLine(0);
+		const size_t rOffset = 0;
+		const size_t gOffset = rOffset + width;
+		const size_t bOffset = gOffset + width;
 
 		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {
-				uint8_t ry     = 255 - src[0];
-				size_t  rIndex = (ry * imgWidth + rOffset + x) * 4;
+				const uint8_t ry = 255 - src[0];
+				const size_t  rIndex = (ry * imgWidth + rOffset + x) * 4;
 				if (dst[rIndex] < 0xff) {
 					dst[rIndex] += 0x0f;
 				}
 
-				uint8_t gy     = 255 - src[1];
-				size_t  gIndex = (gy * imgWidth + gOffset + x) * 4 + 1;
+				const uint8_t gy = 255 - src[1];
+				const size_t  gIndex = (gy * imgWidth + gOffset + x) * 4 + 1;
 				if (dst[gIndex] < 0xff) {
 					dst[gIndex] += 0x0f;
 				}
 
-				uint8_t by     = 255 - src[2];
-				size_t  bIndex = (by * imgWidth + bOffset + x) * 4 + 2;
+				const uint8_t by = 255 - src[2];
+				const size_t  bIndex = (by * imgWidth + bOffset + x) * 4 + 2;
 				if (dst[bIndex] < 0xff) {
 					dst[bIndex] += 0x0f;
 				}
@@ -80,7 +101,7 @@ void VideoRgbParadeScopeWidget::refreshScope(const QSize& size, bool full) {
 			}
 		}
 
-		QImage scaledImage = m_renderImg.scaled(size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation)
+		QImage const scaledImage = m_renderImg.scaled(size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation)
 		                         .convertToFormat(QImage::Format_RGB32);
 
 		m_mutex.lock();
@@ -96,11 +117,11 @@ void VideoRgbParadeScopeWidget::paintEvent(QPaintEvent*) {
 	// Create the painter
 	QPainter p(this);
 	p.setRenderHint(QPainter::Antialiasing, true);
-	QFont font     = QWidget::font();
-	int   fontSize = font.pointSize() - (font.pointSize() > 10 ? 2 : (font.pointSize() > 8 ? 1 : 0));
+	QFont font = QWidget::font();
+	const int fontSize = font.pointSize() - (font.pointSize() > 10 ? 2 : (font.pointSize() > 8 ? 1 : 0));
 	font.setPointSize(fontSize);
-	QFontMetrics fm(font);
-	QPen         pen;
+	QFontMetrics const fm(font);
+	QPen pen;
 	pen.setColor(TEXT_COLOR);
 	pen.setWidth(qRound(devicePixelRatioF()));
 	p.setPen(pen);
@@ -116,9 +137,9 @@ void VideoRgbParadeScopeWidget::paintEvent(QPaintEvent*) {
 	m_mutex.unlock();
 
 	// Draw the graticule
-	int   textpad    = 3;
-	int   textheight = fm.tightBoundingRect("0").height();
-	qreal y          = 0;
+	const int textpad = 3;
+	const int textheight = fm.tightBoundingRect("0").height();
+	qreal y = 0;
 	// 255
 	y = 0;
 	p.drawLine(QPointF(0, y), QPointF(width(), y));
@@ -143,8 +164,8 @@ void VideoRgbParadeScopeWidget::paintEvent(QPaintEvent*) {
 
 void VideoRgbParadeScopeWidget::mouseMoveEvent(QMouseEvent* event) {
 	QString text;
-	qreal   channelWidth = width() / 3.0;
-	qreal   channelX     = event->pos().x() % (int)channelWidth;
+	const qreal channelWidth = width() / 3.0;
+	const qreal channelX = event->pos().x() % (int)channelWidth;
 	QString channelLabel;
 	if (event->pos().x() < channelWidth) {
 		channelLabel = tr("Red");
@@ -155,20 +176,20 @@ void VideoRgbParadeScopeWidget::mouseMoveEvent(QMouseEvent* event) {
 	}
 
 	m_mutex.lock();
-	int frameWidth = m_displayImg.width() / 3;
+	const int frameWidth = m_displayImg.width() / 3;
 	m_mutex.unlock();
 
-	int value = 255 - (255 * event->pos().y() / height());
+	const int value = 255 - (255 * event->pos().y() / height());
 
 	if (frameWidth != 0) {
-		int pixel = frameWidth * channelX / channelWidth;
-		text      = tr("Channel: %1\nPixel: %2\nValue: %3").arg(channelLabel).arg(pixel).arg(value);
+		const int pixel = frameWidth * channelX / channelWidth;
+		text = tr("Channel: %1\nPixel: %2\nValue: %3").arg(channelLabel).arg(pixel).arg(value);
 	} else {
 		text = tr("Channel: %1\nValue: %2").arg(channelLabel).arg(value);
 	}
 	QToolTip::showText(event->globalPosition().toPoint(), text);
 }
 
-QString VideoRgbParadeScopeWidget::getTitle() {
+auto VideoRgbParadeScopeWidget::getTitle() -> QString {
 	return tr("Video RGB Parade");
 }

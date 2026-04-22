@@ -18,8 +18,10 @@
 #ifndef QMLVIEW_HPP
 #define QMLVIEW_HPP
 
+// Qt
 #include <QObject>
 #include <QPoint>
+#include <qtmetamacros.h>
 
 class QWidget;
 

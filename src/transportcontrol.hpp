@@ -18,21 +18,23 @@
 #ifndef TRANSPORTCONTROL_HPP
 #define TRANSPORTCONTROL_HPP
 
+// Qt
 #include <QObject>
+#include <qtmetamacros.h>
 
 class TransportControllable : public QObject {
 	Q_OBJECT
   public slots:
-	virtual void play(double speed = 1.0)               = 0;
-	virtual void pause(int position = -1)               = 0;
-	virtual void stop()                                 = 0;
-	virtual void seek(int position)                     = 0;
-	virtual void rewind(bool forceChangeDirection)      = 0;
+	virtual void play(double speed = 1.0) = 0;
+	virtual void pause(int position = -1) = 0;
+	virtual void stop() = 0;
+	virtual void seek(int position) = 0;
+	virtual void rewind(bool forceChangeDirection) = 0;
 	virtual void fastForward(bool forceChangeDirection) = 0;
-	virtual void previous(int currentPosition)          = 0;
-	virtual void next(int currentPosition)              = 0;
-	virtual void setIn(int)                             = 0;
-	virtual void setOut(int)                            = 0;
+	virtual void previous(int currentPosition) = 0;
+	virtual void next(int currentPosition) = 0;
+	virtual void setIn(int) = 0;
+	virtual void setOut(int) = 0;
 };
 
 #endif // TRANSPORTCONTROL_HPP

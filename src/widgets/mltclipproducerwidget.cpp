@@ -15,21 +15,36 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "mltclipproducerwidget.h"
-
 #include "Logger.hpp"
+#include "abstractproducerwidget.hpp"
 #include "mltcontroller.hpp"
 #include "settings.hpp"
 #include "util.hpp"
 
+// Qt
+#include <MltProfile.h>
 #include <QGridLayout>
 #include <QLabel>
 #include <QVBoxLayout>
+#include <qfont.h>
+#include <qicon.h>
+#include <qnamespace.h>
+#include <qpalette.h>
+#include <qscopedpointer.h>
+#include <qsizepolicy.h>
+
+// STL
+#include <cmath>
+
+// Number constants
+constexpr double setIsingWidgetNumberDouble{100.0};
 
 MltClipProducerWidget::MltClipProducerWidget(QWidget* parent) : QWidget(parent) {
 	LOG_DEBUG();
-	QVBoxLayout* vlayout = new QVBoxLayout();
-	m_nameLabel          = new QLabel();
+	auto* vlayout = new QVBoxLayout();
+	m_nameLabel = new QLabel();
 	Util::setColorsToHighlight(m_nameLabel);
 	QFont font = m_nameLabel->font();
 	font.setBold(true);
@@ -37,8 +52,8 @@ MltClipProducerWidget::MltClipProducerWidget(QWidget* parent) : QWidget(parent) 
 	m_nameLabel->setAlignment(Qt::AlignCenter);
 	vlayout->addWidget(m_nameLabel);
 
-	int          row     = 0;
-	QGridLayout* glayout = new QGridLayout();
+	int row = 0;
+	auto* glayout = new QGridLayout();
 	glayout->setHorizontalSpacing(4);
 	glayout->setVerticalSpacing(2);
 
@@ -94,10 +109,9 @@ MltClipProducerWidget::MltClipProducerWidget(QWidget* parent) : QWidget(parent) 
 	this->setLayout(vlayout);
 }
 
-MltClipProducerWidget::~MltClipProducerWidget() {
-}
+MltClipProducerWidget::~MltClipProducerWidget() = default;
 
-Mlt::Producer* MltClipProducerWidget::newProducer(Mlt::Profile&) {
+auto MltClipProducerWidget::newProducer(Mlt::Profile&) -> Mlt::Producer* {
 	// Not implemented
 	return nullptr;
 }
@@ -114,19 +128,19 @@ void MltClipProducerWidget::setProducer(Mlt::Producer* p) {
 		m_colorspaceLabel->setText("");
 		return;
 	}
-	QString resource = Util::GetFilenameFromProducer(m_producer.data());
-	QString name     = Util::baseName(resource, true);
+	QString const resource = Util::GetFilenameFromProducer(m_producer.data());
+	QString const name = Util::baseName(resource, true);
 	m_nameLabel->setText(name);
 	m_nameLabel->setToolTip(resource);
-	int width  = m_producer->get_int("meta.media.width");
-	int height = m_producer->get_int("meta.media.height");
+	const int width  = m_producer->get_int("meta.media.width");
+	const int height = m_producer->get_int("meta.media.height");
 	m_resolutionLabel->setText(QString("%1 x %2").arg(width).arg(height));
-	int sar_num = m_producer->get_int("meta.media.sample_aspect_num");
-	int sar_den = m_producer->get_int("meta.media.sample_aspect_den");
+	const int sar_num = m_producer->get_int("meta.media.sample_aspect_num");
+	const int sar_den = m_producer->get_int("meta.media.sample_aspect_den");
 	int dar_num = width * sar_num;
 	int dar_den = height * sar_den;
 	if (dar_den > 0) {
-		switch (int((double)dar_num / (double)dar_den * 100.0)) {
+		switch (int((double)dar_num / (double)dar_den * setIsingWidgetNumberDouble)) {
 		case 133:
 			dar_num = 4;
 			dar_den = 3;
@@ -141,16 +155,16 @@ void MltClipProducerWidget::setProducer(Mlt::Producer* p) {
 		}
 	}
 	m_aspectRatioLabel->setText(QString("%1 : %2").arg(dar_num).arg(dar_den));
-	int    frame_rate_num = m_producer->get_int("meta.media.frame_rate_num");
-	int    frame_rate_den = m_producer->get_int("meta.media.frame_rate_den");
-	double fps            = (double)frame_rate_num / (double)frame_rate_den;
+	const int frame_rate_num = m_producer->get_int("meta.media.frame_rate_num");
+	const int frame_rate_den = m_producer->get_int("meta.media.frame_rate_den");
+	const double fps = (double)frame_rate_num / (double)frame_rate_den;
 	m_frameRateLabel->setText(tr("%L1 fps").arg(fps, 0, 'f', 6));
-	int progressive = m_producer->get_int("meta.media.progressive");
+	const int progressive = m_producer->get_int("meta.media.progressive");
 	if (progressive)
 		m_scanModeLabel->setText(tr("Progressive"));
 	else
 		m_scanModeLabel->setText(tr("Interlaced"));
-	int colorspace = m_producer->get_int("meta.media.colorspace");
+	const int colorspace = m_producer->get_int("meta.media.colorspace");
 	if (colorspace == 601)
 		m_colorspaceLabel->setText("ITU-R BT.601");
 	else if (colorspace == 709)
@@ -161,12 +175,12 @@ void MltClipProducerWidget::setProducer(Mlt::Producer* p) {
 		m_colorspaceLabel->setText("");
 	m_durationLabel->setText(QString(m_producer->get_length_time(Settings.timeFormat())));
 
-	QPalette standardPalette = palette();
+	QPalette const standardPalette = palette();
 	QPalette mismatchPalette = standardPalette;
-	bool     mismatch        = false;
+	bool mismatch = false;
 	mismatchPalette.setColor(this->foregroundRole(), Qt::red);
 
-	QScopedPointer<Mlt::Profile> profile(m_producer->profile());
+	QScopedPointer<Mlt::Profile> const profile(m_producer->profile());
 	if (profile->width() == width && profile->height() == height) {
 		m_resolutionLabel->setPalette(standardPalette);
 	} else {
@@ -179,7 +193,7 @@ void MltClipProducerWidget::setProducer(Mlt::Producer* p) {
 		mismatch = true;
 		m_frameRateLabel->setPalette(mismatchPalette);
 	}
-	double darDiff = profile->dar() - ((double)dar_num / (double)dar_den);
+	const double darDiff = profile->dar() - ((double)dar_num / (double)dar_den);
 	if (fabs(darDiff) < 0.01) {
 		m_aspectRatioLabel->setPalette(standardPalette);
 	} else {
@@ -194,12 +208,12 @@ void MltClipProducerWidget::setProducer(Mlt::Producer* p) {
 	}
 
 	if (mismatch) {
-		QIcon icon = QIcon(":/icons/oxygen/32x32/status/task-attempt.png");
+		QIcon const icon = QIcon(":/icons/oxygen/32x32/status/task-attempt.png");
 		m_errorIcon->setPixmap(icon.pixmap(QSize(24, 24)));
 		m_errorText->setText(tr("Subclip profile does not match project profile.\nThis may provide "
 		                        "unexpected results"));
 	} else {
-		QIcon icon = QIcon(":/icons/oxygen/32x32/status/task-complete.png");
+		QIcon const icon = QIcon(":/icons/oxygen/32x32/status/task-complete.png");
 		m_errorIcon->setPixmap(icon.pixmap(QSize(24, 24)));
 		m_errorText->setText(tr("Subclip profile matches project profile."));
 	}

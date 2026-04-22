@@ -15,21 +15,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "slideshowgeneratordialog.hpp"
-
 #include "Logger.hpp"
 #include "widgets/slideshowgeneratorwidget.h"
 
+// Qt
 #include <MltProfile.h>
 #include <MltTransition.h>
 #include <QDebug>
 #include <QDialogButtonBox>
 #include <QVBoxLayout>
+#include <qdialog.h>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 
 SlideshowGeneratorDialog::SlideshowGeneratorDialog(QWidget* parent, Mlt::Playlist& clips) : QDialog(parent) {
 	setWindowTitle(tr("Slideshow Generator - %n Clips", nullptr, clips.count()));
 
-	QVBoxLayout* VLayout = new QVBoxLayout(this);
+	auto* VLayout = new QVBoxLayout(this);
 
 	m_sWidget = new SlideshowGeneratorWidget(&clips, this);
 	VLayout->addWidget(m_sWidget);
@@ -43,12 +47,12 @@ SlideshowGeneratorDialog::SlideshowGeneratorDialog(QWidget* parent, Mlt::Playlis
 	layout()->setSizeConstraint(QLayout::SetFixedSize);
 }
 
-Mlt::Playlist* SlideshowGeneratorDialog::getSlideshow() {
+auto SlideshowGeneratorDialog::getSlideshow() -> Mlt::Playlist* {
 	return m_sWidget->getSlideshow();
 }
 
 void SlideshowGeneratorDialog::clicked(QAbstractButton* button) {
-	QDialogButtonBox::ButtonRole role = m_buttonBox->buttonRole(button);
+	QDialogButtonBox::ButtonRole const role = m_buttonBox->buttonRole(button);
 	if (role == QDialogButtonBox::AcceptRole) {
 		LOG_DEBUG() << "Accept";
 		accept();

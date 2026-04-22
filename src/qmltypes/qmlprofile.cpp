@@ -15,11 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "qmlprofile.hpp"
-
 #include "mltcontroller.hpp"
+#include <qobject.h>
 
-QmlProfile& QmlProfile::singleton() {
+auto QmlProfile::singleton() -> QmlProfile& {
 	static QmlProfile instance;
 	return instance;
 }
@@ -27,22 +28,22 @@ QmlProfile& QmlProfile::singleton() {
 QmlProfile::QmlProfile() : QObject() {
 }
 
-int QmlProfile::width() const {
+auto QmlProfile::width() const -> int {
 	return MLT.profile().width();
 }
 
-int QmlProfile::height() const {
+auto QmlProfile::height() const -> int {
 	return MLT.profile().height();
 }
 
-double QmlProfile::aspectRatio() const {
+auto QmlProfile::aspectRatio() const -> double {
 	return MLT.profile().dar();
 }
 
-double QmlProfile::fps() const {
+auto QmlProfile::fps() const -> double {
 	return MLT.profile().fps();
 }
 
-double QmlProfile::sar() const {
+auto QmlProfile::sar() const -> double {
 	return MLT.profile().sar();
 }

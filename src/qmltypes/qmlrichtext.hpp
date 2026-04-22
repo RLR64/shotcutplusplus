@@ -34,9 +34,16 @@
 #ifndef QMLRICHTEXT_HPP
 #define QMLRICHTEXT_HPP
 
+// Qt
 #include <QQuickTextDocument>
 #include <QtGui/QTextCharFormat>
+#include <qcolor.h>
+#include <qnamespace.h>
 #include <qqmlfile.h>
+#include <qquickitem.h>
+#include <qsize.h>
+#include <qtconfigmacros.h>
+#include <qtmetamacros.h>
 
 QT_BEGIN_NAMESPACE
 class QTextDocument;
@@ -75,31 +82,31 @@ class QmlRichText : public QObject {
 	void setSelectionStart(int position);
 	void setSelectionEnd(int position);
 
-	int cursorPosition() const {
+	[[nodiscard]] int cursorPosition() const {
 		return m_cursorPosition;
 	}
 
-	int selectionStart() const {
+	[[nodiscard]] int selectionStart() const {
 		return m_selectionStart;
 	}
 
-	int selectionEnd() const {
+	[[nodiscard]] int selectionEnd() const {
 		return m_selectionEnd;
 	}
 
-	QString       fontFamily() const;
-	QColor        textColor() const;
-	Qt::Alignment alignment() const;
+	[[nodiscard]] QString       fontFamily() const;
+	[[nodiscard]] QColor        textColor() const;
+	[[nodiscard]] Qt::Alignment alignment() const;
 	void          setAlignment(Qt::Alignment a);
-	bool          bold() const;
-	bool          italic() const;
-	bool          underline() const;
-	bool          strikeout() const;
-	int           fontSize() const;
-	QUrl          fileUrl() const;
-	QString       text() const;
+	[[nodiscard]] bool          bold() const;
+	[[nodiscard]] bool          italic() const;
+	[[nodiscard]] bool          underline() const;
+	[[nodiscard]] bool          strikeout() const;
+	[[nodiscard]] int           fontSize() const;
+	[[nodiscard]] QUrl          fileUrl() const;
+	[[nodiscard]] QString       text() const;
 
-	QSizeF size() const {
+	[[nodiscard]] QSizeF size() const {
 		return m_doc->size();
 	}
 
@@ -139,7 +146,7 @@ class QmlRichText : public QObject {
 	void sizeChanged();
 
   private:
-	QTextCursor    textCursor() const;
+	[[nodiscard]] QTextCursor    textCursor() const;
 	void           mergeFormatOnWordOrSelection(const QTextCharFormat& format);
 	QQuickItem*    m_target;
 	QTextDocument* m_doc;
@@ -147,7 +154,7 @@ class QmlRichText : public QObject {
 	int            m_selectionStart;
 	int            m_selectionEnd;
 	QFont          m_font;
-	int            m_fontSize;
+	int            m_fontSize{};
 	QUrl           m_fileUrl;
 	QString        m_text;
 	QString        m_documentTitle;

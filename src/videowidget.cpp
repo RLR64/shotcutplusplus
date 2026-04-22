@@ -15,30 +15,67 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "videowidget.hpp"
-
 #include "Logger.hpp"
 #include "dialogs/durationdialog.hpp"
 #include "mainwindow.hpp"
+#include "mltcontroller.hpp"
 #include "qmltypes/qmlfilter.hpp"
 #include "qmltypes/qmlutilities.hpp"
 #include "settings.hpp"
 #include "shotcut_mlt_properties.hpp"
 
+// Qt
 #include <Mlt.h>
+#include <MltFrame.h>
 #include <QOffscreenSurface>
 #include <QOpenGLContext>
 #include <QQuickItem>
 #include <QUrl>
 #include <QtQml>
 #include <QtWidgets>
+#include <framework/mlt_events.h>
+#include <framework/mlt_factory.h>
+#include <framework/mlt_properties.h>
+#include <framework/mlt_types.h>
+#include <qassert.h>
+#include <qdir.h>
+#include <qdrag.h>
+#include <qevent.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qquickwidget.h>
+#include <qsurfaceformat.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+
+// STL
+#include <cstdint>
+#include <memory>
+
+// Number constants
+static constexpr int setDurationDialogNumber{3600};
+static constexpr int setAspectNumber{1000};
+static constexpr int setTextureSizeNumber{4096};
+static constexpr int setIntervalNumber{10};
+
+// Color spec
+static constexpr int setColorSpaceNumberA{601};
+static constexpr int setColorSpaceNumberB{170};
+static constexpr int setColorSpaceNumberC{240};
+static constexpr int setColorSpaceNumberD{470};
+static constexpr int setColorSpaceNumberE{2020};
 
 using namespace Mlt;
 
 VideoWidget::VideoWidget(QObject* parent)
-    : QQuickWidget(QmlUtilities::sharedEngine(), (QWidget*)parent), Controller(), m_grid(0), m_initSem(0),
+	: QQuickWidget(QmlUtilities::sharedEngine(), dynamic_cast<QWidget*>(parent)), Controller(), m_grid(0), m_initSem(0),
       m_isInitialized(false), m_frameRenderer(nullptr), m_zoom(0.0f), m_offset(QPoint(0, 0)), m_snapToGrid(true),
-      m_scrubAudio(false), m_maxTextureSize(4096), m_hideVui(false) {
+	  m_scrubAudio(false), m_maxTextureSize(setTextureSizeNumber), m_hideVui(false) {
 	LOG_DEBUG() << "begin";
 	setAttribute(Qt::WA_AcceptTouchEvents);
 	setResizeMode(QQuickWidget::SizeRootObjectToView);
@@ -48,11 +85,11 @@ VideoWidget::VideoWidget(QObject* parent)
 	engine()->addImportPath(importPath.path());
 	QmlUtilities::setCommonProperties(rootContext());
 	rootContext()->setContextProperty("video", this);
-	m_refreshTimer.setInterval(10);
+	m_refreshTimer.setInterval(setIntervalNumber);
 	m_refreshTimer.setSingleShot(true);
 
 	if (Settings.playerGPU())
-		m_glslManager.reset(new Filter(profile(), "glsl.manager"));
+		m_glslManager = std::make_unique<Filter>(profile(), "glsl.manager");
 	if ((m_glslManager && !m_glslManager->is_valid())) {
 		m_glslManager.reset();
 	}
@@ -77,8 +114,7 @@ VideoWidget::~VideoWidget() {
 void VideoWidget::initialize() {
 	LOG_DEBUG() << "begin";
 	m_frameRenderer = new FrameRenderer();
-	connect(m_frameRenderer, &FrameRenderer::frameDisplayed, this, &VideoWidget::onFrameDisplayed,
-	        Qt::QueuedConnection);
+	connect(m_frameRenderer, &FrameRenderer::frameDisplayed, this, &VideoWidget::onFrameDisplayed, Qt::QueuedConnection);
 	connect(m_frameRenderer, &FrameRenderer::frameDisplayed, this, &VideoWidget::frameDisplayed, Qt::QueuedConnection);
 	connect(m_frameRenderer, SIGNAL(imageReady()), SIGNAL(imageReady()));
 	m_initSem.release();
@@ -97,12 +133,12 @@ void VideoWidget::setBlankScene() {
 
 void VideoWidget::resizeVideo(int width, int height) {
 	double x, y, w, h;
-	double this_aspect  = (double)width / height;
-	double video_aspect = profile().dar();
+	const double this_aspect = (double)width / height;
+	const double video_aspect = profile().dar();
 
 	// Special case optimisation to negate odd effect of sample aspect ratio
 	// not corresponding exactly with image resolution.
-	if ((int)(this_aspect * 1000) == (int)(video_aspect * 1000)) {
+	if ((int)(this_aspect * setAspectNumber) == (int)(video_aspect * setAspectNumber)) {
 		w = width;
 		h = height;
 	}
@@ -177,18 +213,18 @@ void VideoWidget::mouseMoveEvent(QMouseEvent* event) {
 	// Cannot show a DurationDialog during mouse drag
 	// This is usually MLT.isLiveProducer(), but that checks for > 1 week,
 	// which is too long for the timeline.
-	if (m_producer->get_playtime() > qRound(profile().fps() * 24 * 3600)) {
+	if (m_producer->get_playtime() > qRound(profile().fps() * 24 * setDurationDialogNumber)) {
 		m_producer->set_in_and_out(0, profile().fps() * 60 - 1);
 	}
 
-	QDrag*     drag     = new QDrag(this);
-	QMimeData* mimeData = new QMimeData;
+	auto* drag = new QDrag(this);
+	auto* mimeData = new QMimeData;
 	mimeData->setData(Mlt::XmlMimeType, MLT.XML().toUtf8());
 	drag->setMimeData(mimeData);
 	mimeData->setText(QString::number(MLT.producer()->get_playtime()));
 	if (m_frameRenderer && m_frameRenderer->getDisplayFrame().is_valid()) {
 		Mlt::Frame displayFrame(m_frameRenderer->getDisplayFrame().clone(false, true));
-		QImage     displayImage = MLT.image(&displayFrame, 45 * MLT.profile().dar(), 45).scaledToHeight(45);
+		QImage const displayImage = MLT.image(&displayFrame, 45 * MLT.profile().dar(), 45).scaledToHeight(45);
 		drag->setPixmap(QPixmap::fromImage(displayImage));
 	}
 	drag->setHotSpot(QPoint(0, 0));
@@ -207,8 +243,8 @@ void VideoWidget::wheelEvent(QWheelEvent* event) {
 			// Convert to zoom factor step (increments of 0.05)
 			step = step * 0.05;
 			// Calculate the zoom level that would fit
-			float estimatedFitX = width() / MLT.profile().width();
-			float estimatedFitY = height() / MLT.profile().height();
+			const float estimatedFitX = width() / MLT.profile().width();
+			const float estimatedFitY = height() / MLT.profile().height();
 			float estimatedFit  = estimatedFitX;
 			if (estimatedFit > estimatedFitY) {
 				estimatedFit = estimatedFitY;
@@ -228,14 +264,14 @@ void VideoWidget::keyPressEvent(QKeyEvent* event) {
 	MAIN.keyPressEvent(event);
 }
 
-bool VideoWidget::event(QEvent* event) {
-	bool result = QQuickWidget::event(event);
+auto VideoWidget::event(QEvent* event) -> bool {
+	const bool result = QQuickWidget::event(event);
 	if (event->type() == QEvent::PaletteChange && m_sharedFrame.is_valid())
 		onFrameDisplayed(m_sharedFrame);
 	return result;
 }
 
-int VideoWidget::setProducer(Mlt::Producer* producer, bool isMulti) {
+auto VideoWidget::setProducer(Mlt::Producer* producer, bool isMulti) -> int {
 	int error = Controller::setProducer(producer, isMulti);
 
 	if (!error) {
@@ -259,7 +295,7 @@ void VideoWidget::createThread(RenderThread** thread, thread_function_t function
 	}
 #endif
 	if (!m_renderThread) {
-		m_renderThread.reset(new RenderThread(function, data));
+		m_renderThread = std::make_unique<RenderThread>(function, data);
 		(*thread) = m_renderThread.get();
 		(*thread)->start();
 	} else {
@@ -320,7 +356,7 @@ static void onThreadStopped(mlt_properties owner, VideoWidget* self) {
 	self->stopGlsl();
 }
 
-int VideoWidget::reconfigure(bool isMulti) {
+auto VideoWidget::reconfigure(bool isMulti) -> int {
 	int error = 0;
 
 	// use SDL for audio, OpenGL for video
@@ -373,17 +409,17 @@ int VideoWidget::reconfigure(bool isMulti) {
 			m_consumer->set("channel_layout", "auto");
 		}
 		switch (MLT.profile().colorspace()) {
-		case 601:
-		case 170:
+		case setColorSpaceNumberA:
+		case setColorSpaceNumberB:
 			m_consumer->set("color_trc", "smpte170m");
 			break;
-		case 240:
+		case setColorSpaceNumberC:
 			m_consumer->set("color_trc", "smpte240m");
 			break;
-		case 470:
+		case setColorSpaceNumberD:
 			m_consumer->set("color_trc", "bt470bg");
 			break;
-		case 2020:
+		case setColorSpaceNumberE:
 			if (isDeckLinkHLG) {
 				m_consumer->set("color_trc", "arib-std-b67");
 			} else {
@@ -455,30 +491,30 @@ void VideoWidget::refreshConsumer(bool scrubAudio) {
 	m_refreshTimer.start();
 }
 
-QPoint VideoWidget::offset() const {
+auto VideoWidget::offset() const -> QPoint {
 	if (m_zoom == 0.0) {
-		return QPoint(0, 0);
+		return {0, 0};
 	} else {
 		return QPoint(m_offset.x() - (MLT.profile().width() * m_zoom - width()) / 2,
-		              m_offset.y() - (MLT.profile().height() * m_zoom - height()) / 2);
+					  m_offset.y() - (MLT.profile().height() * m_zoom - height()) / 2);
 	}
 }
 
-QImage VideoWidget::image() const {
-	SharedFrame frame = m_frameRenderer->getDisplayFrame();
+auto VideoWidget::image() const -> QImage {
+	SharedFrame const frame = m_frameRenderer->getDisplayFrame();
 	if (frame.is_valid()) {
 		const uint8_t* image = frame.get_image(mlt_image_rgba);
 		if (image) {
-			int    width  = frame.get_image_width();
-			int    height = frame.get_image_height();
-			QImage temp(image, width, height, QImage::Format_RGBA8888);
+			const int width = frame.get_image_width();
+			const int height = frame.get_image_height();
+			QImage const temp(image, width, height, QImage::Format_RGBA8888);
 			return temp.copy();
 		}
 	}
-	return QImage();
+	return {};
 }
 
-bool VideoWidget::imageIsProxy() const {
+auto VideoWidget::imageIsProxy() const -> bool {
 	bool        isProxy = false;
 	SharedFrame frame   = m_frameRenderer->getDisplayFrame();
 	if (frame.is_valid()) {
@@ -504,7 +540,7 @@ void VideoWidget::onFrameDisplayed(const SharedFrame& frame) {
 	m_mutex.lock();
 	m_sharedFrame = frame;
 	m_mutex.unlock();
-	bool isVui = frame.get_int(kShotcutVuiMetaProperty) && !m_hideVui;
+	const bool isVui = frame.get_int(kShotcutVuiMetaProperty) && !m_hideVui;
 	if (!isVui && source() != QmlUtilities::blankVui()) {
 		m_savedQmlSource = source();
 		setSource(QmlUtilities::blankVui());
@@ -561,7 +597,7 @@ void VideoWidget::setSnapToGrid(bool snap) {
 void VideoWidget::on_frame_show(mlt_consumer, VideoWidget* widget, mlt_event_data data) {
 	auto frame = Mlt::EventData(data).to_frame();
 	if (frame.is_valid() && frame.get_int("rendered")) {
-		int timeout = (widget->consumer()->get_int("real_time") > 0) ? 0 : 1000;
+		const int timeout = (widget->consumer()->get_int("real_time") > 0) ? 0 : setAspectNumber;
 		if (widget->m_frameRenderer && widget->m_frameRenderer->semaphore()->tryAcquire(1, timeout)) {
 			QMetaObject::invokeMethod(widget->m_frameRenderer, "showFrame", Qt::QueuedConnection,
 			                          Q_ARG(Mlt::Frame, frame));
@@ -604,8 +640,7 @@ FrameRenderer::FrameRenderer() : QThread(nullptr), m_semaphore(3), m_imageReques
 	start();
 }
 
-FrameRenderer::~FrameRenderer() {
-}
+FrameRenderer::~FrameRenderer() = default;
 
 void FrameRenderer::showFrame(Mlt::Frame frame) {
 	m_displayFrame = SharedFrame(frame);
@@ -623,6 +658,6 @@ void FrameRenderer::requestImage() {
 	m_imageRequested = true;
 }
 
-SharedFrame FrameRenderer::getDisplayFrame() {
+auto FrameRenderer::getDisplayFrame() -> SharedFrame {
 	return m_displayFrame;
 }

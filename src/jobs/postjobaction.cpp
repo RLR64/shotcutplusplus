@@ -15,18 +15,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "postjobaction.hpp"
-
 #include "Logger.hpp"
 #include "docks/playlistdock.h"
 #include "docks/subtitlesdock.hpp"
 #include "mainwindow.hpp"
+#include "mltcontroller.hpp"
 #include "shotcut_mlt_properties.hpp"
 
+// // Qt
+#include <MltProducer.h>
 #include <QFile>
 
+// STL
 // For file time functions in FilePropertiesPostJobAction::doAction();
+#include <_mingw_stat64.h>
+#include <qfileinfo.h>
 #include <sys/stat.h>
+#include <sys/utime.h>
 #include <utime.h>
 
 void FilePropertiesPostJobAction::doAction() {
@@ -83,8 +90,8 @@ void ReplaceAllPostJobAction::doAction() {
 
 void ProxyReplacePostJobAction::doAction() {
 	FilePropertiesPostJobAction::doAction();
-	QFileInfo info(m_dstFile);
-	QString   newFileName = info.path() + "/" + info.baseName() + "." + info.suffix();
+	QFileInfo const info(m_dstFile);
+	QString const newFileName = info.path() + "/" + info.baseName() + "." + info.suffix();
 	QFile::remove(newFileName);
 	if (QFile::rename(m_dstFile, newFileName)) {
 		Mlt::Producer newProducer(MLT.profile(), newFileName.toUtf8().constData());
@@ -106,8 +113,8 @@ void ProxyReplacePostJobAction::doAction() {
 
 void ProxyFinalizePostJobAction::doAction() {
 	FilePropertiesPostJobAction::doAction();
-	QFileInfo info(m_dstFile);
-	QString   newFileName = info.path() + "/" + info.baseName() + "." + info.suffix();
+	QFileInfo const info(m_dstFile);
+	QString const newFileName = info.path() + "/" + info.baseName() + "." + info.suffix();
 	if (!QFile::rename(m_dstFile, newFileName)) {
 		LOG_WARNING() << "failed to rename" << m_dstFile << "as" << newFileName;
 		QFile::remove(m_dstFile);

@@ -18,10 +18,13 @@
 #ifndef QMLEXTENSION_HPP
 #define QMLEXTENSION_HPP
 
+// Qt
 #include <QDir>
 #include <QObject>
 #include <QQmlListProperty>
 #include <QString>
+#include <qlist.h>
+#include <qtmetamacros.h>
 
 class QmlExtensionFile : public QObject {
 	Q_OBJECT
@@ -35,27 +38,27 @@ class QmlExtensionFile : public QObject {
   public:
 	explicit QmlExtensionFile(QObject* parent = nullptr);
 
-	QString name() const {
+	[[nodiscard]] QString name() const {
 		return m_name;
 	}
 
-	QString description() const {
+	[[nodiscard]] QString description() const {
 		return m_description;
 	}
 
-	QString file() const {
+	[[nodiscard]] QString file() const {
 		return m_file;
 	}
 
-	QString url() const {
+	[[nodiscard]] QString url() const {
 		return m_url;
 	}
 
-	QString size() const {
+	[[nodiscard]] QString size() const {
 		return m_size;
 	}
 
-	bool standard() const {
+	[[nodiscard]] bool standard() const {
 		return m_standard;
 	}
 
@@ -87,33 +90,33 @@ class QmlExtension : public QObject {
 
 	explicit QmlExtension(QObject* parent = nullptr);
 
-	QString id() const {
+	[[nodiscard]] QString id() const {
 		return m_id;
 	}
 
 	void setId(const QString&);
 
-	QString name() const {
+	[[nodiscard]] QString name() const {
 		return m_name;
 	}
 
 	void setName(const QString&);
 
-	QString version() const {
+	[[nodiscard]] QString version() const {
 		return m_version;
 	}
 
 	void setVersion(const QString&);
 
 	QQmlListProperty<QmlExtensionFile> files() {
-		return QQmlListProperty<QmlExtensionFile>(this, &m_files);
+		return {this, &m_files};
 	}
 
-	int fileCount() const {
+	[[nodiscard]] int fileCount() const {
 		return m_files.count();
 	}
 
-	QmlExtensionFile* file(int index) const {
+	[[nodiscard]] QmlExtensionFile* file(int index) const {
 		return m_files[index];
 	}
 

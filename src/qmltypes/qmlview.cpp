@@ -15,15 +15,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "qmlview.hpp"
-
 #include "Logger.hpp"
 
+// Qt
 #include <QWidget>
+#include <qobject.h>
 
 QmlView::QmlView(QWidget* qview) : QObject(qview), m_qview(qview) {
 }
 
-QPoint QmlView::pos() {
+auto QmlView::pos() -> QPoint {
 	return m_qview->mapToGlobal(QPoint(0, 0));
 }

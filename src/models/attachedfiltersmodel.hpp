@@ -18,10 +18,18 @@
 #ifndef ATTACHEDFILTERSMODEL_HPP
 #define ATTACHEDFILTERSMODEL_HPP
 
+// Qt
 #include <MltEvent.h>
 #include <MltFilter.h>
 #include <MltProducer.h>
 #include <QAbstractListModel>
+#include <framework/mlt_types.h>
+#include <qhash.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qscopedpointer.h>
+#include <qtmetamacros.h>
 
 class QmlMetadata;
 
@@ -38,38 +46,38 @@ class AttachedFiltersModel : public QAbstractListModel {
 
 	explicit AttachedFiltersModel(QObject* parent = nullptr);
 
-	Mlt::Service* getService(int row) const;
-	QmlMetadata*  getMetadata(int row) const;
-	void          setProducer(Mlt::Producer* producer = nullptr);
-	QString       producerTitle() const;
-	bool          isProducerSelected() const;
-	bool          isSourceClip() const;
-	bool          supportsLinks() const;
+	[[nodiscard]] auto getService(int row) const -> Mlt::Service*;
+	[[nodiscard]] auto  getMetadata(int row) const -> QmlMetadata*;
+	void setProducer(Mlt::Producer* producer = nullptr);
+	[[nodiscard]] auto producerTitle() const -> QString;
+	[[nodiscard]] auto isProducerSelected() const -> bool;
+	[[nodiscard]] auto isSourceClip() const -> bool;
+	[[nodiscard]] auto supportsLinks() const -> bool;
 
-	Mlt::Producer* producer() const {
+	[[nodiscard]] auto producer() const -> Mlt::Producer* {
 		return m_producer.data();
 	}
 
-	QString name(int row) const;
+	[[nodiscard]] auto name(int row) const -> QString;
 
 	// The below are used by QUndoCommands
-	void         doAddService(Mlt::Producer& producer, Mlt::Service& service, int row);
-	void         doRemoveService(Mlt::Producer& producer, int row);
-	void         doMoveService(Mlt::Producer& producer, int fromRow, int toRow);
-	void         doSetDisabled(Mlt::Producer& producer, int row, bool disable);
-	Mlt::Service doGetService(Mlt::Producer& producer, int row);
+	void doAddService(Mlt::Producer& producer, Mlt::Service& service, int row);
+	void doRemoveService(Mlt::Producer& producer, int row);
+	void doMoveService(Mlt::Producer& producer, int fromRow, int toRow);
+	void doSetDisabled(Mlt::Producer& producer, int row, bool disable);
+	auto doGetService(Mlt::Producer& producer, int row) -> Mlt::Service;
 
 	// QAbstractListModel Implementation
-	int                    rowCount(const QModelIndex& parent = QModelIndex()) const;
-	Qt::ItemFlags          flags(const QModelIndex& index) const;
-	QVariant               data(const QModelIndex& index, int role) const;
-	bool                   setData(const QModelIndex& index, const QVariant& value, int role = Qt::EditRole);
-	QHash<int, QByteArray> roleNames() const;
-	Qt::DropActions        supportedDropActions() const;
-	bool                   insertRows(int row, int count, const QModelIndex& parent);
-	bool                   removeRows(int row, int count, const QModelIndex& parent);
-	bool moveRows(const QModelIndex& sourceParent, int sourceRow, int count, const QModelIndex& destinationParent,
-	              int destinationRow);
+	[[nodiscard]] auto rowCount(const QModelIndex& parent = QModelIndex()) const -> int override;
+	[[nodiscard]] auto flags(const QModelIndex& index) const -> Qt::ItemFlags override;
+	[[nodiscard]] auto data(const QModelIndex& index, int role) const -> QVariant override;
+	[[nodiscard]] auto setData(const QModelIndex& index, const QVariant& value, int role = Qt::EditRole) -> bool override;
+	[[nodiscard]] auto roleNames() const -> QHash<int, QByteArray> override;
+	[[nodiscard]] auto supportedDropActions() const -> Qt::DropActions override;
+	[[nodiscard]] auto insertRows(int row, int count, const QModelIndex& parent) -> bool override;
+	[[nodiscard]] auto removeRows(int row, int count, const QModelIndex& parent) -> bool override;
+	[[nodiscard]] auto moveRows(const QModelIndex& sourceParent, int sourceRow, int count, const QModelIndex& destinationParent,
+								int destinationRow) -> bool override;
 
   signals:
 	void changed();
@@ -81,18 +89,18 @@ class AttachedFiltersModel : public QAbstractListModel {
 	void requestConvert(QString, bool set709Convert, bool withSubClip);
 
   public slots:
-	int  add(QmlMetadata* meta);
-	int  addService(Mlt::Service* service);
+	auto add(QmlMetadata* meta) -> int;
+	auto addService(Mlt::Service* service) -> int;
 	void remove(int row);
-	bool move(int fromRow, int toRow);
+	auto move(int fromRow, int toRow) -> bool;
 	void pasteFilters();
 
   private:
-	static void   producerChanged(mlt_properties owner, AttachedFiltersModel* model);
-	void          reset(Mlt::Producer* producer = 0);
-	bool          isProducerLoaded(Mlt::Producer& producer) const;
-	int           findInsertRow(QmlMetadata* meta);
-	Mlt::Producer getFilterSetProducer(QmlMetadata* meta);
+	static void producerChanged(mlt_properties owner, AttachedFiltersModel* model);
+	void reset(Mlt::Producer* producer = nullptr);
+	auto isProducerLoaded(Mlt::Producer& producer) const -> bool;
+	auto findInsertRow(QmlMetadata* meta) -> int;
+	auto getFilterSetProducer(QmlMetadata* meta) -> Mlt::Producer;
 
 	int                           m_dropRow;
 	int                           m_removeRow;

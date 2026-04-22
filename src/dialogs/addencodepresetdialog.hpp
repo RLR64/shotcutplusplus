@@ -19,7 +19,11 @@
 #ifndef ADDENCODEPRESETDIALOG_HPP
 #define ADDENCODEPRESETDIALOG_HPP
 
+// Qt
 #include <QDialog>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 namespace Ui {
 class AddEncodePresetDialog;
@@ -30,10 +34,10 @@ class AddEncodePresetDialog : public QDialog {
 
   public:
 	explicit AddEncodePresetDialog(QWidget* parent = nullptr);
-	~AddEncodePresetDialog();
+	~AddEncodePresetDialog() override;
 	void    setProperties(const QString&);
-	QString presetName() const;
-	QString properties() const;
+	[[nodiscard]] auto presetName() const -> QString;
+	[[nodiscard]] auto properties() const -> QString;
 
   private:
 	Ui::AddEncodePresetDialog* ui;

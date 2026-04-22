@@ -15,31 +15,37 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "textproducerwidget.h"
-
 #include "mltcontroller.hpp"
 #include "qmltypes/colordialog.hpp"
 #include "shotcut_mlt_properties.hpp"
 #include "ui_textproducerwidget.h"
 #include "util.hpp"
 
+// Qt
+#include <MltFilter.h>
+#include <MltProfile.h>
+#include <MltProperties.h>
 #include <QFileInfo>
 #include <QFont>
+#include <qbytearrayalgorithms.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qscopedpointer.h>
+#include <qtmetamacros.h>
 
-static const QString kTransparent          = QObject::tr("transparent", "Open Other > Color");
-static const char*   kSimpleFilterName     = "dynamicText";
-static const char*   kRichFilterName       = "richText";
-static const char*   kTypewriterFilterName = "typewriter";
-static constexpr int     kPointSize            = {60};
+static const QString kTransparent = QObject::tr("transparent", "Open Other > Color");
+static constexpr const char* kSimpleFilterName = "dynamicText";
+static constexpr const char* kRichFilterName = "richText";
+static constexpr const char* kTypewriterFilterName = "typewriter";
+static constexpr int kPointSize{60};
 
-static QString colorToString(const QColor& color) {
-	return (color == QColor(0, 0, 0, 0))
-	           ? kTransparent
-	           : QString::asprintf("#%02X%02X%02X%02X", qAlpha(color.rgba()), qRed(color.rgba()), qGreen(color.rgba()),
-	                               qBlue(color.rgba()));
+static auto colorToString(const QColor& color) -> QString {
+	return (color == QColor(0, 0, 0, 0)) ? kTransparent : QString::asprintf("#%02X%02X%02X%02X", qAlpha(color.rgba()), qRed(color.rgba()), qGreen(color.rgba()), qBlue(color.rgba()));
 }
 
-static QString colorStringToResource(const QString& s) {
+static auto colorStringToResource(const QString& s) -> QString {
 	return (s == kTransparent) ? "#00000000" : s;
 }
 
@@ -80,21 +86,21 @@ void TextProducerWidget::on_colorButton_clicked() {
 	}
 }
 
-Mlt::Producer* TextProducerWidget::newProducer(Mlt::Profile& profile) {
-	Mlt::Producer* p = new Mlt::Producer(profile, "color:");
+auto TextProducerWidget::newProducer(Mlt::Profile& profile) -> Mlt::Producer* {
+	auto* p = new Mlt::Producer(profile, "color:");
 	p->set("resource", colorStringToResource(ui->colorLabel->text()).toLatin1().constData());
 	p->set("mlt_image_format", "rgba");
 	MLT.setDurationFromDefault(p);
 	p->set(kShotcutCaptionProperty, ui->colorLabel->text().toLatin1().constData());
 	p->set(kShotcutDetailProperty, ui->colorLabel->text().toLatin1().constData());
-	QScopedPointer<Mlt::Filter> filter(createFilter(profile, p));
+	QScopedPointer<Mlt::Filter> const filter(createFilter(profile, p));
 	p->attach(*filter);
 	return p;
 }
 
-Mlt::Properties TextProducerWidget::getPreset() const {
+auto TextProducerWidget::getPreset() const -> Mlt::Properties {
 	Mlt::Properties p;
-	QString         color = colorStringToResource(ui->colorLabel->text());
+	QString const color = colorStringToResource(ui->colorLabel->text());
 	p.set("resource", color.toLatin1().constData());
 	if (ui->richRadioButton->isChecked()) {
 		p.set("html", ui->plainTextEdit->toPlainText().toUtf8().constData());
@@ -105,7 +111,7 @@ Mlt::Properties TextProducerWidget::getPreset() const {
 }
 
 void TextProducerWidget::loadPreset(Mlt::Properties& p) {
-	QColor color(QFileInfo(p.get("resource")).baseName());
+	QColor const color(QFileInfo(p.get("resource")).baseName());
 	ui->colorLabel->setText(colorToString(color));
 	ui->colorLabel->setStyleSheet(
 	    QStringLiteral("color: %1; background-color: %2").arg(Util::textColor(color), color.name()));
@@ -134,7 +140,7 @@ void TextProducerWidget::loadPreset(Mlt::Properties& p) {
 }
 
 void TextProducerWidget::on_preset_selected(void* p) {
-	Mlt::Properties* properties = (Mlt::Properties*)p;
+	auto* properties = (Mlt::Properties*)p;
 	loadPreset(*properties);
 	delete properties;
 }
@@ -143,7 +149,7 @@ void TextProducerWidget::on_preset_saveClicked() {
 	ui->preset->savePreset(getPreset());
 }
 
-Mlt::Filter* TextProducerWidget::createFilter(Mlt::Profile& profile, Mlt::Producer* p) {
+auto TextProducerWidget::createFilter(Mlt::Profile& profile, Mlt::Producer* p) -> Mlt::Filter* {
 	Mlt::Filter* filter  = nullptr;
 	auto         fgcolor = "#ffffffff";
 	if (ui->richRadioButton->isChecked()) {
@@ -226,7 +232,7 @@ Mlt::Filter* TextProducerWidget::createFilter(Mlt::Profile& profile, Mlt::Produc
 	filter->set("style", "normal");
 	filter->set("shotcut:usePointSize", 1);
 	filter->set("shotcut:pointSize", kPointSize);
-	QFont font(filter->get("family"), kPointSize, filter->get_int("weight"));
+	QFont const font(filter->get("family"), kPointSize, filter->get_int("weight"));
 	filter->set("size", QFontInfo(font).pixelSize());
 	filter->set("geometry", QStringLiteral("0 %1 %2 %3 1")
 	                            .arg(qRound(0.75 * profile.height()))

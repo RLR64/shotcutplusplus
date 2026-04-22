@@ -18,17 +18,21 @@
 #ifndef SCREENSELECTOR_H
 #define SCREENSELECTOR_H
 
+// Qt
 #include <QFrame>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class ScreenSelector : public QFrame {
 	Q_OBJECT
   public:
-	ScreenSelector(QWidget* parent = 0);
+	ScreenSelector(QWidget* parent = nullptr);
 	void setFixedSize(const QSize& size);
 	void setBoundingRect(const QRect& rect);
 	void setSelectedRect(const QRect& rect);
 
-	bool useDBus() const {
+	[[nodiscard]] bool useDBus() const {
 		return m_useDBus;
 	}
 
@@ -47,18 +51,18 @@ class ScreenSelector : public QFrame {
 	bool onKeyPressEvent(QKeyEvent* event);
 
   protected:
-	bool eventFilter(QObject*, QEvent* event);
+	bool eventFilter(QObject*, QEvent* event) override;
 
   private:
 	void lockGeometry(const QRect& rect);
 	void release();
 
-	bool   m_selectionInProgress;
-	QRect  m_selectionRect;
+	bool m_selectionInProgress;
+	QRect m_selectionRect;
 	QPoint m_selectionPoint;
-	QSize  m_fixedSize;
-	QRect  m_boundingRect;
-	bool   m_useDBus;
+	QSize m_fixedSize;
+	QRect m_boundingRect;
+	bool m_useDBus;
 };
 
 #endif // SCREENSELECTOR_H

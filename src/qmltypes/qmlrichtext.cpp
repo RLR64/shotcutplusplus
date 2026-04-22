@@ -31,10 +31,11 @@
 **
 ****************************************************************************/
 
+// Local
 #include "qmlrichtext.hpp"
-
 #include "Logger.hpp"
 
+// Qt
 #include <QClipboard>
 #include <QGuiApplication>
 #include <QStringBuilder>
@@ -43,19 +44,30 @@
 #include <QtGui/QFontDatabase>
 #include <QtGui/QTextCursor>
 #include <QtGui/QTextDocument>
+#include <qlatin1stringview.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qqmlfile.h>
+#include <qquickitem.h>
+#include <qquicktextdocument.h>
+#include <qstringconverter_base.h>
+#include <qstringview.h>
+#include <qtmetamacros.h>
+#include <qurl.h>
 
-QmlRichText::QmlRichText() : m_target(0), m_doc(0), m_cursorPosition(-1), m_selectionStart(0), m_selectionEnd(0) {
+QmlRichText::QmlRichText() : m_target(nullptr), m_doc(nullptr), m_cursorPosition(-1), m_selectionStart(0), m_selectionEnd(0) {
 }
 
 void QmlRichText::setTarget(QQuickItem* target) {
-	m_doc    = 0;
+	m_doc = nullptr;
 	m_target = target;
 	if (!m_target)
 		return;
 
-	QVariant doc = m_target->property("textDocument");
+	QVariant const doc = m_target->property("textDocument");
 	if (doc.canConvert<QQuickTextDocument*>()) {
-		QQuickTextDocument* qqdoc = doc.value<QQuickTextDocument*>();
+		QQuickTextDocument const* qqdoc = doc.value<QQuickTextDocument*>();
 		if (qqdoc) {
 			m_doc = qqdoc->textDocument();
 			connect(m_doc, &QTextDocument::contentsChanged, this, &QmlRichText::sizeChanged);
@@ -66,12 +78,12 @@ void QmlRichText::setTarget(QQuickItem* target) {
 
 void QmlRichText::setFileUrl(const QUrl& arg) {
 	if (m_fileUrl != arg) {
-		m_fileUrl        = arg;
-		QString fileName = QQmlFile::urlToLocalFileOrQrc(arg);
+		m_fileUrl = arg;
+		QString const fileName = QQmlFile::urlToLocalFileOrQrc(arg);
 		if (QFile::exists(fileName)) {
 			QFile file(fileName);
 			if (file.open(QFile::ReadOnly)) {
-				QByteArray data = file.readAll();
+				QByteArray const data = file.readAll();
 				if (Qt::mightBeRichText(data)) {
 					auto decoder =
 					    QStringDecoder(QStringConverter::encodingForHtml(data).value_or(QStringConverter::Utf8));
@@ -122,9 +134,9 @@ void QmlRichText::setText(const QString& arg) {
 void QmlRichText::saveAs(const QUrl& arg, QString fileType) {
 	if (fileType.isEmpty())
 		fileType = QFileInfo(arg.toString()).suffix();
-	bool          isHtml = fileType.contains(QLatin1String("htm"));
-	QLatin1String ext(isHtml ? ".html" : ".txt");
-	QString       localPath = arg.toLocalFile();
+	const bool isHtml = fileType.contains(QLatin1String("htm"));
+	QLatin1String const ext(isHtml ? ".html" : ".txt");
+	QString localPath = arg.toLocalFile();
 	if (!localPath.endsWith(ext))
 		localPath += ext;
 	QFile f(localPath);
@@ -132,7 +144,7 @@ void QmlRichText::saveAs(const QUrl& arg, QString fileType) {
 		emit error(tr("Cannot save: ") + f.errorString());
 		return;
 	}
-	QString s = isHtml ? m_doc->toHtml() : m_doc->toPlainText();
+	QString const s = isHtml ? m_doc->toHtml() : m_doc->toPlainText();
 	f.write(s.toUtf8());
 	f.close();
 	setFileUrl(QUrl::fromLocalFile(localPath));
@@ -142,7 +154,7 @@ void QmlRichText::insertTable(int rows, int columns, int border) {
 	QTextCursor cursor = textCursor();
 	if (cursor.isNull())
 		return;
-	QString color = textColor().name(QColor::HexArgb);
+	QString const color = textColor().name(QColor::HexArgb);
 	QString html  = QString("<style>"
 	                        "table { border-style: solid; border-color: %1 }"
 	                        "td { font: %2 %3 %4pt %5;"
@@ -200,11 +212,11 @@ void QmlRichText::pastePlain() {
 	cursor.insertText(QGuiApplication::clipboard()->text());
 }
 
-QUrl QmlRichText::fileUrl() const {
+auto QmlRichText::fileUrl() const -> QUrl {
 	return m_fileUrl;
 }
 
-QString QmlRichText::text() const {
+auto  QmlRichText::text() const -> QString {
 	return m_text;
 }
 
@@ -228,9 +240,9 @@ void QmlRichText::reset() {
 	emit textColorChanged();
 }
 
-QTextCursor QmlRichText::textCursor() const {
+auto QmlRichText::textCursor() const -> QTextCursor {
 	if (!m_doc)
-		return QTextCursor();
+		return {};
 
 	QTextCursor cursor = QTextCursor(m_doc);
 	if (m_selectionStart != m_selectionEnd) {
@@ -270,36 +282,36 @@ void QmlRichText::setAlignment(Qt::Alignment a) {
 	emit alignmentChanged();
 }
 
-Qt::Alignment QmlRichText::alignment() const {
-	QTextCursor cursor = textCursor();
+auto QmlRichText::alignment() const -> Qt::Alignment {
+	QTextCursor const cursor = textCursor();
 	if (cursor.isNull())
 		return Qt::AlignLeft;
 	return textCursor().blockFormat().alignment();
 }
 
-bool QmlRichText::bold() const {
-	QTextCursor cursor = textCursor();
+auto QmlRichText::bold() const -> bool {
+	QTextCursor const cursor = textCursor();
 	if (cursor.isNull())
 		return false;
 	return textCursor().charFormat().fontWeight() == QFont::Bold;
 }
 
-bool QmlRichText::italic() const {
-	QTextCursor cursor = textCursor();
+auto QmlRichText::italic() const -> bool {
+	QTextCursor const cursor = textCursor();
 	if (cursor.isNull())
 		return false;
 	return textCursor().charFormat().fontItalic();
 }
 
-bool QmlRichText::underline() const {
-	QTextCursor cursor = textCursor();
+auto QmlRichText::underline() const -> bool {
+	QTextCursor const cursor = textCursor();
 	if (cursor.isNull())
 		return false;
 	return textCursor().charFormat().fontUnderline();
 }
 
-bool QmlRichText::strikeout() const {
-	QTextCursor cursor = textCursor();
+auto QmlRichText::strikeout() const -> bool {
+	QTextCursor const cursor = textCursor();
 	if (cursor.isNull())
 		return false;
 	return textCursor().charFormat().fontStrikeOut();
@@ -333,16 +345,16 @@ void QmlRichText::setStrikeout(bool arg) {
 	emit strikeoutChanged();
 }
 
-int QmlRichText::fontSize() const {
-	QTextCursor cursor = textCursor();
+auto QmlRichText::fontSize() const -> int {
+	QTextCursor const cursor = textCursor();
 	if (cursor.isNull())
 		return 0;
-	QTextCharFormat format = cursor.charFormat();
+	QTextCharFormat const format = cursor.charFormat();
 	return format.font().pointSize();
 }
 
 void QmlRichText::setFontSize(int arg) {
-	QTextCursor cursor = textCursor();
+	QTextCursor const cursor = textCursor();
 	if (cursor.isNull())
 		return;
 	QTextCharFormat format;
@@ -351,16 +363,16 @@ void QmlRichText::setFontSize(int arg) {
 	emit fontSizeChanged();
 }
 
-QColor QmlRichText::textColor() const {
-	QTextCursor cursor = textCursor();
+auto QmlRichText::textColor() const -> QColor {
+	QTextCursor const cursor = textCursor();
 	if (cursor.isNull())
-		return QColor(Qt::black);
-	QTextCharFormat format = cursor.charFormat();
+		return {Qt::black};
+	QTextCharFormat const format = cursor.charFormat();
 	return format.foreground().color();
 }
 
 void QmlRichText::setTextColor(const QColor& c) {
-	QTextCursor cursor = textCursor();
+	QTextCursor const cursor = textCursor();
 	if (cursor.isNull())
 		return;
 	QTextCharFormat format;
@@ -369,16 +381,16 @@ void QmlRichText::setTextColor(const QColor& c) {
 	emit textColorChanged();
 }
 
-QString QmlRichText::fontFamily() const {
-	QTextCursor cursor = textCursor();
+auto QmlRichText::fontFamily() const -> QString {
+	QTextCursor const cursor = textCursor();
 	if (cursor.isNull())
-		return QString();
-	QTextCharFormat format = cursor.charFormat();
+		return {};
+	QTextCharFormat const format = cursor.charFormat();
 	return format.font().family();
 }
 
 void QmlRichText::setFontFamily(const QString& arg) {
-	QTextCursor cursor = textCursor();
+	QTextCursor const cursor = textCursor();
 	if (cursor.isNull())
 		return;
 	QTextCharFormat format;

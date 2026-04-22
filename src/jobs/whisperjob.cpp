@@ -15,21 +15,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
+#include "abstractjob.hpp"
 #include "whisperjob.hpp"
-
 #include "Logger.hpp"
 #include "dialogs/textviewerdialog.hpp"
+#include "postjobaction.hpp"
 #include "mainwindow.hpp"
+#include "settings.hpp"
 
+// Qt
 #include <QApplication>
 #include <QDir>
 #include <QFileInfo>
 #include <QThread>
 #include <QTimer>
+#include <qcontainerfwd.h>
+#include <qcoreapplication.h>
+#include <qminmax.h>
+#include <qprocess.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
 
 WhisperJob::WhisperJob(const QString& name, const QString& iWavFile, const QString& oSrtFile, const QString& lang,
                        bool translate, int maxLength, QThread::Priority priority)
-    : AbstractJob(name, priority), m_iWavFile(iWavFile), m_oSrtFile(oSrtFile), m_lang(lang), m_translate(translate),
+	: AbstractJob(name, priority), m_iWavFile(iWavFile), m_oSrtFile(oSrtFile), m_lang(lang), m_translate(translate),
       m_maxLength(maxLength), m_previousPercent(0) {
 	setTarget(oSrtFile);
 }
@@ -39,8 +49,8 @@ WhisperJob::~WhisperJob() {
 }
 
 void WhisperJob::start() {
-	QString whisperPath = Settings.whisperExe();
-	auto    modelPath   = Settings.whisperModel();
+	QString const whisperPath = Settings.whisperExe();
+	auto modelPath   = Settings.whisperModel();
 
 	setReadChannel(QProcess::StandardOutput);
 	setProcessChannelMode(QProcess::MergedChannels);
@@ -73,8 +83,8 @@ void WhisperJob::start() {
 }
 
 void WhisperJob::onViewSrtTriggered() {
-	QFile   srtFile(m_oSrtFile);
-	QString text = srtFile.readAll();
+	QFile srtFile(m_oSrtFile);
+	QString const text = srtFile.readAll();
 
 	TextViewerDialog dialog(&MAIN, true);
 	dialog.setWindowTitle(tr("SRT"));
@@ -87,10 +97,10 @@ void WhisperJob::onReadyRead() {
 	do {
 		msg = readLine();
 		if (!msg.isEmpty()) {
-			int index = msg.indexOf("progress = ");
+			const int index = msg.indexOf("progress = ");
 			if (index > -1) {
-				QString num     = msg.mid(index + 11).remove("%").trimmed();
-				int     percent = num.toInt();
+				QString const num = msg.mid(index + 11).remove("%").trimmed();
+				const int percent = num.toInt();
 				if (percent != m_previousPercent) {
 					emit progressUpdated(m_item, percent);
 					QCoreApplication::processEvents();

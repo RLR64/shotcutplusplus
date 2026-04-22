@@ -18,7 +18,10 @@
 #ifndef VIDEOQUALITYJOB_HPP
 #define VIDEOQUALITYJOB_HPP
 
+// Local
+#include "jobs/postjobaction.hpp"
 #include "meltjob.hpp"
+#include <qtmetamacros.h>
 
 class VideoQualityJob : public MeltJob {
 	Q_OBJECT
@@ -27,7 +30,7 @@ class VideoQualityJob : public MeltJob {
 	                int frameRateDen);
 
   private slots:
-	void onOpenTiggered();
+	void onOpenTiggered() override;
 	void onViewReportTriggered();
 
   private:

@@ -18,8 +18,11 @@
 #ifndef ACTIONS_HPP
 #define ACTIONS_HPP
 
+// Qt
 #include <QHash>
 #include <QObject>
+#include <qlist.h>
+#include <qtmetamacros.h>
 
 #define Actions ShotcutActions::singleton()
 
@@ -41,15 +44,15 @@ class ShotcutActions : public QObject {
 	explicit ShotcutActions() : QObject() {
 	}
 
-	void           add(const QString& name, QAction* action, QString group = "");
-	void           loadFromMenu(QMenu* menu, const QString group = "");
-	QAction*       operator[](const QString& key);
+	void add(const QString& name, QAction* action, QString group = "");
+	void loadFromMenu(QMenu* menu, const QString group = "");
+	QAction* operator[](const QString& key);
 	QList<QString> keys();
-	void           overrideShortcuts(const QString& key, QList<QKeySequence> shortcuts);
-	void           initializeShortcuts();
+	void overrideShortcuts(const QString& key, QList<QKeySequence> shortcuts);
+	void initializeShortcuts();
 
   private:
-	void                     addShortcutToToolTip(QAction* action);
+	void addShortcutToToolTip(QAction* action);
 	QHash<QString, QAction*> m_actions;
 };
 

@@ -18,14 +18,20 @@
 #ifndef ABSTRACTJOB_HPP
 #define ABSTRACTJOB_HPP
 
+// Local
 #include "postjobaction.hpp"
 #include "settings.hpp"
 
+// Qt
 #include <QElapsedTimer>
 #include <QList>
 #include <QModelIndex>
 #include <QProcess>
 #include <QThread>
+#include <qcontainerfwd.h>
+#include <qscopedpointer.h>
+#include <qtmetamacros.h>
+#include <qvariant.h>
 
 class QAction;
 class QStandardItem;
@@ -35,53 +41,52 @@ class AbstractJob : public QProcess {
   public:
 	explicit AbstractJob(const QString& name, QThread::Priority priority = Settings.jobPriority());
 
-	virtual ~AbstractJob() {
-	}
+	~AbstractJob() override = default;
 
-	void           setStandardItem(QStandardItem* item);
-	QStandardItem* standardItem();
-	bool           ran() const;
-	bool           stopped() const;
+	void setStandardItem(QStandardItem* item);
+	auto standardItem() -> QStandardItem*;
+	[[nodiscard]] auto ran() const -> bool;
+	[[nodiscard]] auto stopped() const -> bool;
 
-	bool isFinished() const {
+	[[nodiscard]] auto isFinished() const -> bool {
 		return (ran() && state() != QProcess::Running);
 	}
 
 	void    appendToLog(const QString&);
-	QString log() const;
+	[[nodiscard]] auto log() const -> QString;
 
-	QString label() const {
+	[[nodiscard]] auto label() const -> QString {
 		return m_label;
 	}
 
 	void setLabel(const QString& label);
 
-	QList<QAction*> standardActions() const {
+	[[nodiscard]] auto standardActions() const -> QList<QAction*> {
 		return m_standardActions;
 	}
 
-	QList<QAction*> successActions() const {
+	[[nodiscard]] auto successActions() const -> QList<QAction*> {
 		return m_successActions;
 	}
 
-	QTime estimateRemaining(int percent);
+	auto estimateRemaining(int percent) -> QTime;
 
-	QElapsedTimer time() const {
+	[[nodiscard]] auto time() const -> QElapsedTimer {
 		return m_totalTime;
 	}
 
 	void setPostJobAction(PostJobAction* action);
-	bool paused() const;
+	[[nodiscard]] auto paused() const -> bool;
 
 	void setTarget(const QString& target) {
 		m_target = target;
 	}
 
-	QString target() {
+	auto target() -> QString {
 		return m_target;
 	}
 
-	bool hasPostJobAction() const {
+	[[nodiscard]] auto hasPostJobAction() const -> bool {
 		return !m_postJobAction.isNull();
 	}
 

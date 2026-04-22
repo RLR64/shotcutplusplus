@@ -18,7 +18,10 @@
 #ifndef DURATIONDIALOG_HPP
 #define DURATIONDIALOG_HPP
 
+// Qt
 #include <QDialog>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 namespace Ui {
 class DurationDialog;
@@ -29,9 +32,9 @@ class DurationDialog : public QDialog {
 
   public:
 	explicit DurationDialog(QWidget* parent = nullptr);
-	~DurationDialog();
+	~DurationDialog() override;
 	void setDuration(int);
-	int  duration() const;
+	[[nodiscard]] auto  duration() const -> int;
 
   private:
 	Ui::DurationDialog* ui;

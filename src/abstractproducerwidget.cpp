@@ -15,15 +15,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "abstractproducerwidget.hpp"
 
+// Qt
+#include <MltProducer.h>
 #include <QWidget>
 
-AbstractProducerWidget::AbstractProducerWidget() {
-}
+AbstractProducerWidget::AbstractProducerWidget() = default;
 
-AbstractProducerWidget::~AbstractProducerWidget() {
-}
+AbstractProducerWidget::~AbstractProducerWidget() = default;
 
 void AbstractProducerWidget::setProducer(Mlt::Producer* producer) {
 	if (producer) {
@@ -34,7 +35,7 @@ void AbstractProducerWidget::setProducer(Mlt::Producer* producer) {
 	}
 }
 
-bool AbstractProducerWidget::isDevice(const QWidget* widget) {
+auto AbstractProducerWidget::isDevice(const QWidget* widget) -> bool {
 	auto name = widget->objectName();
 	return "AlsaWidget" == name || "alsaWidget" == name || "AvfoundationProducerWidget" == name ||
 	       "avfoundationWidget" == name || "DecklinkProducerWidget" == name || "decklinkWidget" == name ||

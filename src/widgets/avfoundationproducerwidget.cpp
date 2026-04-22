@@ -15,22 +15,37 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "avfoundationproducerwidget.h"
-
 #include "Logger.hpp"
+#include "abstractproducerwidget.hpp"
 #include "mltcontroller.hpp"
 #include "settings.hpp"
 #include "shotcut_mlt_properties.hpp"
 #include "ui_avfoundationproducerwidget.h"
 #include "util.hpp"
 
+// Qt
+#include <MltProfile.h>
 #include <QAudioDevice>
 #include <QCamera>
 #include <QCameraDevice>
 #include <QMediaDevices>
 #include <QString>
+#include <qcontainerfwd.h>
+#include <qcoreapplication.h>
+#include <qsize.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
-constexpr auto ENABLE_SCREEN_CAPTURE = {0};
+// Number constants
+constexpr double setFrameRate{30.0};
+constexpr int set720pHDWidth{1280};
+constexpr int set720pHDHeight{720};
+
+
+constexpr auto ENABLE_SCREEN_CAPTURE{0};
 
 AvfoundationProducerWidget::AvfoundationProducerWidget(QWidget* parent)
     : QWidget(parent), ui(new Ui::AvfoundationProducerWidget) {
@@ -68,10 +83,10 @@ AvfoundationProducerWidget::~AvfoundationProducerWidget() {
 	delete ui;
 }
 
-Mlt::Producer* AvfoundationProducerWidget::newProducer(Mlt::Profile& profile) {
+auto AvfoundationProducerWidget::newProducer(Mlt::Profile& profile) -> Mlt::Producer* {
 	QString resource;
-	qreal   frameRate = 30.0;
-	QSize   size{1280, 720};
+	qreal frameRate = setFrameRate;
+	QSize size{set720pHDWidth, set720pHDHeight};
 	Util::cameraFrameRateSize(ui->videoCombo->currentData().toByteArray(), frameRate, size);
 	if (ui->videoCombo->currentIndex()) {
 		resource = QStringLiteral("avfoundation:%1:%2?pixel_format=yuyv422&framerate=%3&video_size=%4x%5")
@@ -85,7 +100,7 @@ Mlt::Producer* AvfoundationProducerWidget::newProducer(Mlt::Profile& profile) {
 		    QStringLiteral("avfoundation:none:%1").arg(ui->audioCombo->currentText().replace(tr("None"), "none"));
 	}
 	LOG_DEBUG() << resource;
-	Mlt::Producer* p = new Mlt::Producer(profile, resource.toUtf8().constData());
+	auto* p = new Mlt::Producer(profile, resource.toUtf8().constData());
 	if (!p || !p->is_valid()) {
 		delete p;
 		p = new Mlt::Producer(profile, "color:");
@@ -134,8 +149,8 @@ void AvfoundationProducerWidget::on_videoCombo_activated(int index) {
 	Q_UNUSED(index)
 	if (m_producer) {
 		MLT.close();
-		AbstractProducerWidget::setProducer(0);
-		emit producerChanged(0);
+		AbstractProducerWidget::setProducer(nullptr);
+		emit producerChanged(nullptr);
 		QCoreApplication::processEvents();
 
 		Mlt::Producer* p = newProducer(MLT.profile());

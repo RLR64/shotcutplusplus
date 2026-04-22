@@ -18,11 +18,20 @@
 #ifndef HTMLGENERATORJOB_HPP
 #define HTMLGENERATORJOB_HPP
 
+// Local
 #include "abstractjob.hpp"
 #include "htmlgenerator.hpp"
+#include "jobs/postjobaction.hpp"
 
+// Qt
 #include <QDir>
 #include <QTemporaryDir>
+#include <qprocess.h>
+#include <qthread.h>
+#include <qtmetamacros.h>
+
+// STL
+#include <memory>
 
 class HtmlGeneratorJob : public AbstractJob {
 	Q_OBJECT

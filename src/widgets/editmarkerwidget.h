@@ -18,7 +18,12 @@
 #ifndef EDITMARKERWIDGET_H
 #define EDITMARKERWIDGET_H
 
+// Qt
 #include <QWidget>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class QLabel;
 class QLineEdit;
@@ -31,7 +36,7 @@ class EditMarkerWidget : public QWidget {
   public:
 	EditMarkerWidget(QWidget* parent);
 	EditMarkerWidget(QWidget* parent, const QString& text, const QColor& color, int start, int end, int maxEnd);
-	virtual ~EditMarkerWidget();
+	~EditMarkerWidget() override;
 	QString getText();
 	QColor  getColor();
 	int     getStart();

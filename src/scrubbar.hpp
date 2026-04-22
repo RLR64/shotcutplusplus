@@ -18,7 +18,11 @@
 #ifndef SCRUBBAR_HPP
 #define SCRUBBAR_HPP
 
+// Qt
 #include <QWidget>
+#include <qlist.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 class ScrubBar : public QWidget {
 	Q_OBJECT
@@ -28,17 +32,17 @@ class ScrubBar : public QWidget {
   public:
 	explicit ScrubBar(QWidget* parent = nullptr);
 
-	virtual void mousePressEvent(QMouseEvent* event);
-	virtual void mouseReleaseEvent(QMouseEvent* event);
-	virtual void mouseMoveEvent(QMouseEvent* event);
-	void         setScale(int maximum);
-	void         setFramerate(double fps);
-	int          position() const;
-	void         setInPoint(int in);
-	void         setOutPoint(int out);
-	void         setMarkers(const QList<int>&);
+	void mousePressEvent(QMouseEvent* event) override;
+	void mouseReleaseEvent(QMouseEvent* event) override;
+	void mouseMoveEvent(QMouseEvent* event) override;
+	void setScale(int maximum);
+	void setFramerate(double fps);
+	[[nodiscard]] int position() const;
+	void setInPoint(int in);
+	void setOutPoint(int out);
+	void setMarkers(const QList<int>&);
 
-	QList<int> markers() const {
+	[[nodiscard]] QList<int> markers() const {
 		return m_markers;
 	}
 
@@ -58,27 +62,27 @@ class ScrubBar : public QWidget {
 	bool onSeek(int value);
 
   protected:
-	virtual void paintEvent(QPaintEvent* e);
-	virtual void resizeEvent(QResizeEvent*);
-	virtual bool event(QEvent* event);
+	void paintEvent(QPaintEvent* e) override;
+	void resizeEvent(QResizeEvent*) override;
+	bool event(QEvent* event) override;
 
   private:
-	int           m_cursorPosition;
-	int           m_head;
-	double        m_scale;
-	double        m_fps;
-	int           m_interval;
-	int           m_max;
-	int           m_in;
-	int           m_out;
-	int           m_margin;
+	int m_cursorPosition;
+	int m_head;
+	double m_scale;
+	double m_fps;
+	int m_interval;
+	int m_max;
+	int m_in;
+	int m_out;
+	int m_margin;
 	enum controls m_activeControl;
-	QPixmap       m_pixmap;
-	int           m_timecodeWidth;
-	int           m_secondsPerTick;
+	QPixmap m_pixmap;
+	int  m_timecodeWidth;
+	int m_secondsPerTick;
 	QList<int>    m_markers;
-	int           m_loopStart;
-	int           m_loopEnd;
+	int m_loopStart;
+	int m_loopEnd;
 
 	void updatePixmap();
 };

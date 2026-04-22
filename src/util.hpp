@@ -18,6 +18,7 @@
 #ifndef UTIL_HPP
 #define UTIL_HPP
 
+// Qt
 #include <MltProperties.h>
 #include <QColorDialog>
 #include <QFileDialog>
@@ -25,6 +26,14 @@
 #include <QPalette>
 #include <QString>
 #include <QUrl>
+#include <framework/mlt_types.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtypes.h>
+
+// STL
 #include <functional>
 
 class QWidget;
@@ -41,63 +50,60 @@ class Util {
 	}
 
   public:
-	static QString           baseName(const QString& filePath, bool trimQuery = false);
-	static void              setColorsToHighlight(QWidget* widget, QPalette::ColorRole role = QPalette::Window);
-	static void              showInFolder(const QString& path);
-	static bool              warnIfNotWritable(const QString& filePath, QWidget* parent, const QString& caption);
-	static QString           producerTitle(const Mlt::Producer& producer);
-	static QString           removeFileScheme(QUrl& url, bool fromPercentEncoding = true);
+	static QString baseName(const QString& filePath, bool trimQuery = false);
+	static void setColorsToHighlight(QWidget* widget, QPalette::ColorRole role = QPalette::Window);
+	static void showInFolder(const QString& path);
+	static bool warnIfNotWritable(const QString& filePath, QWidget* parent, const QString& caption);
+	static QString producerTitle(const Mlt::Producer& producer);
+	static QString removeFileScheme(QUrl& url, bool fromPercentEncoding = true);
 	static const QStringList sortedFileList(const QList<QUrl>& urls);
-	static int               coerceMultiple(int value, int multiple = 2);
-	static QList<QUrl>       expandDirectories(const QList<QUrl>& urls);
-	static bool              isDecimalPoint(QChar ch);
-	static bool              isNumeric(QString& str);
-	static bool              convertNumericString(QString& str, QChar decimalPoint);
-	static bool              convertDecimalPoints(QString& str, QChar decimalPoint);
-	static void              showFrameRateDialog(const QString& caption, int numerator, QDoubleSpinBox* spinner,
-	                                             QWidget* parent = Q_NULLPTR);
-	static QTemporaryFile*   writableTemporaryFile(const QString& filePath     = QString(),
-	                                               const QString& templateName = QString());
-	static void              applyCustomProperties(Mlt::Producer& destination, Mlt::Producer& source, int in, int out);
-	static QString           getFileHash(const QString& path);
-	static QString           getHash(Mlt::Properties& properties);
-	static bool              hasDriveLetter(const QString& path);
+	static int coerceMultiple(int value, int multiple = 2);
+	static QList<QUrl> expandDirectories(const QList<QUrl>& urls);
+	static bool isDecimalPoint(QChar ch);
+	static bool isNumeric(QString& str);
+	static bool convertNumericString(QString& str, QChar decimalPoint);
+	static bool convertDecimalPoints(QString& str, QChar decimalPoint);
+	static void showFrameRateDialog(const QString& caption, int numerator, QDoubleSpinBox* spinner, QWidget* parent = Q_NULLPTR);
+	static QTemporaryFile* writableTemporaryFile(const QString& filePath = QString(), const QString& templateName = QString());
+	static void applyCustomProperties(Mlt::Producer& destination, Mlt::Producer& source, int in, int out);
+	static QString getFileHash(const QString& path);
+	static QString getHash(Mlt::Properties& properties);
+	static bool hasDriveLetter(const QString& path);
 	static QColorDialog::ColorDialogOptions getColorDialogOptions();
-	static QFileDialog::Options             getFileDialogOptions();
-	static bool                             isMemoryLow();
-	static QString                          removeQueryString(const QString& s);
-	static int                              greatestCommonDivisor(int m, int n);
-	static void                             normalizeFrameRate(double fps, int& numerator, int& denominator);
-	static QString                          textColor(const QColor& color);
-	static void          cameraFrameRateSize(const QByteArray& deviceName, qreal& frameRate, QSize& size);
-	static bool          ProducerIsTimewarp(Mlt::Producer* producer);
-	static QString       GetFilenameFromProducer(Mlt::Producer* producer, bool useOriginal = true);
-	static double        GetSpeedFromProducer(Mlt::Producer* producer);
-	static QString       updateCaption(Mlt::Producer* producer);
-	static void          passProducerProperties(Mlt::Producer* src, Mlt::Producer* dst);
-	static bool          warnIfLowDiskSpace(const QString& path);
-	static bool          isFpsDifferent(double a, double b);
-	static QString       getNextFile(const QString& filePath);
-	static QString       trcString(int trc);
-	static bool          trcIsCompatible(int trc);
-	static QString       getConversionAdvice(Mlt::Producer* producer);
-	static mlt_color     mltColorFromQColor(const QColor& color);
-	static void          offerSingleFileConversion(QString& message, Mlt::Producer* producer, QWidget* parent);
-	static double        getAndroidFrameRate(Mlt::Producer* producer);
-	static double        getSuggestedFrameRate(Mlt::Producer* producer);
+	static QFileDialog::Options getFileDialogOptions();
+	static bool isMemoryLow();
+	static QString removeQueryString(const QString& s);
+	static int greatestCommonDivisor(int m, int n);
+	static void normalizeFrameRate(double fps, int& numerator, int& denominator);
+	static QString textColor(const QColor& color);
+	static void cameraFrameRateSize(const QByteArray& deviceName, qreal& frameRate, QSize& size);
+	static bool ProducerIsTimewarp(Mlt::Producer* producer);
+	static QString GetFilenameFromProducer(Mlt::Producer* producer, bool useOriginal = true);
+	static double GetSpeedFromProducer(Mlt::Producer* producer);
+	static QString updateCaption(Mlt::Producer* producer);
+	static void passProducerProperties(Mlt::Producer* src, Mlt::Producer* dst);
+	static bool warnIfLowDiskSpace(const QString& path);
+	static bool isFpsDifferent(double a, double b);
+	static QString getNextFile(const QString& filePath);
+	static QString trcString(int trc);
+	static bool trcIsCompatible(int trc);
+	static QString getConversionAdvice(Mlt::Producer* producer);
+	static mlt_color mltColorFromQColor(const QColor& color);
+	static void offerSingleFileConversion(QString& message, Mlt::Producer* producer, QWidget* parent);
+	static double getAndroidFrameRate(Mlt::Producer* producer);
+	static double getSuggestedFrameRate(Mlt::Producer* producer);
 	static Mlt::Producer openMltVirtualClip(const QString& path);
-	static bool          hasiPhoneAmbisonic(Mlt::Producer* producer);
-	static bool          installFlatpakWrappers(QWidget* parent);
-	static QString       getExecutable(QWidget* parent);
+	static bool hasiPhoneAmbisonic(Mlt::Producer* producer);
+	static bool installFlatpakWrappers(QWidget* parent);
+	static QString getExecutable(QWidget* parent);
 	// Returns a pair of booleans: (dockerInstalled, imagePresent)
 	// imagePresent is only meaningful (true/false) if dockerInstalled is true; otherwise false.
 	static QPair<bool, bool> dockerStatus(const QString& imageName);
-	static bool              isDockerImageCurrent(const QString& imageRef);
+	static bool isDockerImageCurrent(const QString& imageRef);
 	// Asynchronous version of isDockerImageCurrent. The callback is invoked on the GUI thread
 	// with the result. If any step fails (including docker not found), result is false.
 	// 'receiver' is used as the parent for internal QProcess objects (may be nullptr).
-	static void isDockerImageCurrentAsync(const QString& imageRef, QObject* receiver,
-	                                      std::function<void(bool)> callback);
+	static void isDockerImageCurrentAsync(const QString& imageRef, QObject* receiver,const std::function<void(bool)>& callback);
 	static bool isChromiumAvailable();
 	static bool startDetached(const QString& program, const QStringList& arguments);
 	static bool openUrl(const QUrl& url);

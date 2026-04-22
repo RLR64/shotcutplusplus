@@ -15,9 +15,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "fontdialog.hpp"
 
+// Qt
 #include <QFontDialog>
+#include <qdialog.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 FontDialog::FontDialog(QObject* parent) : QObject{parent} {
 }

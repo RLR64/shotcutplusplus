@@ -15,20 +15,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "glaxnimateproducerwidget.h"
-
 #include "Logger.hpp"
+#include "abstractproducerwidget.hpp"
 #include "dialogs/longuitask.hpp"
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"
 #include "qmltypes/colordialog.hpp"
 #include "qmltypes/qmlapplication.hpp"
 #include "settings.hpp"
+#include "sharedframe.hpp"
 #include "shotcut_mlt_properties.hpp"
 #include "ui_glaxnimateproducerwidget.h"
 #include "util.hpp"
 #include "videowidget.hpp"
 
+// Qt
+#include <MltFrame.h>
+#include <MltPlaylist.h>
+#include <MltProperties.h>
+#include <MltTractor.h>
 #include <QFile>
 #include <QFileInfo>
 #include <QFileSystemWatcher>
@@ -39,17 +46,40 @@
 #include <QMessageBox>
 #include <QProcess>
 #include <QtConcurrent/QtConcurrentRun>
+#include <framework/mlt_profile.h>
+#include <framework/mlt_types.h>
+#include <qabstractsocket.h>
+#include <qapplication.h>
+#include <qbytearrayalgorithms.h>
+#include <qcolor.h>
+#include <qfiledialog.h>
+#include <qhashfunctions.h>
+#include <qlocalsocket.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpalette.h>
+#include <qrgb.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qwidget.h>
+
+// STL
+#include <cstring>
+#include <memory>
 
 static const QString kTransparent = QObject::tr("transparent", "Open Other > Animation");
 
-static QString colorToString(const QColor& color) {
+static auto colorToString(const QColor& color) -> QString {
 	return (color == QColor(0, 0, 0, 0))
 	           ? kTransparent
 	           : QString::asprintf("#%02X%02X%02X%02X", qAlpha(color.rgba()), qRed(color.rgba()), qGreen(color.rgba()),
 	                               qBlue(color.rgba()));
 }
 
-static QString colorStringToResource(const QString& s) {
+static auto colorStringToResource(const QString& s) -> QString {
 	return (s == kTransparent) ? "#00000000" : s;
 }
 
@@ -97,9 +127,9 @@ void GlaxnimateProducerWidget::on_colorButton_clicked() {
 }
 
 static void modifyJsonValue(QJsonValue& destValue, const QString& path, const QJsonValue& newValue) {
-	const int     indexOfDot      = path.indexOf('.');
+	const int indexOfDot = path.indexOf('.');
 	const QString dotPropertyName = path.left(indexOfDot);
-	const QString dotSubPath      = indexOfDot > 0 ? path.mid(indexOfDot + 1) : QString();
+	const QString dotSubPath = indexOfDot > 0 ? path.mid(indexOfDot + 1) : QString();
 
 	const int indexOfSquareBracketOpen  = path.indexOf('[');
 	const int indexOfSquareBracketClose = path.indexOf(']');
@@ -132,8 +162,8 @@ static void modifyJsonValue(QJsonValue& destValue, const QString& path, const QJ
 			useDot = true; // actually, id doesn't matter, both dot and square bracket don't exist
 	}
 
-	QString usedPropertyName = useDot ? dotPropertyName : squareBracketPropertyName;
-	QString usedSubPath      = useDot ? dotSubPath : squareBracketSubPath;
+	QString const usedPropertyName = useDot ? dotPropertyName : squareBracketPropertyName;
+	QString const usedSubPath = useDot ? dotSubPath : squareBracketSubPath;
 
 	QJsonValue subValue;
 	if (destValue.isArray()) {
@@ -173,7 +203,7 @@ static void modifyJsonValue(QJsonValue& destValue, const QString& path, const QJ
 	}
 }
 
-Mlt::Producer* GlaxnimateProducerWidget::newProducer(Mlt::Profile& profile) {
+auto GlaxnimateProducerWidget::newProducer(Mlt::Profile& profile) -> Mlt::Producer* {
 	// Get the file name.
 	auto filename = QmlApplication::getNextProjectFile("anim-.rawr");
 	if (filename.isEmpty()) {
@@ -181,8 +211,7 @@ Mlt::Producer* GlaxnimateProducerWidget::newProducer(Mlt::Profile& profile) {
 		path.append("/%1.rawr");
 		path            = path.arg(tr("animation"));
 		auto nameFilter = tr("Glaxnimate (*.rawr);;All Files (*)");
-		filename        = QFileDialog::getSaveFileName(this, tr("New Animation"), path, nameFilter, nullptr,
-		                                               Util::getFileDialogOptions());
+		filename        = QFileDialog::getSaveFileName(this, tr("New Animation"), path, nameFilter, nullptr, Util::getFileDialogOptions());
 	}
 	if (filename.isEmpty()) {
 		return nullptr;
@@ -195,7 +224,7 @@ Mlt::Producer* GlaxnimateProducerWidget::newProducer(Mlt::Profile& profile) {
 
 	GlaxnimateIpcServer::instance().newFile(filename, ui->durationSpinBox->value());
 
-	Mlt::Producer* p = new Mlt::Producer(profile, QStringLiteral("glaxnimate:").append(filename).toUtf8().constData());
+	auto* p = new Mlt::Producer(profile, QStringLiteral("glaxnimate:").append(filename).toUtf8().constData());
 	p->set("background", colorStringToResource(ui->colorLabel->text()).toLatin1().constData());
 
 	m_title = info.fileName();
@@ -230,18 +259,17 @@ void GlaxnimateProducerWidget::setProducer(Mlt::Producer* p) {
 	connect(m_watcher.get(), &QFileSystemWatcher::fileChanged, this, &GlaxnimateProducerWidget::onFileChanged);
 }
 
-Mlt::Properties GlaxnimateProducerWidget::getPreset() const {
+auto GlaxnimateProducerWidget::getPreset() const -> Mlt::Properties {
 	Mlt::Properties p;
-	QString         color = colorStringToResource(ui->colorLabel->text());
+	QString const color = colorStringToResource(ui->colorLabel->text());
 	p.set("background", color.toLatin1().constData());
 	return p;
 }
 
 void GlaxnimateProducerWidget::loadPreset(Mlt::Properties& p) {
-	QColor color(QFileInfo(p.get("background")).baseName());
+	QColor const color(QFileInfo(p.get("background")).baseName());
 	ui->colorLabel->setText(colorToString(color));
-	ui->colorLabel->setStyleSheet(
-	    QStringLiteral("color: %1; background-color: %2").arg(Util::textColor(color), color.name()));
+	ui->colorLabel->setStyleSheet(QStringLiteral("color: %1; background-color: %2").arg(Util::textColor(color), color.name()));
 	if (m_producer) {
 		m_producer->set("background", colorStringToResource(ui->colorLabel->text()).toLatin1().constData());
 		emit producerChanged(m_producer.get());
@@ -258,7 +286,7 @@ void GlaxnimateProducerWidget::rename() {
 }
 
 void GlaxnimateProducerWidget::on_preset_selected(void* p) {
-	Mlt::Properties* properties = (Mlt::Properties*)p;
+	auto* properties = (Mlt::Properties*)p;
 	loadPreset(*properties);
 	delete properties;
 }
@@ -281,7 +309,7 @@ void GlaxnimateProducerWidget::on_lineEdit_editingFinished() {
 
 void GlaxnimateProducerWidget::on_notesTextEdit_textChanged() {
 	if (m_producer && m_producer->is_valid()) {
-		QString existing = QString::fromUtf8(m_producer->get(kCommentProperty));
+		QString const existing = QString::fromUtf8(m_producer->get(kCommentProperty));
 		if (ui->notesTextEdit->toPlainText() != existing) {
 			m_producer->set(kCommentProperty, ui->notesTextEdit->toPlainText().toUtf8().constData());
 			emit modified();
@@ -341,14 +369,14 @@ void GlaxnimateIpcServer::ParentResources::setProducer(const Mlt::Producer& prod
 	m_producer = producer;
 	if (!m_producer.get(kMultitrackItemProperty) && !m_producer.get(kTrackIndexProperty))
 		return;
-	m_profile.reset(new Mlt::Profile(::mlt_profile_clone(MLT.profile().get_profile())));
+	m_profile = std::make_unique<Mlt::Profile>(::mlt_profile_clone(MLT.profile().get_profile()));
 	m_profile->set_progressive(Settings.playerProgressive());
-	m_glaxnimateProducer.reset(new Mlt::Producer(*m_profile, "xml-string", MLT.XML().toUtf8().constData()));
+	m_glaxnimateProducer = std::make_unique<Mlt::Producer>(*m_profile, "xml-string", MLT.XML().toUtf8().constData());
 	if (m_glaxnimateProducer && m_glaxnimateProducer->is_valid()) {
 		m_frameNum = -1;
 		// hide this clip's video track and upper ones
 		int     trackIndex = m_producer.get_int(kTrackIndexProperty);
-		QString s          = QString::fromLatin1(m_producer.get(kMultitrackItemProperty));
+		QString const s = QString::fromLatin1(m_producer.get(kMultitrackItemProperty));
 		auto    parts      = s.split(':');
 		if (parts.length() == 2) {
 			trackIndex = parts[1].toInt();
@@ -360,7 +388,7 @@ void GlaxnimateIpcServer::ParentResources::setProducer(const Mlt::Producer& prod
 			GlaxnimateIpcServer::instance().copyToShared(QImage());
 			return;
 		}
-		auto         offset = hideCurrentTrack ? 1 : 0;
+		auto offset = hideCurrentTrack ? 1 : 0;
 		Mlt::Tractor tractor(*m_glaxnimateProducer);
 		// for each upper video track plus this one
 		for (int i = 0; i < trackIndex + offset; i++) {
@@ -378,8 +406,8 @@ void GlaxnimateIpcServer::ParentResources::setProducer(const Mlt::Producer& prod
 		if (!hideCurrentTrack) {
 			std::unique_ptr<Mlt::Producer> track(tractor.track(MAIN.mltIndexForTrack(trackIndex)));
 			if (track && track->is_valid()) {
-				auto                           clipIndex = parts[0].toInt();
-				Mlt::Playlist                  playlist(*track);
+				auto clipIndex = parts[0].toInt();
+				Mlt::Playlist playlist(*track);
 				std::unique_ptr<Mlt::ClipInfo> info(playlist.clip_info(clipIndex));
 				if (info && info->producer && info->producer->is_valid()) {
 					auto count = info->producer->filter_count();
@@ -404,7 +432,7 @@ void GlaxnimateIpcServer::onConnect() {
 	m_socket = m_server->nextPendingConnection();
 	connect(m_socket.data(), &QLocalSocket::readyRead, this, &GlaxnimateIpcServer::onReadyRead);
 	connect(m_socket.data(), &QLocalSocket::errorOccurred, this, &GlaxnimateIpcServer::onSocketError);
-	m_stream.reset(new QDataStream(m_socket.data()));
+	m_stream = std::make_unique<QDataStream>(m_socket.data());
 	m_stream->setVersion(QDataStream::Qt_5_15);
 	*m_stream << QStringLiteral("hello");
 	m_socket->flush();
@@ -412,7 +440,7 @@ void GlaxnimateIpcServer::onConnect() {
 	m_isProtocolValid = false;
 }
 
-int GlaxnimateIpcServer::toMltFps(float frame) const {
+auto GlaxnimateIpcServer::toMltFps(float frame) const -> int {
 	if (parent->m_producer.get_double("meta.media.frame_rate") > 0) {
 		return qRound(frame / parent->m_producer.get_double("meta.media.frame_rate") * MLT.profile().fps());
 	}
@@ -439,8 +467,7 @@ void GlaxnimateIpcServer::onReadyRead() {
 		}
 
 		// Only if the frame number is different
-		int frameNum = parent->m_producer.get_int(kPlaylistStartProperty) + toMltFps(time) -
-		               parent->m_producer.get_int("first_frame");
+		const int frameNum = parent->m_producer.get_int(kPlaylistStartProperty) + toMltFps(time) - parent->m_producer.get_int("first_frame");
 		if (frameNum != parent->m_frameNum) {
 			LOG_DEBUG() << "glaxnimate time =" << time << "=> Shotcut frameNum =" << frameNum;
 
@@ -454,16 +481,12 @@ void GlaxnimateIpcServer::onReadyRead() {
 			std::unique_ptr<Mlt::Frame> frame(parent->m_glaxnimateProducer->get_frame());
 			// Use preview scaling
 #ifdef Q_OS_MAC
-			int scale = Settings.playerPreviewScale() ? Settings.playerPreviewScale() : 720;
+			const int scale = Settings.playerPreviewScale() ? Settings.playerPreviewScale() : 720;
 #else
-			int scale = Settings.playerPreviewScale() ? Settings.playerPreviewScale() : 2160;
+			const int scale = Settings.playerPreviewScale() ? Settings.playerPreviewScale() : 2160;
 #endif
 			auto height = qMin(scale, MLT.profile().height());
-			auto width  = (height == MLT.profile().height())
-			                  ? MLT.profile().width()
-			                  : Util::coerceMultiple(
-			                        height * MLT.profile().display_aspect_num() / MLT.profile().display_aspect_den() *
-			                        MLT.profile().sample_aspect_den() / MLT.profile().sample_aspect_num());
+			auto width = (height == MLT.profile().height()) ? MLT.profile().width() : Util::coerceMultiple(height * MLT.profile().display_aspect_num() / MLT.profile().display_aspect_den() * MLT.profile().sample_aspect_den() / MLT.profile().sample_aspect_num());
 			frame->set("consumer.deinterlacer", Settings.playerDeinterlacer().toLatin1().constData());
 			frame->set("consumer.top_field_first", -1);
 			mlt_image_format format = mlt_image_rgb;
@@ -513,7 +536,7 @@ void GlaxnimateIpcServer::onFrameDisplayed(const SharedFrame& frame) {
 	}
 }
 
-GlaxnimateIpcServer& GlaxnimateIpcServer::instance() {
+auto GlaxnimateIpcServer::instance() -> GlaxnimateIpcServer& {
 	static GlaxnimateIpcServer instance;
 	return instance;
 }
@@ -549,7 +572,7 @@ void GlaxnimateIpcServer::reset() {
 }
 
 void GlaxnimateIpcServer::launch(const Mlt::Producer& producer, QString filename, bool hideCurrentTrack) {
-	parent.reset(new ParentResources);
+	parent = std::make_unique<ParentResources>();
 
 	if (Settings.playerGPU()) {
 		parent->m_producer = producer;
@@ -557,7 +580,7 @@ void GlaxnimateIpcServer::launch(const Mlt::Producer& producer, QString filename
 		        &GlaxnimateIpcServer::onFrameDisplayed);
 	} else {
 		LongUiTask longTask(QObject::tr("Edit With Glaxnimate"));
-		auto       future = QtConcurrent::run([this, &producer, &hideCurrentTrack]() {
+		auto future = QtConcurrent::run([this, &producer, &hideCurrentTrack]() -> bool {
 			parent->setProducer(producer, hideCurrentTrack);
 			return true;
 		});
@@ -577,12 +600,12 @@ void GlaxnimateIpcServer::launch(const Mlt::Producer& producer, QString filename
 		return;
 	}
 
-	m_server.reset(new QLocalServer);
+	m_server = std::make_unique<QLocalServer>();
 	connect(m_server.get(), &QLocalServer::newConnection, this, &GlaxnimateIpcServer::onConnect);
-	QString name             = "shotcut-%1";
-	name                     = name.arg(QCoreApplication::applicationPid());
-	QStringList         args = {"--ipc", name, filename};
-	QProcess            childProcess;
+	QString name = "shotcut-%1";
+	name = name.arg(QCoreApplication::applicationPid());
+	QStringList args = {"--ipc", name, filename};
+	QProcess childProcess;
 	QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
 	env.remove("LC_ALL");
 	childProcess.setProcessEnvironment(env);
@@ -597,7 +620,7 @@ void GlaxnimateIpcServer::launch(const Mlt::Producer& producer, QString filename
 		childProcess.setArguments(args);
 		if (childProcess.startDetached()) {
 			LOG_DEBUG() << Settings.glaxnimatePath() << args.join(' ');
-			m_sharedMemory.reset(new QSharedMemory(name));
+			m_sharedMemory = std::make_unique<QSharedMemory>(name);
 			return;
 		} else {
 			// This glaxnimate executable may not support --ipc
@@ -621,8 +644,7 @@ void GlaxnimateIpcServer::launch(const Mlt::Producer& producer, QString filename
 		dialog.setEscapeButton(QMessageBox::Cancel);
 		dialog.setWindowModality(QmlApplication::dialogModality());
 		if (dialog.exec() == QMessageBox::Ok) {
-			auto path = QFileDialog::getOpenFileName(MAIN.window(), tr("Find Glaxnimate"), QString(), QString(),
-			                                         nullptr, Util::getFileDialogOptions());
+			auto path = QFileDialog::getOpenFileName(MAIN.window(), tr("Find Glaxnimate"), QString(), QString(), nullptr, Util::getFileDialogOptions());
 			if (!path.isEmpty()) {
 				args.clear();
 				args << "--ipc" << name << filename;
@@ -632,7 +654,7 @@ void GlaxnimateIpcServer::launch(const Mlt::Producer& producer, QString filename
 					LOG_DEBUG() << Settings.glaxnimatePath() << args.join(' ');
 					Settings.setGlaxnimatePath(path);
 					LOG_INFO() << "changed Glaxnimate path to" << path;
-					m_sharedMemory.reset(new QSharedMemory(name));
+					m_sharedMemory = std::make_unique<QSharedMemory>(name);
 					return;
 				} else {
 					// This glaxnimate executable may not support --ipc
@@ -652,11 +674,11 @@ void GlaxnimateIpcServer::launch(const Mlt::Producer& producer, QString filename
 	}
 }
 
-bool GlaxnimateIpcServer::copyToShared(const QImage& image) {
+auto GlaxnimateIpcServer::copyToShared(const QImage& image) -> bool {
 	if (!m_sharedMemory) {
 		return false;
 	}
-	qint32 sizeInBytes = image.sizeInBytes() + 4 * sizeof(qint32);
+	const qint32 sizeInBytes = image.sizeInBytes() + 4 * sizeof(qint32);
 	if (sizeInBytes > m_sharedMemory->size()) {
 		if (m_sharedMemory->isAttached()) {
 			m_sharedMemory->lock();
@@ -672,7 +694,7 @@ bool GlaxnimateIpcServer::copyToShared(const QImage& image) {
 	if (m_sharedMemory->isAttached()) {
 		m_sharedMemory->lock();
 
-		uchar* to = (uchar*)m_sharedMemory->data();
+		auto* to = (uchar*)m_sharedMemory->data();
 		// Write the width of the image and move the pointer forward
 		qint32 width = image.width();
 		::memcpy(to, &width, sizeof(width));

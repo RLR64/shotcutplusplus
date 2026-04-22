@@ -15,16 +15,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "actionsmodel.hpp"
-
 #include "Logger.hpp"
 #include "actions.hpp"
 
+// Qt
 #include <QAction>
 #include <QFont>
 #include <QGuiApplication>
 #include <QKeySequence>
 #include <QPalette>
+#include <qabstractitemmodel.h>
+#include <qhash.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+
+// STL
+#include <utility>
 
 ActionsModel::ActionsModel(QObject* parent) : QAbstractItemModel(parent) {
 	const auto keys = Actions.keys();
@@ -33,24 +44,24 @@ ActionsModel::ActionsModel(QObject* parent) : QAbstractItemModel(parent) {
 	}
 }
 
-QAction* ActionsModel::action(const QModelIndex& index) const {
+auto ActionsModel::action(const QModelIndex& index) const -> QAction* {
 	if (index.row() < m_actions.size()) {
 		return m_actions[index.row()];
 	}
 	return nullptr;
 }
 
-int ActionsModel::rowCount(const QModelIndex& parent) const {
+auto ActionsModel::rowCount(const QModelIndex& parent) const -> int {
 	Q_UNUSED(parent)
 	return m_actions.size();
 }
 
-int ActionsModel::columnCount(const QModelIndex& parent) const {
+auto ActionsModel::columnCount(const QModelIndex& parent) const -> int {
 	Q_UNUSED(parent)
 	return COLUMN_COUNT;
 }
 
-QVariant ActionsModel::data(const QModelIndex& index, int role) const {
+auto ActionsModel::data(const QModelIndex& index, int role) const -> QVariant {
 	QVariant result;
 
 	switch (role) {
@@ -69,7 +80,7 @@ QVariant ActionsModel::data(const QModelIndex& index, int role) const {
 		return result;
 	}
 
-	QAction* action = m_actions[index.row()];
+	QAction const* action = m_actions[index.row()];
 	switch (role) {
 	case Qt::EditRole:
 	case Qt::DisplayRole:
@@ -145,7 +156,7 @@ QVariant ActionsModel::data(const QModelIndex& index, int role) const {
 	return result;
 }
 
-bool ActionsModel::setData(const QModelIndex& index, const QVariant& value, int role) {
+auto ActionsModel::setData(const QModelIndex& index, const QVariant& value, int role) -> bool {
 	if (!index.isValid())
 		return false;
 
@@ -167,24 +178,24 @@ bool ActionsModel::setData(const QModelIndex& index, const QVariant& value, int 
 	else
 		return false;
 
-	QAction* action = m_actions[index.row()];
+	QAction const* action = m_actions[index.row()];
 
 	if (!ks.isEmpty()) {
 		for (const auto a : std::as_const(m_actions)) {
 			QList<QKeySequence> sequences = a->shortcuts();
-			for (int i = 0; i < sequences.size(); i++) {
-				if (sequences[i] == ks) {
+			for (const auto & sequence : std::as_const(sequences)) {
+				if (sequence == ks) {
 					if (a != action) {
-						QString error = tr("Shortcut %1 is used by %2")
+						QString const error = tr("Shortcut %1 is used by %2")
 						                    .arg(ks.toString(), a->property(Actions.displayProperty).toString());
-						emit    editError(error);
+						emit editError(error);
 					}
 					return false;
 				}
 			}
-			QString hardKey = a->property(Actions.hardKeyProperty).toString();
+			QString const hardKey = a->property(Actions.hardKeyProperty).toString();
 			if (!hardKey.isEmpty() && hardKey == ks.toString()) {
-				QString error = tr("Shortcut %1 is reserved for use by %2")
+				QString const error = tr("Shortcut %1 is reserved for use by %2")
 				                    .arg(ks.toString(), a->property(Actions.displayProperty).toString());
 				emit    editError(error);
 				return false;
@@ -212,7 +223,7 @@ bool ActionsModel::setData(const QModelIndex& index, const QVariant& value, int 
 	return true;
 }
 
-QVariant ActionsModel::headerData(int section, Qt::Orientation orientation, int role) const {
+auto ActionsModel::headerData(int section, Qt::Orientation orientation, int role) const -> QVariant {
 	if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
 		switch (section) {
 		case COLUMN_ACTION:
@@ -227,22 +238,22 @@ QVariant ActionsModel::headerData(int section, Qt::Orientation orientation, int 
 			break;
 		}
 	}
-	return QVariant();
+	return {};
 }
 
-QModelIndex ActionsModel::index(int row, int column, const QModelIndex& parent) const {
+auto ActionsModel::index(int row, int column, const QModelIndex& parent) const -> QModelIndex {
 	Q_UNUSED(parent)
 	if (column < 0 || column >= COLUMN_COUNT || row < 0 || row >= m_actions.size())
-		return QModelIndex();
+		return {};
 	return createIndex(row, column, (int)0);
 }
 
-QModelIndex ActionsModel::parent(const QModelIndex& index) const {
+auto ActionsModel::parent(const QModelIndex& index) const -> QModelIndex {
 	Q_UNUSED(index)
-	return QModelIndex();
+	return {};
 }
 
-Qt::ItemFlags ActionsModel::flags(const QModelIndex& index) const {
+auto ActionsModel::flags(const QModelIndex& index) const -> Qt::ItemFlags {
 	Qt::ItemFlags flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 	if (index.column() == COLUMN_SEQUENCE1 || index.column() == COLUMN_SEQUENCE2) {
 		flags |= Qt::ItemIsEditable;
@@ -250,7 +261,7 @@ Qt::ItemFlags ActionsModel::flags(const QModelIndex& index) const {
 	return flags;
 }
 
-QHash<int, QByteArray> ActionsModel::roleNames() const {
+auto ActionsModel::roleNames() const -> QHash<int, QByteArray> {
 	QHash<int, QByteArray> roles = QAbstractItemModel::roleNames();
 	roles[HardKeyRole]           = "hardKey";
 	roles[DefaultKeyRole]        = "defaultKey";

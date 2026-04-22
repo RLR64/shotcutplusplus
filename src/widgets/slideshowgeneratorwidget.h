@@ -18,10 +18,12 @@
 #ifndef SLIDESHOWGENERATORWIDGET_H
 #define SLIDESHOWGENERATORWIDGET_H
 
+// Qt
 #include <MltProducer.h>
 #include <QFuture>
 #include <QMutex>
 #include <QWidget>
+#include <qtmetamacros.h>
 
 class QComboBox;
 class QDoubleSpinBox;
@@ -39,8 +41,8 @@ class SlideshowGeneratorWidget : public QWidget {
 	Q_OBJECT
 
   public:
-	SlideshowGeneratorWidget(Mlt::Playlist* clips, QWidget* parent = 0);
-	virtual ~SlideshowGeneratorWidget();
+	SlideshowGeneratorWidget(Mlt::Playlist* clips, QWidget* parent = nullptr);
+	~SlideshowGeneratorWidget() override;
 
 	Mlt::Playlist* getSlideshow();
 
@@ -51,35 +53,35 @@ class SlideshowGeneratorWidget : public QWidget {
 	struct SlideshowConfig {
 		double imageDuration;
 		double audioVideoDuration;
-		int    aspectConversion;
-		int    zoomPercent;
+		int aspectConversion;
+		int zoomPercent;
 		double transitionDuration;
-		int    transitionStyle;
-		int    transitionSoftness;
+		int transitionStyle;
+		int transitionSoftness;
 	};
 
-	void             attachAffineFilter(SlideshowConfig& config, Mlt::Producer* producer, int endPosition);
-	void             attachBlurFilter(SlideshowConfig& config, Mlt::Producer* producer);
-	void             applyLumaTransitionProperties(Mlt::Transition* luma, SlideshowConfig& config);
-	void             generatePreviewSlideshow();
+	void attachAffineFilter(SlideshowConfig& config, Mlt::Producer* producer, int endPosition);
+	void attachBlurFilter(SlideshowConfig& config, Mlt::Producer* producer);
+	void applyLumaTransitionProperties(Mlt::Transition* luma, SlideshowConfig& config);
+	void generatePreviewSlideshow();
 	Q_INVOKABLE void startPreview();
 
-	QDoubleSpinBox*        m_imageDurationSpinner;
-	QDoubleSpinBox*        m_audioVideoDurationSpinner;
-	QComboBox*             m_aspectConversionCombo;
-	QSpinBox*              m_zoomPercentSpinner;
-	QDoubleSpinBox*        m_transitionDurationSpinner;
-	QComboBox*             m_transitionStyleCombo;
-	QSpinBox*              m_softnessSpinner;
+	QDoubleSpinBox* m_imageDurationSpinner;
+	QDoubleSpinBox* m_audioVideoDurationSpinner;
+	QComboBox* m_aspectConversionCombo;
+	QSpinBox* m_zoomPercentSpinner;
+	QDoubleSpinBox* m_transitionDurationSpinner;
+	QComboBox* m_transitionStyleCombo;
+	QSpinBox* m_softnessSpinner;
 	ProducerPreviewWidget* m_preview;
-	Mlt::Playlist*         m_clips;
+	Mlt::Playlist* m_clips;
 
-	// Mutext Protected Members
-	QFuture<void>   m_future;
-	QMutex          m_mutex;
-	bool            m_refreshPreview;
+	// Mutex Protected Members
+	QFuture<void> m_future;
+	QMutex m_mutex;
+	bool m_refreshPreview;
 	SlideshowConfig m_config;
-	Mlt::Producer   m_previewProducer;
+	Mlt::Producer m_previewProducer;
 };
 
 #endif // SLIDESHOWGENERATORWIDGET_H

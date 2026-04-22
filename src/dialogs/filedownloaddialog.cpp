@@ -15,16 +15,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "filedownloaddialog.hpp"
-
 #include "Logger.hpp"
 #include "mainwindow.hpp"
 #include "qmltypes/qmlapplication.hpp"
 
+// Qt
 #include <QMessageBox>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
+#include <qdialog.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qprogressdialog.h>
+#include <qtypes.h>
+
+// Number constants
+constexpr int setDownloadProgressNumber{10};
+constexpr int setTransferTimeoutNumber{6000};
 
 static constexpr int PROGRESS_MAX = {1000};
 
@@ -36,8 +47,7 @@ FileDownloadDialog::FileDownloadDialog(const QString& title, QWidget* parent)
 	setMinimumDuration(0);
 }
 
-FileDownloadDialog::~FileDownloadDialog() {
-}
+FileDownloadDialog::~FileDownloadDialog() = default;
 
 void FileDownloadDialog::setSrc(const QString& src) {
 	m_src = src;
@@ -47,11 +57,11 @@ void FileDownloadDialog::setDst(const QString& dst) {
 	m_dst = dst;
 }
 
-bool FileDownloadDialog::start() {
+auto FileDownloadDialog::start() -> bool {
 	LOG_INFO() << "Download Source" << m_src;
 	LOG_INFO() << "Download Destination" << m_dst;
 	bool    retVal  = false;
-	QString tmpPath = m_dst + ".tmp";
+	QString const tmpPath = m_dst + ".tmp";
 	m_file          = new QFile(tmpPath, this);
 	if (!m_file || !m_file->open(QIODevice::WriteOnly)) {
 		LOG_ERROR() << "Unable to open file to write";
@@ -60,9 +70,9 @@ bool FileDownloadDialog::start() {
 	}
 
 	QNetworkAccessManager manager(this);
-	QUrl                  url = m_src;
+	QUrl const            url = m_src;
 	QNetworkRequest       request(url);
-	request.setTransferTimeout(6000);
+	request.setTransferTimeout(setTransferTimeoutNumber);
 	m_reply = manager.get(request);
 
 	QObject::connect(m_reply, &QNetworkReply::downloadProgress, this, &FileDownloadDialog::onDownloadProgress);
@@ -96,8 +106,8 @@ bool FileDownloadDialog::start() {
 
 void FileDownloadDialog::onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
 	if (bytesTotal > 0) {
-		int progress = bytesReceived * PROGRESS_MAX / bytesTotal;
-		LOG_INFO() << "Download Progress" << progress / 10;
+		const auto progress = bytesReceived * PROGRESS_MAX / bytesTotal;
+		LOG_INFO() << "Download Progress" << progress / setDownloadProgressNumber;
 		setValue(progress);
 	}
 }
@@ -121,7 +131,7 @@ void FileDownloadDialog::sslErrors(const QList<QSslError>& errors) {
 	qDialog.setDefaultButton(QMessageBox::Yes);
 	qDialog.setEscapeButton(QMessageBox::No);
 	qDialog.setWindowModality(QmlApplication::dialogModality());
-	int result = qDialog.exec();
+	const int result = qDialog.exec();
 	if (result == QMessageBox::Yes) {
 		m_reply->ignoreSslErrors();
 	}

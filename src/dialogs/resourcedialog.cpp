@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "resourcedialog.hpp"
-
 #include "Logger.hpp"
 #include "mltcontroller.hpp"
 #include "qmltypes/qmlapplication.hpp"
@@ -24,6 +24,7 @@
 #include "transcoder.hpp"
 #include "widgets/resourcewidget.h"
 
+// Qt
 #include <QDialogButtonBox>
 #include <QMessageBox>
 #include <QPushButton>

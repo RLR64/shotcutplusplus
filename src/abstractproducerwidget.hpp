@@ -18,7 +18,9 @@
 #ifndef ABSTRACTPRODUCERWIDGET_HPP
 #define ABSTRACTPRODUCERWIDGET_HPP
 
+// Qt
 #include <MltProducer.h>
+#include <MltProperties.h>
 #include <QScopedPointer>
 
 class QWidget;
@@ -30,15 +32,15 @@ class AbstractProducerWidget {
 	virtual Mlt::Producer* newProducer(Mlt::Profile&) = 0;
 	virtual void           setProducer(Mlt::Producer*);
 
-	virtual Mlt::Properties getPreset() const {
-		Mlt::Properties p;
+	[[nodiscard]] virtual Mlt::Properties getPreset() const {
+		Mlt::Properties const p;
 		return p;
 	}
 
 	virtual void loadPreset(Mlt::Properties&) {
 	}
 
-	Mlt::Producer* producer() const {
+	[[nodiscard]] Mlt::Producer* producer() const {
 		return m_producer.data();
 	}
 

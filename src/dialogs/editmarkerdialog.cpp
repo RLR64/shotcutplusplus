@@ -15,21 +15,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "editmarkerdialog.hpp"
-
 #include "Logger.hpp"
 #include "widgets/editmarkerwidget.h"
 
+// Qt
 #include <QDebug>
 #include <QDialogButtonBox>
 #include <QVBoxLayout>
+#include <qcolor.h>
+#include <qdialog.h>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 
-EditMarkerDialog::EditMarkerDialog(QWidget* parent, const QString& text, const QColor& color, int start, int end,
-                                   int maxEnd)
+EditMarkerDialog::EditMarkerDialog(QWidget* parent, const QString& text, const QColor& color, int start, int end, int maxEnd)
     : QDialog(parent) {
 	setWindowTitle(tr("Edit Marker"));
 
-	QVBoxLayout* VLayout = new QVBoxLayout(this);
+	auto* VLayout = new QVBoxLayout(this);
 
 	m_sWidget = new EditMarkerWidget(this, text, color, start, end, maxEnd);
 	VLayout->addWidget(m_sWidget);
@@ -43,24 +47,24 @@ EditMarkerDialog::EditMarkerDialog(QWidget* parent, const QString& text, const Q
 	layout()->setSizeConstraint(QLayout::SetFixedSize);
 }
 
-QString EditMarkerDialog::getText() {
+auto EditMarkerDialog::getText() -> QString {
 	return m_sWidget->getText();
 }
 
-QColor EditMarkerDialog::getColor() {
+auto EditMarkerDialog::getColor() -> QColor {
 	return m_sWidget->getColor();
 }
 
-int EditMarkerDialog::getStart() {
+auto EditMarkerDialog::getStart() -> int {
 	return m_sWidget->getStart();
 }
 
-int EditMarkerDialog::getEnd() {
+auto EditMarkerDialog::getEnd() -> int {
 	return m_sWidget->getEnd();
 }
 
 void EditMarkerDialog::clicked(QAbstractButton* button) {
-	QDialogButtonBox::ButtonRole role = m_buttonBox->buttonRole(button);
+	QDialogButtonBox::ButtonRole const role = m_buttonBox->buttonRole(button);
 	if (role == QDialogButtonBox::AcceptRole) {
 		accept();
 	} else if (role == QDialogButtonBox::RejectRole) {

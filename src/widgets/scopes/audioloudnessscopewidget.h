@@ -18,12 +18,20 @@
 #ifndef AUDIOLOUDNESSSCOPEWIDGET_H
 #define AUDIOLOUDNESSSCOPEWIDGET_H
 
+// Local
 #include "scopewidget.h"
 
+// Qt
 #include <MltFilter.h>
 #include <QImage>
 #include <QMutex>
 #include <QVector>
+#include <qhashfunctions.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qsize.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
 
 class QQuickWidget;
 class QLabel;
@@ -34,10 +42,11 @@ class AudioLoudnessScopeWidget Q_DECL_FINAL : public ScopeWidget {
 
   public:
 	explicit AudioLoudnessScopeWidget();
-	~AudioLoudnessScopeWidget();
+	~AudioLoudnessScopeWidget() override;
+
 	QString getTitle() Q_DECL_OVERRIDE;
-	void    setOrientation(Qt::Orientation orientation) Q_DECL_OVERRIDE;
-	void    setOrientation(Qt::Orientation orientation, bool force);
+	void setOrientation(Qt::Orientation orientation) Q_DECL_OVERRIDE;
+	void setOrientation(Qt::Orientation orientation, bool force);
 
   protected:
 	bool event(QEvent* event) Q_DECL_OVERRIDE;
@@ -59,9 +68,9 @@ class AudioLoudnessScopeWidget Q_DECL_FINAL : public ScopeWidget {
 
 	// Members accessed by scope thread.
 	Mlt::Filter* m_loudnessFilter;
-	double       m_peak;
-	double       m_true_peak;
-	bool         m_newData;
+	double m_peak;
+	double m_true_peak;
+	bool m_newData;
 
 	// Members accessed by GUI thread.
 	Qt::Orientation m_orientation;

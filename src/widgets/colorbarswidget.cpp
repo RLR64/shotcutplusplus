@@ -15,17 +15,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "colorbarswidget.h"
-
 #include "mltcontroller.hpp"
 #include "shotcut_mlt_properties.hpp"
 #include "ui_colorbarswidget.h"
 #include "util.hpp"
 
+// Qt
 #include <MltProfile.h>
+#include <qcontainerfwd.h>
+#include <qtmetamacros.h>
 
-static const char* kParamType   = "0";
-static const char* kParamAspect = "1";
+static constexpr const char* kParamType   = "0";
+static constexpr const char* kParamAspect = "1";
 
 enum { ASPECT_SQUARE = 0, ASPECT_PAL, ASPECT_PAL_WIDE, ASPECT_NTSC, ASPECT_NTSC_WIDE, ASPECT_HDV };
 
@@ -39,11 +42,11 @@ ColorBarsWidget::~ColorBarsWidget() {
 	delete ui;
 }
 
-static double map_value_backward(double v, double min, double max) {
+static constexpr auto map_value_backward(double v, double min, double max) -> double {
 	return (v - min) / (max - min);
 }
 
-Mlt::Producer* ColorBarsWidget::newProducer(Mlt::Profile& profile) {
+auto ColorBarsWidget::newProducer(Mlt::Profile& profile) -> Mlt::Producer* {
 	Mlt::Producer* p = new Mlt::Producer(profile, "frei0r.test_pat_B");
 	p->set(kParamType, ui->comboBox->currentIndex());
 	if (profile.sample_aspect_num() == 16 && profile.sample_aspect_den() == 15)
@@ -62,7 +65,7 @@ Mlt::Producer* ColorBarsWidget::newProducer(Mlt::Profile& profile) {
 	return p;
 }
 
-Mlt::Properties ColorBarsWidget::getPreset() const {
+auto ColorBarsWidget::getPreset() const -> Mlt::Properties {
 	Mlt::Properties p;
 	p.set(kParamType, ui->comboBox->currentIndex());
 	return p;

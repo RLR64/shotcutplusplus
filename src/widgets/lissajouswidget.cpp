@@ -15,14 +15,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "lissajouswidget.h"
-
 #include "shotcut_mlt_properties.hpp"
 #include "ui_lissajouswidget.h"
 #include "util.hpp"
 
-static const char* kParamRatioX = "0";
-static const char* kParamRatioY = "1";
+// Qt
+#include <MltProducer.h>
+#include <MltProperties.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
+
+static constexpr const char* kParamRatioX = "0";
+static constexpr const char* kParamRatioY = "1";
 
 LissajousWidget::LissajousWidget(QWidget* parent) : QWidget(parent), ui(new Ui::LissajousWidget) {
 	ui->setupUi(this);
@@ -59,8 +66,8 @@ void LissajousWidget::on_yratioSpinner_valueChanged(double value) {
 	ui->yratioDial->setValue(value * 100);
 }
 
-Mlt::Producer* LissajousWidget::newProducer(Mlt::Profile& profile) {
-	Mlt::Producer* p = new Mlt::Producer(profile, "frei0r.lissajous0r");
+auto LissajousWidget::newProducer(Mlt::Profile& profile) -> Mlt::Producer* {
+	auto* p = new Mlt::Producer(profile, "frei0r.lissajous0r");
 	p->set(kParamRatioX, ui->xratioSpinner->text().toLatin1().constData());
 	p->set(kParamRatioY, ui->yratioSpinner->text().toLatin1().constData());
 	p->set(kShotcutCaptionProperty, ui->nameLabel->text().toUtf8().constData());
@@ -68,7 +75,7 @@ Mlt::Producer* LissajousWidget::newProducer(Mlt::Profile& profile) {
 	return p;
 }
 
-Mlt::Properties LissajousWidget::getPreset() const {
+auto LissajousWidget::getPreset() const -> Mlt::Properties {
 	Mlt::Properties p;
 	p.set(kParamRatioX, ui->xratioSpinner->text().toLatin1().constData());
 	p.set(kParamRatioY, ui->yratioSpinner->text().toLatin1().constData());
@@ -81,7 +88,7 @@ void LissajousWidget::loadPreset(Mlt::Properties& p) {
 }
 
 void LissajousWidget::on_preset_selected(void* p) {
-	Mlt::Properties* properties = (Mlt::Properties*)p;
+	auto* properties = (Mlt::Properties*)p;
 	loadPreset(*properties);
 	delete properties;
 }

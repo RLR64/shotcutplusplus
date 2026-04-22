@@ -18,10 +18,14 @@
 #ifndef SCOPECONTROLLER_HPP
 #define SCOPECONTROLLER_HPP
 
+// Local
 #include "sharedframe.hpp"
 
+// Qt
 #include <QObject>
 #include <QString>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
 
 class QMainWindow;
 class QMenu;

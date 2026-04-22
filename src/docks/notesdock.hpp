@@ -18,8 +18,10 @@
 #ifndef NOTESDOCK_HPP
 #define NOTESDOCK_HPP
 
+// Qt
 #include <QDockWidget>
 #include <QObject>
+#include <qtmetamacros.h>
 
 class TextEditor;
 
@@ -28,8 +30,8 @@ class NotesDock : public QDockWidget {
 
   public:
 	explicit NotesDock(QWidget* parent = nullptr);
-	QString getText();
-	void    setText(const QString& text);
+	auto getText() -> QString;
+	void setText(const QString& text);
 
   signals:
 	void modified();

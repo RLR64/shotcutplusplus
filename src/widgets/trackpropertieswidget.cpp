@@ -15,19 +15,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "trackpropertieswidget.h"
-
 #include "commands/timelinecommands.hpp"
 #include "mainwindow.hpp"
 #include "shotcut_mlt_properties.hpp"
 #include "ui_trackpropertieswidget.h"
 #include "util.hpp"
 
+// Qt
 #include <Mlt.h>
+#include <MltMultitrack.h>
+#include <MltService.h>
 #include <QScopedPointer>
+#include <framework/mlt_types.h>
+#include <qobjectdefs.h>
 
-static const char* BLEND_PROPERTY_CAIROBLEND = "1";
-static const char* BLEND_PROPERTY_QTBLEND    = "compositing";
+static constexpr const char* BLEND_PROPERTY_CAIROBLEND = "1";
+static constexpr const char* BLEND_PROPERTY_QTBLEND    = "compositing";
 
 TrackPropertiesWidget::TrackPropertiesWidget(Mlt::Producer& track, QWidget* parent)
     : QWidget(parent), ui(new Ui::TrackPropertiesWidget), m_track(track) {
@@ -130,16 +135,16 @@ TrackPropertiesWidget::~TrackPropertiesWidget() {
 	delete ui;
 }
 
-Mlt::Transition* TrackPropertiesWidget::getTransition(const QString& name) {
+auto TrackPropertiesWidget::getTransition(const QString& name) -> Mlt::Transition* {
 	// track.consumer() is the multitrack
 	QScopedPointer<Mlt::Service> service(m_track.consumer());
 	if (service && service->is_valid()) {
 		Mlt::Multitrack multi(*service);
-		int             trackIndex;
+		const int trackIndex = 0;
 
 		// Get the track index by iterating until multitrack.track() == track.get_producer().
-		for (trackIndex = 0; trackIndex < multi.count(); ++trackIndex) {
-			QScopedPointer<Mlt::Producer> producer(multi.track(trackIndex));
+		for (auto trackIndex = 0; trackIndex < multi.count(); ++trackIndex) {
+			QScopedPointer<Mlt::Producer> const producer(multi.track(trackIndex));
 			if (producer->get_producer() == m_track.get_producer())
 				break;
 		}
@@ -154,14 +159,14 @@ Mlt::Transition* TrackPropertiesWidget::getTransition(const QString& name) {
 			service.reset(service->consumer());
 		};
 	}
-	return 0;
+	return nullptr;
 }
 
 void TrackPropertiesWidget::on_blendModeCombo_currentIndexChanged(int index) {
 	if (index >= 0) {
 		QScopedPointer<Mlt::Transition> transition(getTransition("frei0r.cairoblend"));
 		if (transition && transition->is_valid()) {
-			Timeline::ChangeBlendModeCommand* command =
+			auto* command =
 			    new Timeline::ChangeBlendModeCommand(*transition, BLEND_PROPERTY_CAIROBLEND,
 			                                         ui->blendModeCombo->itemData(index).toString());
 			connect(command, SIGNAL(modeChanged(QString&)), SLOT(onModeChanged(QString&)));
@@ -171,7 +176,7 @@ void TrackPropertiesWidget::on_blendModeCombo_currentIndexChanged(int index) {
 			if (!transition)
 				transition.reset(getTransition("movit.overlay"));
 			if (transition && transition->is_valid()) {
-				Timeline::ChangeBlendModeCommand* command =
+				auto* command =
 				    new Timeline::ChangeBlendModeCommand(*transition, BLEND_PROPERTY_QTBLEND,
 				                                         ui->blendModeCombo->itemData(index).toString());
 				connect(command, SIGNAL(modeChanged(QString&)), SLOT(onModeChanged(QString&)));

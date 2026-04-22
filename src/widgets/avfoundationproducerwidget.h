@@ -19,9 +19,15 @@
 #ifndef AVFOUNDATIONPRODUCERWIDGET_H
 #define AVFOUNDATIONPRODUCERWIDGET_H
 
+// Local
 #include "abstractproducerwidget.hpp"
 
+// Qt
+#include <MltProducer.h>
 #include <QWidget>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 namespace Ui {
 class AvfoundationProducerWidget;
@@ -31,12 +37,12 @@ class AvfoundationProducerWidget : public QWidget, public AbstractProducerWidget
 	Q_OBJECT
 
   public:
-	explicit AvfoundationProducerWidget(QWidget* parent = 0);
-	~AvfoundationProducerWidget();
+	explicit AvfoundationProducerWidget(QWidget* parent = nullptr);
+	~AvfoundationProducerWidget() override;
 
 	// AbstractProducerWidget overrides
-	Mlt::Producer* newProducer(Mlt::Profile& profile);
-	void           setProducer(Mlt::Producer* producer);
+	Mlt::Producer* newProducer(Mlt::Profile& profile) override;
+	void setProducer(Mlt::Producer* producer) override;
 
   signals:
 	void producerChanged(Mlt::Producer*);

@@ -18,7 +18,14 @@
 #ifndef FILEDIALOG_HPP
 #define FILEDIALOG_HPP
 
+// Qt
 #include <QFileDialog>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+
+// STL
+#include <memory>
 
 class FileDialog : public QObject {
 	Q_OBJECT
@@ -33,16 +40,16 @@ class FileDialog : public QObject {
 
 	explicit FileDialog(QObject* parent = nullptr);
 
-	FileDialog::FileMode fileMode() const {
+	[[nodiscard]] auto fileMode() const -> FileDialog::FileMode {
 		return m_fileMode;
 	}
 
 	void             setFileMode(FileDialog::FileMode mode);
-	QString          title() const;
+	[[nodiscard]] auto title() const -> QString;
 	void             setTitle(const QString& title);
-	QStringList      nameFilters() const;
+	[[nodiscard]] auto nameFilters() const -> QStringList;
 	void             setNameFilters(const QStringList& filters);
-	QString          selectedFile();
+	auto          selectedFile() -> QString;
 	Q_INVOKABLE void open();
 
   signals:

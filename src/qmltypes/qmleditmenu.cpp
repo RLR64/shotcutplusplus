@@ -15,9 +15,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "qmleditmenu.hpp"
 
+// Qt
 #include <QMenu>
+#include <qaction.h>
+#include <qnamespace.h>
+#include <qobject.h>
 
 QmlEditMenu::QmlEditMenu(QObject* parent) : QObject(parent), m_showPastePlain(false), m_readOnly(false) {
 }

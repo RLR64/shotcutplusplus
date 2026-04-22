@@ -19,19 +19,28 @@
 #ifndef COLORWHEEL_H
 #define COLORWHEEL_H
 
+// Qt
 #include <QPainter>
 #include <QResizeEvent>
 #include <QWidget>
+#include <qcolor.h>
+#include <qimage.h>
+#include <qobject.h>
+#include <qpoint.h>
+#include <qregion.h>
+#include <qsize.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class ColorWheel : public QWidget {
 	Q_OBJECT
   public:
-	explicit ColorWheel(QWidget* parent = 0);
+	explicit ColorWheel(QWidget* parent = nullptr);
 
-	virtual QSize sizeHint() const;
-	virtual QSize minimumSizeHint() const;
-	QColor        color();
-	void          setColor(const QColor& color);
+	[[nodiscard]] QSize sizeHint() const override;
+	[[nodiscard]] QSize minimumSizeHint() const override;
+	QColor color();
+	void setColor(const QColor& color);
 
   signals:
 	void colorChanged(const QColor& color);
@@ -40,31 +49,31 @@ class ColorWheel : public QWidget {
 	void changeColor(const QColor& color);
 
   protected:
-	void mousePressEvent(QMouseEvent* event);
-	void mouseMoveEvent(QMouseEvent* event);
-	void mouseReleaseEvent(QMouseEvent* event);
-	void resizeEvent(QResizeEvent* event);
-	void paintEvent(QPaintEvent* event);
+	void mousePressEvent(QMouseEvent* event) override;
+	void mouseMoveEvent(QMouseEvent* event) override;
+	void mouseReleaseEvent(QMouseEvent* event) override;
+	void resizeEvent(QResizeEvent* event) override;
+	void paintEvent(QPaintEvent* event) override;
 
   private:
-	QSize   m_initialSize;
-	QImage  m_image;
-	bool    m_isMouseDown;
-	QPoint  m_lastPoint;
-	int     m_margin;
-	int     m_sliderWidth;
+	QSize m_initialSize;
+	QImage m_image;
+	bool m_isMouseDown;
+	QPoint m_lastPoint;
+	int m_margin;
+	int m_sliderWidth;
 	QRegion m_wheelRegion;
 	QRegion m_sliderRegion;
-	QColor  m_color;
-	bool    m_isInWheel;
-	bool    m_isInSquare;
+	QColor m_color;
+	bool m_isInWheel;
+	bool m_isInSquare;
 
-	int    wheelSize() const;
+	[[nodiscard]] int wheelSize() const;
 	QColor colorForPoint(const QPoint& point);
-	void   drawWheel();
-	void   drawWheelDot(QPainter& painter);
-	void   drawSliderBar(QPainter& painter);
-	void   drawSlider();
+	void drawWheel();
+	void drawWheelDot(QPainter& painter);
+	void drawSliderBar(QPainter& painter);
+	void drawSlider();
 };
 
 #endif // COLORWHEEL_H

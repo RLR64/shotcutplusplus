@@ -18,10 +18,17 @@
 #ifndef MARKERSMODEL_HPP
 #define MARKERSMODEL_HPP
 
+// Qt
 #include <MltProducer.h>
+#include <MltProperties.h>
 #include <QAbstractItemModel>
 #include <QColor>
 #include <QString>
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qrgb.h>
+#include <qtmetamacros.h>
 
 namespace Markers {
 
@@ -48,11 +55,11 @@ class MarkersModel : public QAbstractItemModel {
 	};
 
 	explicit MarkersModel(QObject* parent = nullptr);
-	virtual ~MarkersModel();
+	~MarkersModel() override;
 
 	void                   load(Mlt::Producer* producer);
 	Markers::Marker        getMarker(int markerIndex);
-	int                    uniqueKey() const;
+	[[nodiscard]] int                    uniqueKey() const;
 	int                    markerIndexForPosition(int position);
 	int                    markerIndexForRange(int start, int end);
 	int                    rangeMarkerIndexForPosition(int position);
@@ -61,10 +68,10 @@ class MarkersModel : public QAbstractItemModel {
 	QModelIndex            modelIndexForRow(int row);
 	QMap<int, QString>     ranges();
 	QStringList            recentColors();
-	QList<Markers::Marker> getMarkers() const;
-	QList<QColor>          allColors() const;
+	[[nodiscard]] QList<Markers::Marker> getMarkers() const;
+	[[nodiscard]] QList<QColor>          allColors() const;
 
-	// These should only be called by the marker commands
+		   // These should only be called by the marker commands
 	void doRemove(int markerIndex);
 	void doInsert(int markerIndex, const Markers::Marker& marker);
 	void doAppend(const Markers::Marker& marker);
@@ -88,17 +95,17 @@ class MarkersModel : public QAbstractItemModel {
 
   protected:
 	// Implement QAbstractItemModel
-	int                    rowCount(const QModelIndex& parent) const;
-	int                    columnCount(const QModelIndex& parent) const;
-	QVariant               data(const QModelIndex& index, int role) const;
-	QVariant               headerData(int section, Qt::Orientation orientation, int role) const;
-	QModelIndex            index(int row, int column = 0, const QModelIndex& parent = QModelIndex()) const;
-	QModelIndex            parent(const QModelIndex& index) const;
-	QHash<int, QByteArray> roleNames() const;
+	[[nodiscard]] int                    rowCount(const QModelIndex& parent) const override;
+	[[nodiscard]] int                    columnCount(const QModelIndex& parent) const override;
+	[[nodiscard]] QVariant               data(const QModelIndex& index, int role) const override;
+	[[nodiscard]] QVariant               headerData(int section, Qt::Orientation orientation, int role) const override;
+	[[nodiscard]] QModelIndex            index(int row, int column = 0, const QModelIndex& parent = QModelIndex()) const override;
+	[[nodiscard]] QModelIndex            parent(const QModelIndex& index) const override;
+	[[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 
   private:
-	int              markerCount() const;
-	int              keyIndex(int key) const;
+	[[nodiscard]] int              markerCount() const;
+	[[nodiscard]] int              keyIndex(int key) const;
 	Mlt::Properties* getMarkerProperties(int markerIndex);
 	void             updateRecentColors(const QColor& color);
 

@@ -18,7 +18,11 @@
 #ifndef CUSTOMPROFILEDIALOG_HPP
 #define CUSTOMPROFILEDIALOG_HPP
 
+// Qt
 #include <QDialog>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 namespace Ui {
 class CustomProfileDialog;
@@ -29,8 +33,8 @@ class CustomProfileDialog : public QDialog {
 
   public:
 	explicit CustomProfileDialog(QWidget* parent = nullptr);
-	~CustomProfileDialog();
-	QString profileName() const;
+	~CustomProfileDialog() override;
+	[[nodiscard]] auto profileName() const -> QString;
 
   private slots:
 	void on_buttonBox_accepted();

@@ -18,9 +18,17 @@
 #ifndef COLORPRODUCERWIDGET_H
 #define COLORPRODUCERWIDGET_H
 
+// Local
 #include "abstractproducerwidget.hpp"
 
+// Qt
+#include <MltProducer.h>
+#include <MltProperties.h>
 #include <QWidget>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 namespace Ui {
 class ColorProducerWidget;
@@ -30,13 +38,13 @@ class ColorProducerWidget : public QWidget, public AbstractProducerWidget {
 	Q_OBJECT
 
   public:
-	explicit ColorProducerWidget(QWidget* parent = 0);
-	~ColorProducerWidget();
+	explicit ColorProducerWidget(QWidget* parent = nullptr);
+	~ColorProducerWidget() override;
 
 	// AbstractProducerWidget overrides
-	Mlt::Producer*  newProducer(Mlt::Profile&);
-	Mlt::Properties getPreset() const;
-	void            loadPreset(Mlt::Properties&);
+	Mlt::Producer* newProducer(Mlt::Profile&) override;
+	[[nodiscard]] Mlt::Properties getPreset() const override;
+	void loadPreset(Mlt::Properties&) override;
 
   signals:
 	void producerChanged(Mlt::Producer*);
@@ -54,7 +62,7 @@ class ColorProducerWidget : public QWidget, public AbstractProducerWidget {
 
   private:
 	Ui::ColorProducerWidget* ui;
-	QString                  m_title;
+	QString m_title;
 };
 
 #endif // COLORPRODUCERWIDGET_H

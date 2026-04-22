@@ -18,8 +18,12 @@
 #ifndef TIMESPINBOX_H
 #define TIMESPINBOX_H
 
+// Qt
 #include <QLineEdit>
 #include <QSpinBox>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class QRegularExpressionValidator;
 
@@ -27,13 +31,13 @@ class TimeSpinBox : public QSpinBox {
 	Q_OBJECT
 
   public:
-	explicit TimeSpinBox(QWidget* parent = 0);
+	explicit TimeSpinBox(QWidget* parent = nullptr);
 
   protected:
-	QValidator::State validate(QString& input, int& pos) const;
-	int               valueFromText(const QString& text) const;
-	QString           textFromValue(int val) const;
-	void              keyPressEvent(QKeyEvent* event);
+	QValidator::State validate(QString& input, int& pos) const override;
+	[[nodiscard]] int valueFromText(const QString& text) const override;
+	[[nodiscard]] QString textFromValue(int val) const override;
+	void keyPressEvent(QKeyEvent* event) override;
 
   signals:
 	void accepted();
@@ -46,12 +50,12 @@ class TimeSpinBoxLineEdit : public QLineEdit {
 	Q_OBJECT
 
   public:
-	explicit TimeSpinBoxLineEdit(QWidget* parent = 0);
+	explicit TimeSpinBoxLineEdit(QWidget* parent = nullptr);
 
   protected:
-	void focusInEvent(QFocusEvent* event);
-	void focusOutEvent(QFocusEvent* event);
-	void mousePressEvent(QMouseEvent* event);
+	void focusInEvent(QFocusEvent* event) override;
+	void focusOutEvent(QFocusEvent* event) override;
+	void mousePressEvent(QMouseEvent* event) override;
 
   private:
 	bool m_selectOnMousePress;

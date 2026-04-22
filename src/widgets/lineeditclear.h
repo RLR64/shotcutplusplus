@@ -11,7 +11,11 @@
 #ifndef LINEEDIT_H
 #define LINEEDIT_H
 
+// Qt
 #include <QLineEdit>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class QToolButton;
 
@@ -19,7 +23,7 @@ class LineEditClear : public QLineEdit {
 	Q_OBJECT
 
   public:
-	LineEditClear(QWidget* parent = 0);
+	LineEditClear(QWidget* parent = nullptr);
 
   protected:
 	void resizeEvent(QResizeEvent*) override;

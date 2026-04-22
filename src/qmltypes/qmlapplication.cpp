@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "qmlapplication.hpp"
-
 #include "controllers/filtercontroller.hpp"
 #include "mainwindow.hpp"
 #include "mltcontroller.hpp"
@@ -25,6 +25,7 @@
 #include "util.hpp"
 #include "videowidget.hpp"
 
+// Qt
 #include <QApplication>
 #include <QCheckBox>
 #include <QClipboard>
@@ -34,14 +35,24 @@
 #include <QPalette>
 #include <QStyle>
 #include <QSysInfo>
+#include <qcontainerfwd.h>
+#include <qdir.h>
+#include <qguiapplication.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qscopedpointer.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 #ifdef Q_OS_WIN
 #include <QLocale>
 #else
 #include <clocale>
 #endif
+
+// STL
 #include <limits>
 
-QmlApplication& QmlApplication::singleton() {
+auto QmlApplication::singleton() -> QmlApplication& {
 	static QmlApplication instance;
 	return instance;
 }
@@ -49,7 +60,7 @@ QmlApplication& QmlApplication::singleton() {
 QmlApplication::QmlApplication() : QObject() {
 }
 
-Qt::WindowModality QmlApplication::dialogModality() {
+auto QmlApplication::dialogModality() -> Qt::WindowModality {
 #ifdef Q_OS_MAC
 	return Qt::WindowModal;
 #else
@@ -57,11 +68,11 @@ Qt::WindowModality QmlApplication::dialogModality() {
 #endif
 }
 
-QPoint QmlApplication::mousePos() {
+auto QmlApplication::mousePos() -> QPoint {
 	return QCursor::pos();
 }
 
-QColor QmlApplication::toolTipBaseColor() {
+auto QmlApplication::toolTipBaseColor() -> QColor {
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
 	if ("gtk+" == QApplication::style()->objectName())
 		return QApplication::palette().highlight().color();
@@ -69,7 +80,7 @@ QColor QmlApplication::toolTipBaseColor() {
 	return QApplication::palette().toolTipBase().color();
 }
 
-QColor QmlApplication::toolTipTextColor() {
+auto QmlApplication::toolTipTextColor() -> QColor {
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
 	if ("gtk+" == QApplication::style()->objectName())
 		return QApplication::palette().highlightedText().color();
@@ -77,7 +88,7 @@ QColor QmlApplication::toolTipTextColor() {
 	return QApplication::palette().toolTipText().color();
 }
 
-QString QmlApplication::OS() {
+auto QmlApplication::OS() -> QString {
 #if defined(Q_OS_MAC)
 	return "macOS";
 #elif defined(Q_OS_LINUX)
@@ -91,83 +102,83 @@ QString QmlApplication::OS() {
 #endif
 }
 
-QRect QmlApplication::mainWinRect() {
+auto QmlApplication::mainWinRect() -> QRect {
 	return MAIN.geometry();
 }
 
-bool QmlApplication::hasFiltersOnClipboard() {
+auto QmlApplication::hasFiltersOnClipboard() -> bool {
 	return MLT.hasFiltersOnClipboard();
 }
 
 void QmlApplication::copyEnabledFilters() {
-	QScopedPointer<Mlt::Producer> producer(new Mlt::Producer(MAIN.filterController()->attachedModel()->producer()));
+	QScopedPointer<Mlt::Producer> const producer(new Mlt::Producer(MAIN.filterController()->attachedModel()->producer()));
 	MLT.copyFilters(producer.data(), MLT.FILTER_INDEX_ENABLED);
 	QGuiApplication::clipboard()->setText(MLT.filtersClipboardXML());
 	emit QmlApplication::singleton().filtersCopied();
 }
 
 void QmlApplication::copyAllFilters() {
-	QScopedPointer<Mlt::Producer> producer(new Mlt::Producer(MAIN.filterController()->attachedModel()->producer()));
+	QScopedPointer<Mlt::Producer> const producer(new Mlt::Producer(MAIN.filterController()->attachedModel()->producer()));
 	MLT.copyFilters(producer.data(), MLT.FILTER_INDEX_ALL);
 	QGuiApplication::clipboard()->setText(MLT.filtersClipboardXML());
 	emit QmlApplication::singleton().filtersCopied();
 }
 
 void QmlApplication::copyCurrentFilter() {
-	int currentIndex = MAIN.filterController()->currentIndex();
+	const int currentIndex = MAIN.filterController()->currentIndex();
 	if (currentIndex < 0) {
 		MAIN.showStatusMessage(tr("Select a filter to copy"));
 		return;
 	}
-	QScopedPointer<Mlt::Producer> producer(new Mlt::Producer(MAIN.filterController()->attachedModel()->producer()));
+	QScopedPointer<Mlt::Producer> const producer(new Mlt::Producer(MAIN.filterController()->attachedModel()->producer()));
 	MLT.copyFilters(producer.data(), currentIndex);
 	QGuiApplication::clipboard()->setText(MLT.filtersClipboardXML());
 	emit QmlApplication::singleton().filtersCopied();
 }
 
-QString QmlApplication::clockFromFrames(int frames) {
+auto QmlApplication::clockFromFrames(int frames) -> QString {
 	if (MLT.producer()) {
 		return MLT.producer()->frames_to_time(frames, Settings.timeFormat());
 	}
-	return QString();
+	return {};
 }
 
-QString QmlApplication::timeFromFrames(int frames) {
+auto QmlApplication::timeFromFrames(int frames) -> QString {
 	if (MLT.producer()) {
 		return MLT.producer()->frames_to_time(frames, Settings.timeFormat());
 	}
-	return QString();
+	return {};
 }
 
-int QmlApplication::audioChannels() {
+auto QmlApplication::audioChannels() -> int {
 	return MLT.audioChannels();
 }
 
-QString QmlApplication::getNextProjectFile(const QString& filename) {
-	QDir dir(MLT.projectFolder());
+auto QmlApplication::getNextProjectFile(const QString& filename) -> QString {
+	QDir const dir(MLT.projectFolder());
 	if (!MLT.projectFolder().isEmpty() && dir.exists()) {
-		QFileInfo info(filename);
-		QString   basename  = info.completeBaseName();
-		QString   extension = info.suffix();
+		QFileInfo const info(filename);
+		QString basename  = info.completeBaseName();
+		QString extension = info.suffix();
 		if (extension.isEmpty()) {
 			extension = basename;
-			basename  = QString();
+			basename = QString();
 		}
 		for (unsigned i = 1; i < std::numeric_limits<unsigned>::max(); i++) {
-			QString filename = QString::fromLatin1("%1%2.%3").arg(basename).arg(i).arg(extension);
+			QString const filename = QString::fromLatin1("%1%2.%3").arg(basename).arg(i).arg(extension);
 			if (!dir.exists(filename))
 				return dir.filePath(filename);
 		}
 	}
-	return QString();
+	return {};
 }
 
-bool QmlApplication::isProjectFolder() {
-	QDir dir(MLT.projectFolder());
+auto QmlApplication::isProjectFolder() -> bool {
+	QDir const dir(MLT.projectFolder());
 	return (!MLT.projectFolder().isEmpty() && dir.exists());
 }
 
-qreal QmlApplication::devicePixelRatio() {
+auto QmlApplication::devicePixelRatio() -> qreal {
 	return MAIN.devicePixelRatioF();
 }
 
@@ -175,20 +186,20 @@ void QmlApplication::showStatusMessage(const QString& message, int timeoutSecond
 	MAIN.showStatusMessage(message, timeoutSeconds);
 }
 
-int QmlApplication::maxTextureSize() {
+auto QmlApplication::maxTextureSize() -> int {
 	auto* videoWidget = qobject_cast<Mlt::VideoWidget*>(MLT.videoWidget());
 	return videoWidget ? videoWidget->maxTextureSize() : 0;
 }
 
-bool QmlApplication::confirmOutputFilter() {
+auto QmlApplication::confirmOutputFilter() -> bool {
 	bool result = true;
 	if (MAIN.filterController()->isOutputTrackSelected() && Settings.askOutputFilter()) {
 		QMessageBox dialog(QMessageBox::Warning, qApp->applicationName(),
-		                   tr("<p>Do you really want to add filters to <b>Output</b>?</p>"
-		                      "<p><b>Timeline > Output</b> is currently selected. "
-		                      "Adding filters to <b>Output</b> affects ALL clips in the "
-		                      "timeline including new ones that will be added.</p>"),
-		                   QMessageBox::No | QMessageBox::Yes, &MAIN);
+						   tr("<p>Do you really want to add filters to <b>Output</b>?</p>"
+							  "<p><b>Timeline > Output</b> is currently selected. "
+							  "Adding filters to <b>Output</b> affects ALL clips in the "
+							  "timeline including new ones that will be added.</p>"),
+						   QMessageBox::No | QMessageBox::Yes, &MAIN);
 		dialog.setWindowModality(dialogModality());
 		dialog.setDefaultButton(QMessageBox::No);
 		dialog.setEscapeButton(QMessageBox::Yes);
@@ -201,7 +212,7 @@ bool QmlApplication::confirmOutputFilter() {
 	return result;
 }
 
-QDir QmlApplication::dataDir() {
+auto QmlApplication::dataDir() -> QDir {
 	QDir dir(qApp->applicationDirPath());
 #if defined(Q_OS_MAC)
 	dir.cdUp();
@@ -215,14 +226,14 @@ QDir QmlApplication::dataDir() {
 	return dir;
 }
 
-QColor QmlApplication::contrastingColor(QString color) {
+auto QmlApplication::contrastingColor(const QString& color) -> QColor {
 	return Util::textColor(color);
 }
 
-QStringList QmlApplication::wipes() {
+auto QmlApplication::wipes() -> QStringList {
 	QStringList result;
 	const auto  transitions = QString::fromLatin1("transitions");
-	QDir        dir(Settings.appDataLocation());
+	QDir dir(Settings.appDataLocation());
 	if (!dir.exists(transitions)) {
 		dir.mkdir(transitions);
 	}
@@ -234,9 +245,9 @@ QStringList QmlApplication::wipes() {
 	return result;
 }
 
-bool QmlApplication::addWipe(const QString& filePath) {
+auto QmlApplication::addWipe(const QString& filePath) -> bool {
 	const auto transitions = QString::fromLatin1("transitions");
-	QDir       dir(Settings.appDataLocation());
+	QDir dir(Settings.appDataLocation());
 	if (!dir.exists(transitions)) {
 		dir.mkdir(transitions);
 	}
@@ -246,6 +257,6 @@ bool QmlApplication::addWipe(const QString& filePath) {
 	return false;
 }
 
-bool QmlApplication::intersects(const QRectF& a, const QRectF& b) {
+auto QmlApplication::intersects(const QRectF& a, const QRectF& b) -> bool {
 	return a.intersects(b);
 }

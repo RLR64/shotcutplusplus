@@ -18,9 +18,12 @@
 #ifndef MARKERCOMMANDS_HPP
 #define MARKERCOMMANDS_HPP
 
+// Local
 #include "models/markersmodel.hpp"
 
+// Qt
 #include <QUndoCommand>
+#include <qlist.h>
 
 namespace Markers {
 
@@ -30,7 +33,7 @@ enum {
 
 class DeleteCommand : public QUndoCommand {
   public:
-	DeleteCommand(MarkersModel& Model, const Marker& DelMarker, int Index);
+	DeleteCommand(MarkersModel& Model, Marker  DelMarker, int Index);
 	void Redo();
 	void Undo();
 
@@ -42,7 +45,7 @@ class DeleteCommand : public QUndoCommand {
 
 class AppendCommand : public QUndoCommand {
   public:
-	AppendCommand(MarkersModel& Model, const Marker& NewMarker, int Index);
+	AppendCommand(MarkersModel& Model, Marker  NewMarker, int Index);
 	void Redo();
 	void Undo();
 
@@ -54,16 +57,16 @@ class AppendCommand : public QUndoCommand {
 
 class UpdateCommand : public QUndoCommand {
   public:
-	UpdateCommand(MarkersModel& Model, const Marker& NewMarker, const Marker& OldMarker, int Index);
+	UpdateCommand(MarkersModel& Model, Marker  NewMarker, Marker  OldMarker, int Index);
 	void Redo();
 	void Undo();
 
   protected:
-	int Id() const {
+	[[nodiscard]] auto id() const -> int override {
 		return UndoIdUpdate;
 	}
 
-	bool MergeWith(const QUndoCommand* Other);
+	auto mergeWith(const QUndoCommand* Other) -> bool override;
 
   private:
 	MarkersModel& m_model;

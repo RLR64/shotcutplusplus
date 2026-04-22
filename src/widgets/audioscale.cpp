@@ -15,13 +15,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "audioscale.h"
-
-#include "Logger.hpp"
 #include "iecscale.h"
 
+// Qt
 #include <QFont>
 #include <QPainter>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qwidget.h>
 
 AudioScale::AudioScale(QWidget* parent) : QWidget(parent) {
 	const QFont& font     = QWidget::font();
@@ -36,15 +41,15 @@ AudioScale::AudioScale(QWidget* parent) : QWidget(parent) {
 void AudioScale::paintEvent(QPaintEvent*) {
 	QPainter  p(this);
 	const int h = IEC_Scale(-dbscale[0]) * height() - 2;
-	foreach (int i, dbscale) {
+	foreach (const int i, dbscale) {
 		if (height() > width()) {
 			if (i != dbscale[0]) {
-				double  xf = IEC_Scale(i) * h;
-				QString s  = QString::asprintf("%d", i);
+				const double  xf = IEC_Scale(i) * h;
+				QString const s  = QString::asprintf("%d", i);
 				p.drawText(width() - fontMetrics().horizontalAdvance(s), height() - xf - 1, s);
 			}
 		} else {
-			double xf = IEC_Scale(i) * (double)width();
+			const double xf = IEC_Scale(i) * (double)width();
 			p.drawText(xf * 40.0 / 42.0 - 10, height() - 2, QString::asprintf("%d", i));
 		}
 	}

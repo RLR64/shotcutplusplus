@@ -18,9 +18,15 @@
 #ifndef AUDIOSPECTRUMSCOPEWIDGET_H
 #define AUDIOSPECTRUMSCOPEWIDGET_H
 
+// Local
 #include "scopewidget.h"
 
+// Qt
 #include <MltFilter.h>
+#include <qhashfunctions.h>
+#include <qsize.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
 
 class AudioMeterWidget;
 
@@ -29,7 +35,7 @@ class AudioSpectrumScopeWidget Q_DECL_FINAL : public ScopeWidget {
 
   public:
 	explicit AudioSpectrumScopeWidget();
-	~AudioSpectrumScopeWidget();
+	~AudioSpectrumScopeWidget() override;
 	QString getTitle() Q_DECL_OVERRIDE;
 
   private:

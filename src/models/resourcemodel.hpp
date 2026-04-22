@@ -18,8 +18,13 @@
 #ifndef RESOURCEMODEL_HPP
 #define RESOURCEMODEL_HPP
 
+// Qt
 #include <MltProducer.h>
 #include <QAbstractItemModel>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 class ResourceModel : public QAbstractItemModel {
 	Q_OBJECT
@@ -35,20 +40,20 @@ class ResourceModel : public QAbstractItemModel {
 	};
 
 	explicit ResourceModel(QObject* parent = nullptr);
-	virtual ~ResourceModel();
-	void                 search(Mlt::Producer* producer);
-	void                 add(Mlt::Producer* producer, const QString& location = QString());
-	QList<Mlt::Producer> getProducers(const QModelIndexList& indices);
-	bool                 exists(const QString& hash);
-	int                  producerCount();
-	Mlt::Producer        producer(int index);
+	~ResourceModel() override;
+	void search(Mlt::Producer* producer);
+	void add(Mlt::Producer* producer, const QString& location = QString());
+	auto getProducers(const QModelIndexList& indices) -> QList<Mlt::Producer>;
+	auto exists(const QString& hash) -> bool;
+	auto producerCount() -> int;
+	auto producer(int index) -> Mlt::Producer;
 	// Implement QAbstractItemModel
-	int         rowCount(const QModelIndex& parent) const;
-	int         columnCount(const QModelIndex& parent) const;
-	QVariant    data(const QModelIndex& index, int role) const;
-	QVariant    headerData(int section, Qt::Orientation orientation, int role) const;
-	QModelIndex index(int row, int column = 0, const QModelIndex& parent = QModelIndex()) const;
-	QModelIndex parent(const QModelIndex& index) const;
+	[[nodiscard]] auto rowCount(const QModelIndex& parent) const -> int override;
+	[[nodiscard]] auto columnCount(const QModelIndex& parent) const -> int override;
+	[[nodiscard]] auto data(const QModelIndex& index, int role) const -> QVariant override;
+	[[nodiscard]] auto headerData(int section, Qt::Orientation orientation, int role) const -> QVariant override;
+	[[nodiscard]] auto index(int row, int column = 0, const QModelIndex& parent = QModelIndex()) const -> QModelIndex override;
+	[[nodiscard]] auto parent(const QModelIndex& index) const -> QModelIndex override;
 
   private:
 	QList<Mlt::Producer>   m_producers;

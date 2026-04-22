@@ -15,16 +15,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "screencapture.hpp"
-
 #include "Logger.hpp"
 #include "rectangleselector.hpp"
 #include "toolbarwidget.hpp"
 #include "windowpicker.hpp"
 
+// Qt
 #include <QApplication>
 #include <QFileInfo>
 #include <QProcess>
+#include <qcontainerfwd.h>
+#include <qguiapplication.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qtenvironmentvariables.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
 #include <QDBusConnection>
 #include <QDBusMessage>
@@ -42,13 +51,19 @@
 #include <QUrl>
 #include <QVariant>
 
-ScreenCapture::ScreenCapture(const QString& outputFile, CaptureMode mode, QObject* parent)
-    : QObject(parent), m_outputFile(outputFile), m_mode(mode), m_isImageMode(false), m_minimizeShotcut(false),
+// STL
+#include <memory>
+#include <utility>
+
+// Number constants
+constexpr int singleShotDelayNumber{100};
+
+ScreenCapture::ScreenCapture(QString  outputFile, CaptureMode mode, QObject* parent)
+	: QObject(parent), m_outputFile(std::move(outputFile)), m_mode(mode), m_isImageMode(false), m_minimizeShotcut(false),
       m_recordAudio(false) {
 }
 
-ScreenCapture::~ScreenCapture() {
-}
+ScreenCapture::~ScreenCapture() = default;
 
 void ScreenCapture::startRecording() {
 	switch (m_mode) {
@@ -65,7 +80,7 @@ void ScreenCapture::startRecording() {
 		m_toolbar = std::make_unique<ScreenCaptureToolbar>(true);
 		// Toolbar emits int, convert to CaptureMode via lambda for Qt6 typed connect compatibility
 		connect(m_toolbar.get(), &ScreenCaptureToolbar::captureModeSelected, this,
-		        [this](int mode, bool minimizeShotcut, bool recordAudio) {
+				[this](int mode, bool minimizeShotcut, bool recordAudio) -> void {
 			        this->onCaptureModeSelected(static_cast<CaptureMode>(mode), minimizeShotcut, recordAudio);
 		        });
 		m_toolbar->show();
@@ -90,7 +105,7 @@ void ScreenCapture::startSnapshot() {
 		// Show toolbar for user to choose mode
 		m_toolbar = std::make_unique<ScreenCaptureToolbar>(false);
 		connect(m_toolbar.get(), &ScreenCaptureToolbar::captureModeSelected, this,
-		        [this](int mode, bool minimizeShotcut, bool recordAudio) {
+				[this](int mode, bool minimizeShotcut, bool recordAudio) -> void {
 			        this->onCaptureModeSelected(static_cast<CaptureMode>(mode), minimizeShotcut, recordAudio);
 		        });
 		m_toolbar->show();
@@ -160,7 +175,7 @@ void ScreenCapture::onWindowSelected(const QRect& rect) {
 }
 
 void ScreenCapture::startFullscreenRecording() {
-	QScreen* screen = QGuiApplication::primaryScreen();
+	QScreen const* screen = QGuiApplication::primaryScreen();
 	if (!screen) {
 		LOG_ERROR() << "Error: No screen found";
 		return;
@@ -191,10 +206,10 @@ void ScreenCapture::startWindowRecording() {
 	m_windowPicker->show();
 }
 
-QPixmap ScreenCapture::captureScreen(const QRect& rect) {
+auto ScreenCapture::captureScreen(const QRect& rect) -> QPixmap {
 	QScreen* screen = QGuiApplication::primaryScreen();
 	if (!screen) {
-		return QPixmap();
+		return {};
 	}
 
 	return screen->grabWindow(0, rect.x(), rect.y(), rect.width(), rect.height());
@@ -229,14 +244,14 @@ void ScreenCapture::startFullscreenSnapshot() {
 
 	process->start("screencapture", args);
 #else
-	QScreen* screen = QGuiApplication::primaryScreen();
+	QScreen const* screen = QGuiApplication::primaryScreen();
 	if (!screen) {
 		LOG_ERROR() << "Error: No screen found";
 		return;
 	}
 
 	// Small delay to let any UI elements disappear
-	QTimer::singleShot(100, this, [this, screen]() { captureAndSaveImage(screen->geometry()); });
+	QTimer::singleShot(singleShotDelayNumber, this, [this, screen]() { captureAndSaveImage(screen->geometry()); });
 #endif
 }
 
@@ -325,7 +340,7 @@ void ScreenCapture::onImageRectangleSelected(const QRect& rect) {
 	}
 	// Translate from selector widget coords (primary screen) to global coords
 	QRect globalRect = rect;
-	if (QScreen* screen = QGuiApplication::primaryScreen()) {
+	if (QScreen const* screen = QGuiApplication::primaryScreen()) {
 		globalRect.translate(screen->geometry().topLeft());
 	}
 	captureAndSaveImage(globalRect);
@@ -380,7 +395,7 @@ void ScreenCapture::doCaptureAndSaveImage(const QRect& rect) {
 		LOG_WARNING() << "Portal screenshot failed, will try Qt grabWindow next.";
 	}
 
-	QPixmap pixmap = captureScreen(rect);
+	QPixmap const pixmap = captureScreen(rect);
 	if (pixmap.isNull()) {
 		LOG_ERROR() << "Failed to capture screen";
 		emit finished(false);
@@ -396,7 +411,7 @@ void ScreenCapture::doCaptureAndSaveImage(const QRect& rect) {
 	}
 }
 
-bool ScreenCapture::captureImagePortal(const QRect& rect, const QString& outputPath) {
+auto ScreenCapture::captureImagePortal(const QRect&  /*rect*/, const QString&  /*outputPath*/) -> bool {
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MAC)
 	auto bus = QDBusConnection::sessionBus();
 	if (!bus.isConnected()) {
@@ -495,14 +510,14 @@ void ScreenCapture::onPortalResponse(uint response, const QVariantMap& results) 
 	}
 }
 
-bool ScreenCapture::isWayland() {
+auto ScreenCapture::isWayland() -> bool {
 	const QString platformName = QGuiApplication::platformName();
 	const QString sessionType  = qEnvironmentVariable("XDG_SESSION_TYPE");
 	return platformName.contains("wayland", Qt::CaseInsensitive) ||
 	       sessionType.compare("wayland", Qt::CaseInsensitive) == 0;
 }
 
-QRect ScreenCapture::adjustRectForVideo(const QRect& rect) {
+auto ScreenCapture::adjustRectForVideo(const QRect& rect) -> QRect {
 	// H.264 encoders require dimensions to be even (divisible by 2)
 	// Reduce width/height by 1 if odd
 	int width  = rect.width();
@@ -519,25 +534,25 @@ QRect ScreenCapture::adjustRectForVideo(const QRect& rect) {
 	return result;
 }
 
-QRect ScreenCapture::applyDevicePixelRatio(const QRect& rect) {
+auto ScreenCapture::applyDevicePixelRatio(const QRect& rect) -> QRect {
 	// Get the device pixel ratio from the primary screen
-	QScreen* screen = QGuiApplication::primaryScreen();
+	QScreen const* screen = QGuiApplication::primaryScreen();
 	if (!screen) {
 		LOG_WARNING() << "Could not get screen for device pixel ratio";
 		return rect;
 	}
 
-	qreal dpr = screen->devicePixelRatio();
+	const qreal dpr = screen->devicePixelRatio();
 
 	// If DPR is 1.0, no conversion needed
 	if (qFuzzyCompare(dpr, 1.0)) {
 		return rect;
 	}
 
-	int logicalX      = qRound(rect.x() * dpr);
-	int logicalY      = qRound(rect.y() * dpr);
-	int logicalWidth  = qRound(rect.width() * dpr);
-	int logicalHeight = qRound(rect.height() * dpr);
+	const int logicalX = qRound(rect.x() * dpr);
+	const int logicalY = qRound(rect.y() * dpr);
+	const int logicalWidth = qRound(rect.width() * dpr);
+	const int logicalHeight = qRound(rect.height() * dpr);
 
 	QRect logicalRect(logicalX, logicalY, logicalWidth, logicalHeight);
 
@@ -548,25 +563,25 @@ QRect ScreenCapture::applyDevicePixelRatio(const QRect& rect) {
 	return logicalRect;
 }
 
-QRect ScreenCapture::invertDevicePixelRatio(const QRect& rect) {
+auto ScreenCapture::invertDevicePixelRatio(const QRect& rect) -> QRect {
 	// Get the device pixel ratio from the primary screen
-	QScreen* screen = QGuiApplication::primaryScreen();
+	QScreen const* screen = QGuiApplication::primaryScreen();
 	if (!screen) {
 		LOG_WARNING() << "Could not get screen for device pixel ratio";
 		return rect;
 	}
 
-	qreal dpr = screen->devicePixelRatio();
+	const qreal dpr = screen->devicePixelRatio();
 
 	// If DPR is 1.0, no conversion needed
 	if (qFuzzyCompare(dpr, 1.0)) {
 		return rect;
 	}
 
-	int logicalX      = qRound(rect.x() / dpr);
-	int logicalY      = qRound(rect.y() / dpr);
-	int logicalWidth  = qRound(rect.width() / dpr);
-	int logicalHeight = qRound(rect.height() / dpr);
+	const int logicalX = qRound(rect.x() / dpr);
+	const int logicalY = qRound(rect.y() / dpr);
+	const int logicalWidth = qRound(rect.width() / dpr);
+	const int logicalHeight = qRound(rect.height() / dpr);
 
 	QRect logicalRect(logicalX, logicalY, logicalWidth, logicalHeight);
 

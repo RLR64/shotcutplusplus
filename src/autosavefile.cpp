@@ -18,17 +18,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "autosavefile.hpp"
-
 #include "settings.hpp"
 
+// Qt
 #include <QtCore/QCryptographicHash>
 #include <QtCore/QDir>
+#include <qfileinfo.h>
+#include <qlatin1stringview.h>
+#include <qobject.h>
 
-static const QLatin1String subdir("/autosave");
-static const QLatin1String extension(".mlt");
+static constexpr const QLatin1String subdir("/autosave");
+static constexpr const QLatin1String extension(".mlt");
 
-static QString hashName(const QString& name) {
+static auto hashName(const QString& name) -> QString {
 	return QString::fromLatin1(QCryptographicHash::hash(name.toUtf8(), QCryptographicHash::Md5).toHex());
 }
 
@@ -44,15 +48,15 @@ AutoSaveFile::~AutoSaveFile() {
 void AutoSaveFile::changeManagedFile(const QString& filename) {
 	if (!fileName().isEmpty())
 		remove();
-	m_managedFile            = filename;
+	m_managedFile = filename;
 	m_managedFileNameChanged = true;
 }
 
-bool AutoSaveFile::open(OpenMode openmode) {
+auto AutoSaveFile::open(OpenMode openmode) -> bool {
 	QString tempFile;
 
 	if (m_managedFileNameChanged) {
-		QString staleFilesDir = path();
+		QString const staleFilesDir = path();
 		if (!QDir().mkpath(staleFilesDir)) {
 			return false;
 		}
@@ -66,10 +70,10 @@ bool AutoSaveFile::open(OpenMode openmode) {
 	return QFile::open(openmode);
 }
 
-AutoSaveFile* AutoSaveFile::getFile(const QString& filename) {
-	AutoSaveFile* result = 0;
-	QDir          appDir(path());
-	QFileInfo     info(appDir.absolutePath(), hashName(filename) + extension);
+auto AutoSaveFile::getFile(const QString& filename) -> AutoSaveFile* {
+	AutoSaveFile* result = nullptr;
+	QDir const appDir(path());
+	QFileInfo const info(appDir.absolutePath(), hashName(filename) + extension);
 
 	if (info.exists()) {
 		result = new AutoSaveFile(filename);
@@ -80,6 +84,6 @@ AutoSaveFile* AutoSaveFile::getFile(const QString& filename) {
 	return result;
 }
 
-QString AutoSaveFile::path() {
+auto AutoSaveFile::path() -> QString {
 	return Settings.appDataLocation() + subdir;
 }

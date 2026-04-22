@@ -18,9 +18,12 @@
 #ifndef BITRATEDIALOG_HPP
 #define BITRATEDIALOG_HPP
 
+// Qt
 #include <QDialog>
 #include <QJsonArray>
 #include <QString>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class BitrateDialog : public QDialog {
 	Q_OBJECT

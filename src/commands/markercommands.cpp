@@ -15,14 +15,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "markercommands.hpp"
-
 #include "Logger.hpp"
+#include "models/markersmodel.hpp"
+
+// Qt
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qundostack.h>
+
+// STL
+#include <utility>
 
 namespace Markers {
 
-DeleteCommand::DeleteCommand(MarkersModel& model, const Marker& delMarker, int index)
-    : QUndoCommand(0), m_model(model), m_delMarker(delMarker), m_index(index) {
+DeleteCommand::DeleteCommand(MarkersModel& model, Marker  delMarker, int index)
+	: QUndoCommand(nullptr), m_model(model), m_delMarker(std::move(delMarker)), m_index(index) {
 	setText(QObject::tr("Delete marker: %1").arg(m_delMarker.text));
 }
 
@@ -34,8 +44,8 @@ void DeleteCommand::Undo() {
 	m_model.doInsert(m_index, m_delMarker);
 }
 
-AppendCommand::AppendCommand(MarkersModel& model, const Marker& newMarker, int index)
-    : QUndoCommand(0), m_model(model), m_newMarker(newMarker), m_index(index) {
+AppendCommand::AppendCommand(MarkersModel& model, Marker  newMarker, int index)
+	: QUndoCommand(nullptr), m_model(model), m_newMarker(std::move(newMarker)), m_index(index) {
 	setText(QObject::tr("Add marker: %1").arg(m_newMarker.text));
 }
 
@@ -47,8 +57,8 @@ void AppendCommand::Undo() {
 	m_model.doRemove(m_index);
 }
 
-UpdateCommand::UpdateCommand(MarkersModel& model, const Marker& newMarker, const Marker& oldMarker, int index)
-    : QUndoCommand(0), m_model(model), m_newMarker(newMarker), m_oldMarker(oldMarker), m_index(index) {
+UpdateCommand::UpdateCommand(MarkersModel& model, Marker  newMarker, Marker  oldMarker, int index)
+	: QUndoCommand(nullptr), m_model(model), m_newMarker(std::move(newMarker)), m_oldMarker(std::move(oldMarker)), m_index(index) {
 	if (m_newMarker.text == m_oldMarker.text && m_newMarker.color == m_oldMarker.color) {
 		setText(QObject::tr("Move marker: %1").arg(m_oldMarker.text));
 	} else {
@@ -64,8 +74,8 @@ void UpdateCommand::Undo() {
 	m_model.doUpdate(m_index, m_oldMarker);
 }
 
-bool UpdateCommand::MergeWith(const QUndoCommand* other) {
-	const UpdateCommand* that = static_cast<const UpdateCommand*>(other);
+auto UpdateCommand::mergeWith(const QUndoCommand* other) -> bool {
+	const auto* that = dynamic_cast<const UpdateCommand*>(other);
 	LOG_DEBUG() << "this index" << m_index << "that index" << that->m_index;
 	if (that->id() != id() || that->m_index != m_index)
 		return false;
@@ -84,7 +94,7 @@ bool UpdateCommand::MergeWith(const QUndoCommand* other) {
 }
 
 ClearCommand::ClearCommand(MarkersModel& model, QList<Marker>& clearMarkers)
-    : QUndoCommand(0), m_model(model), m_clearMarkers(clearMarkers) {
+	: QUndoCommand(nullptr), m_model(model), m_clearMarkers(clearMarkers) {
 	setText(QObject::tr("Clear markers"));
 }
 

@@ -15,13 +15,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "alsawidget.h"
-
 #include "mltcontroller.hpp"
 #include "settings.hpp"
 #include "shotcut_mlt_properties.hpp"
 #include "ui_alsawidget.h"
 #include "util.hpp"
+
+// Qt
+#include <MltProfile.h>
+#include <qobject.h>
 
 AlsaWidget::AlsaWidget(QWidget* parent) : QWidget(parent), ui(new Ui::AlsaWidget) {
 	ui->setupUi(this);
@@ -36,7 +40,7 @@ AlsaWidget::~AlsaWidget() {
 	delete ui;
 }
 
-Mlt::Producer* AlsaWidget::newProducer(Mlt::Profile& profile) {
+auto AlsaWidget::newProducer(Mlt::Profile& profile) -> Mlt::Producer* {
 	QString s("alsa:%1");
 	if (ui->lineEdit->text().isEmpty())
 		s = s.arg("default");
@@ -44,14 +48,14 @@ Mlt::Producer* AlsaWidget::newProducer(Mlt::Profile& profile) {
 		s = s.arg(ui->lineEdit->text());
 	if (ui->alsaChannelsSpinBox->value() > 0)
 		s += QStringLiteral("?channels=%1").arg(ui->alsaChannelsSpinBox->value());
-	Mlt::Producer* p = new Mlt::Producer(profile, s.toUtf8().constData());
+	auto* p = new Mlt::Producer(profile, s.toUtf8().constData());
 	p->set(kBackgroundCaptureProperty, 1);
 	p->set(kShotcutCaptionProperty, "ALSA");
 	Settings.setAudioInput(ui->lineEdit->text());
 	return p;
 }
 
-Mlt::Properties AlsaWidget::getPreset() const {
+auto AlsaWidget::getPreset() const -> Mlt::Properties {
 	Mlt::Properties p;
 	QString         s("alsa:%1");
 	if (ui->lineEdit->text().isEmpty())
@@ -64,8 +68,8 @@ Mlt::Properties AlsaWidget::getPreset() const {
 }
 
 void AlsaWidget::loadPreset(Mlt::Properties& p) {
-	QString s(p.get("resource"));
-	int     i = s.indexOf(':');
+	QString const s(p.get("resource"));
+	const int i = s.indexOf(':');
 	if (i > -1)
 		ui->lineEdit->setText(s.mid(i + 1));
 	if (p.get("channels"))
@@ -73,7 +77,7 @@ void AlsaWidget::loadPreset(Mlt::Properties& p) {
 }
 
 void AlsaWidget::on_preset_selected(void* p) {
-	Mlt::Properties* properties = (Mlt::Properties*)p;
+	auto* properties = (Mlt::Properties*)p;
 	loadPreset(*properties);
 	delete properties;
 }

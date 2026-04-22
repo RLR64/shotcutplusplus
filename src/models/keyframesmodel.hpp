@@ -18,10 +18,16 @@
 #ifndef KEYFRAMESMODEL_HPP
 #define KEYFRAMESMODEL_HPP
 
+// Qt
 #include <MltAnimation.h>
 #include <MltProperties.h>
 #include <QAbstractItemModel>
 #include <QString>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 class QmlMetadata;
 class QmlFilter;
@@ -69,7 +75,7 @@ class KeyframesModel : public QAbstractItemModel {
 	};
 	Q_ENUM(InterpolationType)
 
-	/// Two level model: parameters and keyframes on parameters
+		   /// Two level model: parameters and keyframes on parameters
 	enum Roles {
 		NameRole = Qt::UserRole + 1, /// parameter or keyframe
 		PropertyNameRole,            /// parameter only
@@ -87,7 +93,7 @@ class KeyframesModel : public QAbstractItemModel {
 	};
 
 	explicit KeyframesModel(QObject* parent = nullptr);
-	virtual ~KeyframesModel();
+	~KeyframesModel() override;
 
 	int                    rowCount(const QModelIndex& parent) const;
 	int                    columnCount(const QModelIndex& parent) const;

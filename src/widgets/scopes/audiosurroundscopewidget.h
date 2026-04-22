@@ -18,17 +18,27 @@
 #ifndef AUDIOSURROUNDSCOPEWIDGET_H
 #define AUDIOSURROUNDSCOPEWIDGET_H
 
+// Local
 #include "scopewidget.h"
+#include "sharedframe.hpp"
 
+// Qt
 #include <QImage>
 #include <QMutex>
+#include <qhashfunctions.h>
+#include <qicon.h>
+#include <qsize.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 class AudioSurroundScopeWidget Q_DECL_FINAL : public ScopeWidget {
 	Q_OBJECT
 
   public:
 	explicit AudioSurroundScopeWidget();
-	virtual ~AudioSurroundScopeWidget();
+	~AudioSurroundScopeWidget() override;
 	QString getTitle() Q_DECL_OVERRIDE;
 
   private:
@@ -41,14 +51,14 @@ class AudioSurroundScopeWidget Q_DECL_FINAL : public ScopeWidget {
 
 	// Only accessed by the scope thread
 	SharedFrame m_frame;
-	QImage      m_renderImg;
-	QImage      m_graticuleImg;
+	QImage m_renderImg;
+	QImage m_graticuleImg;
 
 	// Variables accessed from multiple threads (mutex protected)
 	QMutex m_mutex;
 	QImage m_displayImg;
-	bool   m_channelsChanged;
-	int    m_channels;
+	bool m_channelsChanged;
+	int m_channels;
 };
 
 #endif // AUDIOSURROUNDSCOPEWIDGET_H

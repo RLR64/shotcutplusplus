@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "qmltypes/qmlutilities.hpp"
-
 #include "models/keyframesmodel.hpp"
 #include "models/metadatamodel.hpp"
 #include "models/subtitlesmodel.hpp"
@@ -40,12 +40,16 @@
 #include "qmltypes/timelineitems.hpp"
 #include "settings.hpp"
 
+// Qt
 #include <QCoreApplication>
 #include <QCursor>
 #include <QQmlContext>
 #include <QQmlEngine>
 #include <QSysInfo>
 #include <QtQml>
+#include <qdir.h>
+#include <qobject.h>
+#include <qqml.h>
 
 QmlUtilities::QmlUtilities(QObject* parent) : QObject(parent) {
 }
@@ -86,21 +90,21 @@ void QmlUtilities::setCommonProperties(QQmlContext* context) {
 	context->setContextProperty("profile", &QmlProfile::singleton());
 }
 
-QDir QmlUtilities::qmlDir() {
+auto QmlUtilities::qmlDir() -> QDir {
 	QDir dir = QmlApplication::dataDir();
 	dir.cd("shotcut");
 	dir.cd("qml");
 	return dir;
 }
 
-QQmlEngine* QmlUtilities::sharedEngine() {
-	static QQmlEngine* s_engine = 0;
+auto QmlUtilities::sharedEngine() -> QQmlEngine* {
+	static QQmlEngine const* s_engine = nullptr;
 	if (!s_engine)
 		s_engine = new QQmlEngine;
-	return s_engine;
+	return {};
 }
 
-QUrl QmlUtilities::blankVui() {
+auto QmlUtilities::blankVui() -> QUrl {
 	QDir dir = qmlDir();
 	dir.cd("modules");
 	dir.cd("Shotcut");

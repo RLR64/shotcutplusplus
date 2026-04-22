@@ -15,18 +15,52 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Local
 #include "scrubbar.hpp"
-
 #include "mltcontroller.hpp"
 #include "settings.hpp"
 
+// Qt
 #include <QToolTip>
 #include <QtWidgets>
+#include <qbrush.h>
+#include <qcoreevent.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qpaintdevice.h>
+#include <qpainter.h>
+#include <qpen.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qwidget.h>
 
-static constexpr int selectionSize = {14}; /// the height of the top bar
+// Number constants
+
+// Scrub ticks
+static constexpr int kFontSizeThresholdLarge{10};
+static constexpr int kFontSizeThresholdMedium{8};
+static constexpr int kFontSizeReductionLarge{2};
+static constexpr int kFontSizeReductionMedium{1};
+
+static constexpr double kTimecodeWidthFactor{1.8};
+
+static constexpr int kSecondsPerHour{3600};
+static constexpr int kSecondsPerFiveMinutes{300};
+static constexpr int kSecondsPerMinute{60};
+static constexpr int kSecondsPerTenSeconds{10};
+static constexpr int kSecondsPerFiveSeconds{5};
+static constexpr int kThresholdFiveSeconds{2};
+
+static constexpr int selectionSize{14}; // the height of the top bar
+
+// clang-format off
 #ifndef CLAMP
 #define CLAMP(x, min, max) (((x) < (min)) ? (min) : ((x) > (max)) ? (max) : (x))
 #endif
+// clang-format on
 
 ScrubBar::ScrubBar(QWidget* parent)
     : QWidget(parent), m_head(-1), m_scale(-1), m_fps(25), m_max(1), m_in(-1), m_out(-1),
@@ -40,7 +74,7 @@ ScrubBar::ScrubBar(QWidget* parent)
 
 void ScrubBar::setScale(int maximum) {
 	if (!m_timecodeWidth) {
-		const int fontSize = font().pointSize() - (font().pointSize() > 10 ? 2 : (font().pointSize() > 8 ? 1 : 0));
+		const int fontSize = font().pointSize() - (font().pointSize() > kFontSizeThresholdLarge ? kFontSizeReductionLarge : (font().pointSize() > kFontSizeThresholdMedium ? kFontSizeReductionMedium : 0));
 		setFont(QFont(font().family(), fontSize * devicePixelRatioF()));
 		m_timecodeWidth = fontMetrics().horizontalAdvance("00:00:00:00") / devicePixelRatioF();
 	}
@@ -49,25 +83,25 @@ void ScrubBar::setScale(int maximum) {
 	m_scale = m_max > 0 ? (double)(width() - 2 * m_margin) / (double)m_max : -1;
 	if (m_scale == 0)
 		m_scale = -1;
-	m_secondsPerTick = qMax(qRound(double(m_timecodeWidth * 1.8) / m_scale / m_fps), 1);
-	if (m_secondsPerTick > 3600)
+	m_secondsPerTick = qMax(qRound(double(m_timecodeWidth * kTimecodeWidthFactor) / m_scale / m_fps), 1);
+	if (m_secondsPerTick > kSecondsPerHour)
 		// force to a multiple of one hour
-		m_secondsPerTick += 3600 - m_secondsPerTick % 3600;
-	else if (m_secondsPerTick > 300)
+		m_secondsPerTick += kSecondsPerHour - m_secondsPerTick % kSecondsPerHour;
+	else if (m_secondsPerTick > kSecondsPerFiveMinutes)
 		// force to a multiple of 5 minutes
-		m_secondsPerTick += 300 - m_secondsPerTick % 300;
-	else if (m_secondsPerTick > 60)
+		m_secondsPerTick += kSecondsPerFiveMinutes - m_secondsPerTick % kSecondsPerFiveMinutes;
+	else if (m_secondsPerTick > kSecondsPerMinute)
 		// force to a multiple of one minute
-		m_secondsPerTick += 60 - m_secondsPerTick % 60;
-	else if (m_secondsPerTick > 5)
+		m_secondsPerTick += kSecondsPerMinute - m_secondsPerTick % kSecondsPerMinute;
+	else if (m_secondsPerTick > kSecondsPerFiveSeconds)
 		// force to a multiple of 10 seconds
-		m_secondsPerTick += 10 - m_secondsPerTick % 10;
-	else if (m_secondsPerTick > 2)
+		m_secondsPerTick += kSecondsPerTenSeconds - m_secondsPerTick % kSecondsPerTenSeconds;
+	else if (m_secondsPerTick > kThresholdFiveSeconds)
 		// force to a multiple of 5 seconds
-		m_secondsPerTick += 5 - m_secondsPerTick % 5;
+		m_secondsPerTick += kSecondsPerFiveSeconds - m_secondsPerTick % kSecondsPerFiveSeconds;
 	/// m_interval is the number of pixels per major tick to be labeled with time
 	m_interval = qRound(double(m_secondsPerTick) * m_fps * m_scale);
-	m_head     = -1;
+	m_head = -1;
 	updatePixmap();
 }
 
@@ -75,7 +109,7 @@ void ScrubBar::setFramerate(double fps) {
 	m_fps = fps;
 }
 
-int ScrubBar::position() const {
+auto ScrubBar::position() const -> int {
 	return m_head;
 }
 
@@ -103,11 +137,11 @@ void ScrubBar::setLoopRange(int start, int end) {
 }
 
 void ScrubBar::mousePressEvent(QMouseEvent* event) {
-	int x    = event->position().x() - m_margin;
-	int in   = m_in * m_scale;
-	int out  = m_out * m_scale;
-	int head = m_head * m_scale;
-	int pos  = CLAMP(x / m_scale, 0, m_max);
+	const int x = event->position().x() - m_margin;
+	const int in = m_in * m_scale;
+	const int out = m_out * m_scale;
+	const int head = m_head * m_scale;
+	const int pos = CLAMP(x / m_scale, 0, m_max);
 
 	if (m_in > -1 && m_out > -1) {
 		if (x >= in - 12 && x <= in + 6) {
@@ -120,11 +154,11 @@ void ScrubBar::mousePressEvent(QMouseEvent* event) {
 	}
 	if (m_head > -1) {
 		if (m_activeControl == CONTROL_NONE) {
-			m_activeControl  = CONTROL_HEAD;
-			m_head           = pos;
+			m_activeControl = CONTROL_HEAD;
+			m_head = pos;
 			const int offset = height() / 2;
-			const int x      = head;
-			const int w      = qAbs(x - head);
+			const int x = head;
+			const int w = qAbs(x - head);
 			update(m_margin + x - offset, 0, w + 2 * offset, height());
 		}
 	}
@@ -139,8 +173,8 @@ void ScrubBar::mouseReleaseEvent(QMouseEvent* event) {
 }
 
 void ScrubBar::mouseMoveEvent(QMouseEvent* event) {
-	int x   = event->position().x() - m_margin;
-	int pos = CLAMP(x / m_scale, 0, m_max);
+	const int x = event->position().x() - m_margin;
+	const int pos = CLAMP(x / m_scale, 0, m_max);
 
 	if (event->buttons() & Qt::LeftButton) {
 		if (m_activeControl == CONTROL_IN)
@@ -150,8 +184,8 @@ void ScrubBar::mouseMoveEvent(QMouseEvent* event) {
 		else if (m_activeControl == CONTROL_HEAD) {
 			const int head   = m_head * m_scale;
 			const int offset = height() / 2;
-			const int x      = head;
-			const int w      = qAbs(x - head);
+			const int x = head;
+			const int w = qAbs(x - head);
 			update(m_margin + x - offset, 0, w + 2 * offset, height());
 			m_head = pos;
 		}
@@ -159,27 +193,27 @@ void ScrubBar::mouseMoveEvent(QMouseEvent* event) {
 			emit paused(pos);
 		emit seeked(pos);
 	} else if (event->buttons() == Qt::NoButton && MLT.producer()) {
-		QString text = QString::fromLatin1(MLT.producer()->frames_to_time(pos, Settings.timeFormat()));
+		QString const text = QString::fromLatin1(MLT.producer()->frames_to_time(pos, Settings.timeFormat()));
 		QToolTip::showText(event->globalPosition().toPoint(), text);
 	}
 }
 
-bool ScrubBar::onSeek(int value) {
+auto ScrubBar::onSeek(int value) -> bool {
 	if (m_activeControl != CONTROL_HEAD)
 		m_head = value;
-	int oldPos       = m_cursorPosition;
+	const int oldPos = m_cursorPosition;
 	m_cursorPosition = value * m_scale;
 	const int offset = height() / 2;
-	const int x      = qMin(oldPos, m_cursorPosition);
-	const int w      = qAbs(oldPos - m_cursorPosition);
+	const int x = qMin(oldPos, m_cursorPosition);
+	const int w = qAbs(oldPos - m_cursorPosition);
 	update(m_margin + x - offset, 0, w + 2 * offset, height());
 	return true;
 }
 
 void ScrubBar::paintEvent(QPaintEvent* e) {
-	QPen     pen(QBrush(palette().text().color()), 2);
+	QPen const pen(QBrush(palette().text().color()), 2);
 	QPainter p(this);
-	QRect    r = e->rect();
+	QRect const r = e->rect();
 	p.setClipRect(r);
 	p.drawPixmap(0, 0, width(), height(), m_pixmap);
 
@@ -189,7 +223,7 @@ void ScrubBar::paintEvent(QPaintEvent* e) {
 	// draw pointer
 	QPolygon  pa(3);
 	constexpr int x    = selectionSize / 2 - 1;
-	int       head = m_margin + m_cursorPosition;
+	int head = m_margin + m_cursorPosition;
 	pa.setPoints(3, head - x - 1, 0, head + x, 0, head, x);
 	p.setBrush(palette().text().color());
 	p.setPen(Qt::NoPen);
@@ -228,7 +262,7 @@ void ScrubBar::resizeEvent(QResizeEvent*) {
 	setScale(m_max);
 }
 
-bool ScrubBar::event(QEvent* event) {
+auto ScrubBar::event(QEvent* event) -> bool {
 	QWidget::event(event);
 	if (event->type() == QEvent::PaletteChange || event->type() == QEvent::StyleChange)
 		updatePixmap();
@@ -236,14 +270,14 @@ bool ScrubBar::event(QEvent* event) {
 }
 
 void ScrubBar::updatePixmap() {
-	const auto ratio           = devicePixelRatioF();
-	const int  l_width         = width() * ratio;
-	const int  l_height        = height() * ratio;
-	const int  l_margin        = m_margin * ratio;
-	const int  l_selectionSize = selectionSize * ratio;
-	const int  l_interval      = m_interval * ratio;
-	const int  l_timecodeWidth = m_timecodeWidth * ratio;
-	m_pixmap                   = QPixmap(l_width, l_height);
+	const auto ratio = devicePixelRatioF();
+	const int l_width = width() * ratio;
+	const int l_height = height() * ratio;
+	const int l_margin = m_margin * ratio;
+	const int l_selectionSize = selectionSize * ratio;
+	const int l_interval = m_interval * ratio;
+	const int l_timecodeWidth = m_timecodeWidth * ratio;
+	m_pixmap = QPixmap(l_width, l_height);
 	m_pixmap.fill(palette().window().color());
 	QPainter p(&m_pixmap);
 	p.setFont(font());
@@ -292,8 +326,8 @@ void ScrubBar::updatePixmap() {
 	if (l_interval > l_timecodeWidth && MLT.producer()) {
 		int x = l_margin;
 		for (int i = 0; x < l_width - l_margin - l_timecodeWidth; i++, x += l_interval) {
-			int y      = l_selectionSize + fontMetrics().ascent() - 2 * ratio;
-			int frames = qRound(i * m_fps * m_secondsPerTick);
+			const int y = l_selectionSize + fontMetrics().ascent() - 2 * ratio;
+			const int frames = qRound(i * m_fps * m_secondsPerTick);
 			p.drawText(x + 2 * ratio, y, QString(MLT.producer()->frames_to_time(frames, timeFormat)).left(8));
 		}
 	}
@@ -301,12 +335,12 @@ void ScrubBar::updatePixmap() {
 	// draw markers
 	if (m_in < 0 && m_out < 0) {
 		int i = 1;
-		foreach (int pos, m_markers) {
+		foreach (const int pos, m_markers) {
 			const int x = l_margin + pos * m_scale * ratio;
 			if (x < 0)
 				continue;
-			QString s           = QString::number(i++);
-			int     markerWidth = fontMetrics().horizontalAdvance(s) * 1.5;
+			QString const s = QString::number(i++);
+			const int markerWidth = fontMetrics().horizontalAdvance(s) * 1.5;
 			p.fillRect(x, 0, 1, l_height, palette().highlight().color());
 			p.fillRect(x - markerWidth / 2, 0, markerWidth, markerHeight, palette().highlight().color());
 			p.drawText(x - markerWidth / 3, markerHeight - 2 * ratio, s);
@@ -315,9 +349,9 @@ void ScrubBar::updatePixmap() {
 
 	// draw loop range
 	if (m_loopStart > -1 && m_loopEnd > -1) {
-		const int start     = m_loopStart * m_scale * ratio;
-		const int end       = m_loopEnd * m_scale * ratio;
-		QColor    loopColor = palette().highlight().color();
+		const int start = m_loopStart * m_scale * ratio;
+		const int end = m_loopEnd * m_scale * ratio;
+		QColor loopColor = palette().highlight().color();
 		loopColor.setAlphaF(0.5);
 		p.fillRect(l_margin + start, l_height - 7 * ratio, end - start, l_height * ratio, loopColor);
 	}

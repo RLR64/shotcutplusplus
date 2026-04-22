@@ -18,6 +18,8 @@
 #ifndef TIMELINEDOCK_HPP
 #define TIMELINEDOCK_HPP
 
+// Local
+#include "jobs/abstractjob.hpp"
 #include "jobs/ffmpegjob.hpp"
 #include "models/markersmodel.hpp"
 #include "models/multitrackmodel.hpp"
@@ -25,11 +27,24 @@
 #include "models/subtitlesselectionmodel.hpp"
 #include "sharedframe.hpp"
 
+// Qt
+#include <MltPlaylist.h>
+#include <MltProducer.h>
 #include <QApplication>
 #include <QDateTime>
 #include <QDockWidget>
 #include <QQuickWidget>
 #include <QTimer>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qcoreevent.h>
+#include <qpoint.h>
+#include <qtmetamacros.h>
+#include <quuid.h>
+#include <qwidget.h>
+
+// STL
+#include <memory>
 
 namespace Timeline {
 class UpdateCommand;
@@ -49,61 +64,61 @@ class TimelineDock : public QDockWidget {
 
   public:
 	explicit TimelineDock(QWidget* parent = nullptr);
-	~TimelineDock();
+	~TimelineDock() override;
 
 	enum TrimLocation { TrimInPoint, TrimOutPoint };
 
-	MultitrackModel* model() {
+	auto model() -> MultitrackModel* {
 		return &m_model;
 	}
 
-	MarkersModel* markersModel() {
+	auto markersModel() -> MarkersModel* {
 		return &m_markersModel;
 	}
 
-	SubtitlesModel* subtitlesModel() {
+	auto subtitlesModel() -> SubtitlesModel* {
 		return &m_subtitlesModel;
 	}
 
-	SubtitlesSelectionModel* subtitlesSelectionModel() {
+	auto subtitlesSelectionModel() -> SubtitlesSelectionModel* {
 		return &m_subtitlesSelectionModel;
 	}
 
-	int position() const {
+	[[nodiscard]] auto position() const -> int {
 		return m_position;
 	}
 
-	void          setPosition(int position);
-	Mlt::Producer producerForClip(int trackIndex, int clipIndex);
-	int           clipIndexAtPlayhead(int trackIndex = -1);
-	int           clipIndexAtPosition(int trackIndex, int position);
-	void          chooseClipAtPosition(int position, int& trackIndex, int& clipIndex);
-	void          setCurrentTrack(int currentTrack);
-	int           currentTrack() const;
-	int           clipCount(int trackIndex) const;
-	void          setSelectionFromJS(const QVariantList& list);
+	void setPosition(int position);
+	auto producerForClip(int trackIndex, int clipIndex) -> Mlt::Producer;
+	auto clipIndexAtPlayhead(int trackIndex = -1) -> int;
+	auto clipIndexAtPosition(int trackIndex, int position) -> int;
+	void chooseClipAtPosition(int position, int& trackIndex, int& clipIndex);
+	void setCurrentTrack(int currentTrack);
+	[[nodiscard]] auto currentTrack() const -> int;
+	[[nodiscard]] auto clipCount(int trackIndex) const -> int;
+	void setSelectionFromJS(const QVariantList& list);
 	void setSelection(QList<QPoint> selection = QList<QPoint>(), int trackIndex = -1, bool isMultitrack = false);
-	QVariantList             selectionForJS() const;
-	const QList<QPoint>      selection() const;
-	const QVector<QUuid>     selectionUuids();
-	const QList<QPoint>      uuidsToSelection(QVector<QUuid> uuids) const;
-	void                     saveAndClearSelection();
-	Q_INVOKABLE void         restoreSelection();
+	[[nodiscard]] auto selectionForJS() const -> QVariantList;
+	[[nodiscard]] auto selection() const -> const QList<QPoint>;
+	[[nodiscard]] auto selectionUuids() -> const QVector<QUuid>;
+	[[nodiscard]] auto uuidsToSelection(QVector<QUuid> uuids) const -> const QList<QPoint>;
+	void saveAndClearSelection();
+	Q_INVOKABLE void restoreSelection();
 	Q_INVOKABLE QVariantList getGroupForClip(int trackIndex, int clipIndex);
-	void                     selectClipUnderPlayhead();
-	int                      centerOfClip(int trackIndex, int clipIndex);
-	bool                     isTrackLocked(int trackIndex) const;
-	void                     trimClipAtPlayhead(TrimLocation location, bool ripple);
+	void selectClipUnderPlayhead();
+	auto centerOfClip(int trackIndex, int clipIndex) -> int;
+	[[nodiscard]] auto isTrackLocked(int trackIndex) const -> bool;
+	void trimClipAtPlayhead(TrimLocation location, bool ripple);
 
-	Q_INVOKABLE bool isMultitrackSelected() const {
+	[[nodiscard]] Q_INVOKABLE bool isMultitrackSelected() const {
 		return m_selection.isMultitrackSelected;
 	}
 
-	Q_INVOKABLE int selectedTrack() const {
+	[[nodiscard]] Q_INVOKABLE int selectedTrack() const {
 		return m_selection.selectedTrack;
 	}
 
-	Q_INVOKABLE bool isFloating() const {
+	[[nodiscard]] Q_INVOKABLE bool isFloating() const {
 		return QDockWidget::isFloating();
 	}
 
@@ -113,18 +128,18 @@ class TimelineDock : public QDockWidget {
 	Q_INVOKABLE void        recordAudio();
 	Q_INVOKABLE void        stopRecording();
 
-	bool isRecording() const {
+	[[nodiscard]] auto isRecording() const -> bool {
 		return m_isRecording;
 	}
 
-	int  addTrackIfNeeded(TrackType trackType);
+	auto  addTrackIfNeeded(TrackType trackType) -> int;
 	void getSelectionRange(int* start, int* end);
 
-	int loopStart() const {
+	[[nodiscard]] auto loopStart() const -> int {
 		return m_loopStart;
 	}
 
-	int loopEnd() const {
+	[[nodiscard]] auto loopEnd() const -> int {
 		return m_loopEnd;
 	}
 
@@ -164,14 +179,14 @@ class TimelineDock : public QDockWidget {
 	void trimEnded();
 
   public slots:
-	int  addAudioTrack();
-	int  addVideoTrack();
+	auto addAudioTrack() -> int;
+	auto addVideoTrack() -> int;
 	void alignSelectedClips();
 	void onShowFrame(const SharedFrame& frame);
 	void onSeeked(int position);
 	void append(int trackIndex);
 	void remove(int trackIndex, int clipIndex, bool ignoreTransition = false);
-	bool mergeClipWithNext(int trackIndex, int clipIndex, bool dryrun);
+	auto mergeClipWithNext(int trackIndex, int clipIndex, bool dryrun) -> bool;
 	void lift(int trackIndex, int clipIndex, bool ignoreTransition = false);
 	void removeSelection(bool withCopy = false);
 	void liftSelection();
@@ -186,14 +201,14 @@ class TimelineDock : public QDockWidget {
 	void toggleOtherTracksHidden(int trackIndex);
 	void setTrackComposite(int trackIndex, bool composite);
 	void setTrackLock(int trackIndex, bool lock);
-	bool moveClip(int fromTrack, int toTrack, int clipIndex, int position, bool ripple);
+	auto moveClip(int fromTrack, int toTrack, int clipIndex, int position, bool ripple) -> bool;
 	void onClipMoved(int fromTrack, int toTrack, int clipIndex, int position, bool ripple);
-	bool trimClipIn(int trackIndex, int clipIndex, int oldClipIndex, int delta, bool ripple, bool roll);
-	bool trimClipOut(int trackIndex, int clipIndex, int delta, bool ripple, bool roll);
+	auto trimClipIn(int trackIndex, int clipIndex, int oldClipIndex, int delta, bool ripple, bool roll) -> bool;
+	auto trimClipOut(int trackIndex, int clipIndex, int delta, bool ripple, bool roll) -> bool;
 	void insert(int trackIndex, int position = -1, const QString& xml = QString(), bool seek = true);
 	void overwrite(int trackIndex, int position = -1, const QString& xml = QString(), bool seek = true);
 	void appendFromPlaylist(Mlt::Playlist* playlist, bool skipProxy, bool emptyTrack);
-	bool changeGain(int trackIndex, int clipIndex, double gain);
+	auto changeGain(int trackIndex, int clipIndex, double gain) -> bool;
 	void fadeIn(int trackIndex, int clipIndex = -1, int duration = -1);
 	void fadeOut(int trackIndex, int clipIndex = -1, int duration = -1);
 	void seekPreviousEdit();
@@ -234,26 +249,26 @@ class TimelineDock : public QDockWidget {
 	void onLoopChanged(int start, int end);
 
   protected:
-	void dragEnterEvent(QDragEnterEvent* event);
-	void dragMoveEvent(QDragMoveEvent* event);
-	void dragLeaveEvent(QDragLeaveEvent* event);
-	void dropEvent(QDropEvent* event);
-	bool event(QEvent* event);
-	void keyPressEvent(QKeyEvent* event);
-	void keyReleaseEvent(QKeyEvent* event);
+	void dragEnterEvent(QDragEnterEvent* event) override;
+	void dragMoveEvent(QDragMoveEvent* event) override;
+	void dragLeaveEvent(QDragLeaveEvent* event) override;
+	void dropEvent(QDropEvent* event) override;
+	auto event(QEvent* event) -> bool override;
+	void keyPressEvent(QKeyEvent* event) override;
+	void keyReleaseEvent(QKeyEvent* event) override;
 
   private:
-	bool isBlank(int trackIndex, int clipIndex);
-	bool clipsAreSelected();
-	bool blankIsSelected();
-	bool nothingIsSelected();
-	bool isTransition(int trackIndex, int clipIndex);
-	bool isEmptyTrack(Mlt::Playlist& playlist);
+	auto isBlank(int trackIndex, int clipIndex) -> bool;
+	auto clipsAreSelected() -> bool;
+	auto blankIsSelected() -> bool;
+	auto nothingIsSelected() -> bool;
+	auto isTransition(int trackIndex, int clipIndex) -> bool;
+	auto isEmptyTrack(Mlt::Playlist& playlist) -> bool;
 	void emitNonSeekableWarning();
 	void addTrackIfNeeded(int mltTrackIndex, Mlt::Producer* srcTrack);
 	void setupActions();
 
-	bool isMultitrackValid() {
+	auto isMultitrackValid() -> bool {
 		return m_model.tractor() && !m_model.trackList().empty();
 	}
 
